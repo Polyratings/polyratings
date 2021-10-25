@@ -1,0 +1,100 @@
+import { collection, Firestore, getFirestore, initializeFirestore } from "@firebase/firestore";
+import { initializeApp } from "firebase/app";
+
+const firebaseConfig = {
+    apiKey: "AIzaSyAJvWmymBMc4y3E1f7tzKRk2dNu2MrDyAM",
+    authDomain: "polyratings-2.firebaseapp.com",
+    projectId: "polyratings-2",
+    storageBucket: "polyratings-2.appspot.com",
+    messagingSenderId: "72072327235",
+    appId: "1:72072327235:web:2a7e22b5e9e6f4ec46e4f6",
+    measurementId: "G-ZSK8HCP6DF"
+  };
+
+export const app = initializeApp(firebaseConfig);
+
+const firebase = getFirestore(app)
+export const collections = {
+    teachers:collection(firebase, 'teachers'),
+    classes:collection(Firestore,'classes',
+    reviews:'reviews',
+    aggregate:'aggregate'
+}
+
+
+
+import { Teacher } from "../models/Teacher";
+import { config } from "../App.config";
+import { app, collections } from "../FirebaseConfig";
+import { getFirestore, collection, doc, getDoc } from 'firebase/firestore'
+import { TeacherEntity } from "../entities/TeacherEntity";
+import { ClassEntity } from "../entities/ClassEntity";
+import { Review } from "../models/Review";
+import { Class } from "../models/Class";
+
+const firestore = getFirestore(app)
+
+const ALL_TEACHERS_DOC_NAME = 'allTeachers'
+const BEST_TEACHER_DOC_NAME = 'bestTeachers'
+const WORST_TEACHER_DOC_NAME = 'worstTeachers'
+
+
+export async function getRandomBestTeacher(): Promise<Teacher> {
+    const bestTeachersDoc = await getDoc(doc(collections.aggregate, BEST_TEACHER_DOC_NAME))
+    const bestTeachers = bestTeachersDoc.data()![BEST_TEACHER_DOC_NAME] as Teacher[]
+    return getRandomSubarray(bestTeachers, 1)[0]
+}
+
+export async function getRandomWorstTeachers(): Promise<Teacher[]> {
+    const worstTeachersDoc = await getDoc(doc(collections.aggregate, WORST_TEACHER_DOC_NAME))
+    const worstTeachers = worstTeachersDoc.data()![WORST_TEACHER_DOC_NAME] as Teacher[]
+    return getRandomSubarray(worstTeachers, 6)
+}
+
+export async function getTeacher(id:string): Promise<Teacher> {
+    const teacherDoc = await getDoc(doc(collections.teachers, id))
+    if(!teacherDoc.exists()) {
+        throw 'Teacher does not exist'
+    }
+    const teacherData = teacherDoc.data() as TeacherEntity
+    const classEntities = await Promise.all(teacherData
+        .classes
+        .map(async classId => {
+            const classDoc = await getDoc(doc(collections.classes, classId))
+            if(!classDoc.exists()) {
+                throw 'Could not load classes for specified teacher'
+            }
+            return classDoc.data() as ClassEntity
+        }))
+    const classes = await Promise.all(classEntities.map(async classEntity => {
+        const reviews = await Promise.all(classEntity.reviews.map(async reviewId => {
+            const reviewDoc = await getDoc(doc(collections.reviews, reviewId))
+            return reviewDoc.data() as Review
+        }))
+        const classObject = classEntity as any as Class
+        classObject.reviews = reviews
+        return classObject
+    }))
+    const teacher = teacherData as any as Teacher
+    teacher.classes = classes
+    return teacher
+}
+
+export async function getAllTeachers(): Promise<Teacher[]> {
+    const allTeachersDoc = await getDoc(doc(collections.aggregate, ALL_TEACHERS_DOC_NAME))
+    return allTeachersDoc.data()![ALL_TEACHERS_DOC_NAME] as Teacher[]
+}
+
+function getRandomSubarray<T>(arr:T[], size:number):T[] {
+    var shuffled = arr.slice(0), i = arr.length, min = i - size, temp, index;
+    while (i-- > min) {
+        index = Math.floor((i + 1) * Math.random());
+        temp = shuffled[index];
+        shuffled[index] = shuffled[i];
+        shuffled[i] = temp;
+    }
+    return shuffled.slice(min);
+}
+
+
+

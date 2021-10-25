@@ -1,0 +1,32 @@
+import { Home } from './pages/Home';
+import {
+  BrowserRouter,
+  Switch,
+  Route,
+} from "react-router-dom";
+import { Navbar } from './components/Navbar';
+import { Teacher } from './pages/Teacher';
+import { Search } from './pages/Search';
+import { Login } from './pages/Login';
+import { Register } from './pages/Register';
+import { ConfirmEmailCard } from './pages/ConfirmEmailCard';
+import { ConfirmEmail } from './pages/ConfrimEmail';
+
+function App() {
+  return(
+    <BrowserRouter>
+      <Navbar />
+      <Switch>
+      <Route path="/teacher/:id" component={Teacher} />
+      <Route path="/search/:searchTerm" component={Search} />
+      <Route path="/login" component={Login} />
+      <Route path="/register" component={Register} />
+      <Route path="/confirmEmailCard/:cpUserName" component={ConfirmEmailCard} />
+      <Route path="/confirmEmail/:userId/:otp" component={ConfirmEmail} />
+      <Route path="/" component={Home} />
+    </Switch>
+  </BrowserRouter>
+  )
+}
+
+export default App
