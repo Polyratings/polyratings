@@ -18,6 +18,9 @@ import { join } from 'path';
       username: process.env.POSTGRES_USER,
       password: process.env.POSTGRES_PASSWORD,
       database: process.env.POSTGRES_DATABASE,
+      ssl: process.env.POSTGRES_CA_CERT ? {
+        ca: process.env.POSTGRES_CA_CERT
+      } : undefined,
       autoLoadEntities:true,
       synchronize:true,
       cache:true
