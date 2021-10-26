@@ -8,6 +8,7 @@ import AnchorLink from 'react-anchor-link-smooth-scroll'
 import StarRatings from 'react-star-ratings';
 import { Review } from "../models/Review";
 import { useService } from "../hooks/useService";
+import { Backdrop } from '../components/Backdrop'
 
 export function Teacher() {
     let { id } = useParams<{id:string}>();
@@ -47,6 +48,7 @@ export function Teacher() {
 
     return(
         <div>
+            {/* <EvaluateTeacherForm teacher={teacherData}/> */}
             <div className="container lg:max-w-5xl mx-auto hidden sm:flex justify-between py-2">
                 <div>
                     <h2 className="text-4xl text-cal-poly-green">{teacherData.name}</h2>
@@ -145,5 +147,24 @@ function ReviewCard({review}:{review:Review}) {
             <div className="hidden lg:flex bg-cal-poly-green w-1 mr-4 mt-2 mb-2 flex-shrink-0"></div>
             <div className="flex-grow">{review.text}</div>
         </div>  
+    )
+}
+
+function EvaluateTeacherForm({teacher}:{teacher:TeacherModel}) {
+
+    // Fix scroll position
+    useEffect(() => {
+        document.body.style.overflowY = "hidden"
+        return () => {
+            document.body.style.overflowY = "auto"
+        }
+    },[])
+    
+    return(
+        <Backdrop onClick={()=>{}}>
+            <div className="p-5 bg-gray-100 opacity-100 rounded shadow" style={{width:'500px'}}>
+                <h2 className="text-xl font-bold">Evaluate {teacher.name}</h2>
+            </div>
+        </Backdrop>
     )
 }
