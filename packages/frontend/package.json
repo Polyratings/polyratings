@@ -18,6 +18,7 @@
     "react-firebase-hooks": "^3.0.4",
     "react-router-dom": "^5.3.0",
     "react-star-ratings": "^2.3.0",
+    "react-toastify": "^8.0.3",
     "react-virtualized": "^9.22.3",
     "react-virtualized-auto-sizer": "^1.0.6",
     "rxjs": "^7.4.0",

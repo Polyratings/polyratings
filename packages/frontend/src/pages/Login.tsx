@@ -61,6 +61,7 @@ export function Login() {
                             <p className="text-red-600">{errorText}</p>
                         </div>
                         <button className="w-full h-11 rounded bg-cal-poly-green text-white" type="submit" >Continue</button>
+                        <div className="text-center mt-1">Don't have an account? <Link to="/register" style={{ color: '#0000EE' }}>Register</Link></div>
                     </form>
                 </div>
             </div>

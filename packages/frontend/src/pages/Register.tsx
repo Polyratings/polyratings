@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useHistory } from "react-router";
+import { Link } from "react-router-dom";
 import loginBackground from '../assets/home-header.png'
 import { useService } from "../hooks/useService";
 import { AuthService } from "../services";
@@ -12,6 +13,7 @@ export function Register() {
     let [authService] = useService(AuthService)
     let history = useHistory()
 
+    //TODO: Toast on protected route
     const registerUser = async (event:React.FormEvent<HTMLFormElement>) => {
         event.preventDefault()
 
@@ -73,6 +75,7 @@ export function Register() {
                             <p className="text-red-600">{errorText}</p>
                         </div>
                         <button className="w-full h-11 rounded bg-cal-poly-green text-white" type="submit" >Continue</button>
+                        <div className="text-center mt-1">Already have an account? <Link to="/login" style={{ color: '#0000EE' }}>Login</Link></div>
                     </form>
                 </div>
             </div>

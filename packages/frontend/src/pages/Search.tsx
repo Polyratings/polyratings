@@ -124,6 +124,7 @@ function Filters({teachers, onUpdate, className}:FilterProps) {
         const departments = [...(new Set(teachers.map(t => t.department)))]
         const initialDepartmentList:[string,boolean][] = departments
             .filter(dep => !!dep)
+            .sort()
             .map(dep => [dep, false])
         setDepartmentFilters(initialDepartmentList)
 

@@ -11,10 +11,13 @@ import { Login } from './pages/Login';
 import { Register } from './pages/Register';
 import { ConfirmEmailCard } from './pages/ConfirmEmailCard';
 import { ConfirmEmail } from './pages/ConfrimEmail';
+import 'react-toastify/dist/ReactToastify.css';
+import { ToastContainer } from 'react-toastify';
 
 function App() {
   return(
     <BrowserRouter>
+      <ToastContainer />
       <Navbar />
       <Switch>
       <Route path="/teacher/:id" component={Teacher} />

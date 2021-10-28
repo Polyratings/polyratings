@@ -31,13 +31,25 @@ export function Navbar() {
 
             <AnimateHeight duration={500} height={mobileNavOpen ? 'auto' : 0} className="absolute top-12 left-0 bg-cal-poly-green w-full z-50 transform -translate-y-1">
                 <div className="flex flex-col text-center text-xl text-white">
-                    <Link className="my-1" to="/search/__all" onClick={triggerMobileNav} > Professor List</Link>
+                    <Link className="my-1" to="/" onClick={triggerMobileNav} >Home</Link>
+                    <Link className="my-1" to="/search/__all" onClick={triggerMobileNav} >Professor List</Link>
                     {/* <Link className="mr-7" to="contact">Contact</Link> */}
                     {!isAuthenticated &&
-                    <div>
                         <Link to="/login" className="my-1" onClick={triggerMobileNav} >Login</Link>
+                    }
+                    {!isAuthenticated &&
                         <Link to="/register" className="my-1" onClick={triggerMobileNav} >Register</Link>
-                    </div>
+                    }
+                    {isAuthenticated &&
+                        <div 
+                            className="my-1" 
+                            onClick={() => {
+                                authService.signOut()
+                                triggerMobileNav()
+                            }} 
+                        >
+                            Sign Out
+                        </div>
                     }
                 </div>
             </AnimateHeight>
