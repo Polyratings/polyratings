@@ -65,35 +65,6 @@ export class ReviewService {
     private recalculateAverage(original:number, count:number, newValue:number):number {
         return original * count * newValue / (count + 1)
     }
-
-    async setTimestamps() {
-        const allReviews = await this.reviewRepository.find()
-        const monthMap = {
-            Jan:0,
-            Feb:1,
-            Mar:2,
-            Apr:3,
-            May:4,
-            Jun:5,
-            Jul:6,
-            Aug:7,
-            Sep:8,
-            Oct:9,
-            Nov:10,
-            Dec:11
-        }
-        const allReviewsTimestampCorrected = allReviews.map(review => {
-            const [monthStr, yearStr] = review.timeStamp.split(' ').map(s => s.trim())
-            const year = parseInt(yearStr)
-            const monthNum = monthMap[monthStr]
-            if(monthNum == undefined) {
-                throw 'Canceling migration issue ' + monthStr
-            }
-            review.createdAt = new Date(year, monthNum)
-            return review
-        })
-        this.reviewRepository.save(allReviewsTimestampCorrected, {chunk:30})
-    }
     
     private isNumeric(str:string) {
         return !isNaN(str as any) && // use type coercion to parse the _entirety_ of the string (`parseFloat` alone does not do this)...

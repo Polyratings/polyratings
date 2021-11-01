@@ -16,8 +16,6 @@ export class Review {
     @IsNotEmpty()
     reasonForTaking:string
 
-    timeStamp:string
-
     @IsNotEmpty()
     text:string
 }

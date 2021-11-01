@@ -14,8 +14,4 @@ export class ReviewController {
         return this.reviewService.addReview(reviewAdditionRequest)
     }
 
-    @Get('fixTimestamp')
-    async fixTimestamps() {
-        await this.reviewService.setTimestamps()
-    }
 }
