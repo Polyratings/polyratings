@@ -44,8 +44,3 @@ export class TeacherService {
         }
     }
 }
-
-
-
-
-

@@ -11,6 +11,7 @@ import { ReviewEntity } from 'src/models/entities/review.entitiy';
     TypeOrmModule.forFeature([TeacherEntity, ClassEntity, ReviewEntity])
   ],
   controllers: [TeacherController],
-  providers: [TeacherService]
+  providers: [TeacherService],
+  exports:[TeacherService]
 })
 export class TeacherModule {}

@@ -25,7 +25,7 @@ export class ReviewEntity {
     @Column('varchar', { length: 255 })
     reasonForTaking:string
 
-    @Column('varchar', { length: 255 })
+    @Column('varchar', { length: 255, default:'' })
     timeStamp:string
 
     @Column('text')

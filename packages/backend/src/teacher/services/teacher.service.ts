@@ -17,15 +17,13 @@ export class TeacherService {
     }
 
     async getTeacherByName(name:string = ''): Promise<Teacher[]> {
-        const ONE_DAY = 86_400_000; 
         const tokenMatches =  await Promise.all(
             name
             .split(' ')
             .map(token => this.teacherRepository.find({
                 where:{
                     name:ILike(`%${token}%`)
-                },
-                cache: ONE_DAY
+                }
             }))
         )
         const { intersect, nonIntersect } = this.intersect(tokenMatches)
@@ -33,9 +31,22 @@ export class TeacherService {
     }
 
     async getTeacherById(id:string): Promise<Teacher | undefined> {
-        const result = await this.teacherRepository.findOne(id, {relations:['classes', 'classes.reviews']})
+        const result = await this.teacherRepository.findOne(id, {
+            relations:['classes', 'classes.reviews'],
+        })
         if(result) {
-            return plainToClass(Teacher, result)
+            const teacher =  plainToClass(Teacher, result)
+            // In memory sort of reviews by timestamp
+            // Would like to do this at the database level but it is not supported yet
+            // https://github.com/typeorm/typeorm/issues/2620
+            teacher
+            .classes
+            .forEach(taughtClass => 
+                taughtClass.reviews.sort( (a,b) => 
+                    new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+                )
+            )
+            return teacher
         }
     }
 

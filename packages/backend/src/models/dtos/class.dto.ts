@@ -1,5 +1,5 @@
 import { Type } from "class-transformer";
-import { IsNotEmpty, ValidateNested } from "class-validator";
+import { IsNotEmpty, MaxLength, ValidateNested } from "class-validator";
 import { Review } from "./review.dto";
 import { Teacher } from "./teacher.dto";
 
@@ -10,6 +10,7 @@ export class Class {
     teacher?:Teacher
 
     @IsNotEmpty()
+    @MaxLength(255)
     name:string
 
     @ValidateNested({ each: true })

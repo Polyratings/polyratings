@@ -1,6 +1,10 @@
 (x) New Teacher Form
 (x) Review Form
-(x) Forgot email and login->register link
+    (/) desktop
+    (x) mobile
+    (/) backend
+(x) Forgot email
 (x) admin panel
-(x) db migration for timestamps
+(/) db migration for timestamps
 (/) hosting
+(x) no results label on search

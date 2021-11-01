@@ -63,7 +63,6 @@ export class AuthService {
             otp:this.generateOtp()
         })
 
-        // TODO: Get frontend from config
         // TODO: Get real email
         const confirmEmail = {
             from: 'maxmfishernj@gmail.com', // Change to your verified sender
@@ -72,7 +71,7 @@ export class AuthService {
                 dynamic_template_data:{
                     otp:newUser.otp,
                     user_id:newUser.id,
-                    frontend_url:'http://localhost:3000'
+                    frontend_url:process.env.FRONTEND_URL
                 }
             }],
             template_id:'d-1bd8f590eeb443ca95f0913a222f9bd1'

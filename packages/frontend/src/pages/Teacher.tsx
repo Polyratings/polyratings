@@ -6,12 +6,15 @@ import { TeacherService } from "../services";
 import AnimateHeight from 'react-animate-height';
 import AnchorLink from 'react-anchor-link-smooth-scroll'
 import StarRatings from 'react-star-ratings';
-import { Review } from "../models/Review";
+import { Review, ReviewUpload } from "../models/Review";
 import { useService } from "../hooks/useService";
 import { Backdrop } from '../components/Backdrop'
 import { departments } from "../constants/departments";
 import { useAuth } from "../hooks/useAuth";
 import { toast } from "react-toastify";
+import { useForm, SubmitHandler, FieldErrors} from "react-hook-form";
+import { ErrorMessage } from '@hookform/error-message'
+import { ReviewService } from "../services";
 
 export function Teacher() {
     let { id } = useParams<{id:string}>();
@@ -67,7 +70,7 @@ export function Teacher() {
             {
                 teacherEvaluationShown &&
                 <Backdrop onClick={toggleTeacherEvaluationForm}>
-                    <EvaluateTeacherForm teacher={teacherData} closeForm={toggleTeacherEvaluationForm}/>
+                    <EvaluateTeacherForm teacher={teacherData} setTeacher={setTeacherData} closeForm={toggleTeacherEvaluationForm}/>
                 </Backdrop>
             }
 
@@ -99,7 +102,9 @@ export function Teacher() {
                 <p>Overall Rating: {teacherData.overallRating} / 4.00</p>
                 <p>Recognizes Student Difficulties: {teacherData.recognizesStudentDifficulties}</p>
                 <p>Presents Material Clearly: {teacherData.presentsMaterialClearly}</p>
+                <button onClick={toggleTeacherEvaluationForm} className="bg-cal-poly-green text-white rounded-lg p-2 shadow mt-2">Evaluate Teacher</button>
             </div>
+
             <div className="container lg:max-w-5xl bg-cal-poly-green h-1 mx-auto my-2"></div>
 
             {
@@ -165,7 +170,7 @@ function ReviewCard({review}:{review:Review}) {
                 <div>{review.year}</div>
                 <div>{review.grade}</div>
                 <div>{review.reasonForTaking}</div>
-                <div>{review.timeStamp}</div>
+                <div>{new Date(review.createdAt).toLocaleString('en-US', {year: 'numeric', month: 'short'})}</div>
             </div>
             <div className="hidden lg:flex bg-cal-poly-green w-1 mr-4 mt-2 mb-2 flex-shrink-0"></div>
             <div className="flex-grow">{review.text}</div>
@@ -175,20 +180,63 @@ function ReviewCard({review}:{review:Review}) {
 
 interface EvaluateTeacherFormProps {
     teacher:TeacherModel
+    setTeacher:(teacher:TeacherModel) => void
     closeForm:() => void
 }
-function EvaluateTeacherForm({teacher, closeForm}:EvaluateTeacherFormProps) {
+function EvaluateTeacherForm({teacher, setTeacher, closeForm}:EvaluateTeacherFormProps) {
 
-    let [knownClass, setKnownClass] = useState(teacher.classes ? teacher.classes![0].id : 0)
-    let [overallRating, setOverallRating] = useState(-1)
-    let [recognizesStudentDifficulties, setRecognizesStudentDifficulties] = useState(-1)
-    let [presentsMaterialClearly, setPresentsMaterialClearly] = useState(-1)
-    let [review, setReview] = useState('')
+    type Inputs = {
+        knownClass:string
+        overallRating:number
+        recognizesStudentDifficulties:number
+        presentsMaterialClearly:number
+        reviewText:string
+        unknownClassDepartment:string
+        unknownClassNumber:number
+        year:string
+        grade:string
+        reasonForTaking:string
+    }
 
-    const numericalRatings = [
-        { label: 'Overall Rating', value:overallRating, setValue: setOverallRating},
-        { label: 'Recognizes Student Difficulties:', value:recognizesStudentDifficulties, setValue: setRecognizesStudentDifficulties},
-        { label: 'Presents Material Clearly', value:presentsMaterialClearly, setValue: setPresentsMaterialClearly},
+    const { register, handleSubmit, watch, formState: { errors } } = useForm<Inputs>();
+    const knownClassValue = watch('knownClass')
+    const [reviewService] = useService(ReviewService)
+    const [networkErrorText, setNetworkErrorText] = useState('')
+    const onSubmit: SubmitHandler<Inputs> = async formResult => {
+        const newReview:ReviewUpload = {
+            overallRating:formResult.overallRating,
+            recognizesStudentDifficulties:formResult.recognizesStudentDifficulties,
+            presentsMaterialClearly:formResult.presentsMaterialClearly,
+            teacherId:teacher.id,
+            classIdOrName: formResult.knownClass || `${formResult.unknownClassDepartment} ${formResult.unknownClassNumber}`,
+            review: {
+                year:formResult.year,
+                grade:formResult.grade,
+                reasonForTaking: formResult.reasonForTaking,
+                text:formResult.reviewText
+            }
+        }
+        try {
+            const newTeacherData = await reviewService.uploadReview(newReview)
+            setTeacher(newTeacherData)
+            toast.success('Thank you for your review')
+            closeForm()
+        } catch(e) {
+            setNetworkErrorText(e as string)
+        }
+
+    };
+
+    const numericalRatings:{label:string, inputName:keyof Inputs}[] = [
+        { label: 'Overall Rating', inputName:'overallRating'},
+        { label: 'Recognizes Student Difficulties', inputName:'recognizesStudentDifficulties'},
+        { label: 'Presents Material Clearly', inputName:'presentsMaterialClearly'},
+    ]
+
+    const classInformation:{label:string, inputName:keyof Inputs, options:string[]}[] = [
+        { label: 'Year', inputName:'year', options:['Freshman', 'Sophomore', 'Junior', 'Senior', 'Grad']},
+        { label: 'Grade Achieved', inputName:'grade', options:['A', 'A-', 'B+', 'B', 'B-', 'C+', 'C', 'C-', 'D+', 'D', 'D-', 'F', 'CR', 'NC']},
+        { label: 'Reason For Taking', inputName:'reasonForTaking', options:['Required (Major)', 'Required (Support)', 'Elective']},
     ]
 
     // Fix scroll position
@@ -200,64 +248,74 @@ function EvaluateTeacherForm({teacher, closeForm}:EvaluateTeacherFormProps) {
     },[])
     
     return(
-        <div className="p-5 bg-gray-300 opacity-100 rounded shadow cursor-default relative" style={{width:'475px'}}>
+        <form className="p-5 bg-gray-300 opacity-100 rounded shadow cursor-default relative" style={{width:'475px'}} onSubmit={handleSubmit(onSubmit)}>
             <div className="absolute right-0 top-0 p-3 font-bold cursor-pointer" onClick={closeForm}>X</div>
             <h2 className="text-2xl font-bold">Evaluate {teacher.name}</h2>
 
             <h4 className="mt-4">Class</h4>
-            <div className="flex justify-between mb-3">
-                <select 
-                    className="h-7 rounded w-40" 
-                    value={knownClass} 
-                    onChange={e => setKnownClass(parseInt(e.target.value))}
-                >
+            <div className="flex justify-between">
+                <select className="h-7 rounded w-40" {...register('knownClass')}>
                     {teacher.classes?.map((c) => <option value={c.id} key={c.id}>{c.name}</option>)}
-                    <option value="0">Other</option>
+                    <option value="">Other</option>
                 </select>
                 <div>
-                    <select className="h-7 rounded" disabled={knownClass != 0}>
+                    <select className="h-7 rounded" disabled={!!knownClassValue} {...register('unknownClassDepartment')}>
                         {departments.map(d => <option key={d} value={d}>{d}</option>)}
                     </select>
-                    <input className="h-7 w-16 ml-2 rounded" type="number" placeholder="class #"  disabled={knownClass != 0}/>
+                    <input 
+                        className="h-7 w-16 ml-2 rounded appearance-none" 
+                        type="number" 
+                        placeholder="class #"  
+                        disabled={!!knownClassValue} 
+                        {...register('unknownClassNumber', {required:{value:knownClassValue == '0', message:'Class Number is required'}})}
+                    />
                 </div>
             </div>
-            {numericalRatings.map(rating =>
-                <div className="mt-1 flex justify-between" key={rating.label}>
-                    <h4>{rating.label}</h4>
-                    <RatingRow value={rating.value} setValue={rating.setValue}/>
-                </div>
-            )}
-            <h4 className="mt-2">Review:</h4>
-            <textarea value={review} onChange={e => setReview(e.target.value)} className="w-full h-52 rounded"></textarea>
+            <ErrorMessage errors={errors} name="unknownClassNumber" as="div" className="text-red-500 text-sm"/>
+            <div className="mt-4">
+                {numericalRatings.map(rating =>
+                    <div key={rating.label}>
+                        <div className="mt-1 flex justify-between">
+                            <h4>{rating.label}</h4>
+                            <div className="flex">
+                            {[0,1,2,3,4].map(n =>
+                            <label key={n} className="mr-3">
+                                <input 
+                                    type="radio"
+                                    className="mr-1 form-radio"
+                                    value={n}
+                                    {...register(rating.inputName, {required:{value:true, message:`${rating.label} is required`}})}>
+                                </input>
+                                {n}
+                            </label>
+                            )}
+                            </div>
+                        </div>
+                        <ErrorMessage errors={errors} name={rating.inputName} as="div" className="text-red-500 text-sm"/>
+                    </div>
+                )}
+            </div>
+            <div className="mt-4">
+                {classInformation.map(dropdown =>
+                    <div key={dropdown.label}>                        
+                        <div className="mt-1 flex justify-between">
+                            <h4>{dropdown.label}</h4>
+                            <select {...register(dropdown.inputName)} className="w-40">
+                                {dropdown.options.map(option => <option value={option} key={option}>{option}</option>)}
+                            </select>
+                        </div>
+                    </div>
+                )}
+            </div>
+            <h4 className="mt-4">Review:</h4>
+            <textarea {...register('reviewText', {required:{value:true, message:'Writing a review is required'}})} className="w-full h-52 rounded"></textarea>
+            <ErrorMessage errors={errors} name="reviewText" as="div" className="text-red-500 text-sm"/>
             <div className="flex justify-center mt-2">
                 <button className="bg-cal-poly-green text-white rounded-lg p-2 shadow w-24">
                     Submit
                 </button>
             </div>
-        </div>
-    )
-}
-
-interface RatingRowProps {
-    value:number,
-    setValue:(val:number) => void
-}
-function RatingRow({value, setValue}:RatingRowProps) {
-    return(
-        <div className="flex">
-            {[0,1,2,3,4].map(n =>
-            <label key={n} className="mr-3">
-                <input 
-                    type="radio"
-                    className="mr-1"
-                    checked={value == n}
-                    onChange={e => setValue(parseInt(e.target.value))}
-                    value={n}>
-                </input>
-                {n}
-            </label>
-
-            )}
-        </div>
+            <div className="text-red-500 text-sm">{networkErrorText}</div>
+        </form>
     )
 }
