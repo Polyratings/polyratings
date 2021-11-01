@@ -1,4 +1,5 @@
-import { Body, Controller, Get, Post } from '@nestjs/common';
+import { Body, Controller, Get, Post, UseGuards } from '@nestjs/common';
+import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
 import { AddReview } from 'src/models/dtos/addReview.dto';
 import { ReviewService } from './review.service';
 
@@ -9,6 +10,7 @@ export class ReviewController {
         private reviewService:ReviewService
     ){}
 
+    @UseGuards(JwtAuthGuard)
     @Post('add')
     async addReview(@Body() reviewAdditionRequest:AddReview) {
         return this.reviewService.addReview(reviewAdditionRequest)
