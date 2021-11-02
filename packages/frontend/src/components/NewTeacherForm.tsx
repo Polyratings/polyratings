@@ -1,0 +1,121 @@
+
+import { useState, useRef } from "react";
+import { useService } from "../hooks/useService";
+import { departments } from "../constants/departments";
+import { useForm } from "react-hook-form";
+import { ErrorMessage } from '@hookform/error-message'
+import { TeacherService } from "../services";
+import { EvaluateTeacherForm } from "./EvaluateTeacherForm";
+import { ReviewUpload } from "../models/Review";
+import ClipLoader from "react-spinners/ClipLoader";
+import { Teacher, TeacherCreation } from "../models/Teacher";
+import { toast } from "react-toastify";
+import { useHistory } from "react-router";
+
+interface NewTeacherFormInputs {
+    teacherFirstName:string
+    teacherLastName:string
+    teacherDepartment:string
+}
+
+export const NEW_TEACHER_FORM_WIDTH = 475
+
+export function NewTeacherForm() {
+
+    const { register, handleSubmit, formState: { errors } } = useForm<NewTeacherFormInputs>();
+    const [teacherService] = useService(TeacherService)
+    const [networkErrorText, setNetworkErrorText] = useState('')
+    const [loading, setLoading] = useState(false)
+    const reviewFormRef = useRef<HTMLFormElement>(null)
+    const teacherFormRef = useRef<HTMLFormElement>(null)
+    const history = useHistory()
+
+    // This is needed to synchronize the two forms
+    const kickOffSubmit = () => {
+        // @ts-expect-error Ignore ts error for onSubmit handler
+        teacherFormRef.current!.onsubmit = handleSubmit(()=>{})
+        // Double submit form to get error messages
+        teacherFormRef.current?.requestSubmit()
+        reviewFormRef.current?.requestSubmit()
+    }
+
+    // Use closure in order to access the data from the two forms
+    const reviewFormSubmitOverride = (reviewOverrideData:ReviewUpload) => {
+        // @ts-expect-error Ignore ts error for onSubmit handler
+        teacherFormRef.current!.onsubmit = handleSubmit(async teacherData => {
+            setLoading(true)
+            const newTeacher:TeacherCreation = {
+                name:`${teacherData.teacherLastName}, ${teacherData.teacherFirstName}`,
+                department:teacherData.teacherDepartment,
+                numberOfEvaluations:1,
+                overallRating: reviewOverrideData.overallRating,
+                recognizesStudentDifficulties: reviewOverrideData.recognizesStudentDifficulties,
+                presentsMaterialClearly: reviewOverrideData.presentsMaterialClearly,
+                classes:[{
+                    name:reviewOverrideData.classIdOrName,
+                    reviews:[reviewOverrideData.review]
+                }]
+            }
+            try {
+                const newTeacherId = await teacherService.addNewTeacher(newTeacher)
+                toast.success('Thank you for adding a teacher')
+                history.push(`/teacher/${newTeacherId}`)
+            } catch(e) {
+                setNetworkErrorText(e as string)
+            }
+            setLoading(false)
+        })
+        teacherFormRef.current?.requestSubmit()
+    }
+
+    return(
+        <div className="p-5 bg-gray-300 opacity-100 rounded relative" style={{width:475}}>
+            <form onSubmit={handleSubmit(() => {})} ref={teacherFormRef}>
+                <h2 className="text-2xl font-bold">Teacher</h2>
+                <div className="flex mt-2">
+                    <h4>Department</h4>
+                    <select className="h-7 rounded ml-2" {...register('teacherDepartment')}>
+                        {departments.map(d => <option key={d} value={d}>{d}</option>)}
+                    </select>
+                </div>
+                <div className="flex mt-2">
+                    <h4>First Name</h4>
+                    <input
+                        type="text"
+                        className="rounded h-7 w-44 ml-4 pl-2"
+                        placeholder="First Name"
+                        {...register('teacherFirstName',{required:{value:true, message:'Teacher First Name Required'}})}
+                    />
+                </div>
+                <div className="flex mt-1">
+                    <h4>Last Name</h4>
+                    <input
+                        type="text"
+                        className="rounded h-7 w-44 ml-4 pl-2"
+                        placeholder="Last Name"
+                        {...register('teacherLastName',{required:{value:true, message:'Teacher Last Name Required'}})}
+                    />
+                </div>
+                <ErrorMessage errors={errors} name="teacherName" as="div" className="text-red-500 text-sm"/>
+                <ErrorMessage errors={errors} name="teacherName" as="div" className="text-red-500 text-sm"/>
+            </form>
+            <h2 className="text-2xl font-bold my-2">Review</h2>
+            <EvaluateTeacherForm teacher={null} setTeacher={() => {}} closeForm={() => {}} innerRef={reviewFormRef} overrideSubmitHandler={reviewFormSubmitOverride}/>
+            
+            <div className="flex justify-center mt-2">
+                <button
+                    className="bg-cal-poly-green text-white rounded-lg p-2 shadow w-24"
+                    type="button"
+                    onClick={kickOffSubmit}
+                    style={{display: loading ? 'none' : 'block'}}
+                >
+                    Submit
+                </button>
+                {/* Exact size for no layer shift */}
+                <ClipLoader color={'#1F4715'} loading={loading} size={34}/>
+            </div>
+            <div className="text-red-500 text-sm">{networkErrorText}</div>
+        </div>
+        
+    )
+}

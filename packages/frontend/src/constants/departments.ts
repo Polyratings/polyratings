@@ -54,4 +54,4 @@ export const departments = [
     "SCI",
     "GBA",
     "WS"
-]
+].sort()

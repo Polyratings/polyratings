@@ -13,6 +13,7 @@ import { ConfirmEmailCard } from './pages/ConfirmEmailCard';
 import { ConfirmEmail } from './pages/ConfrimEmail';
 import 'react-toastify/dist/ReactToastify.css';
 import { ToastContainer } from 'react-toastify';
+import { NewTeacher } from './pages/NewTeacher';
 
 function App() {
   return(
@@ -26,6 +27,7 @@ function App() {
       <Route path="/register" component={Register} />
       <Route path="/confirmEmailCard/:cpUserName" component={ConfirmEmailCard} />
       <Route path="/confirmEmail/:userId/:otp" component={ConfirmEmail} />
+      <Route path="/newTeacher" component={NewTeacher} />
       <Route path="/" component={Home} />
     </Switch>
   </BrowserRouter>

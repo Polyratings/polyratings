@@ -11,7 +11,7 @@ export interface ReviewCreation {
 }
 
 export interface ReviewUpload {
-    teacherId:number
+    teacherId:number | null
     classIdOrName:string
     review:ReviewCreation
     overallRating:number

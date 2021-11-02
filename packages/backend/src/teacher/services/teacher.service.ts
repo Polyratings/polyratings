@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { TeacherEntity } from 'src/models/entities/teacher.entity';
 import { Teacher } from 'src/models/dtos/teacher.dto';
@@ -12,7 +12,26 @@ export class TeacherService {
         private readonly teacherRepository: Repository<TeacherEntity>
     ){}
     
-    createTeacher(teacher:Teacher): Promise<TeacherEntity | undefined> {
+    async createTeacher(teacher:Teacher): Promise<TeacherEntity> {
+        // Checks to make sure new teacher is not being shoved in with multiple reviews
+        if(teacher.numberOfEvaluations != 1) {
+            throw new BadRequestException('Can only insert a teacher with numberOfEvaluations == 1')
+        }
+        if(teacher.classes.length != 1) {
+            throw new BadRequestException('Can only insert a teacher with one class')
+        }
+        if(teacher.classes[0].reviews.length != 1) {
+            throw new BadRequestException('Can only insert a teacher with one review')
+        }
+        const existingTeacher = await this.teacherRepository.findOne({
+            where:{
+                name:ILike(`%${teacher.name}%`),
+                department:teacher.department
+            }
+        })
+        if(existingTeacher) {
+            throw new BadRequestException('There exists a teacher already with that name and department')
+        }
         return this.teacherRepository.save(teacher)
     }
 

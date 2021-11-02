@@ -37,7 +37,7 @@ export function Register() {
             backgroundPosition:'center',
             backgroundSize: 'cover'
             }}>
-            <div className="p-5 transform -translate-y-1/4" style={{width:'500px'}}>
+            <div className="p-5 transform md:-translate-y-1/4" style={{width:'500px'}}>
                 <div className="bg-white shadow-lg rounded p-10" >
                     <h2 className="text-3xl font-bold mb-6">Register</h2>
                     <form onSubmit={(e) => registerUser(e)}>

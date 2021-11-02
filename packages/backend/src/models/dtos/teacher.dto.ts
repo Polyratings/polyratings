@@ -25,7 +25,7 @@ export class Teacher {
     presentsMaterialClearly:number;
 
     @IsNumber()
-    @Type(() => Number) 
+    @Type(() => Number)
     numberOfEvaluations:number;
     
     @ValidateNested({ each: true })

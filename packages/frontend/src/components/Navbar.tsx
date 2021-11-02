@@ -32,6 +32,7 @@ export function Navbar() {
             <AnimateHeight duration={500} height={mobileNavOpen ? 'auto' : 0} className="absolute top-12 left-0 bg-cal-poly-green w-full z-50 transform -translate-y-1">
                 <div className="flex flex-col text-center text-xl text-white">
                     <Link className="my-1" to="/" onClick={triggerMobileNav} >Home</Link>
+                    <Link className="my-1" to="/newTeacher" onClick={triggerMobileNav}> Add a Teacher</Link>
                     <Link className="my-1" to="/search/__all" onClick={triggerMobileNav} >Professor List</Link>
                     {/* <Link className="mr-7" to="contact">Contact</Link> */}
                     {!isAuthenticated &&
@@ -55,6 +56,7 @@ export function Navbar() {
             </AnimateHeight>
 
             <div className="text-white hidden md:flex items-center text-lg font-semibold">
+                <Link className="mr-7" to="/newTeacher"> Add a Teacher</Link>
                 <Link className="mr-7" to="/search/__all"> Professor List</Link>
                 {/* <Link className="mr-7" to="contact">Contact</Link> */}
                 {!isAuthenticated &&

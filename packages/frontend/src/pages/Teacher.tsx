@@ -6,15 +6,12 @@ import { TeacherService } from "../services";
 import AnimateHeight from 'react-animate-height';
 import AnchorLink from 'react-anchor-link-smooth-scroll'
 import StarRatings from 'react-star-ratings';
-import { Review, ReviewUpload } from "../models/Review";
+import { Review } from "../models/Review";
 import { useService } from "../hooks/useService";
 import { Backdrop } from '../components/Backdrop'
-import { departments } from "../constants/departments";
 import { useAuth } from "../hooks/useAuth";
 import { toast } from "react-toastify";
-import { useForm, SubmitHandler, FieldErrors} from "react-hook-form";
-import { ErrorMessage } from '@hookform/error-message'
-import { ReviewService } from "../services";
+import { EvaluateTeacherForm } from "../components/EvaluateTeacherForm";
 
 export function Teacher() {
     let { id } = useParams<{id:string}>();
@@ -22,19 +19,23 @@ export function Teacher() {
     let [teacherData, setTeacherData] = useState<TeacherModel>({} as any)
     const history = useHistory()
     let [teacherService] = useService(TeacherService)
-    let [teacherEvaluationShown, setTeacherEvaluationShown] = useState(false)
+    let [teacherEvaluationShownDesktop, setTeacherEvaluationShownDesktop] = useState(false)
+    let [teacherEvaluationShownMobile, setTeacherEvaluationShownMobile] = useState(false)
     let isAuthenticated = useAuth()
 
-    const toggleTeacherEvaluationForm = () => {
-        if(teacherEvaluationShown) {
-            setTeacherEvaluationShown(false)
+    const toggleTeacherEvaluationForm = (state:boolean, setState:(value:boolean) => void) => {
+        if(state) {
+            setState(false)
         } else if(isAuthenticated) {
-            setTeacherEvaluationShown(true)
+            setState(true)
         } else {
             toast.info('Please Login or Register',{})
             history.push('/login')
         }
     }
+
+    const toggleTeacherEvaluationFormDesktop = () => toggleTeacherEvaluationForm(teacherEvaluationShownDesktop, setTeacherEvaluationShownDesktop)
+    const toggleTeacherEvaluationFormMobile = () => toggleTeacherEvaluationForm(teacherEvaluationShownMobile, setTeacherEvaluationShownMobile)
 
     useEffect(() => {
         async function retrieveTeacherData() {
@@ -68,9 +69,11 @@ export function Teacher() {
     return(
         <div>
             {
-                teacherEvaluationShown &&
-                <Backdrop onClick={toggleTeacherEvaluationForm}>
-                    <EvaluateTeacherForm teacher={teacherData} setTeacher={setTeacherData} closeForm={toggleTeacherEvaluationForm}/>
+                teacherEvaluationShownDesktop &&
+                <Backdrop>
+                    <div className="bg-gray-300 opacity-100 rounded shadow p-5" style={{width:475}}>
+                        <EvaluateTeacherForm teacher={teacherData} setTeacher={setTeacherData} closeForm={toggleTeacherEvaluationFormDesktop}/>
+                    </div>
                 </Backdrop>
             }
 
@@ -86,7 +89,7 @@ export function Teacher() {
                             starSpacing="5px "
                         />
                     </div>
-                    <button onClick={toggleTeacherEvaluationForm} className="bg-cal-poly-green text-white rounded-lg p-2 shadow mt-2">Evaluate Teacher</button>
+                    <button onClick={toggleTeacherEvaluationFormDesktop} className="bg-cal-poly-green text-white rounded-lg p-2 shadow mt-2">Evaluate Teacher</button>
                 </div>
                 <div className="text-right">
                     <h2 className="text-4xl text-cal-poly-green">{teacherData.overallRating} / 4.00</h2>
@@ -102,10 +105,20 @@ export function Teacher() {
                 <p>Overall Rating: {teacherData.overallRating} / 4.00</p>
                 <p>Recognizes Student Difficulties: {teacherData.recognizesStudentDifficulties}</p>
                 <p>Presents Material Clearly: {teacherData.presentsMaterialClearly}</p>
-                <button onClick={toggleTeacherEvaluationForm} className="bg-cal-poly-green text-white rounded-lg p-2 shadow mt-2">Evaluate Teacher</button>
+                <button 
+                    onClick={toggleTeacherEvaluationFormMobile}
+                    className="bg-cal-poly-green text-white rounded-lg p-2 shadow mt-2"
+                >
+                    {teacherEvaluationShownMobile ? 'Close Evaluation' : 'Evaluate Teacher'}
+                </button>
             </div>
 
-            <div className="container lg:max-w-5xl bg-cal-poly-green h-1 mx-auto my-2"></div>
+            <div className="container lg:max-w-5xl bg-cal-poly-green h-1 mx-auto mt-2"></div>
+            <AnimateHeight  duration={500} height={teacherEvaluationShownMobile ? 'auto' : 0}>
+                <div className="bg-cal-poly-green text-white p-5">
+                    <EvaluateTeacherForm teacher={teacherData} setTeacher={setTeacherData} closeForm={toggleTeacherEvaluationFormMobile}/>
+                </div>
+            </AnimateHeight>
 
             {
                 teacherData.classes &&
@@ -175,147 +188,5 @@ function ReviewCard({review}:{review:Review}) {
             <div className="hidden lg:flex bg-cal-poly-green w-1 mr-4 mt-2 mb-2 flex-shrink-0"></div>
             <div className="flex-grow">{review.text}</div>
         </div>  
-    )
-}
-
-interface EvaluateTeacherFormProps {
-    teacher:TeacherModel
-    setTeacher:(teacher:TeacherModel) => void
-    closeForm:() => void
-}
-function EvaluateTeacherForm({teacher, setTeacher, closeForm}:EvaluateTeacherFormProps) {
-
-    type Inputs = {
-        knownClass:string
-        overallRating:number
-        recognizesStudentDifficulties:number
-        presentsMaterialClearly:number
-        reviewText:string
-        unknownClassDepartment:string
-        unknownClassNumber:number
-        year:string
-        grade:string
-        reasonForTaking:string
-    }
-
-    const { register, handleSubmit, watch, formState: { errors } } = useForm<Inputs>();
-    const knownClassValue = watch('knownClass')
-    const [reviewService] = useService(ReviewService)
-    const [networkErrorText, setNetworkErrorText] = useState('')
-    const onSubmit: SubmitHandler<Inputs> = async formResult => {
-        const newReview:ReviewUpload = {
-            overallRating:formResult.overallRating,
-            recognizesStudentDifficulties:formResult.recognizesStudentDifficulties,
-            presentsMaterialClearly:formResult.presentsMaterialClearly,
-            teacherId:teacher.id,
-            classIdOrName: formResult.knownClass || `${formResult.unknownClassDepartment} ${formResult.unknownClassNumber}`,
-            review: {
-                year:formResult.year,
-                grade:formResult.grade,
-                reasonForTaking: formResult.reasonForTaking,
-                text:formResult.reviewText
-            }
-        }
-        try {
-            const newTeacherData = await reviewService.uploadReview(newReview)
-            setTeacher(newTeacherData)
-            toast.success('Thank you for your review')
-            closeForm()
-        } catch(e) {
-            setNetworkErrorText(e as string)
-        }
-
-    };
-
-    const numericalRatings:{label:string, inputName:keyof Inputs}[] = [
-        { label: 'Overall Rating', inputName:'overallRating'},
-        { label: 'Recognizes Student Difficulties', inputName:'recognizesStudentDifficulties'},
-        { label: 'Presents Material Clearly', inputName:'presentsMaterialClearly'},
-    ]
-
-    const classInformation:{label:string, inputName:keyof Inputs, options:string[]}[] = [
-        { label: 'Year', inputName:'year', options:['Freshman', 'Sophomore', 'Junior', 'Senior', 'Grad']},
-        { label: 'Grade Achieved', inputName:'grade', options:['A', 'A-', 'B+', 'B', 'B-', 'C+', 'C', 'C-', 'D+', 'D', 'D-', 'F', 'CR', 'NC']},
-        { label: 'Reason For Taking', inputName:'reasonForTaking', options:['Required (Major)', 'Required (Support)', 'Elective']},
-    ]
-
-    // Fix scroll position
-    useEffect(() => {
-        document.body.style.overflowY = "hidden"
-        return () => {
-            document.body.style.overflowY = "auto"
-        }
-    },[])
-    
-    return(
-        <form className="p-5 bg-gray-300 opacity-100 rounded shadow cursor-default relative" style={{width:'475px'}} onSubmit={handleSubmit(onSubmit)}>
-            <div className="absolute right-0 top-0 p-3 font-bold cursor-pointer" onClick={closeForm}>X</div>
-            <h2 className="text-2xl font-bold">Evaluate {teacher.name}</h2>
-
-            <h4 className="mt-4">Class</h4>
-            <div className="flex justify-between">
-                <select className="h-7 rounded w-40" {...register('knownClass')}>
-                    {teacher.classes?.map((c) => <option value={c.id} key={c.id}>{c.name}</option>)}
-                    <option value="">Other</option>
-                </select>
-                <div>
-                    <select className="h-7 rounded" disabled={!!knownClassValue} {...register('unknownClassDepartment')}>
-                        {departments.map(d => <option key={d} value={d}>{d}</option>)}
-                    </select>
-                    <input 
-                        className="h-7 w-16 ml-2 rounded appearance-none" 
-                        type="number" 
-                        placeholder="class #"  
-                        disabled={!!knownClassValue} 
-                        {...register('unknownClassNumber', {required:{value:knownClassValue == '0', message:'Class Number is required'}})}
-                    />
-                </div>
-            </div>
-            <ErrorMessage errors={errors} name="unknownClassNumber" as="div" className="text-red-500 text-sm"/>
-            <div className="mt-4">
-                {numericalRatings.map(rating =>
-                    <div key={rating.label}>
-                        <div className="mt-1 flex justify-between">
-                            <h4>{rating.label}</h4>
-                            <div className="flex">
-                            {[0,1,2,3,4].map(n =>
-                            <label key={n} className="mr-3">
-                                <input 
-                                    type="radio"
-                                    className="mr-1 form-radio"
-                                    value={n}
-                                    {...register(rating.inputName, {required:{value:true, message:`${rating.label} is required`}})}>
-                                </input>
-                                {n}
-                            </label>
-                            )}
-                            </div>
-                        </div>
-                        <ErrorMessage errors={errors} name={rating.inputName} as="div" className="text-red-500 text-sm"/>
-                    </div>
-                )}
-            </div>
-            <div className="mt-4">
-                {classInformation.map(dropdown =>
-                    <div key={dropdown.label}>                        
-                        <div className="mt-1 flex justify-between">
-                            <h4>{dropdown.label}</h4>
-                            <select {...register(dropdown.inputName)} className="w-40">
-                                {dropdown.options.map(option => <option value={option} key={option}>{option}</option>)}
-                            </select>
-                        </div>
-                    </div>
-                )}
-            </div>
-            <h4 className="mt-4">Review:</h4>
-            <textarea {...register('reviewText', {required:{value:true, message:'Writing a review is required'}})} className="w-full h-52 rounded"></textarea>
-            <ErrorMessage errors={errors} name="reviewText" as="div" className="text-red-500 text-sm"/>
-            <div className="flex justify-center mt-2">
-                <button className="bg-cal-poly-green text-white rounded-lg p-2 shadow w-24">
-                    Submit
-                </button>
-            </div>
-            <div className="text-red-500 text-sm">{networkErrorText}</div>
-        </form>
     )
 }

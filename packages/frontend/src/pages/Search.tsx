@@ -58,35 +58,37 @@ export function Search() {
     return(
         <div>
             <SearchBar initialValue={searchTerm}/>
-            <div className="relative">   
-                <Filters teachers={searchResults} onUpdate={setFilteredTeachers} className="absolute left-0 top-0 pl-12 hidden xl:block"/>
-                <div className="flex justify-center">
-                    <WindowScroller>
-                        {({ height, isScrolling, onChildScroll, scrollTop }) => (
-                            <List
-                                ref={virtualList}
-                                autoHeight
-                                height={height}
-                                isScrolling={isScrolling}
-                                onScroll={onChildScroll}
-                                rowCount={filteredTeachers.length}
-                                rowHeight={TEACHER_CARD_HEIGHT}
-                                scrollTop={scrollTop}
-                                width={listWidth}
-                                rowRenderer={({style, key, index}) => (
-                                    <div key={key} className="my-4" style={style}>
-                                        <TeacherCard teacher={filteredTeachers[index]} />
-                                    </div>
-                                )}
-                                // sortBy={sortBy}
-                            />
-                            
-                        )}
-                    </WindowScroller>
+            {!searchResults.length &&
+                <h1 className="text-4xl mt-5 text-center text-cal-poly-green">No Results Found</h1>
+            }
+            {searchResults.length &&
+                <div className="relative">
+                    <Filters teachers={searchResults} onUpdate={setFilteredTeachers} className="absolute left-0 top-0 pl-12 hidden xl:block"/>
+                    <div className="flex justify-center"> 
+                        <WindowScroller>
+                            {({ height, isScrolling, onChildScroll, scrollTop }) => (
+                                <List
+                                    ref={virtualList}
+                                    autoHeight
+                                    height={height}
+                                    isScrolling={isScrolling}
+                                    onScroll={onChildScroll}
+                                    rowCount={filteredTeachers.length}
+                                    rowHeight={TEACHER_CARD_HEIGHT}
+                                    scrollTop={scrollTop}
+                                    width={listWidth}
+                                    rowRenderer={({style, key, index}) => (
+                                        <div key={key} className="my-4" style={style}>
+                                            <TeacherCard teacher={filteredTeachers[index]} />
+                                        </div>
+                                    )}
+                                /> 
+                            )}
+                        </WindowScroller>
+                    </div>
                 </div>
-            </div>    
+            }
         </div>
-
     )
 }
 
@@ -204,13 +206,14 @@ function Filters({teachers, onUpdate, className}:FilterProps) {
                 <option value="recognizesStudentDifficulties">Recognizes Student Difficulty</option>
                 <option value="presentsMaterialClearly">Presents Material Clearly</option>
             </select>
+            {/* Sorting Arrow */}
             <svg xmlns="http://www.w3.org/2000/svg" 
                 className={`h-5 w-5 hover:text-cal-poly-green transform transition-all ${reverseFilter ? 'rotate-180' : ''}`} 
                 fill="none" viewBox="0 0 24 24" 
                 stroke="currentColor" 
                 onClick={() => setReverseFilter(!reverseFilter)}
             >
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7l4-4m0 0l4 4m-4-4v18"  />
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7l4-4m0 0l4 4m-4-4v18"/>
             </svg>
         </div>
 

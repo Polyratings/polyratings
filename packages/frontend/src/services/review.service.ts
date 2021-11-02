@@ -11,7 +11,7 @@ export class ReviewService {
 
     async uploadReview(newReview:ReviewUpload): Promise<Teacher> {
         const res = await this.httpService.fetch(
-            `${config.remoteUrl}/review/add`,
+            `${config.remoteUrl}/review`,
             {
                 method:'POST',
                 headers:{

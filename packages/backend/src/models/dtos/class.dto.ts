@@ -13,7 +13,8 @@ export class Class {
     @MaxLength(255)
     name:string
 
+    @IsNotEmpty()
     @ValidateNested({ each: true })
     @Type(() => Review)
-    reviews?:Review[]
+    reviews:Review[]
 }

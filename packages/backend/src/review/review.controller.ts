@@ -11,7 +11,7 @@ export class ReviewController {
     ){}
 
     @UseGuards(JwtAuthGuard)
-    @Post('add')
+    @Post()
     async addReview(@Body() reviewAdditionRequest:AddReview) {
         return this.reviewService.addReview(reviewAdditionRequest)
     }

@@ -1,6 +1,7 @@
-import { Teacher } from "../models/Teacher";
+import { Teacher, TeacherCreation } from "../models/Teacher";
 import { config } from "../App.config";
 import { HttpService } from "./http.service";
+import { TeacherIdResponse } from "../models/TeacherIdResponse";
 
 
 export class TeacherService {
@@ -36,6 +37,21 @@ export class TeacherService {
         const res = await this.httpService.fetch(`${config.remoteUrl}/teacher/all`)
         this.throwIfNot200(res)
         return res.json()
+    }
+
+    async addNewTeacher(newTeacher:TeacherCreation): Promise<number> {
+        const res = await this.httpService.fetch(
+            `${config.remoteUrl}/teacher`,
+            {
+                method:'POST',
+                headers:{
+                    'Content-Type':'application/json'
+                },
+                body:JSON.stringify(newTeacher)
+            }
+        )
+        const teacherIdResponse = await res.json() as TeacherIdResponse
+        return teacherIdResponse.teacherId
     }
    
     private throwIfNot200(res:Response) {
