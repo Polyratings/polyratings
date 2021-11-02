@@ -1,10 +1,10 @@
-(x) New Teacher Form
-(x) Review Form
+(/) New Teacher Form
+(/) Review Form
     (/) desktop
-    (x) mobile
+    (/) mobile
     (/) backend
 (x) Forgot email
 (x) admin panel
 (/) db migration for timestamps
 (/) hosting
-(x) no results label on search
+(/) no results label on search

@@ -70,16 +70,6 @@ export function EvaluateTeacherForm({teacher, setTeacher, closeForm, overrideSub
         }
         setLoading(false)
     }
-
-    // Fix scroll position when form is rendered on larger than sm
-    useEffect(() => {
-        if(window.innerWidth > 640) {
-            document.body.style.overflowY = "hidden"
-            return () => {
-                document.body.style.overflowY = "auto"
-            }
-        }
-    },[window.innerWidth])
     
     const numericalRatings:{label:string, inputName:keyof EvaluateTeacherFormInputs}[] = [
         { label: 'Overall Rating', inputName:'overallRating'},
