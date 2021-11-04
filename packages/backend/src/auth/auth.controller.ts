@@ -5,6 +5,7 @@ import { AuthService } from './auth.service';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
 import { LocalAuthGuard } from './guards/local-auth-guard';
 import { GetUser } from './guards/get-user.guard';
+import { UserEntity } from 'src/models/entities/user.entity';
 
 @Controller('auth')
 export class AuthController {
@@ -15,7 +16,7 @@ export class AuthController {
 
     @UseGuards(LocalAuthGuard)
     @Post('login')
-    async login(@GetUser() user:UserDto) {
+    async login(@GetUser() user:UserEntity) {
         return this.authService.login(user)
     }
 

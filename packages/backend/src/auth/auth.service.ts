@@ -19,17 +19,17 @@ export class AuthService {
         private sendGrid:SendGridService
     ){}
 
-    async validateUser(email:string, password:string):Promise<UserDto | null> {
-        const UserEntity = await this.userRepository.findOne({email});
-        if(!UserEntity) {
+    async validateUser(email:string, password:string):Promise<UserEntity | null> {
+        const userEntity = await this.userRepository.findOne({email});
+        if(!userEntity) {
             return null
         }
-        if(!UserEntity.emailConfirmed) {
-            throw new UnauthorizedException(`Please confirm your email ${UserEntity.email}`)
+        if(!userEntity.emailConfirmed) {
+            throw new UnauthorizedException(`Please confirm your email ${userEntity.email}`)
         }
-        const isMatch = await bcrypt.compare(password, UserEntity.password)
+        const isMatch = await bcrypt.compare(password, userEntity.password)
         if (isMatch) {
-            return new UserDto(UserEntity.id, UserEntity.email)
+            return userEntity
         }
         return null;
     }
