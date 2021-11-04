@@ -2,7 +2,8 @@ import { AuthService } from "./auth.service";
 
 export class HttpService {
     constructor(
-        private authService:AuthService
+        private authService:AuthService,
+        private globalFetch: typeof window.fetch
     ){}
 
     async fetch(input: string, init?: RequestInit | undefined):Promise<Response> {
@@ -13,7 +14,7 @@ export class HttpService {
             // @ts-expect-error error since can't normally index header object. The way that its going to be used will be fine though
             init.headers['Authorization'] = `Bearer ${jwt}`
         }
-        const res = await window.fetch(input, init)
+        const res = await this.globalFetch(input, init)
         if(res.status == 401) {
             // TODO: Find a way to do this cleaner
             this.authService.signOut()

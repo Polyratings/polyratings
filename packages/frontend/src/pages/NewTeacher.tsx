@@ -1,6 +1,9 @@
 import loginBackground from '../assets/home-header.png'
 import { NewTeacherForm } from '../components/NewTeacherForm'
+import { useProtectedRoute } from '../hooks/useProtectedRoute'
 export function NewTeacher() {
+    // Redirect to homepage if in authenticated state
+    useProtectedRoute(true, '/login', () => 'To add a teacher please sign in or create an account')
     return(
         <div>            
             <div className="h-screenWoNav justify-center items-center hidden sm:flex" style={{

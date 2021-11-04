@@ -1,7 +1,11 @@
 import { useParams } from 'react-router-dom';
 import confirmEmailBackground from '../assets/home-header.png'
+import { useProtectedRoute } from '../hooks/useProtectedRoute';
 
 export function ConfirmEmailCard() {
+    // Redirect to homepage if in authenticated state
+    useProtectedRoute(false, '/', (user) => `Welcome ${user.email.replace('@calpoly.edu','')}!`)
+
     let { cpUserName } = useParams<{cpUserName:string}>()
     return(
         <div className="h-screenWoNav flex justify-center items-center" style={{

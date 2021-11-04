@@ -1,13 +1,14 @@
 import { Type } from "class-transformer";
 import { IsNotEmpty, MaxLength, ValidateNested } from "class-validator";
-import { Review } from "./review.dto";
-import { Teacher } from "./teacher.dto";
+import { Class } from "../interfaces/Class";
+import { ReviewDto } from "./review.dto";
+import { TeacherDto } from "./teacher.dto";
 
-export class Class {
+export class ClassDto implements Class {
     id?:number
     createdAt?: Date
 
-    teacher?:Teacher
+    teacher?:TeacherDto
 
     @IsNotEmpty()
     @MaxLength(255)
@@ -15,6 +16,6 @@ export class Class {
 
     @IsNotEmpty()
     @ValidateNested({ each: true })
-    @Type(() => Review)
-    reviews:Review[]
+    @Type(() => ReviewDto)
+    reviews:ReviewDto[]
 }

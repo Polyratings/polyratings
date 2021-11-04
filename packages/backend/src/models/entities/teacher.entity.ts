@@ -1,8 +1,9 @@
 import { Column, CreateDateColumn, Entity, OneToMany, PrimaryGeneratedColumn } from "typeorm";
 import { ClassEntity } from "../entities/class.entity";
+import { Teacher } from "../interfaces/Teacher";
 
 @Entity('teacher')
-export class TeacherEntity {
+export class TeacherEntity implements Teacher {
 
     @PrimaryGeneratedColumn()
     id:number;

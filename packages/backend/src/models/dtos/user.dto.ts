@@ -1,7 +1,7 @@
 import { AuthService } from "src/auth/auth.service"
 import { UserEntity } from "../entities/user.entity"
 
-export class User {
+export class UserDto {
     constructor(
         public readonly id:number,
         public readonly email:string

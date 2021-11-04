@@ -21,7 +21,8 @@ export function Login() {
     }
 
     // Redirect to homepage if in authenticated state
-    useProtectedRoute(false, '/')
+    useProtectedRoute(false, '/', (user) => `Welcome ${user.email.replace('@calpoly.edu','')}!`)
+
 
     return(
         <div className="h-screenWoNav flex justify-center items-center" style={{

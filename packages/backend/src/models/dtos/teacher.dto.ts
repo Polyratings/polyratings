@@ -1,8 +1,9 @@
 import { Expose, Type } from "class-transformer";
 import { IsNotEmpty, IsNumber, IsString, ValidateNested } from "class-validator";
-import { Class } from "./class.dto";
+import { Teacher } from "../interfaces/Teacher";
+import { ClassDto } from "./class.dto";
 
-export class Teacher {
+export class TeacherDto implements Teacher {
     id?:number;
     createdAt?: Date;
     
@@ -29,6 +30,6 @@ export class Teacher {
     numberOfEvaluations:number;
     
     @ValidateNested({ each: true })
-    @Type(() => Class)
-    classes?:Class[];
+    @Type(() => ClassDto)
+    classes?:ClassDto[];
 }

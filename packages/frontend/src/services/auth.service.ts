@@ -1,15 +1,20 @@
 import { BehaviorSubject } from "rxjs"
 import { config } from "../App.config"
 import { JwtAuthResponse } from "../models/JwtAuthResponse"
+import { User } from "../models/User"
+import jwt_decode from "jwt-decode";
 
 const USER_LOCAL_STORAGE_KEY = 'user'
 
 export class AuthService {
 
     private jwtToken:string | null = null
-    public isAuthenticatedSubject = new BehaviorSubject(false)
+    public isAuthenticatedSubject = new BehaviorSubject<null | User>(null)
 
-    constructor(private storage:Storage) {
+    constructor(
+        private storage:Storage,
+        private fetch: typeof window.fetch
+    ) {
         const jwt = storage.getItem(USER_LOCAL_STORAGE_KEY) as string | null
         if(jwt) {
             this.setAuthState(jwt)
@@ -20,8 +25,12 @@ export class AuthService {
         return this.jwtToken
     }
 
-    public async login(calPolyUsername:string, password:string) {
-        const loginRes = await fetch(
+    public getUser(): User | null {
+        return this.jwtToken ? jwt_decode(this.jwtToken) : null
+    }
+
+    public async login(calPolyUsername:string, password:string):Promise<User> {
+        const loginRes = await this.fetch(
             `${config.remoteUrl}/auth/login`,
             {
                 method:'POST', 
@@ -36,13 +45,14 @@ export class AuthService {
             throw error.message
         }
         const loginBody = await loginRes.json() as JwtAuthResponse
-        const jwt = loginBody.access_token as string
-
-        this.setAuthState(jwt)
+        const jwt = loginBody.access_token
+        
+        // We know that this is a valid user since we just got a jwt
+        return this.setAuthState(jwt) as User
     }
 
     public async register(calPolyUsername:string, password:string) {
-        const registerRes = await fetch(
+        const registerRes = await this.fetch(
             `${config.remoteUrl}/auth/register`,
             {
                 method:'POST', 
@@ -59,7 +69,7 @@ export class AuthService {
     }
 
     public async confirmEmail(userID:string, otp:string) {
-        const confirmEmailRequest = await fetch(`${config.remoteUrl}/auth/confirmEmail/${userID}/${otp}`)
+        const confirmEmailRequest = await this.fetch(`${config.remoteUrl}/auth/confirmEmail/${userID}/${otp}`)
         if(confirmEmailRequest.status != 200 && confirmEmailRequest.status != 201) {
             const error = await confirmEmailRequest.json()
             throw error.message
@@ -73,13 +83,15 @@ export class AuthService {
         this.setAuthState(null)
     }
 
-    private setAuthState(jwtToken:string | null) {
+    private setAuthState(jwtToken:string | null):User | null {
         this.jwtToken = jwtToken
-        this.isAuthenticatedSubject.next(!!jwtToken)
+        const user = this.getUser()
+        this.isAuthenticatedSubject.next(user)
         if(jwtToken) {
             this.storage.setItem(USER_LOCAL_STORAGE_KEY, jwtToken)
         } else {
             this.storage.removeItem(USER_LOCAL_STORAGE_KEY)
         }
+        return user
     }
 }

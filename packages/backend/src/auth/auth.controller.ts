@@ -1,6 +1,6 @@
 import { Controller, Get, Post, UseGuards, Request, Body, Param, UnauthorizedException, Redirect } from '@nestjs/common';
-import { Register } from 'src/models/dtos/register.dto';
-import { User } from 'src/models/dtos/user.dto';
+import { RegisterDto } from 'src/models/dtos/register.dto';
+import { UserDto } from 'src/models/dtos/user.dto';
 import { AuthService } from './auth.service';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
 import { LocalAuthGuard } from './guards/local-auth-guard';
@@ -15,18 +15,18 @@ export class AuthController {
 
     @UseGuards(LocalAuthGuard)
     @Post('login')
-    async login(@GetUser() user:User) {
+    async login(@GetUser() user:UserDto) {
         return this.authService.login(user)
     }
 
     @Post('register')
-    async register(@Body() registrationInfo:Register) {
+    async register(@Body() registrationInfo:RegisterDto) {
         return this.authService.register(registrationInfo.email, registrationInfo.password)
     }
 
     @UseGuards(JwtAuthGuard)
     @Get('profile')
-    getProfile(@GetUser() user:User) {
+    getProfile(@GetUser() user:UserDto) {
         return user;
     }
 

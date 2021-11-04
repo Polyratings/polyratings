@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { AddReview } from 'src/models/dtos/addReview.dto';
-import { Teacher } from 'src/models/dtos/teacher.dto';
+import { AddReviewDto } from 'src/models/dtos/addReview.dto';
+import { TeacherDto } from 'src/models/dtos/teacher.dto';
 import { ClassEntity } from 'src/models/entities/class.entity';
 import { ReviewEntity } from 'src/models/entities/review.entitiy';
 import { TeacherEntity } from 'src/models/entities/teacher.entity';
@@ -20,7 +20,7 @@ export class ReviewService {
         private teacherService:TeacherService
     ){}
 
-    async addReview(reviewAdditionRequest:AddReview):Promise<Teacher> {
+    async addReview(reviewAdditionRequest:AddReviewDto):Promise<TeacherDto> {
         const teacher = await this.teacherRepository.findOne(reviewAdditionRequest.teacherId)
         if(!teacher) {
             throw 'Bad Teacher Id'

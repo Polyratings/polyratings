@@ -1,7 +1,7 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { TeacherEntity } from 'src/models/entities/teacher.entity';
-import { Teacher } from 'src/models/dtos/teacher.dto';
+import { TeacherDto } from 'src/models/dtos/teacher.dto';
 import { ILike, MoreThan, Repository } from 'typeorm';
 import { plainToClass } from 'class-transformer';
 
@@ -12,7 +12,7 @@ export class TeacherService {
         private readonly teacherRepository: Repository<TeacherEntity>
     ){}
     
-    async createTeacher(teacher:Teacher): Promise<TeacherEntity> {
+    async createTeacher(teacher:TeacherDto): Promise<TeacherEntity> {
         // Checks to make sure new teacher is not being shoved in with multiple reviews
         if(teacher.numberOfEvaluations != 1) {
             throw new BadRequestException('Can only insert a teacher with numberOfEvaluations == 1')
@@ -35,7 +35,7 @@ export class TeacherService {
         return this.teacherRepository.save(teacher)
     }
 
-    async getTeacherByName(name:string = ''): Promise<Teacher[]> {
+    async getTeacherByName(name:string = ''): Promise<TeacherDto[]> {
         const tokenMatches =  await Promise.all(
             name
             .split(' ')
@@ -46,15 +46,15 @@ export class TeacherService {
             }))
         )
         const { intersect, nonIntersect } = this.intersect(tokenMatches)
-        return [...intersect, ...nonIntersect].map(entity => plainToClass(Teacher, entity))
+        return [...intersect, ...nonIntersect].map(entity => plainToClass(TeacherDto, entity))
     }
 
-    async getTeacherById(id:string): Promise<Teacher | undefined> {
+    async getTeacherById(id:string): Promise<TeacherDto | undefined> {
         const result = await this.teacherRepository.findOne(id, {
             relations:['classes', 'classes.reviews'],
         })
         if(result) {
-            const teacher =  plainToClass(Teacher, result)
+            const teacher =  plainToClass(TeacherDto, result)
             // In memory sort of reviews by timestamp
             // Would like to do this at the database level but it is not supported yet
             // https://github.com/typeorm/typeorm/issues/2620
@@ -69,7 +69,7 @@ export class TeacherService {
         }
     }
 
-    async getWorstOrBest(best:boolean) : Promise<Teacher[]> {
+    async getWorstOrBest(best:boolean) : Promise<TeacherDto[]> {
         const ONE_DAY = 86_400_000; 
         const result = await this.teacherRepository.find({
             order: {
@@ -81,7 +81,7 @@ export class TeacherService {
             take:20,
             cache:ONE_DAY
         })
-        return plainToClass(Teacher, result)
+        return plainToClass(TeacherDto, result)
     }
 
     intersect<T extends DatabaseEntity>(arrays:T[][]): {intersect: T[], nonIntersect:T[]} {

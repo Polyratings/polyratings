@@ -1,8 +1,8 @@
 import { Type } from "class-transformer";
 import { IsNotEmpty, IsNumber, Max, Min, ValidateNested } from "class-validator";
-import { Review } from "./review.dto";
+import { ReviewDto } from "./review.dto";
 
-export class AddReview {
+export class AddReviewDto {
 
     @IsNotEmpty()
     teacherId:string
@@ -11,8 +11,8 @@ export class AddReview {
     classIdOrName:string
 
     @ValidateNested()
-    @Type(() => Review)
-    review:Review
+    @Type(() => ReviewDto)
+    review:ReviewDto
 
     @IsNumber()
     @Min(0)

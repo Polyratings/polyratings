@@ -1,9 +1,10 @@
 import { Column, CreateDateColumn, Entity, ManyToOne, PrimaryGeneratedColumn } from "typeorm";
+import { Review } from "../interfaces/Review";
 import { ClassEntity } from "./class.entity";
 import { UserEntity } from "./user.entity";
 
 @Entity('review')
-export class ReviewEntity {
+export class ReviewEntity implements Review {
     @PrimaryGeneratedColumn()
     id:number;
 

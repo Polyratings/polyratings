@@ -1,11 +1,12 @@
 import { IsNotEmpty } from "class-validator";
-import { Class } from "./class.dto";
+import { Review } from "../interfaces/Review";
+import { ClassDto } from "./class.dto";
 
-export class Review {
+export class ReviewDto implements Review {
     id?:number
     createdAt?: Date
 
-    class?:Class
+    class?:ClassDto
 
     @IsNotEmpty()
     year:string

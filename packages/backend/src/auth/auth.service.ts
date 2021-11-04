@@ -6,7 +6,7 @@ import { JwtAuthResponse } from 'src/models/interfaces/JwtAuthResponse';
 import { Repository } from 'typeorm';
 import * as bcrypt from 'bcrypt';
 import * as crypto from 'crypto'
-import { User } from 'src/models/dtos/user.dto';
+import { UserDto } from 'src/models/dtos/user.dto';
 import { SendGridService } from '@anchan828/nest-sendgrid';
 
 @Injectable()
@@ -19,7 +19,7 @@ export class AuthService {
         private sendGrid:SendGridService
     ){}
 
-    async validateUser(email:string, password:string):Promise<User | null> {
+    async validateUser(email:string, password:string):Promise<UserDto | null> {
         const UserEntity = await this.userRepository.findOne({email});
         if(!UserEntity) {
             return null
@@ -29,13 +29,13 @@ export class AuthService {
         }
         const isMatch = await bcrypt.compare(password, UserEntity.password)
         if (isMatch) {
-            return new User(UserEntity.id, UserEntity.email)
+            return new UserDto(UserEntity.id, UserEntity.email)
         }
         return null;
     }
 
-    async login(user:User | UserEntity): Promise<JwtAuthResponse> {
-        const payload = {email: user.email, sub:user.id}
+    async login(user:UserEntity): Promise<JwtAuthResponse> {
+        const payload = {email: user.email, sub:user.id, isAdmin:user.isAdmin}
         const jwt = await this.jwtService.signAsync(payload, {secret:process.env.JWT_SECRET})
         return {
             access_token: jwt

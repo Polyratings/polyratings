@@ -21,6 +21,9 @@ export class UserEntity {
     @Column({default:false})
     emailConfirmed:boolean
 
+    @Column({default:false})
+    isAdmin:boolean
+
     @OneToMany(() => ReviewEntity, c => c.user, {cascade:true})
     reviews:ReviewEntity[]
 

@@ -1,9 +1,10 @@
 import { Column, CreateDateColumn, Entity, ManyToOne, OneToMany, PrimaryGeneratedColumn } from "typeorm";
 import { ReviewEntity } from "./review.entitiy";
 import { TeacherEntity } from "../entities/teacher.entity";
+import { Class } from "../interfaces/Class";
 
 @Entity('class')
-export class ClassEntity {
+export class ClassEntity implements Class {
 
     @PrimaryGeneratedColumn()
     id:number;

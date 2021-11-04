@@ -1,6 +1,6 @@
 import { Body, Controller, Get, Param, Post, BadRequestException, UseGuards } from '@nestjs/common';
 import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
-import { Teacher } from 'src/models/dtos/teacher.dto';
+import { TeacherDto } from 'src/models/dtos/teacher.dto';
 import { TeacherIdResponse } from 'src/models/interfaces/TeacherIdResponse';
 import { TeacherService } from '../services/teacher.service';
 
@@ -12,7 +12,7 @@ export class TeacherController {
 
     @UseGuards(JwtAuthGuard)
     @Post()
-    async create(@Body() teacher:Teacher):Promise<TeacherIdResponse> {
+    async create(@Body() teacher:TeacherDto):Promise<TeacherIdResponse> {
         const newTeacher = await this.teacherService.createTeacher(teacher)
         return {
             teacherId: newTeacher.id
