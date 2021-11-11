@@ -18,7 +18,6 @@ jobs:
 
       - name: copy files for github pages
         run: |
-          node packages/frontend/githubPagesBaseFix.js
           cp packages/frontend/dist/index.html packages/frontend/dist/error.html
       
       - name: Deploy
