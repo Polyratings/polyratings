@@ -1,12 +1,10 @@
 import { useState, useEffect } from "react";
 import { useHistory, useParams } from "react-router-dom";
-import { Class } from '../models/Class'
-import { Teacher as TeacherModel } from "../models/Teacher";
+import { ClassEntry, TeacherEntry,ReviewEntry } from "@polyratings-revamp/shared";
 import { TeacherService } from "../services";
 import AnimateHeight from 'react-animate-height';
 import AnchorLink from 'react-anchor-link-smooth-scroll'
 import StarRatings from 'react-star-ratings';
-import { Review } from "../models/Review";
 import { useService } from "../hooks/useService";
 import { Backdrop } from '../components/Backdrop'
 import { useAuth } from "../hooks/useAuth";
@@ -16,7 +14,7 @@ import { EvaluateTeacherForm } from "../components/EvaluateTeacherForm";
 export function Teacher() {
     let { id } = useParams<{id:string}>();
 
-    let [teacherData, setTeacherData] = useState<TeacherModel>({} as any)
+    let [teacherData, setTeacherData] = useState<TeacherEntry>({} as any)
     const history = useHistory()
     let [teacherService] = useService(TeacherService)
     let [teacherEvaluationShownDesktop, setTeacherEvaluationShownDesktop] = useState(false)
@@ -141,11 +139,11 @@ export function Teacher() {
 }
 
 
-function ClassSection({taughtClass, id}:{taughtClass:Class, id:string}) {
+function ClassSection({taughtClass, id}:{taughtClass:ClassEntry, id:string}) {
     let [expanded, setExpanded] = useState(false)
     const UNEXPANDED_LIMIT = 2
-    const unexpandedReviews = taughtClass.reviews.slice(0, UNEXPANDED_LIMIT)
-    const expandedReviews = taughtClass.reviews.slice(UNEXPANDED_LIMIT)
+    const unexpandedReviews = taughtClass.reviews!.slice(0, UNEXPANDED_LIMIT)
+    const expandedReviews = taughtClass.reviews!.slice(UNEXPANDED_LIMIT)
     return (
         <div className="pt-4" id={id}>
             <h2 className="text-center text-4xl text-cal-poly-green">{taughtClass.name}</h2>
@@ -158,7 +156,7 @@ function ClassSection({taughtClass, id}:{taughtClass:Class, id:string}) {
                 </div>
             </AnimateHeight>
             {
-                taughtClass.reviews.length > UNEXPANDED_LIMIT &&
+                taughtClass.reviews!.length > UNEXPANDED_LIMIT &&
                 <div className="flex justify-center">
                     <button onClick={() => setExpanded(!expanded)} className="bg-cal-poly-green text-white rounded-lg p-2 shadow">
                         {!expanded && "Show More"} {expanded && "Show Less"}
@@ -173,7 +171,7 @@ function ClassSection({taughtClass, id}:{taughtClass:Class, id:string}) {
 }
 
 
-function ReviewCard({review}:{review:Review}) {
+function ReviewCard({review}:{review:ReviewEntry}) {
     return(
         <div 
             className="bg-white w-full rounded-3xl py-2 px-4 my-2 border-cal-poly-gold border-4 flex"

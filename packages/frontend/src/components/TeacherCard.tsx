@@ -1,9 +1,9 @@
-import { Teacher } from "../models/Teacher";
+import { TeacherEntry } from "@polyratings-revamp/shared";
 import star from '../assets/star.svg'
 import { Link } from "react-router-dom"
 
 interface TeacherCardProps {
-    teacher:Teacher
+    teacher:TeacherEntry
 }
 
 export const TEACHER_CARD_HEIGHT = 160

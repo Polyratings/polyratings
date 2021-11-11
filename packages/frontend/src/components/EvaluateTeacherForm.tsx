@@ -4,9 +4,8 @@ import { departments } from "../constants/departments";
 import { useForm, SubmitHandler } from "react-hook-form";
 import { ErrorMessage } from '@hookform/error-message'
 import { ReviewService } from "../services";
-import { ReviewUpload } from "../models/Review";
 import { toast } from "react-toastify";
-import { Teacher } from "../models/Teacher";
+import { TeacherEntry, AddReview } from "@polyratings-revamp/shared";
 import ClipLoader from "react-spinners/ClipLoader";
 
 interface EvaluateTeacherFormInputs {
@@ -23,10 +22,10 @@ interface EvaluateTeacherFormInputs {
 }
 
 interface EvaluateTeacherFormProps {
-    teacher:Teacher | null
-    setTeacher:(teacher:Teacher) => void
+    teacher:TeacherEntry | null
+    setTeacher:(teacher:TeacherEntry) => void
     closeForm:() => void,
-    overrideSubmitHandler?:(review: ReviewUpload) => void | Promise<void>
+    overrideSubmitHandler?:(review: AddReview) => void | Promise<void>
     innerRef?:any
 }
 export function EvaluateTeacherForm({teacher, setTeacher, closeForm, overrideSubmitHandler, innerRef}:EvaluateTeacherFormProps) {
@@ -43,11 +42,12 @@ export function EvaluateTeacherForm({teacher, setTeacher, closeForm, overrideSub
 
     const onSubmit:SubmitHandler<EvaluateTeacherFormInputs> = async formResult => {
         setLoading(true)
-        const newReview:ReviewUpload = {
+        const newReview:AddReview = {
             overallRating:formResult.overallRating,
             recognizesStudentDifficulties:formResult.recognizesStudentDifficulties,
             presentsMaterialClearly:formResult.presentsMaterialClearly,
-            teacherId:teacher?.id || null,
+            // Purposely set null as any due to use case where when teacher == null teacherId is not used
+            teacherId: teacher?.id || null as any,
             classIdOrName: formResult.knownClass || `${formResult.unknownClassDepartment} ${formResult.unknownClassNumber}`,
             review: {
                 year:formResult.year,

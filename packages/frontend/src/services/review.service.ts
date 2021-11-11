@@ -1,15 +1,13 @@
-import { Teacher } from "../models/Teacher";
+import { TeacherEntry, AddReview } from "@polyratings-revamp/shared";
 import { config } from "../App.config";
 import { HttpService } from "./http.service";
-import { ReviewUpload } from "../models/Review";
-
 
 export class ReviewService {
     constructor(
         private httpService:HttpService
     ){}
 
-    async uploadReview(newReview:ReviewUpload): Promise<Teacher> {
+    async uploadReview(newReview:AddReview): Promise<TeacherEntry> {
         const res = await this.httpService.fetch(
             `${config.remoteUrl}/review`,
             {

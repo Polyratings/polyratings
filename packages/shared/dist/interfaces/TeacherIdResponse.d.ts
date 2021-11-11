@@ -1,3 +1,3 @@
 export interface TeacherIdResponse {
-    teacherId:number
+    teacherId: number;
 }

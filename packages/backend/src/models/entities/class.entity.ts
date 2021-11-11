@@ -1,10 +1,10 @@
 import { Column, CreateDateColumn, Entity, ManyToOne, OneToMany, PrimaryGeneratedColumn } from "typeorm";
 import { ReviewEntity } from "./review.entitiy";
 import { TeacherEntity } from "../entities/teacher.entity";
-import { Class } from "../interfaces/Class";
+import { ClassEntry } from "@polyratings-revamp/shared";
 
 @Entity('class')
-export class ClassEntity implements Class {
+export class ClassEntity implements ClassEntry {
 
     @PrimaryGeneratedColumn()
     id:number;

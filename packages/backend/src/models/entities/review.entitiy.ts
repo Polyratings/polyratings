@@ -1,10 +1,10 @@
 import { Column, CreateDateColumn, Entity, ManyToOne, PrimaryGeneratedColumn } from "typeorm";
-import { Review } from "../interfaces/Review";
+import { ReviewEntry } from "@polyratings-revamp/shared";
 import { ClassEntity } from "./class.entity";
 import { UserEntity } from "./user.entity";
 
 @Entity('review')
-export class ReviewEntity implements Review {
+export class ReviewEntity implements ReviewEntry {
     @PrimaryGeneratedColumn()
     id:number;
 
@@ -28,4 +28,7 @@ export class ReviewEntity implements Review {
 
     @Column('text')
     text:string
+
+    @Column('int',{default:0})
+    reportCount:number
 }

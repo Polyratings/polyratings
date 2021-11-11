@@ -24,6 +24,9 @@ export class UserEntity {
     @Column({default:false})
     isAdmin:boolean
 
+    @Column({default:false})
+    isBanned:boolean
+
     @OneToMany(() => ReviewEntity, c => c.user, {cascade:true})
     reviews:ReviewEntity[]
 

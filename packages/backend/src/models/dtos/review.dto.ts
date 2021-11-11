@@ -1,5 +1,5 @@
 import { IsNotEmpty } from "class-validator";
-import { Review } from "../interfaces/Review";
+import { Review } from "@polyratings-revamp/shared";
 import { ClassDto } from "./class.dto";
 
 export class ReviewDto implements Review {

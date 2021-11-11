@@ -1,7 +1,7 @@
 import { useEffect } from "react"
 import { useHistory } from "react-router-dom"
 import { toast } from "react-toastify"
-import { User } from "../models/User"
+import { User } from "@polyratings-revamp/shared"
 import { useAuth } from "./useAuth"
 
 export function useProtectedRoute<B extends boolean>(authenticated:B, redirect:string, toastMessage?:(user: B extends false ? User : null) => string) {
@@ -10,7 +10,6 @@ export function useProtectedRoute<B extends boolean>(authenticated:B, redirect:s
     let history = useHistory()
     useEffect(() => {
         if(authenticated == !user) {
-            console.log(authenticated, user)
             if(toastMessage) {
                 toast.info(toastMessage(user as any))
             }

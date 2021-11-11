@@ -1,6 +1,6 @@
 import { useHistory, useParams } from "react-router-dom";
 import { useState, useEffect, useRef } from "react";
-import { Teacher } from "../models/Teacher";
+import { TeacherEntry } from "@polyratings-revamp/shared";
 import { TeacherService } from "../services";
 import { TeacherCard, TEACHER_CARD_HEIGHT } from "../components/TeacherCard";
 import { MinMaxSlider } from "../components/TwoPosSlider";
@@ -18,8 +18,8 @@ export function Search() {
 
     const virtualList = useRef<List>(null)
     
-    let [searchResults, setSearchResults] = useState<Teacher[]>([])
-    let [filteredTeachers, setFilteredTeachers] = useState<Teacher[]>([])
+    let [searchResults, setSearchResults] = useState<TeacherEntry[]>([])
+    let [filteredTeachers, setFilteredTeachers] = useState<TeacherEntry[]>([])
 
     const LIST_MAX_WIDTH = 672
     let [listWidth, setListWidth] = useState(LIST_MAX_WIDTH)
@@ -38,7 +38,7 @@ export function Search() {
     useEffect(() => {
         async function retrieveSearchData() {
             try {
-                let result:Teacher[] = []
+                let result:TeacherEntry[] = []
                 if(!searchTerm) {
                     result = await teacherService.getAllTeachers()
                 } else {
@@ -93,8 +93,8 @@ export function Search() {
 }
 
 interface FilterProps {
-    teachers:Teacher[]
-    onUpdate:(teachers:Teacher[]) => void
+    teachers:TeacherEntry[]
+    onUpdate:(teachers:TeacherEntry[]) => void
     className?:string,
 }
 
@@ -107,7 +107,7 @@ function Filters({teachers, onUpdate, className}:FilterProps) {
     let [presentsMaterialClearlyFilter, setPresentsMaterialClearlyFilter] = useState<[number, number]>([0,4])
     let [numberOfEvaluationsFilter, setNumberOfEvaluationsFilter] = useState<[number, number]>([1,2])
     let [reverseFilter, setReverseFilter] = useState(false)
-    const getEvaluationDomain:(data:Teacher[]) => [number,number] = (data:Teacher[]) => [
+    const getEvaluationDomain:(data:TeacherEntry[]) => [number,number] = (data:TeacherEntry[]) => [
         data.reduce((acc,curr) => curr.numberOfEvaluations < acc ? curr.numberOfEvaluations : acc, Infinity),
         data.reduce((acc,curr) => curr.numberOfEvaluations > acc ? curr.numberOfEvaluations : acc, -Infinity)
     ]
@@ -134,7 +134,7 @@ function Filters({teachers, onUpdate, className}:FilterProps) {
         setNumberOfEvaluationsFilter(initialEvaluationRange)
     },[teachers])
 
-    const teacherFilterFunctions:() => ((teacher:Teacher) => boolean)[] = () => {
+    const teacherFilterFunctions:() => ((teacher:TeacherEntry) => boolean)[] = () => {
         const depFilters = departmentFilters.filter(([,state]) => state).map(([dep]) => dep)
         return [
             (teacher) => {
@@ -155,7 +155,7 @@ function Filters({teachers, onUpdate, className}:FilterProps) {
         ]
     }
 
-    const sortingMap:{[key in SortingOptions]:(a: Teacher, b: Teacher) => number} = {
+    const sortingMap:{[key in SortingOptions]:(a: TeacherEntry, b: TeacherEntry) => number} = {
         alphabetical:(a,b) => {
             if(a.name < b.name) {
                 return -1; 

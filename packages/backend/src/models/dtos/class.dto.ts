@@ -1,6 +1,6 @@
 import { Type } from "class-transformer";
 import { IsNotEmpty, MaxLength, ValidateNested } from "class-validator";
-import { Class } from "../interfaces/Class";
+import { Class } from "@polyratings-revamp/shared";
 import { ReviewDto } from "./review.dto";
 import { TeacherDto } from "./teacher.dto";
 

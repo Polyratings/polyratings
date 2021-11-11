@@ -1,45 +1,43 @@
-import { Teacher, TeacherCreation } from "../models/Teacher";
+import { TeacherEntry, Teacher, TeacherIdResponse } from "@polyratings-revamp/shared"
 import { config } from "../App.config";
 import { HttpService } from "./http.service";
-import { TeacherIdResponse } from "../models/TeacherIdResponse";
-
 
 export class TeacherService {
     constructor(
         private httpService:HttpService
     ){}
 
-    async getRandomBestTeacher(): Promise<Teacher> {
+    async getRandomBestTeacher(): Promise<TeacherEntry> {
         const res = await this.httpService.fetch(`${config.remoteUrl}/teacher/best`)
         this.throwIfNot200(res)
         return res.json()
     }
 
-    async getRandomWorstTeachers(): Promise<Teacher[]> {
+    async getRandomWorstTeachers(): Promise<TeacherEntry[]> {
         const res = await this.httpService.fetch(`${config.remoteUrl}/teacher/worst`)
         this.throwIfNot200(res)
         return res.json()
     }
 
-    async getTeacher(id:string): Promise<Teacher> {
+    async getTeacher(id:string): Promise<TeacherEntry> {
         const res = await this.httpService.fetch(`${config.remoteUrl}/teacher/${id}`)
         this.throwIfNot200(res)
         return res.json()
     }
 
-    async searchForTeacher(value:string): Promise<Teacher[]> {
+    async searchForTeacher(value:string): Promise<TeacherEntry[]> {
         const res = await this.httpService.fetch(`${config.remoteUrl}/teacher/search/${encodeURIComponent(value)}`)
         this.throwIfNot200(res)
         return res.json()
     }
 
-    async getAllTeachers(): Promise<Teacher[]> {
+    async getAllTeachers(): Promise<TeacherEntry[]> {
         const res = await this.httpService.fetch(`${config.remoteUrl}/teacher/all`)
         this.throwIfNot200(res)
         return res.json()
     }
 
-    async addNewTeacher(newTeacher:TeacherCreation): Promise<number> {
+    async addNewTeacher(newTeacher:Teacher): Promise<number> {
         const res = await this.httpService.fetch(
             `${config.remoteUrl}/teacher`,
             {

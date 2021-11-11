@@ -2,8 +2,9 @@ import { BadRequestException, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { TeacherEntity } from 'src/models/entities/teacher.entity';
 import { TeacherDto } from 'src/models/dtos/teacher.dto';
-import { ILike, MoreThan, Repository } from 'typeorm';
+import { ILike, MoreThan, Repository, Raw } from 'typeorm';
 import { plainToClass } from 'class-transformer';
+import { intersectingDbEntities } from 'src/utils/intersectingDbEntities';
 
 @Injectable()
 export class TeacherService {
@@ -45,11 +46,11 @@ export class TeacherService {
                 }
             }))
         )
-        const { intersect, nonIntersect } = this.intersect(tokenMatches)
+        const { intersect, nonIntersect } = intersectingDbEntities(tokenMatches)
         return [...intersect, ...nonIntersect].map(entity => plainToClass(TeacherDto, entity))
     }
 
-    async getTeacherById(id:string): Promise<TeacherDto | undefined> {
+    async getTeacherById(id:number): Promise<TeacherDto | undefined> {
         const result = await this.teacherRepository.findOne(id, {
             relations:['classes', 'classes.reviews'],
         })
@@ -84,30 +85,17 @@ export class TeacherService {
         return plainToClass(TeacherDto, result)
     }
 
-    intersect<T extends DatabaseEntity>(arrays:T[][]): {intersect: T[], nonIntersect:T[]} {
-        if(arrays.length == 1) {
-            return {
-                intersect:arrays[0],
-                nonIntersect:[]
-            }
-        }
-        const idToEntity = arrays.flat().reduce((acc,curr) => {
-            acc[curr.id] = curr
-            return acc
-        }, {})
-        const idArrays = arrays.map(arr => arr.map(x => x.id))
-        let intersectionSet = new Set(idArrays[0])
-        for(let array of idArrays.slice(1)) {
-            const compareSet = new Set(array);
-            intersectionSet = new Set([...intersectionSet].filter(x => compareSet.has(x)));
-        }
-        const nonIntersect = arrays.flat().filter(x => !intersectionSet.has(x.id))
+    async getRecent():Promise<TeacherDto[]> {
+        const TeacherEntities = await this.teacherRepository.find({
+            order: {
+                createdAt: 'DESC'
+            },
+            take:50
+        })
+        return TeacherEntities.map(t => plainToClass(TeacherDto, t))
+    }
 
-        return {
-            intersect: Array.from(intersectionSet).map(id => idToEntity[id]),
-            nonIntersect
-        }
-      }
+
 }
 
 interface DatabaseEntity {

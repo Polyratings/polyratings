@@ -1,11 +1,12 @@
+import { AddReview } from "@polyratings-revamp/shared";
 import { Type } from "class-transformer";
 import { IsNotEmpty, IsNumber, Max, Min, ValidateNested } from "class-validator";
 import { ReviewDto } from "./review.dto";
 
-export class AddReviewDto {
+export class AddReviewDto implements AddReview {
 
     @IsNotEmpty()
-    teacherId:string
+    teacherId:number
 
     @IsNotEmpty()
     classIdOrName:string

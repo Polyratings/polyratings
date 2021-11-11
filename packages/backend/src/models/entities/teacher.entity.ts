@@ -1,9 +1,9 @@
 import { Column, CreateDateColumn, Entity, OneToMany, PrimaryGeneratedColumn } from "typeorm";
 import { ClassEntity } from "../entities/class.entity";
-import { Teacher } from "../interfaces/Teacher";
+import { TeacherEntry } from "@polyratings-revamp/shared";
 
 @Entity('teacher')
-export class TeacherEntity implements Teacher {
+export class TeacherEntity implements TeacherEntry {
 
     @PrimaryGeneratedColumn()
     id:number;
@@ -11,7 +11,7 @@ export class TeacherEntity implements Teacher {
     @CreateDateColumn()
     createdAt: Date;
 
-    @Column('varchar', { length: 255 })
+@Column('varchar', { length: 255 })
     name:string;
 
     @Column('varchar', { length: 255 })

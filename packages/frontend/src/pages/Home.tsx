@@ -1,17 +1,17 @@
-import homeHeader from '../assets/home-header.png'
+import homeHeader from '../assets/home-header.webp'
 import homeCurveTransition from '../assets/home-curve-transition.svg'
 import { TeacherCard } from '../components/TeacherCard'
 import star from '../assets/star.svg'
-import worstOfWorstBackground from '../assets/worst-of-worst-background.png'
+import worstOfWorstBackground from '../assets/worst-of-worst-background.webp'
 import { useEffect, useState } from 'react'
-import { Teacher } from '../models/Teacher'
+import { TeacherEntry } from '@polyratings-revamp/shared'
 import { TeacherService } from '../services'
 import { SearchBar } from '../components/SearchBar'
 import { useService } from '../hooks/useService'
 
 export function Home() {
-    let [bestTeacher, setBestTeacher] = useState<Teacher>({} as any)
-    let [worstTeachers, setWorstTeachers] = useState<Teacher[]>([])
+    let [bestTeacher, setBestTeacher] = useState<TeacherEntry>({} as any)
+    let [worstTeachers, setWorstTeachers] = useState<TeacherEntry[]>([])
     const[teacherService] = useService(TeacherService)
 
     useEffect(() => {

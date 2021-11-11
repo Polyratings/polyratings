@@ -8,6 +8,7 @@ import { AuthModule } from './auth/auth.module';
 import { ServeStaticModule } from '@nestjs/serve-static';
 import { join } from 'path';
 import { ReviewModule } from './review/review.module';
+import { AdminModule } from './admin/admin.module';
 
 @Module({
   imports: [
@@ -31,7 +32,8 @@ import { ReviewModule } from './review/review.module';
     }),
     TeacherModule,
     AuthModule,
-    ReviewModule
+    ReviewModule,
+    AdminModule
   ],
   controllers: [AppController],
   providers: [AppService],

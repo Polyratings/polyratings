@@ -1,6 +1,6 @@
 import { Expose, Type } from "class-transformer";
 import { IsNotEmpty, IsNumber, IsString, ValidateNested } from "class-validator";
-import { Teacher } from "../interfaces/Teacher";
+import { Teacher } from "@polyratings-revamp/shared";
 import { ClassDto } from "./class.dto";
 
 export class TeacherDto implements Teacher {

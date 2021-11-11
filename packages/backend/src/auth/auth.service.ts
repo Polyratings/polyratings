@@ -1,16 +1,18 @@
-import { ConflictException, Injectable, UnauthorizedException } from '@nestjs/common';
+import { BadRequestException, ConflictException, Injectable, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { InjectRepository } from '@nestjs/typeorm';
 import { UserEntity } from 'src/models/entities/user.entity';
-import { JwtAuthResponse } from 'src/models/interfaces/JwtAuthResponse';
+import { JwtAuthResponse } from '@polyratings-revamp/shared';
 import { Repository } from 'typeorm';
 import * as bcrypt from 'bcrypt';
 import * as crypto from 'crypto'
-import { UserDto } from 'src/models/dtos/user.dto';
 import { SendGridService } from '@anchan828/nest-sendgrid';
+import { UserDto } from 'src/models/dtos/user.dto';
 
 @Injectable()
 export class AuthService {
+
+    private bannedJwtIds = new Set<number>()
 
     constructor(
         @InjectRepository(UserEntity)
@@ -19,7 +21,7 @@ export class AuthService {
         private sendGrid:SendGridService
     ){}
 
-    async validateUser(email:string, password:string):Promise<UserEntity | null> {
+    async validateUserLocal(email:string, password:string):Promise<UserEntity | null> {
         const userEntity = await this.userRepository.findOne({email});
         if(!userEntity) {
             return null
@@ -27,11 +29,22 @@ export class AuthService {
         if(!userEntity.emailConfirmed) {
             throw new UnauthorizedException(`Please confirm your email ${userEntity.email}`)
         }
+        if(userEntity.isBanned) {
+            // TODO: Replace email with final email address
+            throw new UnauthorizedException(`You have been banned. If this is a mistake contact maxmfishernj@gmail.com`)
+        }
         const isMatch = await bcrypt.compare(password, userEntity.password)
         if (isMatch) {
             return userEntity
         }
         return null;
+    }
+
+    validateUserJwt(user:UserDto):UserDto {
+        if(this.bannedJwtIds.has(user.sub)) {
+            throw new UnauthorizedException(`You have been banned. If this is a mistake contact maxmfishernj@gmail.com`)
+        }
+        return user
     }
 
     async login(user:UserEntity): Promise<JwtAuthResponse> {
@@ -79,6 +92,7 @@ export class AuthService {
         try {
             await this.sendGrid.send(confirmEmail)
         } catch(e) {
+            // TODO: Handle error better
             console.error(e.response.body)
         }  
     }
@@ -103,5 +117,15 @@ export class AuthService {
 
         this.userRepository.save(user)
         return user
+    }
+
+    async banUser(userId:number): Promise<void> {
+        const user = await this.userRepository.findOne(userId)
+        if(!user) {
+            throw new BadRequestException('User Id Not Valid')
+        }
+        user.isBanned = true
+        this.bannedJwtIds.add(user.id)
+        await this.userRepository.save(user)
     }
 }

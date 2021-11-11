@@ -6,9 +6,8 @@ import { useForm } from "react-hook-form";
 import { ErrorMessage } from '@hookform/error-message'
 import { TeacherService } from "../services";
 import { EvaluateTeacherForm } from "./EvaluateTeacherForm";
-import { ReviewUpload } from "../models/Review";
 import ClipLoader from "react-spinners/ClipLoader";
-import { Teacher, TeacherCreation } from "../models/Teacher";
+import { Teacher, AddReview } from "@polyratings-revamp/shared";
 import { toast } from "react-toastify";
 import { useHistory } from "react-router";
 
@@ -40,11 +39,11 @@ export function NewTeacherForm() {
     }
 
     // Use closure in order to access the data from the two forms
-    const reviewFormSubmitOverride = (reviewOverrideData:ReviewUpload) => {
+    const reviewFormSubmitOverride = (reviewOverrideData:AddReview) => {
         // @ts-expect-error Ignore ts error for onSubmit handler
         teacherFormRef.current!.onsubmit = handleSubmit(async teacherData => {
             setLoading(true)
-            const newTeacher:TeacherCreation = {
+            const newTeacher:Teacher = {
                 name:`${teacherData.teacherLastName}, ${teacherData.teacherFirstName}`,
                 department:teacherData.teacherDepartment,
                 numberOfEvaluations:1,

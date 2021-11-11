@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useHistory } from "react-router";
 import { Link } from "react-router-dom";
-import loginBackground from '../assets/home-header.png'
+import loginBackground from '../assets/home-header.webp'
 import { useProtectedRoute } from "../hooks/useProtectedRoute";
 import { useService } from "../hooks/useService";
 import { AuthService } from "../services";

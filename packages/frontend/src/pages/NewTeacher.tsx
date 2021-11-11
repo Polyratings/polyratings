@@ -1,4 +1,4 @@
-import loginBackground from '../assets/home-header.png'
+import loginBackground from '../assets/home-header.webp'
 import { NewTeacherForm } from '../components/NewTeacherForm'
 import { useProtectedRoute } from '../hooks/useProtectedRoute'
 export function NewTeacher() {

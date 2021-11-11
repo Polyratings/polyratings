@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import loginBackground from '../assets/home-header.png'
+import loginBackground from '../assets/home-header.webp'
 import { useProtectedRoute } from "../hooks/useProtectedRoute";
 import { useService } from "../hooks/useService";
 import { AuthService } from "../services";
@@ -21,7 +21,7 @@ export function Login() {
     }
 
     // Redirect to homepage if in authenticated state
-    useProtectedRoute(false, '/', (user) => `Welcome ${user.email.replace('@calpoly.edu','')}!`)
+    useProtectedRoute(false, '/', (user) => `Welcome ${user.email.replace('@calpoly.edu','')}`)
 
 
     return(
