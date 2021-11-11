@@ -1,9 +1,8 @@
 on:
   push:
-    branches:
-      master:
-        paths:
-          - packages/frontend/**
+    branches: [master]
+    paths:
+      - packages/frontend/**
 
 jobs:
   deploy:
