@@ -14,10 +14,11 @@ import { ConfirmEmail } from './pages/ConfrimEmail';
 import 'react-toastify/dist/ReactToastify.css';
 import { ToastContainer } from 'react-toastify';
 import { NewTeacher } from './pages/NewTeacher';
+import { config } from './App.config';
 
 function App() {
   return(
-    <BrowserRouter>
+    <BrowserRouter basename={config.base}>
       <ToastContainer />
       <Navbar />
       <Switch>
