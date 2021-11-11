@@ -18,8 +18,8 @@ jobs:
 
       - name: copy files for github pages
         run: |
-          cp packages/frontend/dist/ghpages.html packages/frontend/dist/index.html
-          cp packages/frontend/dist/ghpages.html packages/frontend/dist/error.html
+          node packages\frontend\githubPagesBaseFix.js
+          cp packages/frontend/dist/index.html packages/frontend/dist/error.html
       
       - name: Deploy
         uses: JamesIves/github-pages-deploy-action@4.1.5
