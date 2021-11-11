@@ -10,4 +10,10 @@ const prodConfig:AppConfiguration = {
     remoteUrl:'/api'
 }
 
-export const config = process.env.NODE_ENV === 'development' ? devConfig : prodConfig; 
+const githubPagesConfig:AppConfiguration = {
+    remoteUrl:'https://polratings-revamp-alcr3.ondigitalocean.app/api'
+}
+
+const regularConfig = process.env.NODE_ENV === 'development' ? devConfig : prodConfig; 
+
+export const config = window.location.href.includes('github.io') ? githubPagesConfig : regularConfig
