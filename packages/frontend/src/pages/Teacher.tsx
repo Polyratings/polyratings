@@ -1,25 +1,54 @@
 import { useState, useEffect } from "react";
 import { useHistory, useParams } from "react-router-dom";
-import { ClassEntry, TeacherEntry,ReviewEntry } from "@polyratings-revamp/shared";
+import { TeacherEntry,ReviewEntry, Review } from "@polyratings-revamp/shared";
 import { TeacherService } from "../services";
 import AnimateHeight from 'react-animate-height';
 import AnchorLink from 'react-anchor-link-smooth-scroll'
 import StarRatings from 'react-star-ratings';
-import { useService } from "../hooks/useService";
-import { Backdrop } from '../components/Backdrop'
-import { useAuth } from "../hooks/useAuth";
+import { Backdrop,EvaluateTeacherForm } from '../components'
+import { useAuth, useService } from "../hooks";
 import { toast } from "react-toastify";
-import { EvaluateTeacherForm } from "../components/EvaluateTeacherForm";
 
-export function Teacher() {
+export function Teacher({teacherDataPreNavigation}:{teacherDataPreNavigation:TeacherEntry | undefined}) {
     let { id } = useParams<{id:string}>();
 
-    let [teacherData, setTeacherData] = useState<TeacherEntry>({} as any)
+    let [teacherData, setTeacherData] = useState<TeacherEntry>(teacherDataPreNavigation ?? {} as any)
+    const [reviewsByClass, setReviewsByClass] = useState<{[taughtClass:string]:ReviewEntry[]}>({})
+
+    useEffect(() => {
+        const categorized = teacherData.reviews?.reduce((acc:{[taughtClass:string]:ReviewEntry[]}, curr) => {
+            const taughtClassName = `${curr.department} ${curr.courseNum}`
+            if(acc[taughtClassName]) {
+                acc[taughtClassName].push(curr)
+            } else {
+                acc[taughtClassName] = [curr]
+            }
+            return acc
+        },{})
+        setReviewsByClass(categorized ?? {})
+    }, [teacherData])
+
     const history = useHistory()
     let [teacherService] = useService(TeacherService)
     let [teacherEvaluationShownDesktop, setTeacherEvaluationShownDesktop] = useState(false)
     let [teacherEvaluationShownMobile, setTeacherEvaluationShownMobile] = useState(false)
     let isAuthenticated = useAuth()
+
+    async function retrieveTeacherData() {
+        try {
+            const result = await teacherService.getTeacher(id)
+            setTeacherData(result)
+        } catch(e) {
+            console.error(`Failed to load teacher with id: ${id}`,e)
+            history.push('/')
+        }  
+    }
+
+    useEffect(() => {
+        if(!teacherDataPreNavigation) {
+            retrieveTeacherData()
+        }
+    }, [])
 
     const toggleTeacherEvaluationForm = (state:boolean, setState:(value:boolean) => void) => {
         if(state) {
@@ -35,30 +64,15 @@ export function Teacher() {
     const toggleTeacherEvaluationFormDesktop = () => toggleTeacherEvaluationForm(teacherEvaluationShownDesktop, setTeacherEvaluationShownDesktop)
     const toggleTeacherEvaluationFormMobile = () => toggleTeacherEvaluationForm(teacherEvaluationShownMobile, setTeacherEvaluationShownMobile)
 
-    useEffect(() => {
-        async function retrieveTeacherData() {
-            try {
-                const result = await teacherService.getTeacher(id)
-                setTeacherData(result)
-            } catch(e) {
-                console.error(`Failed to load teacher with id: ${id}`,e)
-                history.push('/')
-            }
-            
-        }
-        retrieveTeacherData()
-    }, [])
-
     const ClassScroll = ({outerClassName, innerClassName}: {outerClassName:string, innerClassName:string}) => (
         <div className={outerClassName}>
             {
-                teacherData.classes && 
-                teacherData.classes.map(
+                Object.keys(reviewsByClass).map(
                     taughtClass => <AnchorLink 
-                        key={taughtClass.id} 
-                        href={`#${taughtClass.name}`} 
+                        key={taughtClass} 
+                        href={`#${taughtClass}`} 
                         className={innerClassName}
-                    >{taughtClass.name}</AnchorLink>
+                    >{taughtClass}</AnchorLink>
                 )
             }
         </div>
@@ -77,32 +91,34 @@ export function Teacher() {
 
             <div className="container lg:max-w-5xl mx-auto hidden sm:flex justify-between py-2">
                 <div>
-                    <h2 className="text-4xl text-cal-poly-green">{teacherData.name}</h2>
+                    <h2 className="text-4xl text-cal-poly-green">{teacherData.lastName}, {teacherData.firstName}</h2>
                     <div>
-                        <StarRatings
-                            rating={teacherData.overallRating}
-                            starRatedColor="#BD8B13"
-                            numberOfStars={4}
-                            starDimension="25px"
-                            starSpacing="5px "
-                        />
+                        {teacherData.avgRating && 
+                            <StarRatings
+                                rating={parseFloat(teacherData.avgRating)}
+                                starRatedColor="#BD8B13"
+                                numberOfStars={4}
+                                starDimension="25px"
+                                starSpacing="5px "
+                            />
+                        }
                     </div>
                     <button onClick={toggleTeacherEvaluationFormDesktop} className="bg-cal-poly-green text-white rounded-lg p-2 shadow mt-2">Evaluate Teacher</button>
                 </div>
                 <div className="text-right">
-                    <h2 className="text-4xl text-cal-poly-green">{teacherData.overallRating} / 4.00</h2>
-                    <p>{teacherData.numberOfEvaluations} evaluations</p>
-                    <p>Recognizes Student Difficulties: {teacherData.recognizesStudentDifficulties}</p>
-                    <p>Presents Material Clearly: {teacherData.presentsMaterialClearly}</p>
+                    <h2 className="text-4xl text-cal-poly-green">{teacherData.avgRating} / 4.00</h2>
+                    <p>{teacherData.numEvals} evaluations</p>
+                    {/* <p>Recognizes Student Difficulties: {teacherData.recognizesStudentDifficulties}</p>
+                    <p>Presents Material Clearly: {teacherData.presentsMaterialClearly}</p> */}
                 </div>
             </div>
 
             <div className="sm:hidden container py-2 text-center">
-                <h2 className="text-4xl text-cal-poly-green">{teacherData.name}</h2>
+                <h2 className="text-4xl text-cal-poly-green">{teacherData.lastName}, {teacherData.firstName}</h2>
                 <p>{teacherData.department}</p>
-                <p>Overall Rating: {teacherData.overallRating} / 4.00</p>
-                <p>Recognizes Student Difficulties: {teacherData.recognizesStudentDifficulties}</p>
-                <p>Presents Material Clearly: {teacherData.presentsMaterialClearly}</p>
+                <p>Overall Rating: {teacherData.avgRating} / 4.00</p>
+                {/* <p>Recognizes Student Difficulties: {teacherData.recognizesStudentDifficulties}</p>
+                <p>Presents Material Clearly: {teacherData.presentsMaterialClearly}</p> */}
                 <button 
                     onClick={toggleTeacherEvaluationFormMobile}
                     className="bg-cal-poly-green text-white rounded-lg p-2 shadow mt-2"
@@ -119,9 +135,8 @@ export function Teacher() {
             </AnimateHeight>
 
             {
-                teacherData.classes &&
-                teacherData.classes.map(
-                    taughtClass => <ClassSection key={taughtClass.id} id={taughtClass.name} taughtClass={taughtClass}/>
+                Object.entries(reviewsByClass).map(
+                    taughtClass => <ClassSection key={taughtClass[0]} reviews={taughtClass[1]} taughtClass={taughtClass[0]}/>
                 )
             }
             <ClassScroll 
@@ -139,14 +154,14 @@ export function Teacher() {
 }
 
 
-function ClassSection({taughtClass, id}:{taughtClass:ClassEntry, id:string}) {
+function ClassSection({reviews, taughtClass}:{reviews:ReviewEntry[], taughtClass:string}) {
     let [expanded, setExpanded] = useState(false)
     const UNEXPANDED_LIMIT = 2
-    const unexpandedReviews = taughtClass.reviews!.slice(0, UNEXPANDED_LIMIT)
-    const expandedReviews = taughtClass.reviews!.slice(UNEXPANDED_LIMIT)
+    const unexpandedReviews =reviews.slice(0, UNEXPANDED_LIMIT)
+    const expandedReviews = reviews.slice(UNEXPANDED_LIMIT)
     return (
-        <div className="pt-4" id={id}>
-            <h2 className="text-center text-4xl text-cal-poly-green">{taughtClass.name}</h2>
+        <div className="pt-4" id={taughtClass}>
+            <h2 className="text-center text-4xl text-cal-poly-green">{taughtClass}</h2>
             <div className="container lg:max-w-5xl flex flex-col m-auto">
                 {unexpandedReviews.map(review => <ReviewCard key={review.id} review={review}/>)}
             </div>
@@ -156,7 +171,7 @@ function ClassSection({taughtClass, id}:{taughtClass:ClassEntry, id:string}) {
                 </div>
             </AnimateHeight>
             {
-                taughtClass.reviews!.length > UNEXPANDED_LIMIT &&
+                reviews.length > UNEXPANDED_LIMIT &&
                 <div className="flex justify-center">
                     <button onClick={() => setExpanded(!expanded)} className="bg-cal-poly-green text-white rounded-lg p-2 shadow">
                         {!expanded && "Show More"} {expanded && "Show Less"}
@@ -178,13 +193,14 @@ function ReviewCard({review}:{review:ReviewEntry}) {
             key={review.id}
         >
             <div className="hidden lg:flex flex-col w-32 flex-shrink-0 m-auto mr-4 text-center text-sm">
-                <div>{review.year}</div>
+                <div>{review.gradeLevel}</div>
                 <div>{review.grade}</div>
-                <div>{review.reasonForTaking}</div>
-                <div>{new Date(review.createdAt).toLocaleString('en-US', {year: 'numeric', month: 'short'})}</div>
+                <div>{review.courseType}</div>
+                {/* <div>{new Date(review.createdAt).toLocaleString('en-US', {year: 'numeric', month: 'short'})}</div> */}
+                <div>{review.postDate}</div>
             </div>
             <div className="hidden lg:flex bg-cal-poly-green w-1 mr-4 mt-2 mb-2 flex-shrink-0"></div>
-            <div className="flex-grow">{review.text}</div>
+            <div className="flex-grow">{review.rating}</div>
         </div>  
     )
 }

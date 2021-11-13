@@ -51,34 +51,6 @@ export class AuthService {
         return this.setAuthState(jwt) as User
     }
 
-    public async register(calPolyUsername:string, password:string) {
-        const registerRes = await this.fetch(
-            `${config.remoteUrl}/auth/register`,
-            {
-                method:'POST', 
-                headers:{
-                    'Content-Type':'application/json'
-                },
-                body:JSON.stringify({email:`${calPolyUsername}@calpoly.edu`, password})
-            }
-        )
-        if(registerRes.status != 200 && registerRes.status != 201) {
-            const error = await registerRes.json()
-            throw error.message
-        }
-    }
-
-    public async confirmEmail(userID:string, otp:string) {
-        const confirmEmailRequest = await this.fetch(`${config.remoteUrl}/auth/confirmEmail/${userID}/${otp}`)
-        if(confirmEmailRequest.status != 200 && confirmEmailRequest.status != 201) {
-            const error = await confirmEmailRequest.json()
-            throw error.message
-        }
-        const confirmEmailBody = await confirmEmailRequest.json() as JwtAuthResponse
-        const jwt = confirmEmailBody.access_token
-        this.setAuthState(jwt)
-    }
-
     public signOut() {
         this.setAuthState(null)
     }

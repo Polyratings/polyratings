@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
-import { useService } from "../hooks/useService";
-import { departments } from "../constants/departments";
+import { useService } from "../hooks";
+import { departments } from "../constants";
 import { useForm, SubmitHandler } from "react-hook-form";
 import { ErrorMessage } from '@hookform/error-message'
 import { ReviewService } from "../services";

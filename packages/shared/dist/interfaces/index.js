@@ -17,4 +17,5 @@ __exportStar(require("./Teacher"), exports);
 __exportStar(require("./TeacherIdResponse"), exports);
 __exportStar(require("./User"), exports);
 __exportStar(require("./AddReview"), exports);
+__exportStar(require("./DatabaseEntry"), exports);
 //# sourceMappingURL=index.js.map

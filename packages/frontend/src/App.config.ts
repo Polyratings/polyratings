@@ -4,17 +4,17 @@ interface AppConfiguration {
 }
 
 const devConfig:AppConfiguration = {
-    remoteUrl:'http://localhost:8080/api',
+    remoteUrl:'https://professor-reviews.atustin.workers.dev',
     base:'/'
 }
 
 const prodConfig:AppConfiguration = {
-    remoteUrl:'/api',
+    remoteUrl:'https://professor-reviews.atustin.workers.dev',
     base:'/'
 }
 
 const githubPagesConfig:AppConfiguration = {
-    remoteUrl:'https://polratings-revamp-alcr3.ondigitalocean.app/api',
+    remoteUrl:'https://professor-reviews.atustin.workers.dev',
     base:'/polyratings-revamp/'
 }
 

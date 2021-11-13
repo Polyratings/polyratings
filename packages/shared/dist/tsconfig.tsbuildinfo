@@ -122,18 +122,18 @@
         "affectsGlobalScope": false
       },
       "../src/interfaces/databaseentry.ts": {
-        "version": "47f1423feeda3e428c29cfe805b034d1f963575662586a8564a510a8cd4fa10a",
-        "signature": "aec3519cff788723440a4712dccc261980e1b9a47ca1a5963cc5a14077cc06af",
+        "version": "5d5471b1372ab553e34a162cd39ed177888310d55b7938de7c13cab93f9d1390",
+        "signature": "23e57261d063f9e01281170ab6df7889f8df9356de57a4e287683ff1054c2006",
         "affectsGlobalScope": false
       },
       "../src/interfaces/review.ts": {
-        "version": "8f56cd42904d2c234bfe6fd96101a064860596d1d586c04e153afea48ee393a5",
-        "signature": "87575615c31aa2a1900c71b25db150163c198ea539935e127eebdb87c10d2596",
+        "version": "d6ddadce10dbe93ce6fb687c96d9db250e5bf9c509f73dfb9e6b458a8ff4a47c",
+        "signature": "f88110ee0d1ae14c8aa47fdff1694e8737c0b094c9127ec64b0aa3cd3557f266",
         "affectsGlobalScope": false
       },
       "../src/interfaces/teacher.ts": {
-        "version": "ea43a6c6b41e57db65cb0f4051506f43979285fe3b6d28ff0df6303164cbd50c",
-        "signature": "8b591e14784ae7d03d6e29eb19d34c412c9fc5efd022fbd163197eb6e0d30588",
+        "version": "501656e2b82a67fb22a009de6b5882eef0cbe8845e6cdf722300cd94d63fd60c",
+        "signature": "4aa64b087113804b508a7283f8deefb8cbdf2ed63b407291e0ba1c5fc2064a9a",
         "affectsGlobalScope": false
       },
       "../src/interfaces/class.ts": {
@@ -162,8 +162,8 @@
         "affectsGlobalScope": false
       },
       "../src/interfaces/index.ts": {
-        "version": "eb12ceaabe360dc4485b7355df4957d69a7d94c4c2e2d0fe1a37e52e11bf472f",
-        "signature": "91abdf5d994a95703f90ee493919b8462c4923bd3934e0d249c5561f50d4b344",
+        "version": "7cffce53292ebf5f99191750e1b4af8714d0da96be8878a914720cd2520fe222",
+        "signature": "dbce7d6f11159350fc44a9b54319eb7fc701807395d01f75b33c52d5eeeb3d33",
         "affectsGlobalScope": false
       },
       "../src/index.ts": {
@@ -222,6 +222,7 @@
       "../src/interfaces/index.ts": [
         "../src/interfaces/addreview.ts",
         "../src/interfaces/class.ts",
+        "../src/interfaces/databaseentry.ts",
         "../src/interfaces/jwtauthresponse.ts",
         "../src/interfaces/review.ts",
         "../src/interfaces/teacher.ts",
@@ -234,7 +235,8 @@
       ],
       "../src/interfaces/teacher.ts": [
         "../src/interfaces/class.ts",
-        "../src/interfaces/databaseentry.ts"
+        "../src/interfaces/databaseentry.ts",
+        "../src/interfaces/review.ts"
       ]
     },
     "exportedModulesMap": {
@@ -252,6 +254,7 @@
       "../src/interfaces/index.ts": [
         "../src/interfaces/addreview.ts",
         "../src/interfaces/class.ts",
+        "../src/interfaces/databaseentry.ts",
         "../src/interfaces/jwtauthresponse.ts",
         "../src/interfaces/review.ts",
         "../src/interfaces/teacher.ts",
@@ -263,8 +266,8 @@
         "../src/interfaces/databaseentry.ts"
       ],
       "../src/interfaces/teacher.ts": [
-        "../src/interfaces/class.ts",
-        "../src/interfaces/databaseentry.ts"
+        "../src/interfaces/databaseentry.ts",
+        "../src/interfaces/review.ts"
       ]
     },
     "semanticDiagnosticsPerFile": [

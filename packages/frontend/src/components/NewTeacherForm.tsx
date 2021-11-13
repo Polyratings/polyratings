@@ -1,7 +1,7 @@
 
 import { useState, useRef } from "react";
-import { useService } from "../hooks/useService";
-import { departments } from "../constants/departments";
+import { useService } from "../hooks";
+import { departments } from "../constants";
 import { useForm } from "react-hook-form";
 import { ErrorMessage } from '@hookform/error-message'
 import { TeacherService } from "../services";

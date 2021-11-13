@@ -8,10 +8,15 @@ export function SearchBar({initialValue}:{initialValue?:string}) {
         setSearchValue(initialValue ?? '')
     }, [initialValue])
     const history = useHistory()
+    const onFormSubmit = (e:React.FormEvent<HTMLFormElement>) => {
+        e.preventDefault()
+        history.push(`/search/${encodeURIComponent(searchValue)}`)
+
+    }
     return (
         <form 
         className="flex flex-col md:flex-row justify-center items-center py-6" 
-        onSubmit={() => history.push(`/search/${encodeURIComponent(searchValue)}`)}
+        onSubmit={onFormSubmit}
     >
         <div className="flex">
             <div className="bg-gray-400 w-16 flex justify-center rounded-l-lg">

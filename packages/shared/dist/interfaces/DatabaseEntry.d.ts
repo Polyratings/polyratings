@@ -1,9 +1,7 @@
-interface DefaultDbItems {
-    id: number;
-    createdAt: Date;
+export interface DbEntryProperties {
+    id: string;
 }
-export declare type DatabaseEntry<I extends InterfaceType, T> = I extends 'db' ? Omit<T, keyof DefaultDbItems> & {
-    [K in keyof T & keyof DefaultDbItems]: DefaultDbItems[K];
+export declare type DatabaseEntry<I extends InterfaceType, T> = I extends 'db' ? Omit<T, keyof DbEntryProperties> & {
+    [K in keyof T & keyof DbEntryProperties]: DbEntryProperties[K];
 } : T;
 export declare type InterfaceType = 'db' | 'plain';
-export {};

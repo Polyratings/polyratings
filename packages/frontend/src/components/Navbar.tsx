@@ -3,9 +3,8 @@ import Logo from '../assets/Logo.png'
 import '../styles/hamburgers.css'
 import AnimateHeight from 'react-animate-height';
 import { useState } from "react";
-import { useAuth } from "../hooks/useAuth";
 import { AuthService } from "../services";
-import { useService } from "../hooks/useService";
+import { useService, useAuth } from "../hooks";
 
 export function Navbar() {
     let [mobileNavOpen, setMobileNav] = useState(false)
@@ -35,12 +34,6 @@ export function Navbar() {
                     <Link className="my-1" to="/newTeacher" onClick={triggerMobileNav}> Add a Teacher</Link>
                     <Link className="my-1" to="/search/__all" onClick={triggerMobileNav} >Professor List</Link>
                     {/* <Link className="mr-7" to="contact">Contact</Link> */}
-                    {!isAuthenticated &&
-                        <Link to="/login" className="my-1" onClick={triggerMobileNav} >Login</Link>
-                    }
-                    {!isAuthenticated &&
-                        <Link to="/register" className="my-1" onClick={triggerMobileNav} >Register</Link>
-                    }
                     {isAuthenticated &&
                         <div 
                             className="my-1" 
@@ -59,13 +52,6 @@ export function Navbar() {
                 <Link className="mr-7" to="/newTeacher"> Add a Teacher</Link>
                 <Link className="mr-7" to="/search/__all"> Professor List</Link>
                 {/* <Link className="mr-7" to="contact">Contact</Link> */}
-                {!isAuthenticated &&
-                    <Link to="/login" className="mr-7 rounded-full bg-white bg-opacity-50 px-3 py-px">LOGIN</Link>    
-                }
-                {!isAuthenticated &&
-                    <Link to="/register" className="rounded-full border-white px-3 border-2">SIGN UP</Link>   
-                }
-                
                 {isAuthenticated &&
                 <div onClick={() => authService.signOut()} className="rounded-full border-white pl-3 pr-3 border-2 pt-px pb-px cursor-pointer">SIGN OUT</div>
                 }

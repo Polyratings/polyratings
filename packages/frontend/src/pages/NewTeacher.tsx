@@ -1,6 +1,6 @@
 import loginBackground from '../assets/home-header.webp'
-import { NewTeacherForm } from '../components/NewTeacherForm'
-import { useProtectedRoute } from '../hooks/useProtectedRoute'
+import { NewTeacherForm } from '../components'
+import { useProtectedRoute } from '../hooks'
 export function NewTeacher() {
     // Redirect to homepage if in authenticated state
     useProtectedRoute(true, '/login', () => 'To add a teacher please sign in or create an account')

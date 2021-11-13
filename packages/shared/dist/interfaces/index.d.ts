@@ -5,3 +5,4 @@ export * from './Teacher';
 export * from './TeacherIdResponse';
 export * from './User';
 export * from './AddReview';
+export * from './DatabaseEntry';

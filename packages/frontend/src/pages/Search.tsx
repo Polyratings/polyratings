@@ -2,13 +2,12 @@ import { useHistory, useParams } from "react-router-dom";
 import { useState, useEffect, useRef } from "react";
 import { TeacherEntry } from "@polyratings-revamp/shared";
 import { TeacherService } from "../services";
-import { TeacherCard, TEACHER_CARD_HEIGHT } from "../components/TeacherCard";
-import { MinMaxSlider } from "../components/TwoPosSlider";
+import { TeacherCard, TEACHER_CARD_HEIGHT, MinMaxSlider, SearchBar } from "../components";
 import { List, WindowScroller } from 'react-virtualized';
-import { SearchBar } from "../components/SearchBar";
-import { useService } from "../hooks/useService";
+import { useService } from "../hooks";
 
-type SortingOptions = 'relevant' | 'alphabetical' | 'overallRating' | 'recognizesStudentDifficulties' | 'presentsMaterialClearly'
+type SortingOptions = 'relevant' | 'alphabetical' | 'overallRating' 
+//| 'recognizesStudentDifficulties' | 'presentsMaterialClearly'
 
 export function Search() {
     let { searchTerm } = useParams<{searchTerm:string}>();
@@ -102,21 +101,21 @@ function Filters({teachers, onUpdate, className}:FilterProps) {
     // Set default for className
     className = className || ''
     let [departmentFilters, setDepartmentFilters] = useState<[string, boolean][]>([])
-    let [overallRatingFilter, setOverallRatingFilter] = useState<[number, number]>([0,4])
-    let [recognizesStudentDifficultyFilter, setRecognizesStudentDifficultyFilter] = useState<[number, number]>([0,4])
-    let [presentsMaterialClearlyFilter, setPresentsMaterialClearlyFilter] = useState<[number, number]>([0,4])
+    let [avgRatingFilter, setAvgRatingFilter] = useState<[number, number]>([0,4])
+    // let [recognizesStudentDifficultyFilter, setRecognizesStudentDifficultyFilter] = useState<[number, number]>([0,4])
+    // let [presentsMaterialClearlyFilter, setPresentsMaterialClearlyFilter] = useState<[number, number]>([0,4])
     let [numberOfEvaluationsFilter, setNumberOfEvaluationsFilter] = useState<[number, number]>([1,2])
     let [reverseFilter, setReverseFilter] = useState(false)
     const getEvaluationDomain:(data:TeacherEntry[]) => [number,number] = (data:TeacherEntry[]) => [
-        data.reduce((acc,curr) => curr.numberOfEvaluations < acc ? curr.numberOfEvaluations : acc, Infinity),
-        data.reduce((acc,curr) => curr.numberOfEvaluations > acc ? curr.numberOfEvaluations : acc, -Infinity)
+        data.reduce((acc,curr) => curr.numEvals < acc ? curr.numEvals : acc, Infinity),
+        data.reduce((acc,curr) => curr.numEvals > acc ? curr.numEvals : acc, -Infinity)
     ]
     let [sortBy, setSortBy] = useState<SortingOptions>('relevant')
     const filteredTeachersDeps = [
         departmentFilters,
-        overallRatingFilter,
-        recognizesStudentDifficultyFilter,
-        presentsMaterialClearlyFilter,
+        avgRatingFilter,
+        // recognizesStudentDifficultyFilter,
+        // presentsMaterialClearlyFilter,
         sortBy,
         numberOfEvaluationsFilter,
         reverseFilter
@@ -141,35 +140,37 @@ function Filters({teachers, onUpdate, className}:FilterProps) {
                 return depFilters.length == 0 || depFilters.includes(teacher.department)
             },
             
-            (teacher) => teacher.overallRating >= overallRatingFilter[0] && 
-                teacher.overallRating <= overallRatingFilter[1],
+            (teacher) => teacher.avgRating >= avgRatingFilter[0] && 
+                teacher.avgRating <= avgRatingFilter[1],
 
-            (teacher) => teacher.recognizesStudentDifficulties >= recognizesStudentDifficultyFilter[0] && 
-                teacher.recognizesStudentDifficulties <= recognizesStudentDifficultyFilter[1],
+            // (teacher) => teacher.recognizesStudentDifficulties >= recognizesStudentDifficultyFilter[0] && 
+            //     teacher.recognizesStudentDifficulties <= recognizesStudentDifficultyFilter[1],
 
-            (teacher) => teacher.presentsMaterialClearly >= presentsMaterialClearlyFilter[0] &&
-                teacher.presentsMaterialClearly <= presentsMaterialClearlyFilter[1],
+            // (teacher) => teacher.presentsMaterialClearly >= presentsMaterialClearlyFilter[0] &&
+            //     teacher.presentsMaterialClearly <= presentsMaterialClearlyFilter[1],
 
-            (teacher) => teacher.numberOfEvaluations >= numberOfEvaluationsFilter[0] &&
-                teacher.numberOfEvaluations <= numberOfEvaluationsFilter[1]
+            (teacher) => teacher.numEvals >= numberOfEvaluationsFilter[0] &&
+                teacher.numEvals <= numberOfEvaluationsFilter[1]
         ]
     }
 
     const sortingMap:{[key in SortingOptions]:(a: TeacherEntry, b: TeacherEntry) => number} = {
         alphabetical:(a,b) => {
-            if(a.name < b.name) {
+            const aName = `${a.lastName}, ${a.firstName}`
+            const bName = `${b.lastName}, ${b.firstName}`
+            if(aName < bName) {
                 return -1; 
             }
-            if(a.name > b.name) {
+            if(aName > bName) {
                 return 1; 
             }
             return 0;
 
         },
         relevant: () => {throw 'not a sort'},
-        overallRating:(a,b) => b.overallRating - a.overallRating,
-        recognizesStudentDifficulties:(a,b) => b.recognizesStudentDifficulties - a.recognizesStudentDifficulties,
-        presentsMaterialClearly: (a,b) => b.presentsMaterialClearly - a.presentsMaterialClearly,
+        overallRating:(a,b) => b.avgRating - a.avgRating,
+        // recognizesStudentDifficulties:(a,b) => b.recognizesStudentDifficulties - a.recognizesStudentDifficulties,
+        // presentsMaterialClearly: (a,b) => b.presentsMaterialClearly - a.presentsMaterialClearly,
     }
 
     useEffect(() => {
@@ -220,9 +221,9 @@ function Filters({teachers, onUpdate, className}:FilterProps) {
 
         <h2 className="text-xl font-bold transform -translate-x-4 py-1">Filters:</h2>
         {[
-            { name:'Overall Rating:', filter:setOverallRatingFilter, value:overallRatingFilter},
-            { name:'Recognizes Student Difficulties:', filter:setRecognizesStudentDifficultyFilter, value:recognizesStudentDifficultyFilter },
-            { name:'Presents Material Clearly:', filter:setPresentsMaterialClearlyFilter, value:presentsMaterialClearlyFilter }
+            { name:'Overall Rating:', filter:setAvgRatingFilter, value:avgRatingFilter},
+            // { name:'Recognizes Student Difficulties:', filter:setRecognizesStudentDifficultyFilter, value:recognizesStudentDifficultyFilter },
+            // { name:'Presents Material Clearly:', filter:setPresentsMaterialClearlyFilter, value:presentsMaterialClearlyFilter }
         ].map(({name, filter, value}) => 
             <div key={name}>
                 <h3>{name}</h3>
