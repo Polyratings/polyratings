@@ -5,7 +5,7 @@ import { departments } from "../constants";
 import { useForm } from "react-hook-form";
 import { ErrorMessage } from '@hookform/error-message'
 import { TeacherService } from "../services";
-import { EvaluateTeacherForm } from "./EvaluateTeacherForm";
+// import { EvaluateTeacherForm } from "./EvaluateTeacherForm";
 import ClipLoader from "react-spinners/ClipLoader";
 import { Teacher, AddReview } from "@polyratings-revamp/shared";
 import { toast } from "react-toastify";
@@ -44,16 +44,17 @@ export function NewTeacherForm() {
         teacherFormRef.current!.onsubmit = handleSubmit(async teacherData => {
             setLoading(true)
             const newTeacher:Teacher = {
-                name:`${teacherData.teacherLastName}, ${teacherData.teacherFirstName}`,
+                firstName:teacherData.teacherFirstName,
+                lastName:teacherData.teacherLastName,
                 department:teacherData.teacherDepartment,
-                numberOfEvaluations:1,
-                overallRating: reviewOverrideData.overallRating,
-                recognizesStudentDifficulties: reviewOverrideData.recognizesStudentDifficulties,
-                presentsMaterialClearly: reviewOverrideData.presentsMaterialClearly,
-                classes:[{
-                    name:reviewOverrideData.classIdOrName,
-                    reviews:[reviewOverrideData.review]
-                }]
+                numEvals:1,
+                avgRating: `${reviewOverrideData.overallRating}`,
+                // recognizesStudentDifficulties: reviewOverrideData.recognizesStudentDifficulties,
+                // presentsMaterialClearly: reviewOverrideData.presentsMaterialClearly,
+                // classes:[{
+                //     name:reviewOverrideData.classIdOrName,
+                //     reviews:[reviewOverrideData.review]
+                // }]
             }
             try {
                 const newTeacherId = await teacherService.addNewTeacher(newTeacher)
@@ -99,7 +100,7 @@ export function NewTeacherForm() {
                 <ErrorMessage errors={errors} name="teacherName" as="div" className="text-red-500 text-sm"/>
             </form>
             <h2 className="text-2xl font-bold my-2">Review</h2>
-            <EvaluateTeacherForm teacher={null} setTeacher={() => {}} closeForm={() => {}} innerRef={reviewFormRef} overrideSubmitHandler={reviewFormSubmitOverride}/>
+            {/* <EvaluateTeacherForm teacher={null} setTeacher={() => {}} closeForm={() => {}} innerRef={reviewFormRef} overrideSubmitHandler={reviewFormSubmitOverride}/> */}
             
             <div className="flex justify-center mt-2">
                 <button

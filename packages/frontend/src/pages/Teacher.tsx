@@ -5,7 +5,7 @@ import { TeacherService } from "../services";
 import AnimateHeight from 'react-animate-height';
 import AnchorLink from 'react-anchor-link-smooth-scroll'
 import StarRatings from 'react-star-ratings';
-import { Backdrop,EvaluateTeacherForm } from '../components'
+import { Backdrop } from '../components'
 import { useAuth, useService } from "../hooks";
 import { toast } from "react-toastify";
 
@@ -84,7 +84,7 @@ export function Teacher({teacherDataPreNavigation}:{teacherDataPreNavigation:Tea
                 teacherEvaluationShownDesktop &&
                 <Backdrop>
                     <div className="bg-gray-300 opacity-100 rounded shadow p-5" style={{width:475}}>
-                        <EvaluateTeacherForm teacher={teacherData} setTeacher={setTeacherData} closeForm={toggleTeacherEvaluationFormDesktop}/>
+                        {/* <EvaluateTeacherForm teacher={teacherData} setTeacher={setTeacherData} closeForm={toggleTeacherEvaluationFormDesktop}/> */}
                     </div>
                 </Backdrop>
             }
@@ -130,7 +130,7 @@ export function Teacher({teacherDataPreNavigation}:{teacherDataPreNavigation:Tea
             <div className="container lg:max-w-5xl bg-cal-poly-green h-1 mx-auto mt-2"></div>
             <AnimateHeight  duration={500} height={teacherEvaluationShownMobile ? 'auto' : 0}>
                 <div className="bg-cal-poly-green text-white p-5">
-                    <EvaluateTeacherForm teacher={teacherData} setTeacher={setTeacherData} closeForm={toggleTeacherEvaluationFormMobile}/>
+                    {/* <EvaluateTeacherForm teacher={teacherData} setTeacher={setTeacherData} closeForm={toggleTeacherEvaluationFormMobile}/> */}
                 </div>
             </AnimateHeight>
 

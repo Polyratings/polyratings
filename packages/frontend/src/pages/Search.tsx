@@ -140,8 +140,8 @@ function Filters({teachers, onUpdate, className}:FilterProps) {
                 return depFilters.length == 0 || depFilters.includes(teacher.department)
             },
             
-            (teacher) => teacher.avgRating >= avgRatingFilter[0] && 
-                teacher.avgRating <= avgRatingFilter[1],
+            (teacher) => parseFloat(teacher.avgRating) >= avgRatingFilter[0] && 
+                parseFloat(teacher.avgRating) <= avgRatingFilter[1],
 
             // (teacher) => teacher.recognizesStudentDifficulties >= recognizesStudentDifficultyFilter[0] && 
             //     teacher.recognizesStudentDifficulties <= recognizesStudentDifficultyFilter[1],
@@ -168,7 +168,7 @@ function Filters({teachers, onUpdate, className}:FilterProps) {
 
         },
         relevant: () => {throw 'not a sort'},
-        overallRating:(a,b) => b.avgRating - a.avgRating,
+        overallRating:(a,b) => parseFloat(b.avgRating) - parseFloat(a.avgRating),
         // recognizesStudentDifficulties:(a,b) => b.recognizesStudentDifficulties - a.recognizesStudentDifficulties,
         // presentsMaterialClearly: (a,b) => b.presentsMaterialClearly - a.presentsMaterialClearly,
     }
