@@ -29,7 +29,7 @@ export function Home() {
             backgroundRepeat:'no-repeat',
             backgroundPosition:'center',
             backgroundSize: 'cover'
-            }} className="relative h-screenWoNav lg:h-screen4/5">
+            }} className="relative h-screenWoNav lg:h-screen3/5">
                 <div className="flex flex-col w-full h-2/3 lg:h-80 justify-center justify-items-center">
                     <h1 className="text-5xl md:text-9xl text-white text-center font-semibold">Polyratings</h1>
                     <div className="mt-6">
@@ -37,7 +37,7 @@ export function Home() {
                     </div>
                 </div>
                 {/* Use -1 to make sure background image does not shine through bottom */}
-                <img src={homeCurveTransition} alt="curve transition" style={{bottom: -1}} className="absolute left-0 w-full lg:block hidden"/>
+                <img src={homeCurveTransition} alt="curve transition" className="absolute left-0 bottom-0 w-full lg:block hidden"/>
             </div>
             <div className="justify-center pl-5 lg:flex hidden">
                 <div className="w-1/2 transform xl:-translate-y-8 translate-y-2">
