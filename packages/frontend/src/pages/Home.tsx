@@ -42,7 +42,7 @@ export function Home() {
             <div className="justify-center pl-5 lg:flex hidden">
                 <div className="w-1/2 transform xl:-translate-y-8 translate-y-2">
                     <h2 className="xl:text-8xl lg:text-7xl font-semibold">WE’RE BACK!</h2>
-                    <p className="xl:w-2/3 lg:w-4/5 lg:text-2xl text-xl mt-8 font-medium">A good teacher can make or break a class. Here at Polyratings we belive that you should not be rolling the dice when you register for a class. This version of Polyratings is a ground up rebuild of the entire website. Read more about it here</p>
+                    <p className="xl:w-2/3 lg:w-4/5 lg:text-2xl text-xl mt-8 font-medium">A good teacher can make or break a class. Here at Polyratings we believe that you should not be rolling the dice when you register for a class. This version of Polyratings is a ground up rebuild of the entire website. Read more about it here</p>
                 </div>
 
                 <div className="bg-cal-poly-green h-80 rounded-3xl border-8 border-black flex flex-col justify-center items-center" style={{width:"35rem"}}>
