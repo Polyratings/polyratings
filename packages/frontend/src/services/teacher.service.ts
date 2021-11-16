@@ -3,17 +3,47 @@ import { config } from "../App.config";
 import { getRandomSubarray, intersectingDbEntities } from "../utils";
 import { HttpService } from "./http.service";
 
+const TEN_MINUTES = 1000 * 60 * 10
+const ALL_TEACHER_CACHE_KEY = 'ALL_TEACHERS'
+const INDIVIDUAL_TEACHER_CACHE_KEY = 'TEACHERS'
+
+interface TeacherCacheEntry {
+    exp:Date
+    teacher:TeacherEntry
+}
+
 export class TeacherService {
 
-    public allTeachers:Promise<TeacherEntry[]>
+    private allTeachers:Promise<TeacherEntry[]>
+    private teacherCache:{[id:string]:TeacherCacheEntry}
 
     constructor(
-        private httpService:HttpService
+        private httpService:HttpService,
+        private storage:Storage,
     ){
+
+        const individualTeacherCacheStr = this.storage.getItem(INDIVIDUAL_TEACHER_CACHE_KEY)
+        this.teacherCache =  individualTeacherCacheStr ? JSON.parse(individualTeacherCacheStr) : {}
+
+        const cachedAllTeacherCacheStr = this.storage.getItem(ALL_TEACHER_CACHE_KEY)
+        if(cachedAllTeacherCacheStr) {
+            const allTeacherCache:{exp:Date, data:TeacherEntry[]} = JSON.parse(cachedAllTeacherCacheStr)
+            if(allTeacherCache.exp < new Date()) {
+                // List has not expired
+                this.allTeachers = Promise.resolve(allTeacherCache.data)
+                // Return early no need to fetch the teacher list
+                return
+            }
+        }
+
         this.allTeachers = new Promise(async resolve => {
             const res = await this.httpService.fetch(`${config.remoteUrl}/all`)
             this.throwIfNot200(res)
             const data = await res.json()
+            this.storage.setItem(ALL_TEACHER_CACHE_KEY, JSON.stringify({
+                exp:new Date(Date.now() + TEN_MINUTES),
+                data
+            }))
             resolve(data)
         })
     }
@@ -35,9 +65,19 @@ export class TeacherService {
     }
 
     async getTeacher(id:string): Promise<TeacherEntry> {
+        if(this.teacherCache[id]) {
+            if(this.teacherCache[id].exp > new Date()) {
+                return this.teacherCache[id].teacher
+            }
+            this.removeTeacherFromCache(id)
+        }
+
         const res = await this.httpService.fetch(`${config.remoteUrl}/${id}`)
         this.throwIfNot200(res)
-        return res.json()
+
+        const teacher:TeacherEntry = await res.json()
+        this.addTeacherToCache(teacher)
+        return teacher
     }
 
     async searchForTeacher(value:string): Promise<TeacherEntry[]> {
@@ -72,5 +112,18 @@ export class TeacherService {
         if(res.status != 200) {
             throw res.statusText
         }
+    }
+
+    private addTeacherToCache(teacher:TeacherEntry) {
+        this.teacherCache[teacher.id] = {
+            teacher,
+            exp: new Date(Date.now() + TEN_MINUTES)
+        }
+        this.storage.setItem(INDIVIDUAL_TEACHER_CACHE_KEY, JSON.stringify(this.teacherCache))
+    }
+
+    private removeTeacherFromCache(id:string) {
+        delete this.teacherCache[id]
+        this.storage.setItem(INDIVIDUAL_TEACHER_CACHE_KEY, JSON.stringify(this.teacherCache))
     }
 }

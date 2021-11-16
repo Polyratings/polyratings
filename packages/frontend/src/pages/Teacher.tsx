@@ -9,10 +9,10 @@ import { Backdrop } from '../components'
 import { useAuth, useService } from "../hooks";
 import { toast } from "react-toastify";
 
-export function Teacher({teacherDataPreNavigation}:{teacherDataPreNavigation:TeacherEntry | undefined}) {
+export function Teacher() {
     let { id } = useParams<{id:string}>();
 
-    let [teacherData, setTeacherData] = useState<TeacherEntry>(teacherDataPreNavigation ?? {} as any)
+    let [teacherData, setTeacherData] = useState<TeacherEntry>({} as any)
     const [reviewsByClass, setReviewsByClass] = useState<{[taughtClass:string]:ReviewEntry[]}>({})
 
     useEffect(() => {
@@ -34,20 +34,17 @@ export function Teacher({teacherDataPreNavigation}:{teacherDataPreNavigation:Tea
     let [teacherEvaluationShownMobile, setTeacherEvaluationShownMobile] = useState(false)
     let isAuthenticated = useAuth()
 
-    async function retrieveTeacherData() {
-        try {
-            const result = await teacherService.getTeacher(id)
-            setTeacherData(result)
-        } catch(e) {
-            console.error(`Failed to load teacher with id: ${id}`,e)
-            history.push('/')
-        }  
-    }
-
     useEffect(() => {
-        if(!teacherDataPreNavigation) {
-            retrieveTeacherData()
+        async function retrieveTeacherData() {
+            try {
+                const result = await teacherService.getTeacher(id)
+                setTeacherData(result)
+            } catch(e) {
+                console.error(`Failed to load teacher with id: ${id}`,e)
+                history.push('/')
+            }  
         }
+        retrieveTeacherData()
     }, [])
 
     const toggleTeacherEvaluationForm = (state:boolean, setState:(value:boolean) => void) => {

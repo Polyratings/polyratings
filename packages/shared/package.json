@@ -7,6 +7,9 @@
     "start:dev": "tsc --watch",
     "build": "tsc"
   },
+  "devDependencies": {
+    "typescript": "^4.4.4"
+  },
   "keywords": [],
   "author": "",
   "license": "ISC"
