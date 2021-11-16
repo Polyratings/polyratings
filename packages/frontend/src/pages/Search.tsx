@@ -1,29 +1,32 @@
-import { useHistory, useParams } from "react-router-dom";
+import { useHistory } from "react-router-dom";
 import { useState, useEffect, useRef } from "react";
 import { TeacherEntry } from "@polyratings-revamp/shared";
 import { TeacherService } from "../services";
 import { TeacherCard, TEACHER_CARD_HEIGHT, MinMaxSlider, SearchBar } from "../components";
 import { List, WindowScroller } from 'react-virtualized';
-import { useService } from "../hooks";
+import { useService, useQuery } from "../hooks";
 
 type SortingOptions = 'relevant' | 'alphabetical' | 'overallRating' 
 //| 'recognizesStudentDifficulties' | 'presentsMaterialClearly'
 
 export function Search() {
-    let { searchTerm } = useParams<{searchTerm:string}>();
-    if(searchTerm == '__all') {
-        searchTerm = ''
-    }
+    const query = useQuery()
+    const searchTerm = query.get('term') ?? ''
+    
+    let [teacherService] = useService(TeacherService)
 
     const virtualList = useRef<List>(null)
     
     let [searchResults, setSearchResults] = useState<TeacherEntry[]>([])
+    const onSearchUpdate = async (newTerm:string) => {
+        const newSearch = await teacherService.searchForTeacher(newTerm)
+        setSearchResults(newSearch)
+    }
+
     let [filteredTeachers, setFilteredTeachers] = useState<TeacherEntry[]>([])
 
     const LIST_MAX_WIDTH = 672
     let [listWidth, setListWidth] = useState(LIST_MAX_WIDTH)
-
-    let [teacherService] = useService(TeacherService)
 
     useEffect(() => {
         if(window.innerWidth > LIST_MAX_WIDTH) {
@@ -56,11 +59,11 @@ export function Search() {
 
     return(
         <div>
-            <SearchBar initialValue={searchTerm}/>
+            <SearchBar initialValue={searchTerm} onChange={onSearchUpdate}/>
             {!searchResults.length &&
                 <h1 className="text-4xl mt-5 text-center text-cal-poly-green">No Results Found</h1>
             }
-            {searchResults.length &&
+            {Boolean(searchResults.length) &&
                 <div className="relative">
                     <Filters teachers={searchResults} onUpdate={setFilteredTeachers} className="absolute left-0 top-0 pl-12 hidden xl:block"/>
                     <div className="flex justify-center"> 

@@ -1,16 +1,27 @@
 import { useEffect, useState } from "react";
 import { useHistory } from "react-router-dom"
 
-
-export function SearchBar({initialValue}:{initialValue?:string}) {
+interface SearchBarProps {
+    initialValue?:string
+    onChange?:(val:string) => void | Promise<void>
+}
+export function SearchBar({initialValue, onChange}:SearchBarProps) {
     const [searchValue, setSearchValue] = useState('');
+
     useEffect(() => {
         setSearchValue(initialValue ?? '')
     }, [initialValue])
+
+    useEffect(() => {
+        if(onChange) {
+            onChange(searchValue)
+        }
+    }, [searchValue])
+
     const history = useHistory()
     const onFormSubmit = (e:React.FormEvent<HTMLFormElement>) => {
         e.preventDefault()
-        history.push(`/search/${encodeURIComponent(searchValue)}`)
+        history.push(`/search?term=${encodeURIComponent(searchValue)}`)
 
     }
     return (

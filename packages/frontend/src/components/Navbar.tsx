@@ -32,7 +32,7 @@ export function Navbar() {
                 <div className="flex flex-col text-center text-xl text-white">
                     <Link className="my-1" to="/" onClick={triggerMobileNav} >Home</Link>
                     <Link className="my-1" to="/newTeacher" onClick={triggerMobileNav}> Add a Teacher</Link>
-                    <Link className="my-1" to="/search/__all" onClick={triggerMobileNav} >Professor List</Link>
+                    <Link className="my-1" to="/search" onClick={triggerMobileNav} >Professor List</Link>
                     {/* <Link className="mr-7" to="contact">Contact</Link> */}
                     {isAuthenticated &&
                         <div 
@@ -50,7 +50,7 @@ export function Navbar() {
 
             <div className="text-white hidden md:flex items-center text-lg font-semibold">
                 <Link className="mr-7" to="/newTeacher"> Add a Teacher</Link>
-                <Link className="mr-7" to="/search/__all"> Professor List</Link>
+                <Link className="mr-7" to="/search"> Professor List</Link>
                 {/* <Link className="mr-7" to="contact">Contact</Link> */}
                 {isAuthenticated &&
                 <div onClick={() => authService.signOut()} className="rounded-full border-white pl-3 pr-3 border-2 pt-px pb-px cursor-pointer">SIGN OUT</div>
