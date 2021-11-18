@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useHistory, useParams } from "react-router-dom";
-import { TeacherEntry,ReviewEntry, Review } from "@polyratings-revamp/shared";
+import { TeacherEntry, ReviewEntry } from "@polyratings-revamp/shared";
 import { TeacherService } from "../services";
 import AnimateHeight from 'react-animate-height';
 import AnchorLink from 'react-anchor-link-smooth-scroll'

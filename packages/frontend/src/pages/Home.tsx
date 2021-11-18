@@ -60,11 +60,11 @@ export function Home() {
                 backgroundRepeat:'no-repeat',
                 backgroundPosition:'center',
                 backgroundSize: 'cover',
-                height:'100vh',
+                minHeight:'100vh',
                 clipPath: 'polygon(0 100%,0 10%,100% 0,100% 100%)'
             }} className="mt-8 xl:mt-16 lg:block hidden">
-                <h2 className="text-white font-semibold text-9xl text-center pt-40">Worst of the Worst</h2>
-                <div className="grid grid-cols-2 gap-y-14 m-auto mt-20" style={{width:'65rem',columnGap:'6rem'}}>
+                <h2 className="text-white font-semibold text-8xl xl:text-9xl text-center pt-40">Worst of the Worst</h2>
+                <div className="grid grid-cols-2 gap-y-14 m-auto mt-20 gap-x-12 xl:gap-x-24 w-[60rem] xl:w-[65rem]">
                         {worstTeachers.map((teacher, i) => <TeacherCard key={i} teacher={teacher}/>)}
                 </div>
             </div>
