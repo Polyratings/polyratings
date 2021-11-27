@@ -1,9 +1,9 @@
 import loginBackground from '../assets/home-header.webp'
 import { NewTeacherForm } from '../components'
-import { useProtectedRoute } from '../hooks'
+
+
 export function NewTeacher() {
     // Redirect to homepage if in authenticated state
-    useProtectedRoute(true, '/login', () => 'To add a teacher please sign in or create an account')
     return(
         <div>            
             <div className="h-screenWoNav justify-center items-center hidden sm:flex" style={{

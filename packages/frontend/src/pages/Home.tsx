@@ -33,13 +33,13 @@ export function Home() {
                 <div className="flex flex-col w-full h-2/3 lg:h-80 justify-center justify-items-center">
                     <h1 className="text-5xl md:text-9xl text-white text-center font-semibold">Polyratings</h1>
                     <div className="mt-6">
-                        <SearchBar/>
+                        <SearchBar showOnlyInput={true}/>
                     </div>
                 </div>
                 {/* Use -1 to make sure background image does not shine through bottom */}
-                <img src={homeCurveTransition} alt="curve transition" className="absolute left-0 bottom-0 w-full lg:block hidden"/>
+                <img src={homeCurveTransition} alt="curve transition" className="absolute left-0 -bottom-1 w-full lg:block hidden select-none pointer-events-none"/>
             </div>
-            <div className="justify-center pl-5 lg:flex hidden">
+            <div className="justify-center pl-5 lg:flex hidden z-10 relative">
                 <div className="w-1/2 transform xl:-translate-y-8 translate-y-2">
                     <h2 className="xl:text-8xl lg:text-7xl font-semibold">WE’RE BACK!</h2>
                     <p className="xl:w-2/3 lg:w-4/5 lg:text-2xl text-xl mt-8 font-medium">A good teacher can make or break a class. Here at Polyratings we believe that you should not be rolling the dice when you register for a class. This version of Polyratings is a ground up rebuild of the entire website. Read more about it here</p>

@@ -52,7 +52,7 @@ export class TeacherService {
         const allTeachers = await this.allTeachers
         const rankedTeachers = allTeachers
             .filter(t => t.numEvals > 10)
-            .sort((a,b) => parseFloat(b.avgRating) - parseFloat(a.avgRating))
+            .sort((a,b) => b.overallRating - a.overallRating)
         return getRandomSubarray(rankedTeachers.slice(0,30), 1)[0]
     }
 
@@ -60,7 +60,7 @@ export class TeacherService {
         const allTeachers = await this.allTeachers
         const rankedTeachers = allTeachers
             .filter(t => t.numEvals > 10)
-            .sort((a,b) => parseFloat(a.avgRating) - parseFloat(b.avgRating))
+            .sort((a,b) => a.overallRating - b.overallRating)
         return getRandomSubarray(rankedTeachers.slice(0,30), 6)
     }
 

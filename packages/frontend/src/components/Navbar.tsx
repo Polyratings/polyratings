@@ -1,16 +1,26 @@
-import { Link } from "react-router-dom"
+import { Link, useLocation } from "react-router-dom"
 import Logo from '../assets/Logo.png'
 import '../styles/hamburgers.css'
 import AnimateHeight from 'react-animate-height';
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { AuthService } from "../services";
 import { useService, useAuth } from "../hooks";
+import { SearchBar } from "./SearchBar";
+
+const HIDE_SEARCH_BAR_ROUTES = ['/', '/search']
 
 export function Navbar() {
     let [mobileNavOpen, setMobileNav] = useState(false)
     const triggerMobileNav = () => setMobileNav(!mobileNavOpen)
     let isAuthenticated = useAuth()
     const [authService] = useService(AuthService)
+    const location = useLocation()
+    const [showInputBar, setShowInputBar] = useState(true)
+    
+    useEffect(() => {
+        const matchingRoute = HIDE_SEARCH_BAR_ROUTES.find(route => location.pathname == route)
+        setShowInputBar(!matchingRoute)
+    }, [location])
 
     return (
         <div className="w-screen bg-cal-poly-green h-12 flex justify-between px-5 items-center">
@@ -28,6 +38,7 @@ export function Navbar() {
                 </div>
             </div>
 
+            {/* Mobile hamburger dropdown */}
             <AnimateHeight duration={500} height={mobileNavOpen ? 'auto' : 0} className="absolute top-12 left-0 bg-cal-poly-green w-full z-50 transform -translate-y-1">
                 <div className="flex flex-col text-center text-xl text-white">
                     <Link className="my-1" to="/" onClick={triggerMobileNav} >Home</Link>
@@ -49,6 +60,12 @@ export function Navbar() {
             </AnimateHeight>
 
             <div className="text-white hidden md:flex items-center text-lg font-semibold">
+                {showInputBar && 
+                    <div className="text-black mr-7">
+                        <SearchBar showOnlyInput={false}/>
+                    </div>
+                }
+                
                 <Link className="mr-7" to="/newTeacher"> Add a Teacher</Link>
                 <Link className="mr-7" to="/search"> Professor List</Link>
                 {/* <Link className="mr-7" to="contact">Contact</Link> */}

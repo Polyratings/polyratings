@@ -1,4 +1,3 @@
-export * from './Class'
 export * from './JwtAuthResponse'
 export * from './Review'
 export * from './Teacher'

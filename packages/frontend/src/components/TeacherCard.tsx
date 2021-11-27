@@ -26,7 +26,7 @@ export function TeacherCard({teacher}:TeacherCardProps) {
             <h3 className="text-3xl font-medium pl-3">{teacher.lastName}, {teacher.firstName}</h3>
                 <div className="text-right text-xl pr-3 font-medium flex-shrink-0">
                     <div>{teacher.department}</div>
-                    <div>{teacher.avgRating}</div>
+                    <div>{teacher.overallRating}</div>
                     <div className="flex items-center"><img className="pr-1 h-4" src={star} alt="" />{teacher.numEvals} evals</div>
                 </div>
             </div>

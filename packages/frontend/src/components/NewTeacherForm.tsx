@@ -1,4 +1,3 @@
-
 import { useState, useRef } from "react";
 import { useService } from "../hooks";
 import { departments } from "../constants";
@@ -48,14 +47,15 @@ export function NewTeacherForm() {
                 lastName:teacherData.teacherLastName,
                 department:teacherData.teacherDepartment,
                 numEvals:1,
-                avgRating: `${reviewOverrideData.overallRating}`,
-                // recognizesStudentDifficulties: reviewOverrideData.recognizesStudentDifficulties,
-                // presentsMaterialClearly: reviewOverrideData.presentsMaterialClearly,
-                // classes:[{
-                //     name:reviewOverrideData.classIdOrName,
-                //     reviews:[reviewOverrideData.review]
-                // }]
+                overallRating: reviewOverrideData.overallRating,
+                studentDifficulties: reviewOverrideData.recognizesStudentDifficulties,
+                materialClear: reviewOverrideData.presentsMaterialClearly,
+                courses:[reviewOverrideData.classIdOrName],
+                reviews: {
+                    [reviewOverrideData.classIdOrName]: [reviewOverrideData.review]
+                }
             }
+            
             try {
                 const newTeacherId = await teacherService.addNewTeacher(newTeacher)
                 toast.success('Thank you for adding a teacher')

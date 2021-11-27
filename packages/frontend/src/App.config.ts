@@ -4,17 +4,17 @@ interface AppConfiguration {
 }
 
 const devConfig:AppConfiguration = {
-    remoteUrl:'https://professor-reviews.atustin.workers.dev',
+    remoteUrl:'https://api.addison-polyratings.workers.dev',
     base:'/'
 }
 
 const prodConfig:AppConfiguration = {
-    remoteUrl:'https://professor-reviews.atustin.workers.dev',
+    remoteUrl:'https://api.addison-polyratings.workers.dev',
     base:'/'
 }
 
 const githubPagesConfig:AppConfiguration = {
-    remoteUrl:'https://professor-reviews.atustin.workers.dev',
+    remoteUrl:'https://api.addison-polyratings.workers.dev',
     base:'/polyratings-revamp/'
 }
 

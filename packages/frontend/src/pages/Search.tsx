@@ -4,18 +4,15 @@ import { TeacherEntry } from "@polyratings-revamp/shared";
 import { TeacherService } from "../services";
 import { TeacherCard, TEACHER_CARD_HEIGHT, MinMaxSlider, SearchBar } from "../components";
 import { List, WindowScroller } from 'react-virtualized';
-import { useService, useQuery } from "../hooks";
+import { useService, useQuery, useTailwindBreakpoint } from "../hooks";
 
-type SortingOptions = 'relevant' | 'alphabetical' | 'overallRating' 
-//| 'recognizesStudentDifficulties' | 'presentsMaterialClearly'
+type SortingOptions = 'relevant' | 'alphabetical' | 'overallRating' | 'recognizesStudentDifficulties' | 'presentsMaterialClearly'
 
 export function Search() {
     const query = useQuery()
     const searchTerm = query.get('term') ?? ''
     
     let [teacherService] = useService(TeacherService)
-
-    const virtualList = useRef<List>(null)
     
     let [searchResults, setSearchResults] = useState<TeacherEntry[]>([])
     const onSearchUpdate = async (newTerm:string) => {
@@ -25,17 +22,12 @@ export function Search() {
 
     let [filteredTeachers, setFilteredTeachers] = useState<TeacherEntry[]>([])
 
-    const LIST_MAX_WIDTH = 672
-    let [listWidth, setListWidth] = useState(LIST_MAX_WIDTH)
-
-    useEffect(() => {
-        if(window.innerWidth > LIST_MAX_WIDTH) {
-            return setListWidth(LIST_MAX_WIDTH)
-        }
-        // 20px on each side
-        setListWidth(window.innerWidth - 40)
-    }, [window.innerWidth])
-
+    let listWidth = useTailwindBreakpoint({
+        sm:600,
+        md:672,
+        lg:600,
+        '2xl':672
+    },window.innerWidth - 20)
 
     useEffect(() => {
         async function retrieveSearchData() {
@@ -59,7 +51,7 @@ export function Search() {
 
     return(
         <div>
-            <SearchBar initialValue={searchTerm} onChange={onSearchUpdate}/>
+            <SearchBar initialValue={searchTerm} onChange={onSearchUpdate} showOnlyInput={true}/>
             {!searchResults.length &&
                 <h1 className="text-4xl mt-5 text-center text-cal-poly-green">No Results Found</h1>
             }
@@ -70,7 +62,6 @@ export function Search() {
                         <WindowScroller>
                             {({ height, isScrolling, onChildScroll, scrollTop }) => (
                                 <List
-                                    ref={virtualList}
                                     autoHeight
                                     height={height}
                                     isScrolling={isScrolling}
@@ -105,8 +96,8 @@ function Filters({teachers, onUpdate, className}:FilterProps) {
     className = className || ''
     let [departmentFilters, setDepartmentFilters] = useState<[string, boolean][]>([])
     let [avgRatingFilter, setAvgRatingFilter] = useState<[number, number]>([0,4])
-    // let [recognizesStudentDifficultyFilter, setRecognizesStudentDifficultyFilter] = useState<[number, number]>([0,4])
-    // let [presentsMaterialClearlyFilter, setPresentsMaterialClearlyFilter] = useState<[number, number]>([0,4])
+    let [studentDifficultyFilter, setStudentDifficultyFilter] = useState<[number, number]>([0,4])
+    let [materialClearFilter, setMaterialClearFilter] = useState<[number, number]>([0,4])
     let [numberOfEvaluationsFilter, setNumberOfEvaluationsFilter] = useState<[number, number]>([1,2])
     let [reverseFilter, setReverseFilter] = useState(false)
     const getEvaluationDomain:(data:TeacherEntry[]) => [number,number] = (data:TeacherEntry[]) => [
@@ -117,8 +108,8 @@ function Filters({teachers, onUpdate, className}:FilterProps) {
     const filteredTeachersDeps = [
         departmentFilters,
         avgRatingFilter,
-        // recognizesStudentDifficultyFilter,
-        // presentsMaterialClearlyFilter,
+        studentDifficultyFilter,
+        materialClearFilter,
         sortBy,
         numberOfEvaluationsFilter,
         reverseFilter
@@ -143,14 +134,14 @@ function Filters({teachers, onUpdate, className}:FilterProps) {
                 return depFilters.length == 0 || depFilters.includes(teacher.department)
             },
             
-            (teacher) => parseFloat(teacher.avgRating) >= avgRatingFilter[0] && 
-                parseFloat(teacher.avgRating) <= avgRatingFilter[1],
+            (teacher) => teacher.overallRating >= avgRatingFilter[0] && 
+                teacher.overallRating <= avgRatingFilter[1],
 
-            // (teacher) => teacher.recognizesStudentDifficulties >= recognizesStudentDifficultyFilter[0] && 
-            //     teacher.recognizesStudentDifficulties <= recognizesStudentDifficultyFilter[1],
+            (teacher) => teacher.studentDifficulties >= studentDifficultyFilter[0] && 
+                teacher.studentDifficulties <= studentDifficultyFilter[1],
 
-            // (teacher) => teacher.presentsMaterialClearly >= presentsMaterialClearlyFilter[0] &&
-            //     teacher.presentsMaterialClearly <= presentsMaterialClearlyFilter[1],
+            (teacher) => teacher.materialClear >= materialClearFilter[0] &&
+                teacher.materialClear <= materialClearFilter[1],
 
             (teacher) => teacher.numEvals >= numberOfEvaluationsFilter[0] &&
                 teacher.numEvals <= numberOfEvaluationsFilter[1]
@@ -171,9 +162,9 @@ function Filters({teachers, onUpdate, className}:FilterProps) {
 
         },
         relevant: () => {throw 'not a sort'},
-        overallRating:(a,b) => parseFloat(b.avgRating) - parseFloat(a.avgRating),
-        // recognizesStudentDifficulties:(a,b) => b.recognizesStudentDifficulties - a.recognizesStudentDifficulties,
-        // presentsMaterialClearly: (a,b) => b.presentsMaterialClearly - a.presentsMaterialClearly,
+        overallRating:(a,b) => b.overallRating - a.overallRating,
+        recognizesStudentDifficulties:(a,b) => b.studentDifficulties - a.studentDifficulties,
+        presentsMaterialClearly: (a,b) => b.materialClear - a.materialClear,
     }
 
     useEffect(() => {
@@ -225,8 +216,8 @@ function Filters({teachers, onUpdate, className}:FilterProps) {
         <h2 className="text-xl font-bold transform -translate-x-4 py-1">Filters:</h2>
         {[
             { name:'Overall Rating:', filter:setAvgRatingFilter, value:avgRatingFilter},
-            // { name:'Recognizes Student Difficulties:', filter:setRecognizesStudentDifficultyFilter, value:recognizesStudentDifficultyFilter },
-            // { name:'Presents Material Clearly:', filter:setPresentsMaterialClearlyFilter, value:presentsMaterialClearlyFilter }
+            { name:'Recognizes Student Difficulties:', filter:setStudentDifficultyFilter, value:studentDifficultyFilter },
+            { name:'Presents Material Clearly:', filter:setMaterialClearFilter, value:materialClearFilter }
         ].map(({name, filter, value}) => 
             <div key={name}>
                 <h3>{name}</h3>
