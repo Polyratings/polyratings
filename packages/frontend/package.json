@@ -1,5 +1,5 @@
 {
-  "name": "@polyratings-revamp/frontend",
+  "name": "@polyratings/frontend",
   "version": "0.0.0",
   "scripts": {
     "start:dev": "vite",
