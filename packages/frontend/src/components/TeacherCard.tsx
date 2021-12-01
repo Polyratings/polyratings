@@ -5,16 +5,21 @@ import { useService } from "../hooks";
 import { TeacherService } from "../services";
 
 interface TeacherCardProps {
-    teacher:TeacherEntry
+    teacher:TeacherEntry,
+    beforeNavigation?:() => void | (() => Promise<void>)
 }
 
 export const TEACHER_CARD_HEIGHT = 160
 
-export function TeacherCard({teacher}:TeacherCardProps) {
+export function TeacherCard({teacher, beforeNavigation}:TeacherCardProps) {
     const history = useHistory()
     const [teacherService] = useService(TeacherService)
 
     const onClick = async () => {
+        // await the pre-navigation handler passed into the component
+        if(beforeNavigation) {
+            await Promise.resolve(beforeNavigation())
+        }
         // Load teacher into the local teacher card for next page to load immediately
         await teacherService.getTeacher(teacher.id)
         history.push(`/teacher/${teacher.id}`)

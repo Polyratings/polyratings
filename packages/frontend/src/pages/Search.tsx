@@ -1,26 +1,44 @@
-import { useHistory } from "react-router-dom";
-import { useState, useEffect, useRef } from "react";
+import { useHistory, useLocation } from "react-router-dom";
+import { useState, useEffect, useRef, forwardRef, useImperativeHandle, ElementRef } from "react";
 import { TeacherEntry } from "@polyratings-revamp/shared";
 import { TeacherService } from "../services";
 import { TeacherCard, TEACHER_CARD_HEIGHT, MinMaxSlider, SearchBar } from "../components";
 import { List, WindowScroller } from 'react-virtualized';
 import { useService, useQuery, useTailwindBreakpoint } from "../hooks";
+import {Location} from 'history'
 
-type SortingOptions = 'relevant' | 'alphabetical' | 'overallRating' | 'recognizesStudentDifficulties' | 'presentsMaterialClearly'
+interface SearchPageState {
+    searchTerm:string
+}
 
-export function Search() {
+interface SearchPageProps {
+    location:Location
+}
+
+export function Search({location}: SearchPageProps) {
+    const previousState = location.state as SearchPageState | undefined
     const query = useQuery()
-    const searchTerm = query.get('term') ?? ''
     
-    let [teacherService] = useService(TeacherService)
-    
-    let [searchResults, setSearchResults] = useState<TeacherEntry[]>([])
-    const onSearchUpdate = async (newTerm:string) => {
-        const newSearch = await teacherService.searchForTeacher(newTerm)
-        setSearchResults(newSearch)
-    }
+    const [teacherService] = useService(TeacherService)
 
-    let [filteredTeachers, setFilteredTeachers] = useState<TeacherEntry[]>([])
+    const [searchTerm, setSearchTerm] = useState(previousState?.searchTerm ?? query.get('term') ?? '')
+    const [searchResults, setSearchResults] = useState<TeacherEntry[]>([])
+
+    const [filteredTeachers, setFilteredTeachers] = useState<TeacherEntry[]>([])
+    const ref = useRef<ElementRef<typeof Filters>>(null)
+
+    const history = useHistory()
+    // This saves the current state of the filters by replacing the current route
+    // with one with the state object to recreate if it gets popped off the history stack
+    const saveState = () => {
+        const rootRelativePath = window.location.href.replace(window.location.origin, '')
+        const currentState:SearchPageState & FilterState = {
+            searchTerm,
+            // the ref will have to be defined at this state
+            ...ref.current!.getState()
+        }
+        history.replace(rootRelativePath, currentState)
+    }
 
     let listWidth = useTailwindBreakpoint({
         sm:600,
@@ -51,13 +69,13 @@ export function Search() {
 
     return(
         <div>
-            <SearchBar initialValue={searchTerm} onChange={onSearchUpdate} showOnlyInput={true}/>
+            <SearchBar initialValue={searchTerm} onChange={setSearchTerm} showOnlyInput={true}/>
             {!searchResults.length &&
                 <h1 className="text-4xl mt-5 text-center text-cal-poly-green">No Results Found</h1>
             }
             {Boolean(searchResults.length) &&
                 <div className="relative">
-                    <Filters teachers={searchResults} onUpdate={setFilteredTeachers} className="absolute left-0 top-0 pl-12 hidden xl:block"/>
+                    <Filters ref={ref} teachers={searchResults} onUpdate={setFilteredTeachers} className="absolute left-0 top-0 pl-12 hidden xl:block"/>
                     <div className="flex justify-center"> 
                         <WindowScroller>
                             {({ height, isScrolling, onChildScroll, scrollTop }) => (
@@ -72,7 +90,7 @@ export function Search() {
                                     width={listWidth}
                                     rowRenderer={({style, key, index}) => (
                                         <div key={key} className="my-4" style={style}>
-                                            <TeacherCard teacher={filteredTeachers[index]} />
+                                            <TeacherCard teacher={filteredTeachers[index]} beforeNavigation={saveState}/>
                                         </div>
                                     )}
                                 /> 
@@ -85,27 +103,44 @@ export function Search() {
     )
 }
 
+type SortingOptions = 'relevant' | 'alphabetical' | 'overallRating' | 'recognizesStudentDifficulties' | 'presentsMaterialClearly'
+
 interface FilterProps {
     teachers:TeacherEntry[]
     onUpdate:(teachers:TeacherEntry[]) => void
     className?:string,
 }
 
-function Filters({teachers, onUpdate, className}:FilterProps) {
+interface FilterHandle {
+    getState: () => FilterState
+}
+
+interface FilterState {
+    departmentFilters: [string, boolean][]
+    avgRatingFilter: [number, number]
+    studentDifficultyFilter: [number, number]
+    materialClearFilter: [number, number]
+    sortBy: SortingOptions
+    numberOfEvaluationsFilter: [number, number]
+    reverseFilter: boolean
+}
+
+const FilterRenderFunction:React.ForwardRefRenderFunction<FilterHandle, FilterProps> = ({teachers, onUpdate, className}, ref) => {
     // Set default for className
     className = className || ''
-    let [departmentFilters, setDepartmentFilters] = useState<[string, boolean][]>([])
-    let [avgRatingFilter, setAvgRatingFilter] = useState<[number, number]>([0,4])
-    let [studentDifficultyFilter, setStudentDifficultyFilter] = useState<[number, number]>([0,4])
-    let [materialClearFilter, setMaterialClearFilter] = useState<[number, number]>([0,4])
-    let [numberOfEvaluationsFilter, setNumberOfEvaluationsFilter] = useState<[number, number]>([1,2])
-    let [reverseFilter, setReverseFilter] = useState(false)
-    const getEvaluationDomain:(data:TeacherEntry[]) => [number,number] = (data:TeacherEntry[]) => [
-        data.reduce((acc,curr) => curr.numEvals < acc ? curr.numEvals : acc, Infinity),
-        data.reduce((acc,curr) => curr.numEvals > acc ? curr.numEvals : acc, -Infinity)
-    ]
-    let [sortBy, setSortBy] = useState<SortingOptions>('relevant')
-    const filteredTeachersDeps = [
+
+    const location = useLocation()
+    const previousState = location.state as FilterState | undefined
+
+    let [departmentFilters, setDepartmentFilters] = useState<[string, boolean][]>(previousState?.departmentFilters ?? [])
+    let [avgRatingFilter, setAvgRatingFilter] = useState<[number, number]>(previousState?.avgRatingFilter ?? [0,4])
+    let [studentDifficultyFilter, setStudentDifficultyFilter] = useState<[number, number]>(previousState?.studentDifficultyFilter ?? [0,4])
+    let [materialClearFilter, setMaterialClearFilter] = useState<[number, number]>(previousState?.materialClearFilter ?? [0,4])
+    let [numberOfEvaluationsFilter, setNumberOfEvaluationsFilter] = useState<[number, number]>(previousState?.numberOfEvaluationsFilter ?? [1,2])
+    let [reverseFilter, setReverseFilter] = useState(previousState?.reverseFilter ?? false)
+    let [sortBy, setSortBy] = useState<SortingOptions>(previousState?.sortBy ?? 'relevant')
+
+    const getState:() => FilterState = () => ({
         departmentFilters,
         avgRatingFilter,
         studentDifficultyFilter,
@@ -113,7 +148,17 @@ function Filters({teachers, onUpdate, className}:FilterProps) {
         sortBy,
         numberOfEvaluationsFilter,
         reverseFilter
+    })
+
+    useImperativeHandle(ref, () => ({
+        getState
+    }))
+
+    const getEvaluationDomain:(data:TeacherEntry[]) => [number,number] = (data:TeacherEntry[]) => [
+        data.reduce((acc,curr) => curr.numEvals < acc ? curr.numEvals : acc, Infinity),
+        data.reduce((acc,curr) => curr.numEvals > acc ? curr.numEvals : acc, -Infinity)
     ]
+    
 
     useEffect(() => {
         const departments = [...(new Set(teachers.map(t => t.department)))]
@@ -183,7 +228,7 @@ function Filters({teachers, onUpdate, className}:FilterProps) {
             filteredResult.reverse()
         }
         onUpdate(filteredResult)
-    }, filteredTeachersDeps)
+    }, Object.values(getState()))
 
 
     return(
@@ -259,3 +304,5 @@ function Filters({teachers, onUpdate, className}:FilterProps) {
     </div>
     )
 }
+
+const Filters = forwardRef(FilterRenderFunction)

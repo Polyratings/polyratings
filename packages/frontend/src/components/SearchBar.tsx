@@ -7,12 +7,8 @@ interface SearchBarProps {
     onChange?:(val:string) => void | Promise<void>
 }
 export function SearchBar({initialValue, onChange, showOnlyInput: showOnlyInput}:SearchBarProps) {
-    const [searchValue, setSearchValue] = useState('');
+    const [searchValue, setSearchValue] = useState(initialValue ?? '');
     const [searchType, setSearchType] = useState('professor')
-
-    useEffect(() => {
-        setSearchValue(initialValue ?? '')
-    }, [initialValue])
 
     useEffect(() => {
         if(onChange) {
