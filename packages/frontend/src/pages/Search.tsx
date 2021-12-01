@@ -3,7 +3,7 @@ import { useState, useEffect, useRef, forwardRef, useImperativeHandle, ElementRe
 import { TeacherEntry } from "@polyratings-revamp/shared";
 import { TeacherService } from "../services";
 import { TeacherCard, TEACHER_CARD_HEIGHT, MinMaxSlider, SearchBar } from "../components";
-import { List, WindowScroller } from 'react-virtualized';
+import { List, WindowScroller } from 'fish-react-virtualized';
 import { useService, useQuery, useTailwindBreakpoint } from "../hooks";
 import {Location} from 'history'
 

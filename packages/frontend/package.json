@@ -10,6 +10,7 @@
     "@hookform/error-message": "^2.0.0",
     "@mindspace-io/react": "^1.7.0",
     "@polyratings-revamp/shared": "*",
+    "fish-react-virtualized": "^9.22.3",
     "form-request-submit-polyfill": "^2.0.0",
     "jwt-decode": "^3.1.2",
     "rc-slider": "^9.7.4",
