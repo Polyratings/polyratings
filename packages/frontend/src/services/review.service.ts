@@ -1,4 +1,4 @@
-import { TeacherEntry, AddReview } from "@polyratings-revamp/shared";
+import { TeacherEntry, AddReview } from "@polyratings/shared";
 import { config } from "../App.config";
 import { HttpService } from "./http.service";
 

@@ -5,7 +5,7 @@ import { useForm, SubmitHandler } from "react-hook-form";
 import { ErrorMessage } from '@hookform/error-message'
 import { ReviewService } from "../services";
 import { toast } from "react-toastify";
-import { TeacherEntry, AddReview } from "@polyratings-revamp/shared";
+import { TeacherEntry, AddReview } from "@polyratings/shared";
 import ClipLoader from "react-spinners/ClipLoader";
 
 interface EvaluateTeacherFormInputs {

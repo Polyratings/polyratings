@@ -1,7 +1,7 @@
 import { BehaviorSubject } from "rxjs"
 import { config } from "../App.config"
-import { JwtAuthResponse } from "@polyratings-revamp/shared"
-import { User } from "@polyratings-revamp/shared"
+import { JwtAuthResponse } from "@polyratings/shared"
+import { User } from "@polyratings/shared"
 import jwt_decode from "jwt-decode";
 
 const USER_LOCAL_STORAGE_KEY = 'user'

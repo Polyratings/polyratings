@@ -1,4 +1,4 @@
-import { DbEntryProperties } from '@polyratings-revamp/shared'
+import { DbEntryProperties } from '@polyratings/shared'
 
 export function intersectingDbEntities<T extends DbEntryProperties>(arrays:T[][]): {intersect: T[], nonIntersect:T[]} {
     if(arrays.length == 1) {

@@ -1,4 +1,4 @@
-import { TeacherEntry } from "@polyratings-revamp/shared";
+import { TeacherEntry } from "@polyratings/shared";
 import star from '../assets/star.svg'
 import { useHistory } from "react-router-dom"
 import { useService } from "../hooks";

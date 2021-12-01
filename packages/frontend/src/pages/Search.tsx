@@ -1,6 +1,6 @@
 import { useHistory, useLocation } from "react-router-dom";
 import { useState, useEffect, useRef, forwardRef, useImperativeHandle, ElementRef } from "react";
-import { TeacherEntry } from "@polyratings-revamp/shared";
+import { TeacherEntry } from "@polyratings/shared";
 import { TeacherService } from "../services";
 import { TeacherCard, TEACHER_CARD_HEIGHT, MinMaxSlider, SearchBar } from "../components";
 import { List, WindowScroller } from 'fish-react-virtualized';

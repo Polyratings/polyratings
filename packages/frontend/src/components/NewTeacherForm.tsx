@@ -6,7 +6,7 @@ import { ErrorMessage } from '@hookform/error-message'
 import { TeacherService } from "../services";
 // import { EvaluateTeacherForm } from "./EvaluateTeacherForm";
 import ClipLoader from "react-spinners/ClipLoader";
-import { Teacher, AddReview } from "@polyratings-revamp/shared";
+import { Teacher, AddReview } from "@polyratings/shared";
 import { toast } from "react-toastify";
 import { useHistory } from "react-router";
 

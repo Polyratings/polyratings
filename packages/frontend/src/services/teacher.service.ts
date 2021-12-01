@@ -1,4 +1,4 @@
-import { TeacherEntry, Teacher, TeacherIdResponse } from "@polyratings-revamp/shared"
+import { TeacherEntry, Teacher, TeacherIdResponse } from "@polyratings/shared"
 import { config } from "../App.config";
 import { getRandomSubarray, intersectingDbEntities } from "../utils";
 import { HttpService } from "./http.service";
