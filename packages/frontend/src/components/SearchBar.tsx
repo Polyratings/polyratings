@@ -32,7 +32,7 @@ export function SearchBar({initialValue, onChange, showOnlyInput: showOnlyInput}
                 <select 
                 value={searchType} 
                 onChange={e => setSearchType(e.target.value)} 
-                className="rounded w-40 mr-4 bg-gray-100 font-medium border-2 border-black"
+                className="hidden md:block rounded w-40 mr-4 bg-gray-100 font-medium border-2 border-black"
                 >
                     <option value="Professor">Professor</option>
                     <option value="Class">Class</option>
