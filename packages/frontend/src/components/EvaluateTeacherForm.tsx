@@ -55,7 +55,7 @@ export function EvaluateTeacherForm({teacher, setTeacher, closeForm, overrideSub
                 courseType: formResult.reasonForTaking,
                 rating:formResult.reviewText,
                 profferer:teacher?.id ?? '',
-                postDate:new Date(),
+                postDate:(new Date()).toString(),
                 department:formResult.knownClass.split(' ')[0] ?? formResult.unknownClassDepartment,
                 courseNum:formResult.knownClass.split(' ')[1] ?? formResult.unknownClassNumber   
             }

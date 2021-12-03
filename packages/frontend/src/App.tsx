@@ -16,7 +16,7 @@ function App() {
       <Navbar />
       <Switch>
         <Route path="/teacher/:id" component={Teacher} />
-        <Route path="/search" component={Search} />
+        <Route path="/search/:searchType" component={Search} />
         <Route path="/login" component={Login} />
         <Route path="/newTeacher" component={NewTeacher} />
         <Route path="/" component={Home} />

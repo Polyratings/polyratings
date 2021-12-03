@@ -1,25 +1,31 @@
 import { useEffect, useState } from "react";
 import { useHistory } from "react-router-dom"
+import { TeacherSearchType } from "../services/teacher.service";
+
+export interface SearchState {
+    type:TeacherSearchType
+    searchValue:string
+}
 
 interface SearchBarProps {
     showOnlyInput:boolean,
-    initialValue?:string
-    onChange?:(val:string) => void | Promise<void>
+    initialState?:SearchState
+    onChange?:(value: SearchState) => void | Promise<void>
 }
-export function SearchBar({initialValue, onChange, showOnlyInput: showOnlyInput}:SearchBarProps) {
-    const [searchValue, setSearchValue] = useState(initialValue ?? '');
-    const [searchType, setSearchType] = useState('professor')
+export function SearchBar({initialState, onChange, showOnlyInput: showOnlyInput}:SearchBarProps) {
+    const [searchValue, setSearchValue] = useState(initialState?.searchValue ?? '');
+    const [searchType, setSearchType] = useState<TeacherSearchType>(initialState?.type ??'name')
 
     useEffect(() => {
         if(onChange) {
-            onChange(searchValue)
+            onChange({type:searchType, searchValue})
         }
-    }, [searchValue])
+    }, [searchValue, searchType])
 
     const history = useHistory()
     const onFormSubmit = (e:React.FormEvent<HTMLFormElement>) => {
         e.preventDefault()
-        history.push(`/search?term=${encodeURIComponent(searchValue)}`)
+        history.push(`/search/${searchType}?term=${encodeURIComponent(searchValue)}`)
 
     }
     return (
@@ -31,12 +37,12 @@ export function SearchBar({initialValue, onChange, showOnlyInput: showOnlyInput}
             {showOnlyInput && 
                 <select 
                 value={searchType} 
-                onChange={e => setSearchType(e.target.value)} 
+                onChange={e => setSearchType(e.target.value as TeacherSearchType)} 
                 className="hidden md:block rounded w-40 mr-4 bg-gray-100 font-medium border-2 border-black"
                 >
-                    <option value="Professor">Professor</option>
-                    <option value="Class">Class</option>
-                    <option value="Department">Department</option>
+                    <option value="name">Professor</option>
+                    <option value="class">Class</option>
+                    <option value="department">Department</option>
                 </select>
             }
             

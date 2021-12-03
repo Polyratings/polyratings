@@ -14,7 +14,7 @@ export interface _Teacher<T extends InterfaceType> {
     overallRating:number; 
     studentDifficulties:number;
     materialClear:number;
-    numEvals:number;
+numEvals:number;
     courses:string[]
     reviews?: {[taughtClass:string] : DatabaseEntry<T, Review>[]}
 }

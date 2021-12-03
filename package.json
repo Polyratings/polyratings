@@ -2,9 +2,11 @@
   "name": "root",
   "private": true,
   "scripts": {
-    "build": "lerna bootstrap && lerna run build",
+    "bootstrap": "lerna bootstrap",
+    "build": "lerna run build",
     "start": "lerna run start:prod --parallel",
-    "start:dev": "lerna run start:dev --parallel"
+    "start:dev": "lerna run start:dev --parallel",
+    "test": "lerna run test"
   },
   "devDependencies": {
     "lerna": "^4.0.0"
