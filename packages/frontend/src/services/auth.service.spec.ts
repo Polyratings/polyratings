@@ -12,7 +12,9 @@ describe('Auth Service', () => {
         expect(user).toBeNull()
     })
 
+    it('Returns null for the jwt when a user is not present', () => {
+        const user = authService.getJwt()
+        expect(user).toBeNull()
+    })
+
 })
-
-
-export {}
