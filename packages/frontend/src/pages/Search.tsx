@@ -52,7 +52,7 @@ export function Search({location}: SearchPageProps) {
         '2xl':672
     },window.innerWidth - 20)
 
-    // If we remove the filters from the dom we can use one ref and simplify the process of restoring state
+    // If we remove the filters from the dom we can use one ref and simplify the process of restoring state when re-visiting route
     const mobileFilterBreakpoint = useTailwindBreakpoint({xl:false}, true)
 
     useEffect(() => {
