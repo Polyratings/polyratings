@@ -1,14 +1,15 @@
-import { useHistory, useLocation } from "react-router-dom";
+import { useHistory, useLocation, useParams } from "react-router-dom";
 import { useState, useEffect, useRef, forwardRef, useImperativeHandle, ElementRef } from "react";
 import { TeacherEntry } from "@polyratings/shared";
 import { TeacherService } from "../services";
-import { TeacherCard, TEACHER_CARD_HEIGHT, MinMaxSlider, SearchBar } from "../components";
+import { TeacherCard, TEACHER_CARD_HEIGHT, MinMaxSlider, SearchBar, SearchState } from "../components";
 import { List, WindowScroller } from 'fish-react-virtualized';
 import { useService, useQuery, useTailwindBreakpoint } from "../hooks";
 import {Location} from 'history'
+import { TeacherSearchType } from "../services/teacher.service";
 
 interface SearchPageState {
-    searchTerm:string
+    searchTerm:SearchState
 }
 
 interface SearchPageProps {
@@ -18,10 +19,13 @@ interface SearchPageProps {
 export function Search({location}: SearchPageProps) {
     const previousState = location.state as SearchPageState | undefined
     const query = useQuery()
+
+    const navigatedSearchTerm = query.get('term')
+    const { searchType } = useParams<{searchType:TeacherSearchType}>();
     
     const [teacherService] = useService(TeacherService)
 
-    const [searchTerm, setSearchTerm] = useState(previousState?.searchTerm ?? query.get('term') ?? '')
+    const [searchState, setSearchState] = useState<SearchState>(previousState?.searchTerm ?? {type:searchType, searchValue:navigatedSearchTerm ?? ''})
     const [searchResults, setSearchResults] = useState<TeacherEntry[]>([])
     const [mobileFiltersOpened, setMobileFiltersOpened] = useState(false)
 
@@ -34,7 +38,7 @@ export function Search({location}: SearchPageProps) {
     const saveState = () => {
         const rootRelativePath = window.location.href.replace(window.location.origin, '')
         const currentState:SearchPageState & FilterState = {
-            searchTerm,
+            searchTerm: searchState,
             // the ref will have to be defined at this state
             ...ref.current!.getState()
         }
@@ -48,33 +52,33 @@ export function Search({location}: SearchPageProps) {
         '2xl':672
     },window.innerWidth - 20)
 
-    // If we remove the filters from the dom we can use one ref and simplify the process of restoring state
+    // If we remove the filters from the dom we can use one ref and simplify the process of restoring state when re-visiting route
     const mobileFilterBreakpoint = useTailwindBreakpoint({xl:false}, true)
 
     useEffect(() => {
         async function retrieveSearchData() {
             try {
                 let result:TeacherEntry[] = []
-                if(!searchTerm) {
+                if(!searchState) {
                     result = await teacherService.getAllTeachers()
                 } else {
-                    result = await teacherService.searchForTeacher(searchTerm)
+                    result = await teacherService.searchForTeacher(searchState.type, searchState.searchValue)
                 }
                 setSearchResults(result)
             } catch(e) {
-                console.error(`Failed to search for teacher with term: ${searchTerm}`,e)
+                console.error(`Failed to search for teacher with term: ${searchState}`,e)
                 const history = useHistory()
                 history.push('/')
             }
         }
         retrieveSearchData()
-    }, [searchTerm])
+    }, [searchState])
 
 
     return(
         <div className="">
-            <SearchBar initialValue={searchTerm} onChange={setSearchTerm} showOnlyInput={true}/>
-            {!searchResults.length || !filteredTeachers.length &&
+            <SearchBar initialState={searchState} onChange={setSearchState} showOnlyInput={true}/>
+            {(!searchResults.length || !filteredTeachers.length) &&
                 <h1 className="text-4xl mt-5 text-center text-cal-poly-green">No Results Found</h1>
             }
             {Boolean(searchResults.length) &&

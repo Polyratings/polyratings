@@ -11,5 +11,5 @@ export interface Review {
     rating:string
     department:string
     courseNum:string
-    postDate:Date
+    postDate:string
 }

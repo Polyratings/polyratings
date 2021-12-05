@@ -12,6 +12,8 @@ interface TeacherCacheEntry {
     teacher:TeacherEntry
 }
 
+export type TeacherSearchType = 'name' | 'department' | 'class'
+
 export class TeacherService {
 
     private allTeachers:Promise<TeacherEntry[]>
@@ -76,17 +78,34 @@ export class TeacherService {
         this.throwIfNot200(res)
 
         const teacher:TeacherEntry = await res.json()
+        // Make sure reviews are in dated order
+        Object.values(teacher.reviews!).forEach(reviewArr => reviewArr.sort((a,b) => Date.parse(b.postDate) - Date.parse(a.postDate)))
         this.addTeacherToCache(teacher)
         return teacher
     }
 
-    async searchForTeacher(value:string): Promise<TeacherEntry[]> {
+    async searchForTeacher(type:TeacherSearchType ,value:string): Promise<TeacherEntry[]> {
         const allTeachers = await this.allTeachers
-        const tokens = value.toLowerCase().split(' ')
-        const tokenMatches = tokens
-            .map(token => allTeachers.filter(teacher => `${teacher.lastName}, ${teacher.firstName}`.toLowerCase().includes(token)))
-        const {intersect, nonIntersect} = intersectingDbEntities(tokenMatches)
-        return [...intersect, ...nonIntersect]
+
+        switch(type) {
+            case 'name':
+                const tokens = value.toLowerCase().split(' ')
+                const tokenMatches = tokens
+                    .map(token => allTeachers.filter(teacher => `${teacher.lastName}, ${teacher.firstName}`.toLowerCase().includes(token)))
+                const {intersect, nonIntersect} = intersectingDbEntities(tokenMatches)
+                return [...intersect, ...nonIntersect]
+            case 'class':
+                const courseName = value.toUpperCase()
+                // use includes to possibly be more lenient
+                return allTeachers.filter(teacher => teacher.courses.find(course => course.includes(courseName)))
+            case 'department':
+                const department = value.toUpperCase()
+                // Use starts with since most times with department you are looking for an exact match
+                return allTeachers.filter(teacher => teacher.department.startsWith(department))
+            default:
+                throw `Invalid Search Type: ${type}`
+        }
+
     }
 
     async getAllTeachers(): Promise<TeacherEntry[]> {
