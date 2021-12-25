@@ -1,10 +1,14 @@
 import { ReactNode, useEffect } from "react";
 
 export function Backdrop({children}:{children:ReactNode}) {
+    window.scrollTo(0,0)
+
     // Fix scroll position 
     useEffect(() => {
+        document.body.style.height = "100vh"
         document.body.style.overflowY = "hidden"
         return () => {
+            document.body.style.height = "auto"
             document.body.style.overflowY = "auto"
         }
     },[])
