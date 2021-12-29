@@ -1,9 +1,8 @@
-import { useObservable } from "./useObservable";
-import { AuthService } from "../services";
-import { useService } from "./useService";
+import { AuthService } from '@/services';
+import { useService, useObservable } from '.';
 
 export function useAuth() {
-    let [authService] = useService(AuthService)
-    let isAuthenticated = useObservable(authService.isAuthenticatedSubject, authService.getUser())
-    return isAuthenticated
+    const authService = useService(AuthService);
+    const isAuthenticated = useObservable(authService.isAuthenticatedSubject, authService.getUser());
+    return isAuthenticated;
 }

@@ -1,8 +1,9 @@
-import { DependencyInjector, HookTuple, useInjectorHook } from "@mindspace-io/react";
-import { injector } from "../services";
+import { useInjectorHook } from '@mindspace-io/react';
+import { injector } from '@/services';
 
-type Constructs<T> = (new (...args: any[]) => T)
+type Constructs<T> = (new (...args: never[]) => T)
 
-export function useService<T>(token:Constructs<T>):HookTuple<T, DependencyInjector> {
-    return useInjectorHook(token, injector)
+export function useService<T>(token:Constructs<T>):T {
+    const [service] = useInjectorHook(token, injector);
+    return service;
 }

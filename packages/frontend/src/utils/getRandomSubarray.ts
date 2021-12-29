@@ -1,5 +1,7 @@
+/* eslint-disable no-plusplus */
 export function getRandomSubarray<T>(arr:T[], size:number):T[] {
-    var shuffled = arr.slice(0), i = arr.length, min = i - size, temp, index;
+    const shuffled = arr.slice(0); let i = arr.length; const min = i - size; let temp; let
+index;
     while (i-- > min) {
         index = Math.floor((i + 1) * Math.random());
         temp = shuffled[index];

@@ -1,16 +1,18 @@
-import { Home, Teacher, Search, Login, NewTeacher } from './pages';
 import {
   BrowserRouter,
   Switch,
   Route,
-} from "react-router-dom";
+} from 'react-router-dom';
+import { ToastContainer } from 'react-toastify';
+import {
+ Home, Teacher, Search, Login, NewTeacher,
+} from './pages';
 import { Navbar } from './components';
 import 'react-toastify/dist/ReactToastify.css';
-import { ToastContainer } from 'react-toastify';
 import { config } from './App.config';
 
 function App() {
-  return(
+  return (
     <BrowserRouter basename={config.base}>
       <ToastContainer />
       <Navbar />
@@ -20,9 +22,9 @@ function App() {
         <Route path="/login" component={Login} />
         <Route path="/newTeacher" component={NewTeacher} />
         <Route path="/" component={Home} />
-    </Switch>
-  </BrowserRouter>
-  )
+      </Switch>
+    </BrowserRouter>
+  );
 }
 
-export default App
+export default App;

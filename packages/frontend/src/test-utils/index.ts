@@ -1,1 +1,1 @@
-export * from './renderWithRouter'
+export * from './renderWithRouter';
