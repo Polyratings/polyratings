@@ -51,10 +51,7 @@ export function Search({ location }: SearchPageProps) {
     if (!ref.current) {
       return;
     }
-    const rootRelativePath = window.location.href.replace(
-      window.location.origin,
-      ''
-    );
+    const rootRelativePath = window.location.href.replace(window.location.origin, '');
     const currentState: SearchPageState & FilterState = {
       searchTerm: searchState,
       // the ref will have to be defined at this state
@@ -70,7 +67,7 @@ export function Search({ location }: SearchPageProps) {
       lg: 600,
       '2xl': 672,
     },
-    window.innerWidth - 20
+    window.innerWidth - 20,
   );
 
   // If we remove the filters from the dom we can use one ref and simplify the process of restoring state when re-visiting route
@@ -83,18 +80,12 @@ export function Search({ location }: SearchPageProps) {
         if (!searchState) {
           result = await teacherService.getAllTeachers();
         } else {
-          result = await teacherService.searchForTeacher(
-            searchState.type,
-            searchState.searchValue
-          );
+          result = await teacherService.searchForTeacher(searchState.type, searchState.searchValue);
         }
         setSearchResults(result);
       } catch (e) {
         const logger = useService(Logger);
-        logger.error(
-          `Failed to search for teacher with term: ${searchState}`,
-          e
-        );
+        logger.error(`Failed to search for teacher with term: ${searchState}`, e);
         const history = useHistory();
         history.push('/');
       }
@@ -104,15 +95,9 @@ export function Search({ location }: SearchPageProps) {
 
   return (
     <div className="">
-      <SearchBar
-        initialState={searchState}
-        onChange={setSearchState}
-        showOnlyInput
-      />
+      <SearchBar initialState={searchState} onChange={setSearchState} showOnlyInput />
       {(!searchResults.length || !filteredTeachers.length) && (
-        <h1 className="text-4xl mt-5 text-center text-cal-poly-green">
-          No Results Found
-        </h1>
+        <h1 className="text-4xl mt-5 text-center text-cal-poly-green">No Results Found</h1>
       )}
       {Boolean(searchResults.length) && (
         <div className="relative">
@@ -129,12 +114,14 @@ export function Search({ location }: SearchPageProps) {
           {mobileFilterBreakpoint && (
             <div
               className={`bg-gray-300 w-[calc(100vw-2rem)] h-screen fixed top-0 z-10 transition-all left-0 transform 
-              ${mobileFiltersOpened? '-translate-x-0': '-translate-x-full'}`}
+              ${mobileFiltersOpened ? '-translate-x-0' : '-translate-x-full'}`}
             >
               <div
                 onClick={() => setMobileFiltersOpened(!mobileFiltersOpened)}
                 className={`bg-gray-400 w-8 h-12 absolute -right-8 transition-all 
-                  ${mobileFiltersOpened ? 'top-0 rounded-r-none': 'top-14 rounded-r'} flex items-center justify-center`}
+                  ${
+                    mobileFiltersOpened ? 'top-0 rounded-r-none' : 'top-14 rounded-r'
+                  } flex items-center justify-center`}
               >
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
@@ -170,9 +157,7 @@ export function Search({ location }: SearchPageProps) {
                   height={height}
                   isScrolling={isScrolling}
                   onScroll={onChildScroll}
-                  rowCount={
-                    filteredTeachers.length < 8 ? 8 : filteredTeachers.length
-                  }
+                  rowCount={filteredTeachers.length < 8 ? 8 : filteredTeachers.length}
                   rowHeight={TEACHER_CARD_HEIGHT}
                   scrollTop={scrollTop}
                   width={listWidth}

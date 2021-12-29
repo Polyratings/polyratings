@@ -4,11 +4,7 @@ import { createMemoryHistory } from 'history';
 import { ReactNode } from 'react';
 
 export function renderWithRouter(creator: () => ReactNode) {
-    const history = createMemoryHistory();
-    const documentBody = render(
-      <Router history={history}>
-        {creator()}
-      </Router>,
-    );
-    return { history, documentBody };
+  const history = createMemoryHistory();
+  const documentBody = render(<Router history={history}>{creator()}</Router>);
+  return { history, documentBody };
 }

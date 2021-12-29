@@ -1,12 +1,6 @@
-import {
-  BrowserRouter,
-  Switch,
-  Route,
-} from 'react-router-dom';
+import { BrowserRouter, Switch, Route } from 'react-router-dom';
 import { ToastContainer } from 'react-toastify';
-import {
- Home, Teacher, Search, Login, NewTeacher,
-} from './pages';
+import { Home, Teacher, Search, Login, NewTeacher } from './pages';
 import { Navbar } from './components';
 import 'react-toastify/dist/ReactToastify.css';
 import { config } from './App.config';

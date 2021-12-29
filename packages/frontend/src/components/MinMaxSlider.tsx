@@ -4,10 +4,10 @@ import Slider, { createSliderWithTooltip } from 'rc-slider';
 const Range = createSliderWithTooltip(Slider.Range);
 
 interface MinMaxSliderProps {
-    domain:[number, number],
-    value:[number, number]
-    onchange:(pos:[number, number]) => void
-    resolution?:number
+  domain: [number, number];
+  value: [number, number];
+  onchange: (pos: [number, number]) => void;
+  resolution?: number;
 }
 
 const overrideHoverCss = `
@@ -18,28 +18,31 @@ const overrideHoverCss = `
 `;
 
 export function MinMaxSlider({
- domain: [min, max], value, onchange, resolution = (max - min) / 20,
-}:MinMaxSliderProps) {
-    const marks = {
-      [min]: min,
-      [max]: max,
-    };
-    const handleStyles = { borderColor: '#1F4715' };
-    return (
-      <div className="w-full h-10">
-        <style>{overrideHoverCss}</style>
-        <Range
-          onChange={(v) => onchange(v as [number, number])}
-          value={value}
-          trackStyle={[{ backgroundColor: '#1F4715' }]}
-          handleStyle={[handleStyles, handleStyles]}
-          min={min}
-          max={max}
-          defaultValue={[min, max]}
-          step={resolution}
-          marks={marks}
-          tipFormatter={(value) => `${value}`}
-        />
-      </div>
-    );
+  domain: [min, max],
+  value,
+  onchange,
+  resolution = (max - min) / 20,
+}: MinMaxSliderProps) {
+  const marks = {
+    [min]: min,
+    [max]: max,
+  };
+  const handleStyles = { borderColor: '#1F4715' };
+  return (
+    <div className="w-full h-10">
+      <style>{overrideHoverCss}</style>
+      <Range
+        onChange={(v) => onchange(v as [number, number])}
+        value={value}
+        trackStyle={[{ backgroundColor: '#1F4715' }]}
+        handleStyle={[handleStyles, handleStyles]}
+        min={min}
+        max={max}
+        defaultValue={[min, max]}
+        step={resolution}
+        marks={marks}
+        tipFormatter={(value) => `${value}`}
+      />
+    </div>
+  );
 }
