@@ -1,3 +1,3 @@
 export interface JwtAuthResponse {
-    access_token:string
+    accessToken:string
 }
