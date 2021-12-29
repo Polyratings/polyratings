@@ -84,4 +84,7 @@ describe('Auth Service', () => {
     });
     subscription.unsubscribe();
   });
+
+  // TODO: Fix Fetch service to handle errors appropriately and work with the AuthService
+  it('Handle\'s errors returned from logging in correctly')
 });
