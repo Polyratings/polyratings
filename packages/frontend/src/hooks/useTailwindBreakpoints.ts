@@ -38,7 +38,7 @@ export function useTailwindBreakpoint<T>(breakpoints: TailwindBreakpoints<T>, de
     if (entry) {
       // If we have a key T will be defined due to the internalValues setup above
       const [key] = entry;
-      setOutputValue(breakpoints[key] as T);
+      setOutputValue(internalValues[key] as T);
     } else {
       setOutputValue(defaultValue);
     }

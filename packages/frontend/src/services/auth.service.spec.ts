@@ -86,5 +86,5 @@ describe('Auth Service', () => {
   });
 
   // TODO: Fix Fetch service to handle errors appropriately and work with the AuthService
-  it('Handle\'s errors returned from logging in correctly')
+  test.todo('Handle\'s errors returned from logging in correctly')
 });

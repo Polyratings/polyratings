@@ -6,3 +6,4 @@ export * from './SearchBar';
 export * from './TeacherCard';
 export * from './MinMaxSlider';
 export * from './Filters';
+export * from './ClassSection'

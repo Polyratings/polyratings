@@ -4,3 +4,4 @@ require('@testing-library/jest-dom');
 
 // Define to stop tests from erroring
 window.scrollTo = () => {};
+window.scroll = () => {};

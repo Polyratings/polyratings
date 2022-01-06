@@ -2,15 +2,12 @@
 module.exports = {
   transform: {
     '^.+\\.(ts|tsx)$': 'ts-jest',
-    '^.+\\.svg$': './jest.asset-transformer.js',
-    '^.+\\.webp$': './jest.asset-transformer.js',
-    '^.+\\.css$': './jest.asset-transformer.js',
-    '^.+\\.png$': './jest.asset-transformer.js',
   },
   moduleFileExtensions: ['ts', 'tsx', 'js', 'jsx', 'json', 'node'],
   testEnvironment: 'jsdom',
   setupFilesAfterEnv: ['./jest.env.js'],
   moduleNameMapper: {
+    '\\.(css|less|sass|scss|svg|webp|png)$': '<rootDir>/jest.asset-transformer.js',
     '^@/(.*)$': '<rootDir>/src/$1',
   },
 };
