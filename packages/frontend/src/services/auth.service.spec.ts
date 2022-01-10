@@ -76,7 +76,7 @@ describe('Auth Service', () => {
     };
     const user = await authService.login('mfishe13', 'test123');
     authService.signOut();
-    waitFor(() => {
+    await waitFor(() => {
       expect(authStates).toHaveLength(3);
       expect(authStates[0]).toBe(null);
       expect(authStates[1]).toEqual(user);
