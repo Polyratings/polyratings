@@ -88,18 +88,11 @@ export function Teacher() {
           >
             Evaluate Teacher
           </button>
-        </div>
-        <div className="text-right">
+        </div>        <div className="text-right">
           <h2 className="text-4xl text-cal-poly-green">{teacherData?.overallRating} / 4.00</h2>
           <p>{teacherData?.numEvals} evaluations</p>
-          <p>
-            Recognizes Student Difficulties:
-            {teacherData?.studentDifficulties}
-          </p>
-          <p>
-            Presents Material Clearly:
-            {teacherData?.materialClear}
-          </p>
+          <p> Recognizes Student Difficulties: {teacherData?.studentDifficulties}</p>
+          <p>Presents Material Clearly: {teacherData?.materialClear} </p>
         </div>
       </div>
 
