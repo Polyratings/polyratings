@@ -1,7 +1,7 @@
 /* eslint-disable react/no-unstable-nested-components */
 import { useState, useEffect } from 'react';
 import { useHistory, useParams } from 'react-router-dom';
-import { TeacherEntry } from '@polyratings/shared';
+import { ReviewEntry, TeacherEntry } from '@polyratings/shared';
 import AnimateHeight from 'react-animate-height';
 import AnchorLink from 'react-anchor-link-smooth-scroll';
 import StarRatings from 'react-star-ratings';
@@ -9,10 +9,53 @@ import { TeacherService, Logger } from '@/services';
 import { Backdrop, ClassSection, EvaluateTeacherForm } from '@/components';
 import { useService } from '@/hooks';
 
+interface ClassReviews {
+  taughtClass:string,
+  reviews:ReviewEntry[]
+}
+
 export function Teacher() {
   const { id } = useParams<{ id: string }>();
 
   const [teacherData, setTeacherData] = useState<TeacherEntry | null>(null);
+
+  // Put classes for teachers primary department first. This is to cut down on review spamming
+  // of other departments. It is possible for a teacher to teach outside of the department but
+  // it is ok if those reviews come after the primary department
+  const [teacherReviews, SetTeacherReviews] = useState<ClassReviews[] | null>(null);
+  useEffect(() => {
+    if(!teacherData) {
+      return 
+    }
+    // Sort Into Departments
+    const teacherByDepartments = 
+      Object.entries(teacherData?.reviews || {})
+      .reduce((acc, [taughtClass, reviews]) => {
+        const obj:ClassReviews = {taughtClass, reviews}
+        const [department] = taughtClass.split(' ')
+        if(acc[department]) {
+          acc[department].push(obj)
+        } else {
+          acc[department] = [obj]
+        }
+        return acc
+      }, {} as {[department:string]: ClassReviews[]})
+
+    // Sort departments by class number
+    Object.values(teacherByDepartments)
+    .forEach(deparment => deparment.sort((a,b) => {
+      const [,aNumber] = a.taughtClass.split(' ')
+      const [,bNumber] = b.taughtClass.split(' ')
+      return parseInt(aNumber, 10) - parseInt(bNumber, 10)
+    }))
+
+    const primaryClasses = teacherByDepartments[teacherData.department]
+    const otherClasses = Object.entries(teacherByDepartments)
+      .filter(([department]) => department !== teacherData.department)
+      .flatMap(([,classReviews]) => classReviews)
+
+    SetTeacherReviews([...primaryClasses, ...otherClasses])
+  })
 
   const history = useHistory();
   const teacherService = useService(TeacherService);
@@ -42,7 +85,7 @@ export function Teacher() {
   }) {
     return (
       <div className={outerClassName}>
-        {Object.keys(teacherData?.reviews || {}).map((taughtClass) => (
+        {teacherReviews && teacherReviews.map(({taughtClass}) => (
           <AnchorLink key={taughtClass} href={`#${taughtClass}`} className={innerClassName}>
             {taughtClass}
           </AnchorLink>
@@ -133,7 +176,7 @@ export function Teacher() {
         </div>
       </AnimateHeight>
 
-      {Object.entries(teacherData?.reviews || {}).map(([taughtClass, reviews]) => (
+      {teacherReviews && teacherReviews.map(({taughtClass, reviews}) => (
         <ClassSection key={taughtClass} reviews={reviews} taughtClass={taughtClass} />
       ))}
       <ClassScroll
