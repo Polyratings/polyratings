@@ -1,4 +1,4 @@
-import { Review } from "./Review";
+import { Review } from "./Reviews";
 
 export interface AddReview {
     teacherId:number

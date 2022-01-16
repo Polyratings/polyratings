@@ -1,4 +1,4 @@
-import { Review } from "./Review";
+import { Review } from "./Reviews";
 import { DatabaseEntry, InterfaceType } from "./DatabaseEntry";
 
 export type TeacherEntry = DatabaseEntry<'db', _Teacher<'db'>>

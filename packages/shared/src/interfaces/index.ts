@@ -1,5 +1,5 @@
 export * from './JwtAuthResponse'
-export * from './Review'
+export * from './Reviews'
 export * from './Teacher'
 export * from './TeacherIdResponse'
 export * from './User'
