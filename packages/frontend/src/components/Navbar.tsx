@@ -56,6 +56,9 @@ export function Navbar() {
           <Link className="my-1" to="/search/name" onClick={triggerMobileNav}>
             Professor List
           </Link>
+          <Link className="my-1" to="/about" onClick={triggerMobileNav}>
+            About
+          </Link>
           {/* <Link className="mr-7" to="contact">Contact</Link> */}
           {isAuthenticated && (
             <div

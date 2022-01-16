@@ -1,6 +1,6 @@
 import { BrowserRouter, Switch, Route } from 'react-router-dom';
 import { ToastContainer } from 'react-toastify';
-import { Home, Teacher, Search, Login, NewTeacher } from './pages';
+import { Home, Teacher, Search, Login, NewTeacher, About } from './pages';
 import { Navbar } from './components';
 import 'react-toastify/dist/ReactToastify.css';
 import { config } from './App.config';
@@ -15,6 +15,7 @@ function App() {
         <Route path="/search/:searchType" component={Search} />
         <Route path="/login" component={Login} />
         <Route path="/newTeacher" component={NewTeacher} />
+        <Route path="/about" component={About} />
         <Route path="/" component={Home} />
       </Switch>
     </BrowserRouter>
