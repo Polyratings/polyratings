@@ -89,6 +89,10 @@ export function Navbar() {
           {' '}
           Professor List
         </Link>
+        <Link className="mr-7" to="/about">
+          {' '}
+          About
+        </Link>
         {/* <Link className="mr-7" to="contact">Contact</Link> */}
         {isAuthenticated && (
           <div
