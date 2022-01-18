@@ -1,13 +1,24 @@
-import { BrowserRouter, Switch, Route } from 'react-router-dom';
+import { Router, Switch, Route } from 'react-router-dom';
 import { ToastContainer } from 'react-toastify';
+import { createBrowserHistory } from 'history'
+import ReactGA from 'react-ga';
+import { useEffect } from 'react';
 import { Home, Teacher, Search, Login, NewTeacher, About } from './pages';
 import { Navbar } from './components';
 import 'react-toastify/dist/ReactToastify.css';
 import { config } from './App.config';
 
 function App() {
+  useEffect(() => {
+    ReactGA.initialize('G-784BKPF31W')
+  }, [])
+
+  const history = createBrowserHistory({basename:config.base})
+  history.listen((location) => {
+    ReactGA.pageview(location.pathname + location.search)
+  })
   return (
-    <BrowserRouter basename={config.base}>
+    <Router history={history}>
       <ToastContainer />
       <Navbar />
       <Switch>
@@ -18,7 +29,7 @@ function App() {
         <Route path="/about" component={About} />
         <Route path="/" component={Home} />
       </Switch>
-    </BrowserRouter>
+    </Router>
   );
 }
 
