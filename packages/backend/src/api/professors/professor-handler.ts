@@ -1,5 +1,6 @@
 import { missing, error } from 'itty-router-extras';
-import { setCorsHeaders } from '../../utils';
+import { Request } from 'itty-router';
+import { polytatingsResponse } from '../../utils';
 
 export class ProfessorHandler {
     /**
@@ -9,16 +10,11 @@ export class ProfessorHandler {
      * @param id
      *  id of the professor being retrieved
      */
-    static async getSingleProfessor(id?: string): Promise<Response> {
+    static async getSingleProfessor(req:Request): Promise<Response> {
+        const id = req.params?.id
         // prevent querying null professors
         if (id == null || id === '') {
             return error(400, 'Invalid professor id!');
-        }
-
-        // prevent users from utilizing this endpoint to get the professors list
-        // this is mostly a no-op, but this guarantees us more accurate usage statistics
-        if (id === 'all') {
-            return missing('Could not find professor!');
         }
 
         const professor = await POLYRATINGS.get(id);
@@ -26,15 +22,7 @@ export class ProfessorHandler {
             return missing('Could not find professor!');
         }
 
-        const headers = setCorsHeaders(new Headers());
-        headers.set('Content-Type', 'application/json; charset=UTF-8');
-        headers.set('Content-Encoding', 'gzip');
-        headers.set('Vary', 'Accept-Encoding');
-
-        return new Response(professor, {
-            status: 200,
-            headers: headers,
-        });
+        return polytatingsResponse(professor);
     }
 
     /**
@@ -46,14 +34,6 @@ export class ProfessorHandler {
             return error(404, 'No professors exist!');
         }
 
-        const headers = setCorsHeaders(new Headers());
-        headers.set('Content-Type', 'application/json; charset=UTF-8');
-        headers.set('Content-Encoding', 'gzip');
-        headers.set('Vary', 'Accept-Encoding');
-
-        return new Response(professorList, {
-            status: 200,
-            headers: headers,
-        });
+        return polytatingsResponse(professorList)
     }
 }

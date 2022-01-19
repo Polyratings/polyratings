@@ -9,11 +9,11 @@ const router = Router();
  */
 router.get(
     '/professors',
-    async () => await ProfessorHandler.getProfessorList(),
+    ProfessorHandler.getProfessorList,
 );
 router.get(
     '/professors/:id',
-    async ({ params }) => await ProfessorHandler.getSingleProfessor(params?.id),
+    ProfessorHandler.getSingleProfessor,
 );
 
 /**
