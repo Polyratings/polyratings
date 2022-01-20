@@ -1,7 +1,7 @@
 import { Router, Switch, Route } from 'react-router-dom';
 import { ToastContainer } from 'react-toastify';
 import { createBrowserHistory } from 'history'
-import ReactGA from 'react-ga';
+import ReactGA from 'react-ga4';
 import { useEffect } from 'react';
 import { Home, Teacher, Search, Login, NewTeacher, About } from './pages';
 import { Navbar } from './components';
@@ -15,7 +15,7 @@ function App() {
 
   const history = createBrowserHistory({basename:config.base})
   history.listen((location) => {
-    ReactGA.pageview(location.pathname + location.search)
+    ReactGA.send({ hitType: 'pageview', page: location.pathname + location.search})
   })
   return (
     <Router history={history}>
