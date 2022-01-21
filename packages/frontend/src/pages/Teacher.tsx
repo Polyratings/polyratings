@@ -55,7 +55,7 @@ export function Teacher() {
       .flatMap(([,classReviews]) => classReviews)
 
     SetTeacherReviews([...primaryClasses, ...otherClasses])
-  })
+  }, [teacherData])
 
   const history = useHistory();
   const teacherService = useService(TeacherService);
