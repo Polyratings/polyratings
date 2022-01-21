@@ -22,12 +22,13 @@ function App() {
       <ToastContainer />
       <Navbar />
       <Switch>
-        <Route path="/teacher/:id" component={Teacher} />
-        <Route path="/search/:searchType" component={Search} />
-        <Route path="/login" component={Login} />
-        <Route path="/newTeacher" component={NewTeacher} />
-        <Route path="/about" component={About} />
-        <Route path="/" component={Home} />
+        {/* Set key to Date.now() to refresh each time Link is triggered */}
+        <Route path="/teacher/:id"  render={() => <Teacher key={Date.now()}/>} />
+        <Route path="/search/:searchType" render={({location}) => <Search location={location} key={Date.now()}/>} />
+        <Route path="/login" render={() => <Login key={Date.now()}/>} />
+        <Route path="/newTeacher"  render={() => <NewTeacher key={Date.now()}/>} />
+        <Route path="/about"  render={() => <About key={Date.now()}/>} />
+        <Route path="/"  render={() => <Home key={Date.now()}/>} />
       </Switch>
     </Router>
   );
