@@ -3,7 +3,7 @@ import { ToastContainer } from 'react-toastify';
 import { createBrowserHistory } from 'history'
 import ReactGA from 'react-ga4';
 import { useEffect } from 'react';
-import { Home, Teacher, Search, Login, NewTeacher, About } from './pages';
+import { Home, Teacher, Login, NewTeacher, About, SearchWrapper } from './pages';
 import { Navbar } from './components';
 import 'react-toastify/dist/ReactToastify.css';
 import { config } from './App.config';
@@ -22,13 +22,12 @@ function App() {
       <ToastContainer />
       <Navbar />
       <Switch>
-        {/* Set key to Date.now() to refresh each time Link is triggered */}
-        <Route path="/teacher/:id"  render={() => <Teacher key={Date.now()}/>} />
-        <Route path="/search/:searchType" render={({location}) => <Search location={location} key={Date.now()}/>} />
-        <Route path="/login" render={() => <Login key={Date.now()}/>} />
-        <Route path="/newTeacher"  render={() => <NewTeacher key={Date.now()}/>} />
-        <Route path="/about"  render={() => <About key={Date.now()}/>} />
-        <Route path="/"  render={() => <Home key={Date.now()}/>} />
+        <Route path="/teacher/:id" component={Teacher} />
+        <Route path="/search/:searchType" component={SearchWrapper} />
+        <Route path="/login" component={Login} />
+        <Route path="/newTeacher" component={NewTeacher} />
+        <Route path="/about" component={About} />
+        <Route path="/" component={Home} />
       </Switch>
     </Router>
   );

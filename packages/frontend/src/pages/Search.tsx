@@ -181,3 +181,18 @@ export function Search({ location }: SearchPageProps) {
     </div>
   );
 }
+
+
+// This function Wraps the Search page so that it has the ability to swap out the page state
+// when a teacher is clicked but still has the ability to clear state when the nav bar button is clicked
+// This is an extension of ideas expressed in this thread:
+// https://stackoverflow.com/questions/38839510/forcing-a-react-router-link-to-load-a-page-even-if-were-already-on-that-page
+export function SearchWrapper({ location }: SearchPageProps) { 
+  const [prevKey, setPrevKey] = useState('')
+  if(!location.state && prevKey !== location.key) {
+    setPrevKey(location.key || `${Date.now()}`)
+  }
+  return (
+    <Search location={location} key={prevKey}/>
+  )
+}
