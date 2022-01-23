@@ -4,8 +4,10 @@ import { Env } from '@polyratings/backend/bindings';
 import { ValidationError } from 'class-validator';
 import { ClassType, transformAndValidate } from 'class-transformer-validator';
 
-export const withValidatedBody = <T extends Object>(targetType: ClassType<T>, handler: (ctx: Context<Env, any, T>) => Promise<void>) => {
-    return async (ctx: Context<Env, any>) => {
+
+
+export function withValidatedBody<T extends object>(targetType: ClassType<T>) {
+    return async (ctx: Context<Env, any, T>, next: MiddlewareNextFunction) => {
         try {
             ctx.data = await transformAndValidate(targetType, await ctx.request.json() as object, {
                 validator: {
@@ -25,6 +27,6 @@ export const withValidatedBody = <T extends Object>(targetType: ClassType<T>, ha
             ctx.response.body = { responseErrors };
             return;
         }
-        await handler(ctx);
+        await next();
     };
 }
