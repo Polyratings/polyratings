@@ -4,7 +4,7 @@
   "description": "Cloudflare Workers project for the Polyratings site backend",
   "main": "index.js",
   "scripts": {
-    "build": "esbuild --format=esm --bundle src/index.ts --outdir=dist",
+    "build": "esbuild --minify --format=esm --bundle src/index.ts --outdir=dist",
     "format": "prettier --write  '*.{json,js}' 'src/**/*.{js,ts}' 'test/**/*.{js,ts}'",
     "lint": "eslint --max-warnings=0 src && prettier --check '*.{json,js}' 'src/**/*.{js,ts}' 'test/**/*.{js,ts}'",
     "test": "jest --config jestconfig.json --verbose"
@@ -37,6 +37,7 @@
   },
   "dependencies": {
     "@cloudflare/kv-asset-handler": "^0.2.0",
+    "@polyratings/shared": "*",
     "class-transformer": "^0.5.1",
     "class-transformer-validator": "^0.9.1",
     "class-validator": "^0.13.2",

@@ -1,9 +1,9 @@
-import { Type } from 'class-transformer';
-import { Allow, IsDefined, IsInt, IsNotEmpty, IsUUID, Max, Min } from 'class-validator';
+import { Allow, IsDefined, IsIn, IsInt, IsNotEmpty, IsUUID, Max, Min } from 'class-validator';
+import { DEPARTMENT_LIST } from '../constants';
 
 export type GradeLevel = "Freshman" | "Sophomore" | "Junior" | "Senior" | "5th/6th Year" | "Grad Student";
 export type Grade = "A" | "B" | "C" | "D" | "F" | "CR" | "NC" | "W";
-export type CourseType = "Elective" | "General Ed" | "Major (Support)" | "Major (Required)"
+export type CourseType = "Elective" | "General Ed" | "Major (Support)" | "Major (Required)";
 
 /**
  * There may potentially be significant overlap between a Review and ReviewEntry
@@ -51,9 +51,7 @@ export class AddReviewRequest {
     @Min(100)
     @Max(599)
     courseNum: number;
-    @Type(() => Date)
-    postDate: Date;
-    @IsNotEmpty()
+    @IsIn(DEPARTMENT_LIST)
     department: string;
     @IsInt()
     @Min(0)
@@ -69,4 +67,10 @@ export class AddReviewRequest {
     recognizesStudentDifficulties: number;
     @IsNotEmpty()
     rating: string;
+}
+
+export class AddReviewResponse {
+    success: boolean;
+    statusMessage: string;
+    newReviewId?: string;
 }

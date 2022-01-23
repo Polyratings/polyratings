@@ -2,7 +2,7 @@ import { Router } from 'sunder';
 import { Env } from '@polyratings/backend/bindings';
 import { ProfessorHandler } from '@polyratings/backend/api/professors/professor-handler';
 import { withValidatedBody } from '@polyratings/backend/middlewares/with-validated-body';
-import { AddReviewRequest } from '../../../shared';
+import { AddReviewRequest } from '@polyratings/shared';
 import { RatingHandler } from '@polyratings/backend/api/ratings/rating-handler';
 
 export function registerRoutes(router: Router<Env>) {
