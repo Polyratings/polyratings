@@ -1,0 +1,27 @@
+{
+  "compilerOptions": {
+    "target": "ESNext",
+    "module": "ESNext",
+    "lib": [
+      "ESNext"
+    ],
+    "types": [
+      "@cloudflare/workers-types"
+    ],
+    "moduleResolution": "Node",
+    "strict": true,
+    "baseUrl": "./",
+    "paths": {
+      "@polyratings/backend/*": [
+        "src/*"
+      ]
+    },
+    "declaration": true,
+    "noEmit": true,
+    "skipLibCheck": true,
+    "noEmitHelpers": true
+  },
+  "include": [
+    "src/**/*"
+  ]
+}

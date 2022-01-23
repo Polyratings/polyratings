@@ -1,0 +1,49 @@
+type = "javascript"
+zone_id = "a7bc6d72d8d7927ad1a49d855cfad6c6" # polyratings.dev
+account_id = "4b59b59a6058dce1832781075d4fde9d"
+usage = "bundled"
+workers_dev = false
+compatibility_date = "2022-01-15"
+
+[build]
+command = "npm install && npm run build"
+
+[build.upload]
+format = "modules"
+dir = 'dist'
+main = './index.js' # TODO: figure out what actually goes here!!
+
+[[build.upload.rules]]
+type = "ESModule"
+globs = ["**/*.js"]
+
+[env.sunder]
+name = 'sunder-backend'
+route = 'sunder.polyratings.dev/*'
+usage = "bundled"
+kv_namespaces = [
+    { binding = "POLYRATINGS", id = "c6bf2730306a4e65bb8aa7412ae6f250", preview_id = "1c0b9ffba23c46f2928b7af696de1862"},
+    { binding = "PROCESSING_QUEUE", id = "845ba14e564c411fa52543408e15c53e", preview_id = "7efebba0f4d04f369066284dd9749ed4"}
+]
+
+[env.prod]
+name = "testing-backend"
+route = "testing.polyratings.dev/*"
+usage = "bundled"
+kv_namespaces = [
+    { binding = "POLYRATINGS", id = "c6bf2730306a4e65bb8aa7412ae6f250", preview_id = "1c0b9ffba23c46f2928b7af696de1862"},
+    { binding = "PROCESSING_QUEUE", id = "845ba14e564c411fa52543408e15c53e", preview_id = "7efebba0f4d04f369066284dd9749ed4"}
+]
+
+[env.beta]
+name = "testing-backend-beta"
+route = "beta-test.polyratings.dev/*"
+usage = "bundled"
+kv_namespaces = [
+    { binding = "POLYRATINGS", id = "1c0b9ffba23c46f2928b7af696de1862", preview_id = "1c0b9ffba23c46f2928b7af696de1862"},
+    { binding = "PROCESSING_QUEUE", id = "7efebba0f4d04f369066284dd9749ed4", preview_id = "7efebba0f4d04f369066284dd9749ed4"}
+]
+
+[dev]
+port = 8080
+local_protocol = "https"
