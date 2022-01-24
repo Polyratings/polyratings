@@ -8,7 +8,7 @@ export const withMiddlewares = <T extends PathParams<any>, U>(...middlewares: Ha
             await apply(middlewares, ctx);
         } catch (e) {
             console.error(e);
-            ctx.throw(500, "Nested middleware failure");
+            throw e;
         }
     };
 }

@@ -2,7 +2,7 @@ import { Router, Sunder } from 'sunder';
 import { Env } from '@polyratings/backend/bindings';
 import { withDefaultHeaders } from '@polyratings/backend/middlewares/with-default-headers';
 import { registerRoutes } from '@polyratings/backend/api/routing';
-import { renderErrorsAsJSON } from 'sunder/middleware/render';
+import { polyratingsErrorMiddleware } from '@polyratings/backend/middlewares/polyratings-error-middleware';
 
 export function polyratingsBackend() {
     const backend = new Sunder<Env>();
@@ -11,11 +11,11 @@ export function polyratingsBackend() {
     // register routes and their handlers
     registerRoutes(router);
 
-    // generic error handling
-    backend.use(renderErrorsAsJSON);
-
     // apply default CORS headers upstream
     backend.use(withDefaultHeaders);
+
+    // error handling
+    backend.use(polyratingsErrorMiddleware);
 
     // route the request to proper handler
     backend.use(router.middleware);

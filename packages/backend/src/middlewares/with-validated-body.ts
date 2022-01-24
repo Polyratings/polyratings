@@ -1,10 +1,9 @@
 import 'reflect-metadata';
-import { Context, Handler, MiddlewareNextFunction } from 'sunder';
+import { Context, MiddlewareNextFunction } from 'sunder';
 import { Env } from '@polyratings/backend/bindings';
 import { ValidationError } from 'class-validator';
 import { ClassType, transformAndValidate } from 'class-transformer-validator';
-
-
+import { PolyratingsError } from '@polyratings/backend/utils/errors';
 
 export function withValidatedBody<T extends object>(targetType: ClassType<T>) {
     return async (ctx: Context<Env, any, T>, next: MiddlewareNextFunction) => {
@@ -22,10 +21,7 @@ export function withValidatedBody<T extends object>(targetType: ClassType<T>) {
                 responseErrors.push({propertyName: error.property, reasonForFailure: error.constraints});
             }
 
-            ctx.response.status = 400;
-            ctx.response.statusText = "Encountered a validation error";
-            ctx.response.body = { responseErrors };
-            return;
+            throw new PolyratingsError(400, responseErrors);
         }
         await next();
     };
