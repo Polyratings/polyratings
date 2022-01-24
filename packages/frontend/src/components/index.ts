@@ -7,3 +7,4 @@ export * from './TeacherCard';
 export * from './MinMaxSlider';
 export * from './Filters';
 export * from './ClassSection'
+export * from './AutoComplete'

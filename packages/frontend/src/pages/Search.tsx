@@ -95,7 +95,7 @@ export function Search({ location }: SearchPageProps) {
 
   return (
     <div className="">
-      <SearchBar initialState={searchState} onChange={setSearchState} showOnlyInput />
+      <SearchBar initialState={searchState} onChange={setSearchState} showOnlyInput disableAutoComplete />
       {(!searchResults.length || !filteredTeachers.length) && (
         <h1 className="text-4xl mt-5 text-center text-cal-poly-green">No Results Found</h1>
       )}

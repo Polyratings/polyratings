@@ -1,82 +1,105 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useHistory } from 'react-router-dom';
-import { TeacherSearchType } from '@/services/teacher.service';
+import { TeacherSearchType, TeacherService } from '@/services/teacher.service';
+import { AutoComplete } from '.';
+import { useService } from '@/hooks';
+import { departments } from '@/constants';
 
 export interface SearchState {
-  type: TeacherSearchType;
-  searchValue: string;
+    type: TeacherSearchType;
+    searchValue: string;
 }
 
 interface SearchBarProps {
-  showOnlyInput: boolean;
-  initialState?: SearchState;
-  onChange?: (value: SearchState) => void | Promise<void>;
+    showOnlyInput: boolean;
+    initialState?: SearchState;
+    onChange?: (value: SearchState) => void | Promise<void>;
+    disableAutoComplete?: boolean;
 }
-export function SearchBar({ initialState, onChange, showOnlyInput }: SearchBarProps) {
-  const [searchValue, setSearchValue] = useState(initialState?.searchValue ?? '');
-  const [searchType, setSearchType] = useState<TeacherSearchType>(initialState?.type ?? 'name');
+export function SearchBar({
+    initialState,
+    onChange,
+    showOnlyInput,
+    disableAutoComplete = false,
+}: SearchBarProps) {
+    const [searchValue, setSearchValue] = useState(initialState?.searchValue ?? '');
+    const [searchType, setSearchType] = useState<TeacherSearchType>(initialState?.type ?? 'name');
+    const teacherService = useService(TeacherService);
+    const formRef = useRef<HTMLFormElement>(null);
 
-  useEffect(() => {
-    if (onChange) {
-      onChange({ type: searchType, searchValue });
-    }
-  }, [searchValue, searchType]);
+    useEffect(() => {
+        if (onChange) {
+            onChange({ type: searchType, searchValue });
+        }
+    }, [searchValue, searchType]);
 
-  const history = useHistory();
-  const onFormSubmit = (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    history.push(`/search/${searchType}?term=${encodeURIComponent(searchValue)}`);
-  };
-  return (
-    <form
-      className="flex flex-col md:flex-row justify-center items-center py-6"
-      onSubmit={onFormSubmit}
-    >
-      <div className="flex">
-        {showOnlyInput && (
-          <select
-            value={searchType}
-            onChange={(e) => setSearchType(e.target.value as TeacherSearchType)}
-            className="hidden md:block rounded w-40 mr-4 bg-gray-100 font-medium border-2 border-black"
-          >
-            <option value="name">Professor</option>
-            <option value="class">Class</option>
-            <option value="department">Department</option>
-          </select>
-        )}
+    const history = useHistory();
 
-        <div className="bg-gray-400 w-16 flex justify-center rounded-l-lg">
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            className="w-6 h-full"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-            />
-          </svg>
-        </div>
-        <input
-          className="w-60 sm:w-80 rounded-r-lg h-8 pl-2"
-          type="text"
-          placeholder={`Enter a ${searchType}`}
-          value={searchValue}
-          onChange={(e) => setSearchValue(e.target.value)}
-        />
-      </div>
-      {showOnlyInput && (
-        <button
-          className="bg-cal-poly-green text-white rounded-md px-5 ml-5 h-8 mt-3 lg:mt-0"
-          type="submit"
+    const onFormSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+        e.preventDefault();
+        history.push(`/search/${searchType}?term=${encodeURIComponent(searchValue)}`);
+    };
+
+    const autoCompleteFilter = async (value: string): Promise<string[]> => {
+        // eslint-disable-next-line default-case
+        switch (searchType) {
+            case 'name':
+                return teacherService
+                    .searchForTeacher(searchType, value)
+                    .then((result) => result.map((t) => `${t.lastName}, ${t.firstName}`));
+            case 'department':
+                return departments.filter((dep) => dep.includes(value.toUpperCase()));
+            case 'class': {
+                const allTeachers = await teacherService.getAllTeachers();
+                const allCourses = new Set(allTeachers.flatMap((t) => t.courses));
+                return [...allCourses].filter((course) => course.includes(value.toUpperCase()));
+            }
+        }
+        throw new Error('Not all autocomplete cases handled');
+    };
+
+    return (
+        <form
+            className="flex flex-col md:flex-row justify-center items-center py-6"
+            onSubmit={onFormSubmit}
+            ref={formRef}
         >
-          Submit
-        </button>
-      )}
-    </form>
-  );
+            <div className="flex">
+                {showOnlyInput && (
+                    <select
+                        value={searchType}
+                        onChange={(e) => setSearchType(e.target.value as TeacherSearchType)}
+                        className="hidden md:block rounded w-40 mr-4 bg-gray-100 font-medium border-2 border-black"
+                    >
+                        <option value="name">Professor</option>
+                        <option value="class">Class</option>
+                        <option value="department">Department</option>
+                    </select>
+                )}
+
+                <AutoComplete
+                    onResult={(value) => {
+                        setSearchValue(value);
+                        // let update happen first
+                        setTimeout(() => formRef.current?.requestSubmit());
+                    }}
+                    onChange={setSearchValue}
+                    placeholder={`Enter a ${searchType}`}
+                    filterFn={autoCompleteFilter}
+                    maxDropDownSize={5}
+                    value={searchValue}
+                    className="w-72 h-8 font-normal text-lg"
+                    disableDropdown={disableAutoComplete}
+                />
+            </div>
+            {showOnlyInput && (
+                <button
+                    className="bg-cal-poly-green text-white rounded-md px-5 ml-5 h-8 mt-3 lg:mt-0"
+                    type="submit"
+                >
+                    Submit
+                </button>
+            )}
+        </form>
+    );
 }

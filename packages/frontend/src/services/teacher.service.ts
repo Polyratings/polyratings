@@ -25,9 +25,9 @@ export class TeacherService {
 
     const cachedAllTeacherCacheStr = this.storage.getItem(ALL_TEACHER_CACHE_KEY);
     if (cachedAllTeacherCacheStr) {
-      const allTeacherCache: { exp: Date; data: TeacherEntry[] } =
+      const allTeacherCache: { exp: string; data: TeacherEntry[] } =
         JSON.parse(cachedAllTeacherCacheStr);
-      if (allTeacherCache.exp < new Date()) {
+      if (new Date() < new Date(allTeacherCache.exp)) {
         // List has not expired
         this.allTeachers = Promise.resolve(allTeacherCache.data);
         // Return early no need to fetch the teacher list
@@ -67,7 +67,7 @@ export class TeacherService {
 
   async getTeacher(id: string): Promise<TeacherEntry> {
     if (this.teacherCache[id]) {
-      if (this.teacherCache[id].exp > new Date()) {
+      if (new Date() < new Date(this.teacherCache[id].exp)) {
         return this.teacherCache[id].teacher;
       }
       this.removeTeacherFromCache(id);

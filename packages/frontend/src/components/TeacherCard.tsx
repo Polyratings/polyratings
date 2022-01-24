@@ -37,11 +37,11 @@ export function TeacherCard({ teacher, beforeNavigation = () => {} }: TeacherCar
         </h3>
         <div className="text-right text-xl pr-3 font-medium flex-shrink-0">
           <div>{teacher?.department}</div>
-          <div>{teacher?.overallRating}</div>
-          <div className="flex items-center">
+          <div className="flex items-center justify-end">
             <img className="pr-1 h-4" src={star} alt="" />
-            {teacher?.numEvals} evals
+            <div>{teacher?.overallRating}</div>
           </div>
+          <div>{teacher?.numEvals} evals</div>
         </div>
       </div>
     </div>
