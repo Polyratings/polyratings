@@ -24,7 +24,7 @@ export function AutoComplete({
 }: AutoCompleteProps) {
     const [filteredSuggestions, setFilteredSuggestions] = useState<string[]>([]);
     const [showSuggestions, setShowSuggestions] = useState(false);
-    const [activeSuggestionIndex, setActiveSuggestionIndex] = useState(0);
+    const [activeSuggestionIndex, setActiveSuggestionIndex] = useState(-1);
 
     // Disable autocomplete on small devices
     const deviceSupportsDropdown = useTailwindBreakpoint({ md: true }, false);
@@ -40,7 +40,7 @@ export function AutoComplete({
             searchResults = searchResults.slice(0, maxDropDownSize);
         }
 
-        setActiveSuggestionIndex(0);
+        setActiveSuggestionIndex(-1);
         setFilteredSuggestions(searchResults);
         setShowSuggestions(true);
     };
@@ -56,7 +56,7 @@ export function AutoComplete({
         // Use delay to allow for clicking
         setTimeout(() => {
             setShowSuggestions(false);
-            setActiveSuggestionIndex(0);
+            setActiveSuggestionIndex(-1);
         }, 200);
     };
 
@@ -65,7 +65,7 @@ export function AutoComplete({
         switch (e.code) {
             case 'ArrowUp':
                 e.preventDefault();
-                if (activeSuggestionIndex !== 0) {
+                if (activeSuggestionIndex > -1) {
                     setActiveSuggestionIndex(activeSuggestionIndex - 1);
                 }
                 return;
@@ -75,11 +75,13 @@ export function AutoComplete({
                     setActiveSuggestionIndex(activeSuggestionIndex + 1);
                 }
                 return;
-            case 'Enter':
+            case 'Enter':{
                 setShowSuggestions(false);
-                setActiveSuggestionIndex(0);
-                parentOnChange(filteredSuggestions[activeSuggestionIndex]);
-                onResult(filteredSuggestions[activeSuggestionIndex]);
+                setActiveSuggestionIndex(-1);
+                const searchValue = activeSuggestionIndex === -1 ? inputValue : filteredSuggestions[activeSuggestionIndex]
+                parentOnChange(searchValue);
+                onResult(searchValue);
+            }
         }
     };
 
