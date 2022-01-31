@@ -6,7 +6,7 @@
     "build": "lerna run build",
     "start": "lerna run start:prod --parallel",
     "start:dev": "lerna run start:dev --parallel",
-    "test": "lerna run test"
+    "test": "lerna run test --stream"
   },
   "devDependencies": {
     "lerna": "^4.0.0"
