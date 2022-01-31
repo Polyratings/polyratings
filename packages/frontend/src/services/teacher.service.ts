@@ -3,12 +3,12 @@ import { config } from '@/App.config';
 import { getRandomSubarray, intersectingDbEntities } from '@/utils';
 import { HttpService } from './http.service';
 
-const TEN_MINUTES = 1000 * 60 * 10;
+export const TEACHER_CACHE_TIME = 1000 * 60 * 10;
 const ALL_TEACHER_CACHE_KEY = 'ALL_TEACHERS';
 const INDIVIDUAL_TEACHER_CACHE_KEY = 'TEACHERS';
 
 interface TeacherCacheEntry {
-  exp: Date;
+  exp: number;
   teacher: TeacherEntry;
 }
 
@@ -25,9 +25,9 @@ export class TeacherService {
 
     const cachedAllTeacherCacheStr = this.storage.getItem(ALL_TEACHER_CACHE_KEY);
     if (cachedAllTeacherCacheStr) {
-      const allTeacherCache: { exp: string; data: TeacherEntry[] } =
+      const allTeacherCache: { exp: number; data: TeacherEntry[] } =
         JSON.parse(cachedAllTeacherCacheStr);
-      if (new Date() < new Date(allTeacherCache.exp)) {
+      if (Date.now() < allTeacherCache.exp) {
         // List has not expired
         this.allTeachers = Promise.resolve(allTeacherCache.data);
         // Return early no need to fetch the teacher list
@@ -41,7 +41,7 @@ export class TeacherService {
       this.storage.setItem(
         ALL_TEACHER_CACHE_KEY,
         JSON.stringify({
-          exp: new Date(Date.now() + TEN_MINUTES),
+          exp: Date.now() + TEACHER_CACHE_TIME,
           data,
         }),
       );
@@ -49,7 +49,7 @@ export class TeacherService {
     })();
   }
 
-  async getRandomBestTeacher(): Promise<TeacherEntry> {
+  public async getRandomBestTeacher(): Promise<TeacherEntry> {
     const allTeachers = await this.allTeachers;
     const rankedTeachers = allTeachers
       .filter((t) => t.numEvals > 10)
@@ -57,7 +57,7 @@ export class TeacherService {
     return getRandomSubarray(rankedTeachers.slice(0, 30), 1)[0];
   }
 
-  async getRandomWorstTeachers(): Promise<TeacherEntry[]> {
+  public async getRandomWorstTeachers(): Promise<TeacherEntry[]> {
     const allTeachers = await this.allTeachers;
     const rankedTeachers = allTeachers
       .filter((t) => t.numEvals > 10)
@@ -65,9 +65,9 @@ export class TeacherService {
     return getRandomSubarray(rankedTeachers.slice(0, 30), 6);
   }
 
-  async getTeacher(id: string): Promise<TeacherEntry> {
+  public async getTeacher(id: string): Promise<TeacherEntry> {
     if (this.teacherCache[id]) {
-      if (new Date() < new Date(this.teacherCache[id].exp)) {
+      if (Date.now() < this.teacherCache[id].exp) {
         return this.teacherCache[id].teacher;
       }
       this.removeTeacherFromCache(id);
@@ -84,7 +84,7 @@ export class TeacherService {
     return teacher;
   }
 
-  async searchForTeacher(type: TeacherSearchType, value: string): Promise<TeacherEntry[]> {
+  public async searchForTeacher(type: TeacherSearchType, value: string): Promise<TeacherEntry[]> {
     const allTeachers = await this.allTeachers;
 
     switch (type) {
@@ -115,11 +115,11 @@ export class TeacherService {
     }
   }
 
-  async getAllTeachers(): Promise<TeacherEntry[]> {
+  public async getAllTeachers(): Promise<TeacherEntry[]> {
     return this.allTeachers;
   }
 
-  async addNewTeacher(newTeacher: Teacher): Promise<number> {
+  public async addNewTeacher(newTeacher: Teacher): Promise<number> {
     const res = await this.httpService.fetch(`${config.remoteUrl}/teacher`, {
       method: 'POST',
       headers: {
@@ -134,7 +134,7 @@ export class TeacherService {
   private addTeacherToCache(teacher: TeacherEntry) {
     this.teacherCache[teacher.id] = {
       teacher,
-      exp: new Date(Date.now() + TEN_MINUTES),
+      exp: Date.now() + TEACHER_CACHE_TIME,
     };
     this.storage.setItem(INDIVIDUAL_TEACHER_CACHE_KEY, JSON.stringify(this.teacherCache));
   }
