@@ -1,9 +1,11 @@
-import { render, RenderResult, waitFor } from '@testing-library/react'
+import { cleanup, render, RenderResult, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { useState } from 'react'
+import { act } from 'react-dom/test-utils'
+import { setWindowSize } from '@/test-utils'
 import { AutoComplete } from '.'
 
-function Wrapper() {
+function Wrapper({disableDropdown}:{disableDropdown:boolean}) {
     const [value, setValue] = useState('')
   
     return <AutoComplete 
@@ -13,7 +15,7 @@ function Wrapper() {
         onChange={setValue}
         maxDropDownSize={3}
         value={value}
-        disableDropdown={false}
+        disableDropdown={disableDropdown}
         filterFn={(val) => {
             const arr = ['a', 'ab', 'abb', 'abbb', 'abbbb']
             return arr.filter(s => s.startsWith(val))
@@ -27,7 +29,7 @@ describe('<AutoComplete />', () => {
     beforeEach(() => {
         submitValue = ''
         autoComplete = render(
-            <Wrapper />
+            <Wrapper disableDropdown={false} />
         )
     })
 
@@ -45,8 +47,6 @@ describe('<AutoComplete />', () => {
     it('Shows search results of length given', async () => {
         const input = autoComplete.getByPlaceholderText('MyPlaceHolderText')
         await userEvent.type(input, 'ab', {delay:20})
-
-        await new Promise(resolve => {setTimeout(resolve, 100)})
 
         await autoComplete.findByText('ab')
 
@@ -74,12 +74,61 @@ describe('<AutoComplete />', () => {
 
     it('Can select a value in the drop down', async () => {
         const input = autoComplete.getByPlaceholderText('MyPlaceHolderText')
-        await userEvent.type(input, 'ab{arrowdown}{arrowdown}{enter}', {delay: 20})
+        await userEvent.type(input, 'ab{arrowdown}{arrowdown}{arrowdown}{arrowup}{enter}', {delay: 20})
 
         await waitFor(() => expect(submitValue).toBe('abb'))
     })
 
-    test.todo('Does not show on small screens')
+    it('Can select an option in the dropdown with a click', async () => {
+        const input = autoComplete.getByPlaceholderText('MyPlaceHolderText')
+        await userEvent.type(input, 'ab', {delay: 20})
 
-    test.todo('Does not show dropdown when disabled')
+        const option = autoComplete.getByText('abbb')
+        // Needed to stop the unfocus from happening first
+        userEvent.click(option, undefined, {skipHover:true})
+
+        await waitFor(() => expect(submitValue).toBe('abbb'))
+    })
+
+    it('Should not show values on unFocus', async () => {
+        const input = autoComplete.getByPlaceholderText('MyPlaceHolderText')
+        await userEvent.type(input, 'ab', {delay: 20})
+
+        const option = autoComplete.getByText('abbb')
+        // Not including the skip hover actually just fires onBlur on the input
+        userEvent.click(option)
+        
+        const shouldNotFind = autoComplete.queryByText('abbb')
+        expect(shouldNotFind).not.toBeInTheDocument()
+        expect(submitValue).toBe('')
+    })
+
+    it('Does not show on small screens', async () => {
+        const currentWidth = window.innerWidth
+        const currenHeight = window.innerHeight
+        act(() => setWindowSize(500, 800))
+        
+        const input = autoComplete.getByPlaceholderText('MyPlaceHolderText')
+        await userEvent.type(input, 'ab', {delay: 20})
+
+        const shouldNotFind = autoComplete.queryByText('abb')
+        expect(shouldNotFind).not.toBeInTheDocument()
+
+        act(() => setWindowSize(currentWidth, currenHeight))
+    })
+
+    it('Does not show dropdown when disabled', async () => {
+        // Want to override the default wrapper option
+        cleanup()
+
+        autoComplete = render(
+            <Wrapper disableDropdown />
+        )
+
+        const input = autoComplete.getByPlaceholderText('MyPlaceHolderText')
+        await userEvent.type(input, 'ab', {delay: 20})
+
+        const shouldNotFind = autoComplete.queryByText('abb')
+        expect(shouldNotFind).not.toBeInTheDocument()
+    })
 })

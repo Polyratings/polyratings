@@ -45,19 +45,15 @@ export function AutoComplete({
         setShowSuggestions(true);
     };
 
-    const onClick = (e: React.MouseEvent) => {
-        const clickedValue = (e.target as HTMLLIElement).innerText;
+    const onClick = (clickedValue:string) => {
         parentOnChange(clickedValue);
         onResult(clickedValue);
         setShowSuggestions(false);
     };
 
     const unFocus = () => {
-        // Use delay to allow for clicking
-        setTimeout(() => {
-            setShowSuggestions(false);
-            setActiveSuggestionIndex(-1);
-        }, 200);
+        setShowSuggestions(false);
+        setActiveSuggestionIndex(-1);
     };
 
     const onKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
@@ -96,7 +92,8 @@ export function AutoComplete({
                         }`}
                         onMouseEnter={() => setActiveSuggestionIndex(index)}
                         key={suggestion}
-                        onClick={onClick}
+                        onClick={() => onClick(suggestion)}
+                        onMouseDown={(e) => e.preventDefault()}
                     >
                         {suggestion}
                     </li>
