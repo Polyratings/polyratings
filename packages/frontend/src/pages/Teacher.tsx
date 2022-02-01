@@ -177,7 +177,11 @@ export function Teacher() {
       </AnimateHeight>
 
       {teacherReviews && teacherReviews.map(({taughtClass, reviews}) => (
-        <ClassSection key={taughtClass} reviews={reviews} taughtClass={taughtClass} />
+        <ClassSection 
+          key={taughtClass} 
+          reviews={reviews} 
+          taughtClass={taughtClass} disableDropDown={teacherReviews.length < 3} 
+        />
       ))}
       <ClassScroll
         outerClassName="hidden xl:flex flex-col fixed ml-4 top-1/2 transform -translate-y-1/2 max-h-10/12 overflow-y-auto"
