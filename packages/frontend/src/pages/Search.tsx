@@ -16,11 +16,11 @@ import {
 import { useService, useQuery, useTailwindBreakpoint } from '@/hooks';
 import { TeacherSearchType } from '@/services/teacher.service';
 
-interface SearchPageState {
+export interface SearchPageState {
   searchTerm: SearchState;
 }
 
-interface SearchPageProps {
+export interface SearchPageProps {
   location: Location;
 }
 
@@ -51,13 +51,12 @@ export function Search({ location }: SearchPageProps) {
     if (!ref.current) {
       return;
     }
-    const rootRelativePath = window.location.href.replace(window.location.origin, '');
     const currentState: SearchPageState & FilterState = {
       searchTerm: searchState,
       // the ref will have to be defined at this state
       ...ref.current.getState(),
     };
-    history.replace(rootRelativePath, currentState);
+    history.replace(location.pathname, currentState);
   };
 
   const listWidth = useTailwindBreakpoint(
@@ -76,17 +75,11 @@ export function Search({ location }: SearchPageProps) {
   useEffect(() => {
     async function retrieveSearchData() {
       try {
-        let result: TeacherEntry[] = [];
-        if (!searchState) {
-          result = await teacherService.getAllTeachers();
-        } else {
-          result = await teacherService.searchForTeacher(searchState.type, searchState.searchValue);
-        }
+        const result: TeacherEntry[] = await teacherService.searchForTeacher(searchState.type, searchState.searchValue);
         setSearchResults(result);
       } catch (e) {
         const logger = useService(Logger);
         logger.error(`Failed to search for teacher with term: ${searchState}`, e);
-        const history = useHistory();
         history.push('/');
       }
     }
@@ -118,6 +111,7 @@ export function Search({ location }: SearchPageProps) {
             >
               <div
                 onClick={() => setMobileFiltersOpened(!mobileFiltersOpened)}
+                data-testid="mobile-filters"
                 className={`bg-gray-400 w-8 h-12 absolute -right-8 transition-all 
                   ${
                     mobileFiltersOpened ? 'top-0 rounded-r-none' : 'top-14 rounded-r'
