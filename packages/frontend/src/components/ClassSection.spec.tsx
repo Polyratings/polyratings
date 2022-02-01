@@ -43,7 +43,7 @@ const mockTaughtClass = 'CSC 357';
 let documentBody: RenderResult;
 describe('<ClassSection />', () => {
     beforeEach(() => {
-        documentBody = render(<ClassSection reviews={mockReviews} taughtClass={mockTaughtClass}/>)
+        documentBody = render(<ClassSection reviews={mockReviews} taughtClass={mockTaughtClass} disableDropDown={false}/>)
     })
 
     it('Displays class name', () => {
@@ -64,11 +64,5 @@ describe('<ClassSection />', () => {
         const showMoreButtonReset = await documentBody.findByText('Show More')
         expect(showMoreButtonReset).toBeInTheDocument()
     })
-
-    // it('Does Not Show More if Less than UNEXPANDED_LIMIT', async () => {
-    //     documentBody = render(<ClassSection reviews={[]} taughtClass={mockTaughtClass}/>)
-    //     const showMoreButton = await documentBody.findByText('Show More')
-    //     expect(showMoreButton).not.toBeInTheDocument()
-    // }) 
 
 })
