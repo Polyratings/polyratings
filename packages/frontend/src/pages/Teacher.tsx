@@ -98,7 +98,7 @@ export function Teacher() {
     <div>
       {teacherEvaluationShownDesktop && (
         <Backdrop>
-          <div className="bg-gray-300 opacity-100 rounded shadow p-5" style={{ width: 475 }}>
+          <div className="bg-gray-300 opacity-100 rounded shadow p-5" style={{ width: '40rem' }}>
             <EvaluateTeacherForm
               teacher={teacherData}
               setTeacher={setTeacherData}

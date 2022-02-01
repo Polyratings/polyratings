@@ -228,7 +228,7 @@ export function EvaluateTeacherForm({
         {...register('reviewText', {
           required: { value: true, message: 'Writing a review is required' },
         })}
-        className="w-full h-52 rounded text-black p-2"
+        className="w-full h-64 rounded text-black p-2"
       />
       <ErrorMessage errors={errors} name="reviewText" as="div" className="text-red-500 text-sm" />
       <div className="flex justify-center mt-2">

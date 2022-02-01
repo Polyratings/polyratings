@@ -79,7 +79,7 @@ export function NewTeacherForm() {
   };
 
   return (
-    <div className="p-5 bg-gray-300 opacity-100 rounded relative" style={{ width: 475 }}>
+    <div className="p-5 bg-gray-300 opacity-100 rounded relative" style={{ width: '40rem' }}>
       <form onSubmit={handleSubmit(() => {})} ref={teacherFormRef}>
         <h2 className="text-2xl font-bold">Teacher</h2>
         <div className="flex mt-2">
