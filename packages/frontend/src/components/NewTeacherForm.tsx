@@ -53,6 +53,7 @@ export function NewTeacherForm() {
     teacherFormRef.current.onsubmit = handleSubmit(async (teacherData) => {
       setLoading(true);
       const newTeacher: Teacher = {
+        id: '',
         firstName: teacherData.teacherFirstName,
         lastName: teacherData.teacherLastName,
         department: teacherData.teacherDepartment,

@@ -1,41 +1,32 @@
-import { ReviewEntry } from '@polyratings/shared';
+import { Review } from '@polyratings/shared';
 import { render, RenderResult } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { ClassSection } from '.';
 
-const mockReviews:ReviewEntry[] = [
+const mockReviews:Review[] = [
     {
-        id: '1',
-        profferer: 'a',
+        professor: 'a',
         gradeLevel: 'Senior',
         grade: 'A',
-        courseType: 'Required',
+        courseType: 'Major (Required)',
         rating: 'Sample Rating Text 1',
-        department: 'CSC',
-        courseNum: '357',
-        postDate: '',
+        postDate: new Date(),
     },
     {
-        id: '2',
-        profferer: 'a',
+        professor: 'a',
         gradeLevel: 'Senior',
         grade: 'A',
-        courseType: 'Required',
+        courseType: 'Major (Required)',
         rating: 'Sample Rating Text 2',
-        department: 'CSC',
-        courseNum: '357',
-        postDate: '',
+        postDate: new Date()
     },
     {
-        id: '3',
-        profferer: 'a',
+        professor: 'a',
         gradeLevel: 'Senior',
         grade: 'A',
-        courseType: 'Required',
+        courseType: 'Major (Required)',
         rating: 'Sample Rating Text 3',
-        department: 'CSC',
-        courseNum: '357',
-        postDate: '',
+        postDate: new Date(),
     }
 ]
 const mockTaughtClass = 'CSC 357';

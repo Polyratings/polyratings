@@ -1,4 +1,4 @@
-import { ReviewEntry } from '@polyratings/shared';
+import { Review } from '@polyratings/shared';
 import { useState } from 'react';
 import AnchorLink from 'react-anchor-link-smooth-scroll';
 import AnimateHeight from 'react-animate-height';
@@ -6,7 +6,7 @@ import AnimateHeight from 'react-animate-height';
 export const UNEXPANDED_LIMIT = 2;
 
 export interface ClassSectionProps {
-    reviews: ReviewEntry[];
+    reviews: Review[];
     taughtClass: string;
     disableDropDown:boolean
 }
@@ -21,15 +21,15 @@ export function ClassSection({
     const unexpandedReviews = reviews.slice(0, unexpandedReviewCount);
     const expandedReviews = reviews.slice(unexpandedReviewCount);
 
-    const unexpandedPreviewHeight = (reviews: ReviewEntry[]) =>
+    const unexpandedPreviewHeight = (reviews: Review[]) =>
         reviews.length > unexpandedReviewCount ? 25 : 0;
 
     return (
         <div className="pt-4 relative" id={taughtClass}>
             <h2 className="text-center text-4xl text-cal-poly-green">{taughtClass}</h2>
             <div className="container lg:max-w-5xl flex flex-col m-auto px-2">
-                {unexpandedReviews.map((review) => (
-                    <ReviewCard key={review.id} review={review} />
+                {unexpandedReviews.map((review, i) => (
+                    <ReviewCard key={i} review={review} />
                 ))}
             </div>
 
@@ -39,8 +39,8 @@ export function ClassSection({
                 className={`transition-all ${expanded ? '' : 'opacity-25'}`}
             >
                 <div className="container lg:max-w-5xl flex flex-col m-auto px-2">
-                    {expandedReviews.map((review) => (
-                        <ReviewCard key={review.id} review={review} />
+                    {expandedReviews.map((review, i) => (
+                        <ReviewCard key={i} review={review} />
                     ))}
                 </div>
             </AnimateHeight>
@@ -68,7 +68,7 @@ export function ClassSection({
     );
 }
 
-function ReviewCard({ review }: { review: ReviewEntry }) {
+function ReviewCard({ review }: { review: Review }) {
     return (
         <div
             className="bg-white w-full rounded-3xl py-2 px-4 my-2 border-cal-poly-gold border-4 flex flex-col lg:flex-row"

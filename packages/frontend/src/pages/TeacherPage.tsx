@@ -1,7 +1,7 @@
 /* eslint-disable react/no-unstable-nested-components */
 import { useState, useEffect } from 'react';
 import { useHistory, useParams } from 'react-router-dom';
-import { ReviewEntry, TeacherEntry } from '@polyratings/shared';
+import { Review, Teacher } from '@polyratings/shared';
 import AnimateHeight from 'react-animate-height';
 import AnchorLink from 'react-anchor-link-smooth-scroll';
 import StarRatings from 'react-star-ratings';
@@ -11,13 +11,13 @@ import { useService } from '@/hooks';
 
 interface ClassReviews {
   taughtClass:string,
-  reviews:ReviewEntry[]
+  reviews:Review[]
 }
 
-export function Teacher() {
+export function TeacherPage() {
   const { id } = useParams<{ id: string }>();
 
-  const [teacherData, setTeacherData] = useState<TeacherEntry | null>(null);
+  const [teacherData, setTeacherData] = useState<Teacher | null>(null);
 
   // Put classes for teachers primary department first. This is to cut down on review spamming
   // of other departments. It is possible for a teacher to teach outside of the department but

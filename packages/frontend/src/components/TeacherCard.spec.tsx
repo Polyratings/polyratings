@@ -1,12 +1,12 @@
 import { RenderResult, waitFor } from '@testing-library/react';
-import { TeacherEntry } from '@polyratings/shared';
+import { Teacher } from '@polyratings/shared';
 import userEvent from '@testing-library/user-event';
 import { MemoryHistory } from 'history';
 import { injector, TeacherService } from '@/services';
 import { TeacherCard } from './TeacherCard';
 import { renderWithRouter } from '@/test-utils';
 
-const mockTeacher: TeacherEntry = {
+const mockTeacher: Teacher = {
   id: 'uuid-v4',
   firstName: 'Ben',
   lastName: 'Fisher',

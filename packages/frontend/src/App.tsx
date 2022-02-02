@@ -3,7 +3,7 @@ import { ToastContainer } from 'react-toastify';
 import { createBrowserHistory } from 'history'
 import ReactGA from 'react-ga4';
 import { useEffect } from 'react';
-import { Home, Teacher, Login, NewTeacher, About, SearchWrapper } from './pages';
+import { Home, TeacherPage, Login, NewTeacher, About, SearchWrapper } from './pages';
 import { Navbar } from './components';
 import 'react-toastify/dist/ReactToastify.css';
 import { config } from './App.config';
@@ -22,7 +22,7 @@ function App() {
       <ToastContainer />
       <Navbar />
       <Switch>
-        <Route path="/teacher/:id" component={Teacher} />
+        <Route path="/teacher/:id" component={TeacherPage} />
         <Route path="/search/:searchType" component={SearchWrapper} />
         <Route path="/login" component={Login} />
         <Route path="/newTeacher" component={NewTeacher} />

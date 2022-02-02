@@ -1,4 +1,4 @@
-import { TeacherEntry, Teacher, TeacherIdResponse } from '@polyratings/shared';
+import { Teacher, TeacherIdResponse } from '@polyratings/shared';
 import { config } from '@/App.config';
 import { getRandomSubarray, intersectingDbEntities } from '@/utils';
 import { HttpService } from './http.service';
@@ -9,13 +9,13 @@ const INDIVIDUAL_TEACHER_CACHE_KEY = 'TEACHERS';
 
 interface TeacherCacheEntry {
   exp: number;
-  teacher: TeacherEntry;
+  teacher: Teacher;
 }
 
 export type TeacherSearchType = 'name' | 'department' | 'class';
 
 export class TeacherService {
-  private allTeachers: Promise<TeacherEntry[]>;
+  private allTeachers: Promise<Teacher[]>;
 
   private teacherCache: { [id: string]: TeacherCacheEntry };
 
@@ -25,7 +25,7 @@ export class TeacherService {
 
     const cachedAllTeacherCacheStr = this.storage.getItem(ALL_TEACHER_CACHE_KEY);
     if (cachedAllTeacherCacheStr) {
-      const allTeacherCache: { exp: number; data: TeacherEntry[] } =
+      const allTeacherCache: { exp: number; data: Teacher[] } =
         JSON.parse(cachedAllTeacherCacheStr);
       if (Date.now() < allTeacherCache.exp) {
         // List has not expired
@@ -36,7 +36,8 @@ export class TeacherService {
     }
 
     this.allTeachers = (async () => {
-      const res = await this.httpService.fetch(`${config.remoteUrl}/all`);
+      const res = await this.httpService.fetch(`${config.remoteUrl}/professors`);
+      console.log("This should populate right now!!");
       const data = await res.json();
       this.storage.setItem(
         ALL_TEACHER_CACHE_KEY,
@@ -49,7 +50,7 @@ export class TeacherService {
     })();
   }
 
-  public async getRandomBestTeacher(): Promise<TeacherEntry> {
+  public async getRandomBestTeacher(): Promise<Teacher> {
     const allTeachers = await this.allTeachers;
     const rankedTeachers = allTeachers
       .filter((t) => t.numEvals > 10)
@@ -57,7 +58,7 @@ export class TeacherService {
     return getRandomSubarray(rankedTeachers.slice(0, 30), 1)[0];
   }
 
-  public async getRandomWorstTeachers(): Promise<TeacherEntry[]> {
+  public async getRandomWorstTeachers(): Promise<Teacher[]> {
     const allTeachers = await this.allTeachers;
     const rankedTeachers = allTeachers
       .filter((t) => t.numEvals > 10)
@@ -65,7 +66,7 @@ export class TeacherService {
     return getRandomSubarray(rankedTeachers.slice(0, 30), 6);
   }
 
-  public async getTeacher(id: string): Promise<TeacherEntry> {
+  public async getTeacher(id: string): Promise<Teacher> {
     if (this.teacherCache[id]) {
       if (Date.now() < this.teacherCache[id].exp) {
         return this.teacherCache[id].teacher;
@@ -73,18 +74,18 @@ export class TeacherService {
       this.removeTeacherFromCache(id);
     }
 
-    const res = await this.httpService.fetch(`${config.remoteUrl}/${id}`);
+    const res = await this.httpService.fetch(`${config.remoteUrl}/professors/${id}`);
 
-    const teacher: TeacherEntry = await res.json();
+    const teacher: Teacher = await res.json();
     // Make sure reviews are in dated order
     Object.values(teacher.reviews ?? []).forEach((reviewArr) =>
-      reviewArr.sort((a, b) => Date.parse(b.postDate) - Date.parse(a.postDate)),
+      reviewArr.sort((a, b) => Date.parse(b.postDate.toString()) - Date.parse(a.postDate.toString())),
     );
     this.addTeacherToCache(teacher);
     return teacher;
   }
 
-  public async searchForTeacher(type: TeacherSearchType, value: string): Promise<TeacherEntry[]> {
+  public async searchForTeacher(type: TeacherSearchType, value: string): Promise<Teacher[]> {
     const allTeachers = await this.allTeachers;
 
     switch (type) {
@@ -115,7 +116,7 @@ export class TeacherService {
     }
   }
 
-  public async getAllTeachers(): Promise<TeacherEntry[]> {
+  public async getAllTeachers(): Promise<Teacher[]> {
     return this.allTeachers;
   }
 
@@ -131,7 +132,7 @@ export class TeacherService {
     return teacherIdResponse.teacherId;
   }
 
-  private addTeacherToCache(teacher: TeacherEntry) {
+  private addTeacherToCache(teacher: Teacher) {
     this.teacherCache[teacher.id] = {
       teacher,
       exp: Date.now() + TEACHER_CACHE_TIME,

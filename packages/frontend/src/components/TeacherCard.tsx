@@ -1,11 +1,11 @@
-import { TeacherEntry } from '@polyratings/shared';
+import { Teacher } from '@polyratings/shared';
 import { useHistory } from 'react-router-dom';
 import star from '@/assets/star.svg';
 import { useService } from '@/hooks';
 import { TeacherService } from '@/services';
 
 interface TeacherCardProps {
-  teacher: TeacherEntry | null;
+  teacher: Teacher | null;
   beforeNavigation?: () => void | (() => Promise<void>);
 }
 

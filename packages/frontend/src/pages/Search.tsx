@@ -1,6 +1,6 @@
 import { useHistory, useParams } from 'react-router-dom';
 import { useState, useEffect, useRef, ElementRef } from 'react';
-import { TeacherEntry } from '@polyratings/shared';
+import { Teacher } from '@polyratings/shared';
 import { WindowScroller } from 'fish-react-virtualized/dist/commonjs/WindowScroller';
 import { List } from 'fish-react-virtualized/dist/commonjs/List';
 import { Location } from 'history';
@@ -38,10 +38,10 @@ export function Search({ location }: SearchPageProps) {
     searchValue: navigatedSearchTerm ?? '',
   };
   const [searchState, setSearchState] = useState<SearchState>(loadedSearchTerm);
-  const [searchResults, setSearchResults] = useState<TeacherEntry[]>([]);
+  const [searchResults, setSearchResults] = useState<Teacher[]>([]);
   const [mobileFiltersOpened, setMobileFiltersOpened] = useState(false);
 
-  const [filteredTeachers, setFilteredTeachers] = useState<TeacherEntry[]>([]);
+  const [filteredTeachers, setFilteredTeachers] = useState<Teacher[]>([]);
   const ref = useRef<ElementRef<typeof Filters>>(null);
 
   const history = useHistory();
@@ -75,7 +75,7 @@ export function Search({ location }: SearchPageProps) {
   useEffect(() => {
     async function retrieveSearchData() {
       try {
-        const result: TeacherEntry[] = await teacherService.searchForTeacher(searchState.type, searchState.searchValue);
+        const result: Teacher[] = await teacherService.searchForTeacher(searchState.type, searchState.searchValue);
         setSearchResults(result);
       } catch (e) {
         const logger = useService(Logger);

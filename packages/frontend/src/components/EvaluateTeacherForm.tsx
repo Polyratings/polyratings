@@ -2,11 +2,12 @@ import { RefObject, useState } from 'react';
 import { useForm, SubmitHandler } from 'react-hook-form';
 import { ErrorMessage } from '@hookform/error-message';
 import { toast } from 'react-toastify';
-import { TeacherEntry, AddReview } from '@polyratings/shared';
+import { Teacher, AddReview } from '@polyratings/shared';
 import ClipLoader from 'react-spinners/ClipLoader';
 import { ReviewService } from '@/services';
 import { departments } from '@/constants';
 import { useService } from '@/hooks';
+import { CourseType, Grade, GradeLevel } from '@polyratings/shared';
 
 interface EvaluateTeacherFormInputs {
   knownClass: string;
@@ -22,8 +23,8 @@ interface EvaluateTeacherFormInputs {
 }
 
 interface EvaluateTeacherFormProps {
-  teacher: TeacherEntry | null;
-  setTeacher: (teacher: TeacherEntry) => void;
+  teacher: Teacher | null;
+  setTeacher: (teacher: Teacher) => void;
   closeForm: () => void;
   overrideSubmitHandler?: (review: AddReview) => void | Promise<void>;
   innerRef?: RefObject<HTMLFormElement>;
@@ -63,14 +64,12 @@ export function EvaluateTeacherForm({
         formResult.knownClass ||
         `${formResult.unknownClassDepartment} ${formResult.unknownClassNumber}`,
       review: {
-        gradeLevel: formResult.year,
-        grade: formResult.grade,
-        courseType: formResult.reasonForTaking,
+        gradeLevel: formResult.year as GradeLevel,
+        grade: formResult.grade as Grade,
+        courseType: formResult.reasonForTaking as CourseType,
         rating: formResult.reviewText,
-        profferer: teacher?.id ?? '',
-        postDate: new Date().toString(),
-        department: formResult.knownClass.split(' ')[0] ?? formResult.unknownClassDepartment,
-        courseNum: formResult.knownClass.split(' ')[1] ?? formResult.unknownClassNumber,
+        professor: teacher?.id ?? '',
+        postDate: new Date()
       },
     };
     if (overrideSubmitHandler) {

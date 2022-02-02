@@ -1,6 +1,6 @@
 /* eslint-disable react/no-array-index-key */
 import { useEffect, useState } from 'react';
-import { TeacherEntry } from '@polyratings/shared';
+import { Teacher } from '@polyratings/shared';
 import homeHeader from '@/assets/home-header.webp';
 import homeCurveTransition from '@/assets/home-curve-transition.svg';
 import star from '@/assets/star.svg';
@@ -10,8 +10,8 @@ import { SearchBar, TeacherCard } from '@/components';
 import { useService } from '@/hooks';
 
 export function Home() {
-  const [bestTeacher, setBestTeacher] = useState<TeacherEntry | null>(null);
-  const [worstTeachers, setWorstTeachers] = useState<TeacherEntry[]>([]);
+  const [bestTeacher, setBestTeacher] = useState<Teacher | null>(null);
+  const [worstTeachers, setWorstTeachers] = useState<Teacher[]>([]);
   const teacherService = useService(TeacherService);
 
   useEffect(() => {

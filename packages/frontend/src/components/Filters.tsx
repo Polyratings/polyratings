@@ -1,6 +1,6 @@
 import { useLocation } from 'react-router-dom';
 import { useState, useEffect, forwardRef, useImperativeHandle } from 'react';
-import { TeacherEntry } from '@polyratings/shared';
+import { Teacher } from '@polyratings/shared';
 import { MinMaxSlider } from '@/components';
 
 type SortingOptions =
@@ -11,8 +11,8 @@ type SortingOptions =
   | 'presentsMaterialClearly';
 
 export interface FilterProps {
-  teachers: TeacherEntry[];
-  onUpdate: (teachers: TeacherEntry[]) => void;
+  teachers: Teacher[];
+  onUpdate: (teachers: Teacher[]) => void;
   className?: string;
 }
 
@@ -57,7 +57,7 @@ const FilterRenderFunction: React.ForwardRefRenderFunction<FilterHandle, FilterP
   const [sortBy, setSortBy] = useState<SortingOptions>(previousState?.sortBy ?? 'relevant');
 
   // Internal duplicate of result
-  const [preDepartmentFilters, setPreDepartmentFilters] = useState<TeacherEntry[]>([]);
+  const [preDepartmentFilters, setPreDepartmentFilters] = useState<Teacher[]>([]);
   // On change duplicate result to the outside world
   useEffect(() => {
     const depFilters = departmentFilters.filter(({ state }) => state).map(({ name }) => name);
@@ -81,14 +81,14 @@ const FilterRenderFunction: React.ForwardRefRenderFunction<FilterHandle, FilterP
     getState,
   }));
 
-  const getEvaluationDomain: (data: TeacherEntry[]) => [number, number] = (
-    data: TeacherEntry[],
+  const getEvaluationDomain: (data: Teacher[]) => [number, number] = (
+    data: Teacher[],
   ) => [
     data.reduce((acc, curr) => (curr.numEvals < acc ? curr.numEvals : acc), Infinity),
     data.reduce((acc, curr) => (curr.numEvals > acc ? curr.numEvals : acc), -Infinity),
   ];
 
-  const generateDepartmentFilters = (list: TeacherEntry[]) => {
+  const generateDepartmentFilters = (list: Teacher[]) => {
     const departments = [...new Set(list.map((t) => t.department))];
     const previousSelectedMap = departmentFilters.reduce(
       (acc: { [name: string]: boolean }, { name, state }) => {
@@ -110,7 +110,7 @@ const FilterRenderFunction: React.ForwardRefRenderFunction<FilterHandle, FilterP
     setNumberOfEvaluationsFilter(initialEvaluationRange);
   }, [teachers]);
 
-  const teacherFilterFunctions: ((teacher: TeacherEntry) => boolean)[] = [
+  const teacherFilterFunctions: ((teacher: Teacher) => boolean)[] = [
     (teacher) =>
       teacher.overallRating >= avgRatingFilter[0] && teacher.overallRating <= avgRatingFilter[1],
 
@@ -127,7 +127,7 @@ const FilterRenderFunction: React.ForwardRefRenderFunction<FilterHandle, FilterP
       teacher.numEvals <= numberOfEvaluationsFilter[1],
   ];
 
-  const sortingMap: { [key in SortingOptions]: (a: TeacherEntry, b: TeacherEntry) => number } = {
+  const sortingMap: { [key in SortingOptions]: (a: Teacher, b: Teacher) => number } = {
     alphabetical: (a, b) => {
       const aName = `${a.lastName}, ${a.firstName}`;
       const bName = `${b.lastName}, ${b.firstName}`;

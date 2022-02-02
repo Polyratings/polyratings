@@ -4,12 +4,12 @@ interface AppConfiguration {
 }
 
 const devConfig: AppConfiguration = {
-  remoteUrl: 'https://api.addison-polyratings.workers.dev',
+  remoteUrl: 'https://sunder.polyratings.dev',
   base: '/',
 };
 
 const prodConfig: AppConfiguration = {
-  remoteUrl: 'https://api.addison-polyratings.workers.dev',
+  remoteUrl: 'https://sunder.polyratings.dev',
   base: '/',
 };
 
