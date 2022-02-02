@@ -9,6 +9,8 @@
       "@cloudflare/workers-types"
     ],
     "moduleResolution": "Node",
+    "experimentalDecorators": true,
+    "strictPropertyInitialization": false,
     "strict": true,
     "baseUrl": "./",
     "paths": {

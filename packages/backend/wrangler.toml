@@ -17,9 +17,19 @@ main = './index.js' # TODO: figure out what actually goes here!!
 type = "ESModule"
 globs = ["**/*.js"]
 
+# TODO: Change env.sunder and env.dev to use non-prod datasets
 [env.sunder]
 name = 'sunder-backend'
 route = 'sunder.polyratings.dev/*'
+usage = "bundled"
+kv_namespaces = [
+    { binding = "POLYRATINGS", id = "c6bf2730306a4e65bb8aa7412ae6f250", preview_id = "1c0b9ffba23c46f2928b7af696de1862"},
+    { binding = "PROCESSING_QUEUE", id = "845ba14e564c411fa52543408e15c53e", preview_id = "7efebba0f4d04f369066284dd9749ed4"}
+]
+
+[env.beta]
+name = 'bea-backend'
+route = 'api-beta.polyratings.dev/*'
 usage = "bundled"
 kv_namespaces = [
     { binding = "POLYRATINGS", id = "c6bf2730306a4e65bb8aa7412ae6f250", preview_id = "1c0b9ffba23c46f2928b7af696de1862"},
@@ -32,17 +42,17 @@ route = "testing.polyratings.dev/*"
 usage = "bundled"
 kv_namespaces = [
     { binding = "POLYRATINGS", id = "c6bf2730306a4e65bb8aa7412ae6f250", preview_id = "1c0b9ffba23c46f2928b7af696de1862"},
-    { binding = "PROCESSING_QUEUE", id = "845ba14e564c411fa52543408e15c53e", preview_id = "7efebba0f4d04f369066284dd9749ed4"}
+    { binding = "PROCESSING_QUEUE", id  = "845ba14e564c411fa52543408e15c53e", preview_id = "7efebba0f4d04f369066284dd9749ed4"}
 ]
 
-[env.beta]
-name = "testing-backend-beta"
-route = "beta-test.polyratings.dev/*"
-usage = "bundled"
-kv_namespaces = [
-    { binding = "POLYRATINGS", id = "1c0b9ffba23c46f2928b7af696de1862", preview_id = "1c0b9ffba23c46f2928b7af696de1862"},
-    { binding = "PROCESSING_QUEUE", id = "7efebba0f4d04f369066284dd9749ed4", preview_id = "7efebba0f4d04f369066284dd9749ed4"}
-]
+#[env.beta]
+#name = "testing-backend-beta"
+#route = "beta.polyratings.dev/*"
+#usage = "bundled"
+#kv_namespaces = [
+#    { binding = "POLYRATINGS", id = "1c0b9ffba23c46f2928b7af696de1862", preview_id = "1c0b9ffba23c46f2928b7af696de1862"},
+#    { binding = "PROCESSING_QUEUE", id = "7efebba0f4d04f369066284dd9749ed4", preview_id = "7efebba0f4d04f369066284dd9749ed4"}
+#]
 
 [dev]
 port = 8080

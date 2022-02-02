@@ -1,5 +1,6 @@
 import { Context } from 'sunder';
 import { Env } from '@polyratings/backend/bindings';
+import { ProfessorListDTO, TruncatedProfessorDTO } from '@polyratings/backend/dtos/Professors';
 
 export class ProfessorHandler {
     /**
@@ -7,11 +8,12 @@ export class ProfessorHandler {
      * @param ctx - sunder routing context
      */
     static async getProfessorList(ctx: Context<Env>) {
-        const professorList = await ctx.env.POLYRATINGS.get('all');
+        let professorList = await ctx.env.POLYRATINGS.get('all');
         if (professorList === null) {
             ctx.throw(404, "No professors found!");
         } else {
-            ctx.response.body = professorList;
+            const coercedList = professorList as unknown as TruncatedProfessorDTO[];
+            ctx.response.body = { professors: coercedList } as ProfessorListDTO;
         }
     }
 

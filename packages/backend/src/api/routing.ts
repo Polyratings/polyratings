@@ -16,11 +16,10 @@ export function registerRoutes(router: Router<Env>) {
         RatingHandler.addNewRating
     ));
 
-    // no-op catch-all
+    // no-op catch-all (which also applies generic OPTIONS headers)
     router.options('*', () => {});
 
     router.all('*', (ctx => {
-        console.log(ctx.request.url);
         ctx.response.status = 404;
         ctx.response.statusText = 'Route not found!'
     }));
