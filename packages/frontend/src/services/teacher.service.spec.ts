@@ -1,9 +1,9 @@
 import { useInjectorHook } from '@mindspace-io/react';
-import { TeacherEntry } from '@polyratings/shared';
+import { Teacher } from '@polyratings/shared';
 import { HttpService, injectorFactory, TeacherService } from '.';
 import { TEACHER_CACHE_TIME } from './teacher.service';
 
-const mockAllTeachers: TeacherEntry[] = [
+const mockAllTeachers: Teacher[] = [
     {
         id: '12-52',
         firstName: 'Max',
@@ -28,7 +28,7 @@ const mockAllTeachers: TeacherEntry[] = [
     },
 ];
 
-const mockTeacher: TeacherEntry = {
+const mockTeacher: Teacher = {
     id: mockAllTeachers[0].id,
     firstName: mockAllTeachers[0].firstName,
     lastName: mockAllTeachers[0].lastName,
@@ -41,15 +41,12 @@ const mockTeacher: TeacherEntry = {
     reviews: {
         'CSC 101': [
             {
-                id: '21252-2151245',
-                department: 'CSC',
-                profferer: '12-52',
+                professor: '12-52',
                 grade: 'A',
                 gradeLevel: 'Junior',
-                courseType: 'Required',
+                courseType: 'Major (Required)',
                 rating: 'MY RATING BODY',
-                courseNum: '101',
-                postDate: new Date().toString(),
+                postDate: new Date(),
             },
         ],
     },
