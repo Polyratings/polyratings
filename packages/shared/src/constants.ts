@@ -105,4 +105,4 @@ export const DEPARTMENT_LIST = [
     "WGS",
     "WLC",
     "WVIT"
-]
+].sort();
