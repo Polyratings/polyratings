@@ -2,12 +2,11 @@ import { RefObject, useState } from 'react';
 import { useForm, SubmitHandler } from 'react-hook-form';
 import { ErrorMessage } from '@hookform/error-message';
 import { toast } from 'react-toastify';
-import { Teacher, AddReview } from '@polyratings/shared';
 import ClipLoader from 'react-spinners/ClipLoader';
+import { CourseType, Grade, GradeLevel, Teacher, AddReview } from '@polyratings/shared';
 import { ReviewService } from '@/services';
 import { departments } from '@/constants';
 import { useService } from '@/hooks';
-import { CourseType, Grade, GradeLevel } from '@polyratings/shared';
 
 interface EvaluateTeacherFormInputs {
   knownClass: string;
@@ -68,7 +67,6 @@ export function EvaluateTeacherForm({
         grade: formResult.grade as Grade,
         courseType: formResult.reasonForTaking as CourseType,
         rating: formResult.reviewText,
-        professor: teacher?.id ?? '',
         postDate: new Date()
       },
     };

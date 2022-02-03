@@ -5,7 +5,6 @@ import { ClassSection } from '.';
 
 const mockReviews:Review[] = [
     {
-        professor: 'a',
         gradeLevel: 'Senior',
         grade: 'A',
         courseType: 'Major (Required)',
@@ -13,7 +12,6 @@ const mockReviews:Review[] = [
         postDate: new Date(),
     },
     {
-        professor: 'a',
         gradeLevel: 'Senior',
         grade: 'A',
         courseType: 'Major (Required)',
@@ -21,7 +19,6 @@ const mockReviews:Review[] = [
         postDate: new Date()
     },
     {
-        professor: 'a',
         gradeLevel: 'Senior',
         grade: 'A',
         courseType: 'Major (Required)',

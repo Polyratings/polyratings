@@ -8,7 +8,6 @@ export type CourseType = "Elective" | "General Ed" | "Major (Support)" | "Major 
  * stores and the frontend.
  */
 export interface Review {
-    professor: string;
     gradeLevel: GradeLevel;
     grade: Grade;
     courseType: CourseType;

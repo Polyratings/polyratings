@@ -41,12 +41,13 @@ const mockTeacher: Teacher = {
     reviews: {
         'CSC 101': [
             {
-                professor: '12-52',
                 grade: 'A',
                 gradeLevel: 'Junior',
                 courseType: 'Major (Required)',
                 rating: 'MY RATING BODY',
-                postDate: new Date(),
+                // TODO: Find a better way of representing dates
+                // Make the mock date a string to comply with JSON stringify
+                postDate: (new Date()).toString() as never,
             },
         ],
     },
@@ -56,7 +57,7 @@ let fetchCount = 0;
 let beforeTestFetchCount = 0;
 async function mockFetch(target: string) {
     fetchCount += 1;
-    if (target.includes('/all')) {
+    if (target.endsWith('professors')) {
         return new Response(JSON.stringify(mockAllTeachers));
     }
     return new Response(JSON.stringify(mockTeacher));
