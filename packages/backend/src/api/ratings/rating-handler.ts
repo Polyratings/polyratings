@@ -2,8 +2,6 @@ import { Context } from 'sunder';
 import { Env } from '@polyratings/backend/bindings';
 import { AddReviewRequest } from '@polyratings/shared';
 import { PolyratingsError } from '@polyratings/backend/utils/errors';
-import { transformAndValidate } from 'class-transformer-validator';
-import { ProfessorDTO } from '@polyratings/backend/dtos/Professors';
 
 export class RatingHandler {
     // currently not configured to properly add a pending rating to the

@@ -17,6 +17,7 @@ export function registerRoutes(router: Router<Env>) {
     ));
 
     // no-op catch-all (which also applies generic OPTIONS headers)
+    // eslint-disable-next-line @typescript-eslint/no-empty-function
     router.options('*', () => {});
 
     router.all('*', (ctx => {

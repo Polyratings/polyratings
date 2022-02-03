@@ -1,6 +1,9 @@
 import { Context } from 'sunder';
 import { Env } from '@polyratings/backend/bindings';
-import { ProfessorListDTO, TruncatedProfessorDTO } from '@polyratings/backend/dtos/Professors';
+import { ProfessorDTO } from '@polyratings/backend/dtos/Professors';
+import { plainToInstance } from 'class-transformer';
+import { DtoBypass } from '@polyratings/backend/dtos/DtoBypass';
+import { PolyratingsError } from '@polyratings/backend/utils/errors';
 
 export class ProfessorHandler {
     /**
@@ -8,21 +11,21 @@ export class ProfessorHandler {
      * @param ctx - sunder routing context
      */
     static async getProfessorList(ctx: Context<Env>) {
-        let professorList = await ctx.env.POLYRATINGS.get('all');
+        const professorList = await ctx.env.POLYRATINGS.get('all');
         if (professorList === null) {
-            ctx.throw(404, "No professors found!");
-        } else {
-            const coercedList = professorList as unknown as TruncatedProfessorDTO[];
-            ctx.response.body = { professors: coercedList } as ProfessorListDTO;
+            throw new PolyratingsError(404, "No professors found!");
         }
+        
+        // Use dto bypass because the professor list is too large to be used with class-transformer efficiently
+        // We also know that the data stored in `all` is safe to send
+        ctx.response.body = new DtoBypass(professorList)
     }
 
     static async getSingleProfessor(ctx: Context<Env, {id: string}>) {
         const professor = await ctx.env.POLYRATINGS.get(ctx.params.id);
-        console.log(professor);
         if (professor === null) {
-            ctx.throw(404, "Professor not found!");
+            throw new PolyratingsError(404, "Professor not found!")
         }
-        ctx.response.body = professor;
+        ctx.response.body = plainToInstance(ProfessorDTO, JSON.parse(professor));
     }
 }

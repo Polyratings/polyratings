@@ -2,7 +2,7 @@ import { Context, HttpStatus, MiddlewareNextFunction } from 'sunder';
 import { PolyratingsError } from '@polyratings/backend/utils/errors';
 
 export async function polyratingsErrorMiddleware(
-    ctx: Context<any>,
+    ctx: Context<unknown>,
     next: MiddlewareNextFunction,
 ) {
     try {

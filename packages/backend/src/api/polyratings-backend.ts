@@ -19,8 +19,7 @@ export function polyratingsBackend() {
     backend.use(polyratingsErrorMiddleware);
 
     // automatic data-layer transformation from backend DTOs
-    // TODO: See if there's a way to fix this, see comment on function
-    // backend.use(polyratingsBodyMiddleware)
+    backend.use(polyratingsBodyMiddleware)
 
     // route the request to proper handler
     backend.use(router.middleware);

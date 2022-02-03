@@ -1,4 +1,3 @@
-import 'reflect-metadata';
 import { Context, MiddlewareNextFunction } from 'sunder';
 import { Env } from '@polyratings/backend/bindings';
 import { ValidationError } from 'class-validator';
@@ -6,7 +5,7 @@ import { ClassType, transformAndValidate } from 'class-transformer-validator';
 import { PolyratingsError } from '@polyratings/backend/utils/errors';
 
 export function withValidatedBody<T extends object>(targetType: ClassType<T>) {
-    return async (ctx: Context<Env, any, T>, next: MiddlewareNextFunction) => {
+    return async (ctx: Context<Env, unknown, T>, next: MiddlewareNextFunction) => {
         try {
             ctx.data = await transformAndValidate(targetType, await ctx.request.json() as object, {
                 validator: {
@@ -16,8 +15,8 @@ export function withValidatedBody<T extends object>(targetType: ClassType<T>) {
                 }
             }) as T;
         } catch (err) {
-            let responseErrors: object[] = [];
-            for (let error of err as ValidationError[]) {
+            const responseErrors: object[] = [];
+            for (const error of err as ValidationError[]) {
                 responseErrors.push({propertyName: error.property, reasonForFailure: error.constraints});
             }
 

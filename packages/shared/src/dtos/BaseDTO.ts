@@ -1,3 +1,1 @@
-export abstract class BaseDTO {
-    constructor() { }
-}
+export abstract class BaseDTO {}
