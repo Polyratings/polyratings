@@ -6,8 +6,7 @@
   "scripts": {
     "build": "esbuild --minify --format=esm --bundle src/index.ts --outdir=dist",
     "format": "prettier --write  '*.{json,js}' 'src/**/*.{js,ts}' 'test/**/*.{js,ts}'",
-    "lint": "eslint --max-warnings=0 src && prettier --check '*.{json,js}' 'src/**/*.{js,ts}' 'test/**/*.{js,ts}'",
-    "test": "jest --config jestconfig.json --verbose"
+    "lint": "eslint --max-warnings=0 src && prettier --check '*.{json,js}' 'src/**/*.{js,ts}' 'test/**/*.{js,ts}'"
   },
   "author": "Addison Tustin <addison@atustin.dev>",
   "license": "GPL-3.0",

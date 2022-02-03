@@ -27,7 +27,7 @@ export function ClassSection({
     return (
         <div className="pt-4 relative" id={taughtClass}>
             <h2 className="text-center text-4xl text-cal-poly-green">{taughtClass}</h2>
-            <div className="container lg:max-w-5xl flex flex-col m-auto px-2">
+            <div className="container md:max-w-5xl flex flex-col m-auto px-2">
                 {unexpandedReviews.map((review, i) => (
                     <ReviewCard key={i} review={review} />
                 ))}
@@ -38,7 +38,7 @@ export function ClassSection({
                 height={expanded ? 'auto' : unexpandedPreviewHeight(reviews)}
                 className={`transition-all ${expanded ? '' : 'opacity-25'}`}
             >
-                <div className="container lg:max-w-5xl flex flex-col m-auto px-2">
+                <div className="container md:max-w-5xl flex flex-col m-auto px-2">
                     {expandedReviews.map((review, i) => (
                         <ReviewCard key={i} review={review} />
                     ))}
@@ -71,9 +71,9 @@ export function ClassSection({
 function ReviewCard({ review }: { review: Review }) {
     return (
         <div
-            className="bg-white w-full rounded-3xl py-2 px-4 my-2 border-cal-poly-gold border-4 flex flex-col lg:flex-row"
+            className="bg-white w-full rounded-3xl py-2 px-4 my-2 border-cal-poly-gold border-4 flex flex-col md:flex-row"
         >
-            <div className="hidden lg:flex flex-col w-32 flex-shrink-0 m-auto mr-4 text-center text-sm">
+            <div className="hidden md:flex flex-col w-32 flex-shrink-0 m-auto mr-4 text-center text-sm">
                 <div>{review.gradeLevel}</div>
                 <div>{review.grade}</div>
                 <div>{review.courseType}</div>
@@ -85,22 +85,15 @@ function ReviewCard({ review }: { review: Review }) {
                 </div>
             </div>
 
-            <div className="flex lg:hidden flex-col flex-shrink-0 m-auto text-center text-sm">
+            <div className="flex md:hidden flex-col flex-shrink-0 m-auto text-center text-sm">
                 <div>Year: {review.gradeLevel}</div>
-                <div>Reason For Taking: {review.courseType}</div>
                 <div>Grade Received: {review.grade}</div>
-                <div>
-                    posted: {new Date(review.postDate).toLocaleString('en-US', {
-                        year: 'numeric',
-                        month: 'short',
-                    })}
-                </div>
             </div>
 
             {/* Desktop divider */}
-            <div className="hidden lg:flex bg-cal-poly-green w-1 mr-4 mt-2 mb-2 flex-shrink-0" />
+            <div className="hidden md:flex bg-cal-poly-green w-1 mr-4 mt-2 mb-2 flex-shrink-0" />
             {/* Mobile divider */}
-            <div className="flex lg:hidden bg-cal-poly-green w-4/5 h-1 m-auto my-2" />
+            <div className="flex md:hidden bg-cal-poly-green w-4/5 h-1 m-auto my-2" />
 
             <div className="flex-grow">{review.rating}</div>
         </div>
