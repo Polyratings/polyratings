@@ -4,17 +4,17 @@ interface AppConfiguration {
 }
 
 const devConfig: AppConfiguration = {
-  remoteUrl: 'https://sunder.polyratings.dev',
+  remoteUrl: 'https://api-beta.polyratings.dev',
   base: '/',
 };
 
 const prodConfig: AppConfiguration = {
-  remoteUrl: 'https://sunder.polyratings.dev',
+  remoteUrl: 'https://api-beta.polyratings.dev',
   base: '/',
 };
 
 const githubPagesConfig: AppConfiguration = {
-  remoteUrl: 'https://api.addison-polyratings.workers.dev',
+  remoteUrl: 'https://api-beta.polyratings.dev',
   base: '/polyratings-revamp/',
 };
 

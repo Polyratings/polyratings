@@ -37,7 +37,6 @@ export class TeacherService {
 
     this.allTeachers = (async () => {
       const res = await this.httpService.fetch(`${config.remoteUrl}/professors`);
-      console.log("This should populate right now!!");
       const data = await res.json();
       this.storage.setItem(
         ALL_TEACHER_CACHE_KEY,
