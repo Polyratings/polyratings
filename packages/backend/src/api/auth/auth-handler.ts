@@ -30,22 +30,15 @@ export class AuthHandler {
         ctx.response.body = plainToInstance(AuthResponse, {accessToken: token})
     }
 
-
-
     // Convenience for registering users
     // Please disable if not in active use
     static async register(ctx: Context<Env, {secret:string}, LoginRequest>) {
         if(ctx.params.secret !== ctx.env.JWT_SIGNING_KEY) {
             throw new PolyratingsError(401, "THIS IS FOR DEVS ONLY!!!!")
         }
-
         const {username, password} = ctx.data
-
-        console.log('encrypting')
         const hash = await AuthStrategy.hashPassword(password);
-        console.log('encrypted')
         await ctx.env.POLYRATINGS_USERS.put(username, JSON.stringify({username,password:hash}))
     }
-
-
+    
 }
