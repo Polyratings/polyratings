@@ -19,6 +19,5 @@ export async function polyratingsErrorMiddleware(
             ctx.response.status = HttpStatus.InternalServerError;
             ctx.response.body = { message: "Internal server error: non-http error." }
         }
-        throw err;
     }
 }

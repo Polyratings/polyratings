@@ -37,6 +37,7 @@
   "dependencies": {
     "@cloudflare/kv-asset-handler": "^0.2.0",
     "@polyratings/shared": "*",
+    "@tsndr/cloudflare-worker-jwt": "^1.1.5",
     "class-transformer": "^0.5.1",
     "class-transformer-validator": "^0.9.1",
     "class-validator": "^0.13.2",

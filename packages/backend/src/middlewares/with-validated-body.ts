@@ -3,6 +3,12 @@ import { Env } from '@polyratings/backend/bindings';
 import { ValidationError } from 'class-validator';
 import { ClassType, transformAndValidate } from 'class-transformer-validator';
 import { PolyratingsError } from '@polyratings/backend/utils/errors';
+import { AuthenticatedWithBody } from './auth-middleware';
+
+// Function overloads to allow use with authentication middleware
+export function withValidatedBody<T extends object>(targetType: ClassType<T>):(ctx: Context<Env, unknown, T>, next: MiddlewareNextFunction) => unknown
+// Add dummy argument to have ts properly infer what the intended type is
+export function withValidatedBody<T extends object>(targetType: ClassType<T>, withAuth:boolean):(ctx: Context<Env, unknown, AuthenticatedWithBody<T>>, next: MiddlewareNextFunction) => unknown
 
 export function withValidatedBody<T extends object>(targetType: ClassType<T>) {
     return async (ctx: Context<Env, unknown, T>, next: MiddlewareNextFunction) => {
@@ -22,6 +28,6 @@ export function withValidatedBody<T extends object>(targetType: ClassType<T>) {
 
             throw new PolyratingsError(400, responseErrors);
         }
-        await next();
+        return next();
     };
 }

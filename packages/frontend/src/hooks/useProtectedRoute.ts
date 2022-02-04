@@ -1,13 +1,13 @@
 import { useEffect } from 'react';
 import { useHistory } from 'react-router-dom';
 import { toast } from 'react-toastify';
-import { User } from '@polyratings/shared';
+import { UserToken } from '@polyratings/shared';
 import { useAuth } from './useAuth';
 
 export function useProtectedRoute<B extends boolean>(
   authenticated: B,
   redirect: string,
-  toastMessage?: (user: B extends false ? User : null) => string,
+  toastMessage?: (user: B extends false ? UserToken : null) => string,
 ) {
   // Redirect to home if logged in
   const user = useAuth();

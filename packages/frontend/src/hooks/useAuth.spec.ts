@@ -1,5 +1,5 @@
 import { UndoChanges } from '@mindspace-io/react';
-import { User } from '@polyratings/shared';
+import { UserToken } from '@polyratings/shared';
 import { renderHook, RenderResult } from '@testing-library/react-hooks';
 import { waitFor } from '@testing-library/dom';
 import { act } from 'react-dom/test-utils';
@@ -7,12 +7,12 @@ import { useService } from '.';
 import { useAuth } from './useAuth';
 import { AuthService, FETCH, injector } from '@/services';
 
-let result: RenderResult<User | null>;
+let result: RenderResult<UserToken | null>;
 
-// JWT token with email = mfishe13@calpoly.edu
+// JWT token for user mfish33
 const mockToken =
   // eslint-disable-next-line max-len
-  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIyNSIsImVtYWlsIjoibWZpc2hlMTNAY2FscG9seS5lZHUiLCJpYXQiOjE1MTYyMzkwMjJ9.b45hRUjEOUSHaOUHb6yQiF5LwMmsA-GQs6Rm3-vFRu4';
+  'eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJtZmlzaDMzIiwidXNlcm5hbWUiOiJtZmlzaDMzIiwibmJmIjoxNjQzOTEzODQ0LCJleHAiOjE2NDM5MTc0NDQsImlhdCI6MTY0MzkxMDI0NH0.UBCBPWlVjHAXpmVD-6n72GeAj-wEBc4_DM-7BqCG-8o';
 
 
 let undoChanges:UndoChanges
@@ -39,8 +39,8 @@ describe('UseAuth', () => {
     it('is reactive', async () => {
         act(() => {
             const authService = useService(AuthService)
-            authService.login('mfishe13', 'test123')
+            authService.login('mfish33', 'test123')
         });
-        await waitFor(() => expect(result.current?.email).toBe('mfishe13@calpoly.edu'))   
+        await waitFor(() => expect(result.current?.username).toBe('mfish33'))   
     });
 });

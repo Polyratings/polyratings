@@ -20,8 +20,8 @@ export class HttpService {
       }
     }
     if (res.status >= 300) {
-      // TODO: Error logging
-      throw new Error(`HTTP Error status code ${res.status} for url: ${input}`);
+      const errorPayload = await res.json()
+      throw errorPayload.message
     }
     return res;
   }

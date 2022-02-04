@@ -14,7 +14,7 @@ export async function polyratingsBodyMiddleware(
     next: MiddlewareNextFunction,
 ) {
     await next();
-    if (ctx.response.body instanceof BaseDTO) {
+    if (ctx.response.body && (ctx.response.body.constructor as typeof BaseDTO).__base_dto_marker__) {
         ctx.response.body = instanceToPlain(ctx.response.body, {strategy: 'exposeAll'});
     } else if(ctx.response.body instanceof DtoBypass) {
         ctx.response.body = ctx.response.body.payload
