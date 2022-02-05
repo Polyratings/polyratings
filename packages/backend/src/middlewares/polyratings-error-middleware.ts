@@ -8,8 +8,9 @@ export async function polyratingsErrorMiddleware(
     try {
         await next();
     } catch (err) {
-        // All original headers are deleted
+        // All original headers and status text are deleted
         ctx.response.headers = new Headers();
+        ctx.response.statusText = undefined;
 
         if (err instanceof PolyratingsError) {
             ctx.response.status = err.status;
