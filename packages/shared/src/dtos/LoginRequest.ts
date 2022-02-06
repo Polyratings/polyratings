@@ -1,5 +1,5 @@
 import { IsString } from "class-validator";
-import { BaseDTO } from "src";
+import { BaseDTO } from "../dtos/BaseDTO";
 
 export class LoginRequest extends BaseDTO {
     @IsString()
