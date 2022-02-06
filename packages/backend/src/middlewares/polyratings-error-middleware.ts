@@ -16,7 +16,7 @@ export async function polyratingsErrorMiddleware(
             ctx.response.status = err.status;
             ctx.response.body = { message: err.body, status: err.status };
         } else {
-            // TODO: Add internal error logging
+            console.error(err);
             ctx.response.status = HttpStatus.InternalServerError;
             ctx.response.body = { message: "Internal server error: non-http error." }
         }

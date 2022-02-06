@@ -1,8 +1,10 @@
 import { Context } from 'sunder';
 import { Env } from '@polyratings/backend/bindings';
-import { AddReviewRequest, AddReviewResponse } from '@polyratings/shared';
+import { AddReviewRequest, AddReviewResponse, ProcessingReviewResponse } from '@polyratings/shared';
 import { PolyratingsError } from '@polyratings/backend/utils/errors';
 import { PendingReviewDTO } from '@polyratings/backend/dtos/Reviews';
+import { KVDAO } from '@polyratings/backend/api/dao/kv-dao';
+import { PerspectiveDAO } from '@polyratings/backend/api/dao/perspective-dao';
 
 export class RatingHandler {
 
@@ -13,20 +15,64 @@ export class RatingHandler {
             });
         }
 
+        const kv = new KVDAO(ctx);
+
         ctx.response.status = 202;
         ctx.response.statusText = "Queued Rating";
 
-        const response = new AddReviewResponse();
-        // TODO: Potentially search for collisions, though that would be computationally expensive
-        response.newReviewId = crypto.randomUUID();
+        const newReviewId = crypto.randomUUID(); // Note: no way way to guarantee no collisions
+        const pendingReview = PendingReviewDTO.fromAddReviewRequest(ctx.data, newReviewId);
+        console.log(`Outside instantiation: ${pendingReview}`);
 
-        const pendingRating = new PendingReviewDTO(response.newReviewId, ctx.data);
+        await kv.addPendingReview(pendingReview);
 
-        await ctx.env.PROCESSING_QUEUE.put(pendingRating.id, JSON.stringify(pendingRating));
+        ctx.response.body = new AddReviewResponse(
+            true,
+            `Queued new rating, please call GET https://sunder.polyratings.dev/ratings/${newReviewId} to begin processing.`,
+            newReviewId
+        );
+    }
 
-        response.success = true;
-        response.statusMessage = `Queued new rating, please call GET https://sunder.polyratings.dev/ratings/${response.newReviewId} to begin processing.`;
+    static async processRating(ctx: Context<Env, { id: string }>) {
+        const kv = new KVDAO(ctx);
 
-        ctx.response.body = response;
+        const pendingRating = await kv.getPendingReview(ctx.params.id);
+
+        if (pendingRating.status !== 'Queued') {
+            throw new PolyratingsError(405, "Cannot perform operation on pending rating in terminal state!");
+        }
+
+        const analyzer = new PerspectiveDAO(ctx);
+
+        console.info("Calling analyzeReview on the DAO");
+        const analysisResponse = await analyzer.analyzeReview(pendingRating);
+        console.info("Finished call to analyzeReview on the DAO");
+        pendingRating.sentimentResponse = analysisResponse.attributeScores;
+
+        const scores = [
+            analysisResponse.attributeScores.SEVERE_TOXICITY?.summaryScore.value!,
+            analysisResponse.attributeScores.IDENTITY_ATTACK?.summaryScore.value!,
+            analysisResponse.attributeScores.THREAT?.summaryScore.value!,
+            analysisResponse.attributeScores.SEXUALLY_EXPLICIT?.summaryScore.value!,
+        ];
+
+        const responseBody = new ProcessingReviewResponse();
+
+        if (scores.filter(num => num > .8).length != 0) {
+            pendingRating.status = 'Failed';
+            responseBody.success = false;
+            responseBody.message = 'Review failed sentiment analysis, please contact nobody@example.org for assistance';
+
+            console.log(pendingRating.sentimentResponse);
+        } else {
+            pendingRating.status = 'Successful';
+            responseBody.message = 'Review has successfully been processed, it should be on the site within the next hour.'
+            responseBody.success = true;
+
+            await kv.addReview(pendingRating);
+            await kv.addPendingReview(pendingRating);
+        }
+
+        ctx.response.body = responseBody;
     }
 }

@@ -18,6 +18,7 @@ export function registerRoutes(router: Router<Env>) {
         withValidatedBody(AddReviewRequest),
         RatingHandler.addNewRating
     ));
+    router.get("/ratings/:id", RatingHandler.processRating);
 
     router.post("/login", withMiddlewares(
         withValidatedBody(LoginRequest),

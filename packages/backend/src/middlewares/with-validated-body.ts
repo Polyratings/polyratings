@@ -4,6 +4,7 @@ import { ValidationError } from 'class-validator';
 import { ClassType, transformAndValidate } from 'class-transformer-validator';
 import { PolyratingsError } from '@polyratings/backend/utils/errors';
 import { AuthenticatedWithBody } from './auth-middleware';
+import { DEFAULT_VALIDATOR_OPTIONS } from '@polyratings/backend/utils/const';
 
 // Function overloads to allow use with authentication middleware
 export function withValidatedBody<T extends object>(targetType: ClassType<T>):(ctx: Context<Env, unknown, T>, next: MiddlewareNextFunction) => unknown
@@ -14,11 +15,7 @@ export function withValidatedBody<T extends object>(targetType: ClassType<T>) {
     return async (ctx: Context<Env, unknown, T>, next: MiddlewareNextFunction) => {
         try {
             ctx.data = await transformAndValidate(targetType, await ctx.request.json() as object, {
-                validator: {
-                    skipMissingProperties: false,
-                    forbidNonWhitelisted: true,
-                    whitelist: true
-                }
+                validator: DEFAULT_VALIDATOR_OPTIONS
             }) as T;
         } catch (err) {
             const responseErrors: object[] = [];

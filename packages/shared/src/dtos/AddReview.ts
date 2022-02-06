@@ -1,4 +1,4 @@
-import { Allow, IsDefined, IsIn, IsInt, IsNotEmpty, IsUUID, Max, Min } from 'class-validator';
+import { Allow, IsDefined, IsIn, IsInt, IsNotEmpty, IsUUID, Max, Min, MinLength } from 'class-validator';
 import { DEPARTMENT_LIST } from '../constants';
 import { BaseDTO } from './BaseDTO';
 import { CourseType, Grade, GradeLevel } from '../interfaces';
@@ -9,8 +9,6 @@ import { Expose } from 'class-transformer';
  */
 export class AddReviewRequest extends BaseDTO {
     @IsUUID()
-    @IsDefined()
-    @Allow()
     professor: string;
 
     @IsDefined()
@@ -45,7 +43,7 @@ export class AddReviewRequest extends BaseDTO {
     @Max(4)
     recognizesStudentDifficulties: number;
 
-    @IsNotEmpty()
+    @MinLength(20)
     rating: string;
 }
 
@@ -56,4 +54,12 @@ export class AddReviewResponse extends BaseDTO {
     statusMessage: string;
     @Expose()
     newReviewId?: string;
+
+    constructor(success: boolean, statusMessage: string, newReviewId?: string) {
+        super();
+
+        this.success = success;
+        this.statusMessage = statusMessage;
+        this.newReviewId = newReviewId
+    }
 }
