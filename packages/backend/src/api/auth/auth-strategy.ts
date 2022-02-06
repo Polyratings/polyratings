@@ -62,7 +62,7 @@ export class AuthStrategy {
 
     static async createToken(user:User) {
         const { username } = user
-        const payload:UserTokenPlain = {
+        const payload: UserTokenPlain = {
             sub: username,
             username,
             exp: Math.floor(Date.now() / 1000) + (2 * (60 * 60)) // Expires: Now + 2h
