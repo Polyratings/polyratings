@@ -1,4 +1,4 @@
-import { IsDefined, IsIn, IsInt, IsNotEmpty, IsUUID, Max, Min, ValidateNested } from 'class-validator';
+import { Allow, IsDefined, IsIn, IsInt, IsNotEmpty, IsUUID, Max, Min } from 'class-validator';
 import { plainToInstance, Transform } from 'class-transformer';
 import { BaseDTO, GradeLevel, Grade, CourseType, DEPARTMENT_LIST, Teacher, Review as SharedReview } from '@polyratings/shared';
 import { ExcludeFrontend } from '../utils/decorators';
@@ -20,17 +20,14 @@ export class ProfessorDTO extends BaseDTO implements Teacher {
     @Min(0)
     numEvals: number;
 
-    @IsInt()
     @Min(0)
     @Max(4)
     overallRating: number;
 
-    @IsInt()
     @Min(0)
     @Max(4)
     materialClear: number;
 
-    @IsInt()
     @Min(0)
     @Max(4)
     studentDifficulties: number;
@@ -38,7 +35,7 @@ export class ProfessorDTO extends BaseDTO implements Teacher {
     @IsDefined()
     courses: string[];
 
-    @ValidateNested()
+    @Allow()
     @Transform(({value, options}) => {
         Object.entries(value).forEach(([course, reviews]) => {
             value[course] = plainToInstance(Review, reviews, options)
