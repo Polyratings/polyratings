@@ -49,7 +49,7 @@ export function TeacherPage() {
       return parseInt(aNumber, 10) - parseInt(bNumber, 10)
     }))
 
-    const primaryClasses = teacherByDepartments[teacherData.department]
+    const primaryClasses = teacherByDepartments[teacherData.department] ?? []
     const otherClasses = Object.entries(teacherByDepartments)
       .filter(([department]) => department !== teacherData.department)
       .flatMap(([,classReviews]) => classReviews)
