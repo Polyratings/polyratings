@@ -1,69 +1,53 @@
-import { GradeLevel, Grade, CourseType, Review, BaseDTO, AddReviewRequest } from '@polyratings/shared';
+import { GradeLevel, Grade, CourseType, Review, BaseDTO, AddReviewRequest, DEPARTMENT_LIST } from '@polyratings/shared';
 import { Allow, IsDate, IsDefined, IsIn, IsInt, IsUUID, Max, Min, MinLength } from 'class-validator';
-import { Expose, Type } from 'class-transformer';
-import { DEPARTMENT_LIST } from '../../../shared';
+import { plainToInstance, Type } from 'class-transformer';
+import { ExcludeFrontend } from '../utils/decorators';
 
 export class ReviewDTO extends BaseDTO implements Review {
     @IsUUID()
-    id: string;
+    @ExcludeFrontend()
+    id: string = crypto.randomUUID()
 
     @IsUUID()
+    @ExcludeFrontend()
     professor: string;
 
-    @Expose()
     @IsDefined()
     grade: Grade;
 
-    @Expose()
     @IsDefined()
     gradeLevel: GradeLevel;
 
-    @Expose()
     @IsDefined()
     courseType: CourseType;
 
-    @Expose()
     @IsDate()
     @Type(() => Date)
-    postDate: Date;
+    postDate: Date = new Date()
 
-    @Expose()
     @IsInt()
     @Min(0)
     @Max(4)
+    @ExcludeFrontend()
     overallRating?: number;
 
-    @Expose()
     @IsInt()
     @Min(0)
     @Max(4)
+    @ExcludeFrontend()
     presentsMaterialClearly?: number;
 
-    @Expose()
     @IsInt()
     @Min(0)
     @Max(4)
+    @ExcludeFrontend()
     recognizesStudentDifficulties?: number;
 
-    @Expose()
     @MinLength(20)
     rating: string;
 
     static fromPendingReview(pendingReview: PendingReviewDTO): ReviewDTO {
-        const ret = new ReviewDTO();
-
-        ret.id = pendingReview.id;
-        ret.professor = pendingReview.professor;
-        ret.grade = pendingReview.grade;
-        ret.gradeLevel = pendingReview.gradeLevel;
-        ret.courseType = pendingReview.courseType;
-        ret.postDate = pendingReview.postDate;
-        ret.overallRating = pendingReview.overallRating;
-        ret.presentsMaterialClearly = pendingReview.presentsMaterialClearly;
-        ret.recognizesStudentDifficulties = pendingReview.recognizesStudentDifficulties;
-        ret.rating = pendingReview.rating;
-
-        return ret;
+        return plainToInstance(ReviewDTO, pendingReview, { excludeExtraneousValues: true })
     }
 }
 
@@ -72,40 +56,17 @@ export type PendingReviewStatus = "Queued" | "Processing" | "Successful" | "Fail
 
 // TODO: Determine why class-transformer/validator is unable to validate/transform this object
 // likely because of inheritance, so we may just have to explicitly enumerate all of the fields present
-export class PendingReviewDTO {
-    @IsUUID()
-    id: string;
+export class PendingReviewDTO extends ReviewDTO {
 
-    @IsUUID()
-    professor: string;
-
+    // Default state on creation is Queued
     @IsDefined()
-    grade: Grade;
+    status: PendingReviewStatus = "Queued";
 
-    @IsDefined()
-    gradeLevel: GradeLevel;
+    @Allow()
+    error?: string;
 
-    @IsDefined()
-    courseType: CourseType;
-
-    @IsDate()
-    @Type(() => Date)
-    postDate: Date;
-
-    @IsInt()
-    @Min(0)
-    @Max(4)
-    overallRating: number;
-
-    @IsInt()
-    @Min(0)
-    @Max(4)
-    presentsMaterialClearly: number;
-
-    @IsInt()
-    @Min(0)
-    @Max(4)
-    recognizesStudentDifficulties: number;
+    @Allow()
+    sentimentResponse?: object // TODO: Codify some data shape/structure for this
 
     @IsInt()
     @Min(100)
@@ -115,34 +76,7 @@ export class PendingReviewDTO {
     @IsIn(DEPARTMENT_LIST)
     department: string;
 
-    @MinLength(20)
-    rating: string;
-
-    @IsDefined()
-    status: PendingReviewStatus;
-
-    @Allow()
-    error?: string;
-
-    @Allow()
-    sentimentResponse?: object // TODO: Codify some data shape/structure for this
-
-    static fromAddReviewRequest(request: AddReviewRequest, id: string): PendingReviewDTO {
-        const ret = new PendingReviewDTO();
-        ret.id = id;
-        ret.status = 'Queued';
-        ret.professor = request.professor;
-        ret.courseType = request.courseType;
-        ret.grade = request.grade;
-        ret.gradeLevel = request.gradeLevel;
-        ret.postDate = new Date();
-        ret.overallRating = request.overallRating;
-        ret.presentsMaterialClearly = request.presentsMaterialClearly;
-        ret.recognizesStudentDifficulties = request.recognizesStudentDifficulties;
-        ret.courseNum = request.courseNum;
-        ret.department = request.department;
-        ret.rating = request.rating;
-
-        return ret;
+    static fromAddReviewRequest(request: AddReviewRequest): PendingReviewDTO {
+        return plainToInstance(PendingReviewDTO, request)
     }
 }

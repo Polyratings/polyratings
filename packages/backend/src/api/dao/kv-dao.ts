@@ -60,35 +60,21 @@ export class KVDAO {
         return await transformAndValidate(PendingReviewDTO, JSON.parse(pendingRatingString), {validator: DEFAULT_VALIDATOR_OPTIONS}) as PendingReviewDTO;
     }
 
-    async addPendingReview(review: PendingReviewDTO) {
-        try {
-            await validateOrReject(review, DEFAULT_VALIDATOR_OPTIONS);
-        } catch (e) {
-            throw new PolyratingsError(500, "Error occurred adding pending review.");
-        }
+    async addPendingReview(review: PendingReviewDTO) { 
+        await validateOrReject(review, DEFAULT_VALIDATOR_OPTIONS);
 
         await this.processingQueueNamespace.put(review.id, JSON.stringify(review));
     }
 
     async addReview(pendingReview: PendingReviewDTO) {
-        try {
-            await validateOrReject(pendingReview, DEFAULT_VALIDATOR_OPTIONS);
-        } catch (e) {
-            throw new PolyratingsError(500, "Could not validate pending review");
-        }
+        await validateOrReject(pendingReview, DEFAULT_VALIDATOR_OPTIONS);
 
         if (pendingReview.status !== 'Successful') {
             throw new Error("Cannot add rating to KV that has not been analyzed.")
         }
 
         const professor = await this.getProfessor(pendingReview.professor);
-        const newReview = ReviewDTO.fromPendingReview(pendingReview);
-
-        try {
-            await validateOrReject(newReview, DEFAULT_VALIDATOR_OPTIONS);
-        } catch (e) {
-            throw new Error("Failed to validate new rating before adding to KV");
-        }
+        const newReview = ReviewDTO.fromPendingReview(pendingReview)
 
         const courseName = `${pendingReview.department} ${pendingReview.courseNum}`;
 

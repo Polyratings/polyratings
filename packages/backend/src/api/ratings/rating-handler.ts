@@ -16,20 +16,16 @@ export class RatingHandler {
         }
 
         const kv = new KVDAO(ctx);
-
-        ctx.response.status = 202;
-        ctx.response.statusText = "Queued Rating";
-
-        const newReviewId = crypto.randomUUID(); // Note: no way way to guarantee no collisions
-        const pendingReview = PendingReviewDTO.fromAddReviewRequest(ctx.data, newReviewId);
-        console.log(`Outside instantiation: ${pendingReview}`);
+        const pendingReview = PendingReviewDTO.fromAddReviewRequest(ctx.data);
 
         await kv.addPendingReview(pendingReview);
 
+        ctx.response.status = 202;
         ctx.response.body = new AddReviewResponse(
             true,
-            `Queued new rating, please call GET https://sunder.polyratings.dev/ratings/${newReviewId} to begin processing.`,
-            newReviewId
+            // TODO: Replace with runtime url
+            `Queued new rating, please call GET https://sunder.polyratings.dev/ratings/${pendingReview.id} to begin processing.`,
+            pendingReview.id
         );
     }
 

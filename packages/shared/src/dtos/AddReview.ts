@@ -2,7 +2,6 @@ import { Allow, IsDefined, IsIn, IsInt, IsNotEmpty, IsUUID, Max, Min, MinLength 
 import { DEPARTMENT_LIST } from '../constants';
 import { BaseDTO } from './BaseDTO';
 import { CourseType, Grade, GradeLevel } from '../interfaces';
-import { Expose } from 'class-transformer';
 
 /**
  * The expected content of a POST request to `POST /professors/:id/ratings`
@@ -48,18 +47,11 @@ export class AddReviewRequest extends BaseDTO {
 }
 
 export class AddReviewResponse extends BaseDTO {
-    @Expose()
-    success: boolean;
-    @Expose()
-    statusMessage: string;
-    @Expose()
-    newReviewId?: string;
 
-    constructor(success: boolean, statusMessage: string, newReviewId?: string) {
-        super();
-
-        this.success = success;
-        this.statusMessage = statusMessage;
-        this.newReviewId = newReviewId
+    constructor(
+        public readonly success: boolean, 
+        public readonly statusMessage: string,
+        public readonly newReviewId?: string) {
+        super()
     }
 }
