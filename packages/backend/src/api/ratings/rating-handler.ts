@@ -47,7 +47,7 @@ export class RatingHandler {
             if (num === undefined) {
                 throw new Error('Not all of perspective summery scores were received');
             }
-            return num > 0.8 && acc;
+            return num < 0.8 && acc;
         }, true);
 
         if (passedAnalysis) {
