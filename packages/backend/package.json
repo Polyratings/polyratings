@@ -4,8 +4,9 @@
     "description": "Cloudflare Workers project for the Polyratings site backend",
     "main": "index.js",
     "scripts": {
-        "build": "esbuild --minify --format=esm --define:this=self --bundle src/index.ts --outdir=dist --metafile=metadata.json",
-        "stats": "esbuild-visualizer",
+        "build:fast": "esbuild --minify --format=esm --define:this=self --bundle src/index.ts --outdir=dist --metafile=stats/metadata.json",
+        "build": "tsc && npm run build:fast",
+        "stats": "esbuild-visualizer --metadata ./stats/metadata.json --filename ./stats/stats.html",
         "format": "prettier --write  '*.{json,js}' 'src/**/*.{js,ts}'",
         "lint": "eslint --max-warnings=0 src && prettier --check '*.{json,js}' 'src/**/*.{js,ts}'"
     },

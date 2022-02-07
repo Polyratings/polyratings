@@ -1,6 +1,10 @@
 import { BaseDTO } from './BaseDTO';
 
 export class ProcessingReviewResponse extends BaseDTO {
-    success: boolean;
-    message?: string;
+    constructor(
+        public readonly success: boolean,
+        public readonly message?: string,
+    ) {
+        super()
+    }
 }

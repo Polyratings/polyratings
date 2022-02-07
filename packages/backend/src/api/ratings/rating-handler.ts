@@ -1,17 +1,11 @@
 import { Context } from 'sunder';
 import { Env } from '@polyratings/backend/bindings';
-import {
-    AddReviewRequest,
-    AddReviewResponse,
-    ProcessingReviewResponse,
-} from '@polyratings/shared';
+import { AddReviewRequest, AddReviewResponse, ProcessingReviewResponse } from '@polyratings/shared';
 import { PolyratingsError } from '@polyratings/backend/utils/errors';
 import { PendingReviewDTO } from '@polyratings/backend/dtos/Reviews';
 
 export class RatingHandler {
-    static async addNewRating(
-        ctx: Context<Env, { id: string }, AddReviewRequest>,
-    ) {
+    static async addNewRating(ctx: Context<Env, { id: string }, AddReviewRequest>) {
         if (ctx.params.id !== ctx.data.professor) {
             throw new PolyratingsError(400, {
                 message: 'Failed validation on Professor ID',
@@ -32,9 +26,7 @@ export class RatingHandler {
     }
 
     static async processRating(ctx: Context<Env, { id: string }>) {
-        const pendingRating = await ctx.env.kvDao.getPendingReview(
-            ctx.params.id,
-        );
+        const pendingRating = await ctx.env.kvDao.getPendingReview(ctx.params.id);
 
         if (pendingRating.status !== 'Queued') {
             throw new PolyratingsError(
@@ -43,47 +35,35 @@ export class RatingHandler {
             );
         }
 
-        console.info('Calling analyzeReview on the DAO');
-        const analysisResponse = await ctx.env.perspectiveDao.analyzeReview(
-            pendingRating,
-        );
-        console.info('Finished call to analyzeReview on the DAO');
+        const analysisResponse = await ctx.env.perspectiveDao.analyzeReview(pendingRating);
         pendingRating.sentimentResponse = analysisResponse.attributeScores;
 
-        let scores = [
-            analysisResponse.attributeScores.SEVERE_TOXICITY?.summaryScore
-                .value,
-            analysisResponse.attributeScores.IDENTITY_ATTACK?.summaryScore
-                ?.value,
+        const passedAnalysis = [
+            analysisResponse.attributeScores.SEVERE_TOXICITY?.summaryScore.value,
+            analysisResponse.attributeScores.IDENTITY_ATTACK?.summaryScore?.value,
             analysisResponse.attributeScores.THREAT?.summaryScore?.value,
-            analysisResponse.attributeScores.SEXUALLY_EXPLICIT?.summaryScore
-                ?.value,
-        ];
+            analysisResponse.attributeScores.SEXUALLY_EXPLICIT?.summaryScore?.value,
+        ].reduce((acc, num) => {
+            if (num === undefined) {
+                throw new Error('Not all of perspective summery scores were received');
+            }
+            return num > 0.8 && acc;
+        }, true);
 
-        scores = scores.filter((num) => {
-            if (num != undefined) return num > 0.8;
-            return false;
-        });
-
-        const responseBody = new ProcessingReviewResponse();
-
-        if (scores.length != 0) {
-            pendingRating.status = 'Failed';
-            responseBody.success = false;
-            responseBody.message =
-                'Review failed sentiment analysis, please contact nobody@example.org for assistance';
-
-            console.log(pendingRating.sentimentResponse);
-        } else {
+        if (passedAnalysis) {
             pendingRating.status = 'Successful';
-            responseBody.message =
-                'Review has successfully been processed, it should be on the site within the next hour.';
-            responseBody.success = true;
-
+            ctx.response.body = new ProcessingReviewResponse(
+                true,
+                'Review has successfully been processed, it should be on the site within the next hour.',
+            );
             await ctx.env.kvDao.addReview(pendingRating);
             await ctx.env.kvDao.addPendingReview(pendingRating);
+        } else {
+            pendingRating.status = 'Failed';
+            ctx.response.body = new ProcessingReviewResponse(
+                false,
+                'Review failed sentiment analysis, please contact nobody@example.org for assistance',
+            );
         }
-
-        ctx.response.body = responseBody;
     }
 }

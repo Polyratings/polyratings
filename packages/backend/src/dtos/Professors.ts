@@ -1,12 +1,4 @@
-import {
-    Allow,
-    IsIn,
-    IsInt,
-    IsNotEmpty,
-    IsUUID,
-    Max,
-    Min,
-} from 'class-validator';
+import { Allow, IsIn, IsInt, IsNotEmpty, IsUUID, Max, Min } from 'class-validator';
 import { plainToInstance, Transform } from 'class-transformer';
 import {
     BaseDTO,
@@ -18,6 +10,8 @@ import {
     Review as SharedReview,
 } from '@polyratings/shared';
 import { ExcludeFrontend } from '../utils/decorators';
+import { ReviewDTO } from './Reviews';
+import { roundToPrecision } from '../utils/math';
 
 class Review extends BaseDTO implements SharedReview {
     @IsUUID()
@@ -70,10 +64,11 @@ export class TruncatedProfessorDTO extends BaseDTO implements Teacher {
 
     // @IsValidCourse({ each: true })
     @Allow()
-    courses: string[];
+    courses: string[]; 
 }
 
 export class ProfessorDTO extends TruncatedProfessorDTO {
+    // TODO: Validate teachers reviews
     @Allow()
     @Transform(({ value, options }) => {
         Object.entries(value).forEach(([course, reviews]) => {
@@ -82,4 +77,37 @@ export class ProfessorDTO extends TruncatedProfessorDTO {
         return value;
     })
     reviews: Record<string, Review[]>;
+
+    addReview(review: ReviewDTO, courseName: string) {
+        if (!this.courses.includes(courseName)) {
+            this.courses.push(courseName);
+        }
+
+        const reviews = this.reviews[courseName];
+        if (!reviews) {
+            this.reviews[courseName] = [review];
+        } else {
+            reviews.push(review);
+        }
+
+        const newMaterial =
+            (this.materialClear * this.numEvals + review.presentsMaterialClearly) /
+            (this.numEvals + 1);
+        const newStudentDiff =
+            (this.studentDifficulties * this.numEvals + review.recognizesStudentDifficulties) /
+            (this.numEvals + 1);
+        const newOverall =
+            (this.overallRating * this.numEvals + review.overallRating) / (this.numEvals + 1);
+
+        this.numEvals = this.numEvals + 1;
+
+        // this properly rounds all of our statistics to the nearest hundredth
+        this.materialClear = roundToPrecision(newMaterial, 2);
+        this.studentDifficulties = roundToPrecision(newStudentDiff, 2);
+        this.overallRating = roundToPrecision(newOverall, 2);
+    }
+
+    toTruncatedProfessorDTO():TruncatedProfessorDTO {
+        return plainToInstance(TruncatedProfessorDTO, this, {excludeExtraneousValues: true})
+    }
 }

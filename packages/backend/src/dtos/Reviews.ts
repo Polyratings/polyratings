@@ -47,28 +47,23 @@ export class ReviewDTO extends BaseDTO implements Review {
     @Min(0)
     @Max(4)
     @ExcludeFrontend()
-    overallRating?: number;
+    overallRating: number;
 
     @IsInt()
     @Min(0)
     @Max(4)
     @ExcludeFrontend()
-    presentsMaterialClearly?: number;
+    presentsMaterialClearly: number;
 
     @IsInt()
     @Min(0)
     @Max(4)
     @ExcludeFrontend()
-    recognizesStudentDifficulties?: number;
+    recognizesStudentDifficulties: number;
 
     @MinLength(20)
     rating: string;
 
-    static fromPendingReview(pendingReview: PendingReviewDTO): ReviewDTO {
-        return plainToInstance(ReviewDTO, pendingReview, {
-            excludeExtraneousValues: true,
-        });
-    }
 }
 
 export type PendingReviewStatus =
@@ -98,25 +93,13 @@ export class PendingReviewDTO extends ReviewDTO {
     @IsIn(DEPARTMENT_LIST)
     department: string;
 
-    @IsInt()
-    @Min(0)
-    @Max(4)
-    @ExcludeFrontend()
-    declare overallRating: number;
-
-    @IsInt()
-    @Min(0)
-    @Max(4)
-    @ExcludeFrontend()
-    declare presentsMaterialClearly: number;
-
-    @IsInt()
-    @Min(0)
-    @Max(4)
-    @ExcludeFrontend()
-    declare recognizesStudentDifficulties: number;
-
     static fromAddReviewRequest(request: AddReviewRequest): PendingReviewDTO {
         return plainToInstance(PendingReviewDTO, request);
+    }
+
+    toReviewDTO(): ReviewDTO {
+        return plainToInstance(ReviewDTO, this, {
+            excludeExtraneousValues: true,
+        });
     }
 }
