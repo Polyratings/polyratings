@@ -1,7 +1,7 @@
 import 'reflect-metadata';
 import { polyratingsBackend } from '@polyratings/backend/api/polyratings-backend';
 import { CloudflareEventFunctions } from 'sunder/application';
-import { CloudflareEnv, Env } from '@polyratings/backend/bindings';
+import { CloudflareEnv, Env } from '@polyratings/backend/bindings.d';
 
 const backend = polyratingsBackend();
 

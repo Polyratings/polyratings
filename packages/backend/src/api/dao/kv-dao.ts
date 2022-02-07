@@ -1,11 +1,13 @@
-import { ProfessorDTO, TruncatedProfessorDTO } from '@polyratings/backend/dtos/Professors';
+import {
+    ProfessorDTO,
+    TruncatedProfessorDTO,
+} from '@polyratings/backend/dtos/Professors';
 import { PolyratingsError } from '@polyratings/backend/utils/errors';
 import { DEFAULT_VALIDATOR_OPTIONS } from '@polyratings/backend/utils/const';
 import { validateOrReject } from 'class-validator';
 import { PendingReviewDTO, ReviewDTO } from '@polyratings/backend/dtos/Reviews';
 import { transformAndValidate } from '@polyratings/backend/utils/transform-and-validate';
 import { User } from '@polyratings/backend/dtos/User';
-import { Teacher } from '@polyratings/shared';
 
 export class KVDAO {
     constructor(
@@ -27,7 +29,7 @@ export class KVDAO {
     private async putAllProfessors(professorList: TruncatedProfessorDTO[]) {
         await this.polyratingsNamespace.put(
             'all',
-            JSON.stringify(professorList)
+            JSON.stringify(professorList),
         );
     }
 
@@ -153,19 +155,23 @@ export class KVDAO {
             JSON.stringify(professor),
         );
 
-        const profList = JSON.parse(await this.getAllProfessors()) as TruncatedProfessorDTO[];
+        const profList = JSON.parse(
+            await this.getAllProfessors(),
+        ) as TruncatedProfessorDTO[];
 
         // Right now we have these because of the unfortunate shape of our
         // professor list structure.
         // TODO: Investigate better structure for the professor list
         const unvalidatedProf = profList.find((t) => t.id == professor.id);
         if (unvalidatedProf == undefined)
-            throw new Error(`Professor with id: ${professor.id} did not exist in prof list!`);
+            throw new Error(
+                `Professor with id: ${professor.id} did not exist in prof list!`,
+            );
         const profIndex = profList.indexOf(unvalidatedProf);
 
         const truncatedProf = await transformAndValidate(
             TruncatedProfessorDTO,
-            profList.find((t) => t.id == professor.id)
+            profList.find((t) => t.id == professor.id),
         );
 
         truncatedProf.numEvals = professor.numEvals;
