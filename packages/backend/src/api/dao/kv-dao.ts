@@ -6,13 +6,14 @@ import { DEFAULT_VALIDATOR_OPTIONS } from '@polyratings/backend/utils/const';
 import { validateOrReject } from 'class-validator';
 import { PendingReviewDTO, ReviewDTO } from '@polyratings/backend/dtos/Reviews';
 import { transformAndValidate } from '@polyratings/backend/utils/transform-and-validate';
+import { User } from '@polyratings/backend/dtos/User';
 
 export class KVDAO {
     private polyratingsNamespace: KVNamespace;
     private usersNamespace: KVNamespace;
     private processingQueueNamespace: KVNamespace;
 
-    constructor(ctx: Context<Env>) {
+    constructor(ctx: Context<Env, any>) {
         this.polyratingsNamespace = ctx.env.POLYRATINGS;
         this.usersNamespace = ctx.env.POLYRATINGS_USERS;
         this.processingQueueNamespace = ctx.env.PROCESSING_QUEUE;
@@ -120,5 +121,32 @@ export class KVDAO {
         }
 
         await this.polyratingsNamespace.put(professor.id, JSON.stringify(professor));
+    }
+
+    async getUser(username: string): Promise<User> {
+        const userString = await this.usersNamespace.get(username);
+
+        if (userString === null)
+            throw new PolyratingsError(401, 'Incorrect Credentials');
+
+        let user: User;
+        try {
+            user = await transformAndValidate(User, userString, {validator: DEFAULT_VALIDATOR_OPTIONS}) as User;
+        } catch (e) {
+            console.error(e);
+            throw new PolyratingsError(401, "Authentication Error");
+        }
+
+        return user;
+    }
+
+    async putUser(user: User) {
+        try {
+            await validateOrReject(user, DEFAULT_VALIDATOR_OPTIONS);
+        } catch (e) {
+            throw new PolyratingsError(500, "Error validating new user");
+        }
+
+        await this.usersNamespace.put(user.username, JSON.stringify(user));
     }
 }

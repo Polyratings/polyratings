@@ -3,23 +3,18 @@ import { Context } from "sunder";
 import { AuthResponse, LoginRequest } from "@polyratings/shared"
 import { PolyratingsError } from "@polyratings/backend/utils/errors";
 import { plainToInstance } from "class-transformer";
-import { User } from "@polyratings/backend/dtos/User";
 
 import { AuthStrategy } from "./auth-strategy";
+import { KVDAO } from '@polyratings/backend/api/dao/kv-dao';
 
 export class AuthHandler {
 
     static async login(ctx: Context<Env, unknown, LoginRequest>) {
         const {username, password} = ctx.data
-    
-        const userString = await ctx.env.POLYRATINGS_USERS.get(username)
+        const kv = new KVDAO(ctx);
 
-        if(!userString) {
-            throw new PolyratingsError(401, 'Incorrect Credentials')
-        }
+        const user = await kv.getUser(username);
 
-        const user = plainToInstance(User, JSON.parse(userString))
-        
         const isAuthenticated = await AuthStrategy.verifyHash(user.password, password)
 
         if(!isAuthenticated) {

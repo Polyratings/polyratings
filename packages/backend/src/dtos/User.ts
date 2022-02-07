@@ -1,6 +1,10 @@
+import { IsNotEmpty } from 'class-validator';
+
 // Purposely do not extend BaseDto so it can not be returned from the backend
 export class User {
-    username:string
+    @IsNotEmpty()
+    username:string;
 
-    password:string
+    @IsNotEmpty()
+    password:string;
 }
