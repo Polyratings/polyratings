@@ -2,10 +2,10 @@ import { Context } from 'sunder';
 import { Env } from '@polyratings/backend/bindings';
 import { ProfessorDTO } from '@polyratings/backend/dtos/Professors';
 import { PolyratingsError } from '@polyratings/backend/utils/errors';
-import { transformAndValidate } from 'class-transformer-validator';
 import { DEFAULT_VALIDATOR_OPTIONS } from '@polyratings/backend/utils/const';
 import { validateOrReject } from 'class-validator';
 import { PendingReviewDTO, ReviewDTO } from '@polyratings/backend/dtos/Reviews';
+import { transformAndValidate } from '@polyratings/backend/utils/transform-and-validate';
 
 export class KVDAO {
     private polyratingsNamespace: KVNamespace;
@@ -33,7 +33,7 @@ export class KVDAO {
         if (profString === null)
             throw new PolyratingsError(404, "Professor does not exist!");
 
-        return await transformAndValidate(ProfessorDTO, JSON.parse(profString), {validator: DEFAULT_VALIDATOR_OPTIONS}) as ProfessorDTO;
+        return await transformAndValidate(ProfessorDTO, JSON.parse(profString));
     }
 
     async putProfessor(professor: ProfessorDTO) {
@@ -57,7 +57,7 @@ export class KVDAO {
 
         console.info(`The professor field of the rating object: ${ratingObj.professor}`);
 
-        return await transformAndValidate(PendingReviewDTO, JSON.parse(pendingRatingString), {validator: DEFAULT_VALIDATOR_OPTIONS}) as PendingReviewDTO;
+        return await transformAndValidate(PendingReviewDTO, JSON.parse(pendingRatingString));
     }
 
     async addPendingReview(review: PendingReviewDTO) { 

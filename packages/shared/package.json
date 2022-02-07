@@ -10,11 +10,11 @@
   "devDependencies": {
     "typescript": "^4.4.4"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "dependencies": {
+  "peerDependencies": {
     "class-transformer": "^0.5.1",
     "class-validator": "^0.13.2"
-  }
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC"
 }
