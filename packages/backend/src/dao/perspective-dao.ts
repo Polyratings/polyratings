@@ -1,4 +1,3 @@
-import { PolyratingsError } from '@polyratings/backend/utils/errors';
 import { PendingReviewDTO } from '@polyratings/backend/dtos/Reviews';
 
 const ANALYZE_COMMENT_URL =
@@ -10,9 +9,8 @@ export class PerspectiveDAO {
     async analyzeReview(
         review: PendingReviewDTO,
     ): Promise<AnalyzeCommentResponse> {
-        let httpResponse: Response;
         // TODO: Perhaps we should define a default request?
-        const request: AnalyzeCommentRequest = {
+        const requestBody: AnalyzeCommentRequest = {
             comment: {
                 text: review.rating,
                 type: 'PLAIN_TEXT',
@@ -27,25 +25,16 @@ export class PerspectiveDAO {
             clientToken: 'Polyratings',
         };
 
-        try {
-            httpResponse = await fetch(
-                `${ANALYZE_COMMENT_URL}?key=${this.apiKey}`,
-                { body: JSON.stringify(request), method: 'POST' },
-            );
-        } catch (e) {
-            console.error();
-            throw new PolyratingsError(500, JSON.stringify(e));
-        }
+        const httpResponse = await fetch(
+            `${ANALYZE_COMMENT_URL}?key=${this.apiKey}`,
+            { body: JSON.stringify(requestBody), method: 'POST' },
+        );
 
         if (httpResponse.status !== 200) {
-            console.error(httpResponse);
-            throw new PolyratingsError(
-                500,
-                'Request to analyze comment failed!',
-            );
+            throw { status: httpResponse.status, message: httpResponse.statusText }
         }
 
-        return (await httpResponse.json()) as AnalyzeCommentResponse;
+        return httpResponse.json();
     }
 }
 

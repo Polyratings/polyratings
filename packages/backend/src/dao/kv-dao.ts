@@ -190,23 +190,11 @@ export class KVDAO {
         if (userString === null)
             throw new PolyratingsError(401, 'Incorrect Credentials');
 
-        let user: User;
-        try {
-            user = (await transformAndValidate(User, userString)) as User;
-        } catch (e) {
-            console.error(e);
-            throw new PolyratingsError(401, 'Authentication Error');
-        }
-
-        return user;
+        return await transformAndValidate(User, userString)
     }
 
     async putUser(user: User) {
-        try {
-            await validateOrReject(user, DEFAULT_VALIDATOR_OPTIONS);
-        } catch (e) {
-            throw new PolyratingsError(500, 'Error validating new user');
-        }
+        await validateOrReject(user, DEFAULT_VALIDATOR_OPTIONS);
 
         await this.usersNamespace.put(user.username, JSON.stringify(user));
     }
