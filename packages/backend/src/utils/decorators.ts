@@ -1,3 +1,3 @@
-import { Exclude } from "class-transformer";
+import { Exclude } from 'class-transformer';
 
-export const ExcludeFrontend = () => Exclude({toPlainOnly:true})
+export const ExcludeFrontend = () => Exclude({ toPlainOnly: true });

@@ -1,8 +1,11 @@
 import { Context, MiddlewareNextFunction } from 'sunder';
 
-export async function withDefaultHeaders(ctx: Context, next: MiddlewareNextFunction) {
+export async function withDefaultHeaders(
+    ctx: Context,
+    next: MiddlewareNextFunction,
+) {
     await next();
-    
+
     ctx.response.set('Content-Type', 'application/json; charset=UTF-8');
     ctx.response.set('Access-Control-Allow-Origin', '*');
     ctx.response.set('Access-Control-Allow-Methods', '*');

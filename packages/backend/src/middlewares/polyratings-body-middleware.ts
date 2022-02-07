@@ -14,11 +14,16 @@ export async function polyratingsBodyMiddleware(
     next: MiddlewareNextFunction,
 ) {
     await next();
-    if (ctx.response.body && (ctx.response.body.constructor as typeof BaseDTO).__base_dto_marker__) {
+    if (
+        ctx.response.body &&
+        (ctx.response.body.constructor as typeof BaseDTO).__base_dto_marker__
+    ) {
         ctx.response.body = instanceToPlain(ctx.response.body);
-    } else if(ctx.response.body instanceof DtoBypass) {
-        ctx.response.body = ctx.response.body.payload
+    } else if (ctx.response.body instanceof DtoBypass) {
+        ctx.response.body = ctx.response.body.payload;
     } else if (ctx.response.body) {
-        throw new Error(`Response for ${ctx.request.url} is not of type BaseDTO\nIt is of type: ${ctx.response.body.constructor.name}`);
+        throw new Error(
+            `Response for ${ctx.request.url} is not of type BaseDTO\nIt is of type: ${ctx.response.body.constructor.name}`,
+        );
     }
 }
