@@ -1,10 +1,11 @@
-import { ProfessorDTO } from '@polyratings/backend/dtos/Professors';
+import { ProfessorDTO, TruncatedProfessorDTO } from '@polyratings/backend/dtos/Professors';
 import { PolyratingsError } from '@polyratings/backend/utils/errors';
 import { DEFAULT_VALIDATOR_OPTIONS } from '@polyratings/backend/utils/const';
 import { validateOrReject } from 'class-validator';
 import { PendingReviewDTO, ReviewDTO } from '@polyratings/backend/dtos/Reviews';
 import { transformAndValidate } from '@polyratings/backend/utils/transform-and-validate';
 import { User } from '@polyratings/backend/dtos/User';
+import { Teacher } from '@polyratings/shared';
 
 export class KVDAO {
     constructor(
@@ -21,6 +22,13 @@ export class KVDAO {
             throw new PolyratingsError(404, 'Could not find any professors.');
 
         return professorList;
+    }
+
+    private async putAllProfessors(professorList: TruncatedProfessorDTO[]) {
+        await this.polyratingsNamespace.put(
+            'all',
+            JSON.stringify(professorList)
+        );
     }
 
     async getProfessor(id: string): Promise<ProfessorDTO> {
@@ -144,6 +152,30 @@ export class KVDAO {
             professor.id,
             JSON.stringify(professor),
         );
+
+        const profList = JSON.parse(await this.getAllProfessors()) as TruncatedProfessorDTO[];
+
+        // Right now we have these because of the unfortunate shape of our
+        // professor list structure.
+        // TODO: Investigate better structure for the professor list
+        const unvalidatedProf = profList.find((t) => t.id == professor.id);
+        if (unvalidatedProf == undefined)
+            throw new Error(`Professor with id: ${professor.id} did not exist in prof list!`);
+        const profIndex = profList.indexOf(unvalidatedProf);
+
+        const truncatedProf = await transformAndValidate(
+            TruncatedProfessorDTO,
+            profList.find((t) => t.id == professor.id)
+        );
+
+        truncatedProf.numEvals = professor.numEvals;
+        truncatedProf.overallRating = professor.overallRating;
+        truncatedProf.studentDifficulties = professor.studentDifficulties;
+        truncatedProf.materialClear = professor.materialClear;
+
+        profList.splice(profIndex, 1, truncatedProf);
+
+        await this.putAllProfessors(profList);
     }
 
     async getUser(username: string): Promise<User> {
