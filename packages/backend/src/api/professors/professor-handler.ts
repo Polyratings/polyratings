@@ -2,9 +2,8 @@ import { Context } from 'sunder';
 import { Env } from '@polyratings/backend/bindings';
 import { DtoBypass } from '@polyratings/backend/dtos/DtoBypass';
 import { Teacher } from '@polyratings/shared';
-import { DEFAULT_VALIDATOR_OPTIONS } from '@polyratings/backend/utils/const';
 import { TruncatedProfessorDTO } from '@polyratings/backend/dtos/Professors';
-import { transformAndValidate } from 'class-transformer-validator';
+import { transformAndValidate } from '@polyratings/backend/utils/transform-and-validate';
 
 export class ProfessorHandler {
     /**
@@ -33,7 +32,6 @@ export class ProfessorHandler {
             TruncatedProfessorDTO,
             // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
             list.find((t) => t.id == ctx.params.id)!,
-            { validator: DEFAULT_VALIDATOR_OPTIONS },
         );
 
         ctx.response.body = prof;
