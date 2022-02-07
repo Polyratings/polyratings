@@ -3,18 +3,38 @@ import { plainToInstance, Transform } from 'class-transformer';
 import { BaseDTO, GradeLevel, Grade, CourseType, DEPARTMENT_LIST, Teacher, Review as SharedReview } from '@polyratings/shared';
 import { ExcludeFrontend } from '../utils/decorators';
 
-export class ProfessorDTO extends BaseDTO implements Teacher {
+class Review extends BaseDTO implements SharedReview {
+    @IsUUID()
+    @ExcludeFrontend()
+    id:string
+
+    @IsUUID()
+    @ExcludeFrontend()
+    professor: string;
+
+    gradeLevel: GradeLevel;
+
+    grade: Grade;
+
+    courseType: CourseType;
+
+    postDate: Date;
+
+    rating: string;
+}
+
+export class TruncatedProfessorDTO extends BaseDTO implements Teacher {
     @IsUUID()
     id: string;
+
+    @IsIn(DEPARTMENT_LIST)
+    department: string;
 
     @IsNotEmpty()
     firstName: string;
 
     @IsNotEmpty()
     lastName: string;
-
-    @IsIn(DEPARTMENT_LIST)
-    department: string;
 
     @IsInt()
     @Min(0)
@@ -32,9 +52,12 @@ export class ProfessorDTO extends BaseDTO implements Teacher {
     @Max(4)
     studentDifficulties: number;
 
-    @IsDefined()
+    // @IsValidCourse({ each: true })
+    @Allow()
     courses: string[];
+}
 
+export class ProfessorDTO extends TruncatedProfessorDTO {
     @Allow()
     @Transform(({value, options}) => {
         Object.entries(value).forEach(([course, reviews]) => {
@@ -43,24 +66,4 @@ export class ProfessorDTO extends BaseDTO implements Teacher {
         return value
     })
     reviews: Record<string, Review[]>;
-}
-
-class Review extends BaseDTO implements SharedReview {
-    @IsUUID()
-    @ExcludeFrontend()
-    id:string
-    
-    @IsUUID()
-    @ExcludeFrontend()
-    professor: string;
-
-    gradeLevel: GradeLevel;
-
-    grade: Grade;
-
-    courseType: CourseType;
-
-    postDate: Date;
-
-    rating: string;
 }

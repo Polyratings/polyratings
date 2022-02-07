@@ -15,6 +15,7 @@ export class PerspectiveDAO {
 
     async analyzeReview(review: PendingReviewDTO): Promise<AnalyzeCommentResponse> {
         let httpResponse: Response;
+        // TODO: Perhaps we should define a default request?
         const request: AnalyzeCommentRequest = {
             comment: {
                 text: review.rating,
@@ -49,6 +50,15 @@ export class PerspectiveDAO {
     }
 
 }
+
+/*
+ * Below are a series of types used to enable the proper operation of this DAO
+ * It is likely that we don't actually need to expose all of these to the rest of the package
+ * so as such TODO: Determine what types here actually need to be exported and which do not
+ *
+ * All of these types and interfaces are derived from the descriptions at:
+ * https://developers.perspectiveapi.com/s/about-the-api-methods
+ */
 
 export type PerspectiveAttributeNames = PerspectiveProductionAttributeNames |
     PerspectiveExperimentalAttributeNames;
