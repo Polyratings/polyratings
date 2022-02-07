@@ -9,7 +9,7 @@ import {
     Teacher,
     Review as SharedReview,
 } from '@polyratings/shared';
-import { ExcludeFrontend } from '../utils/decorators';
+import { ExcludeFrontend, ExposeFrontend } from '../utils/decorators';
 import { ReviewDTO } from './Reviews';
 import { roundToPrecision } from '../utils/math';
 
@@ -22,48 +22,62 @@ class Review extends BaseDTO implements SharedReview {
     @ExcludeFrontend()
     professor: string;
 
+    @ExposeFrontend()
     gradeLevel: GradeLevel;
 
+    @ExposeFrontend()
     grade: Grade;
 
+    @ExposeFrontend()
     courseType: CourseType;
 
+    @ExposeFrontend()
     postDate: Date;
 
+    @ExposeFrontend()
     rating: string;
 }
 
 export class TruncatedProfessorDTO extends BaseDTO implements Teacher {
     @IsUUID()
+    @ExposeFrontend()
     id: string;
 
     @IsIn(DEPARTMENT_LIST)
+    @ExposeFrontend()
     department: string;
 
     @IsNotEmpty()
+    @ExposeFrontend()
     firstName: string;
 
     @IsNotEmpty()
+    @ExposeFrontend()
     lastName: string;
 
     @IsInt()
     @Min(0)
+    @ExposeFrontend()
     numEvals: number;
 
     @Min(0)
     @Max(4)
+    @ExposeFrontend()
     overallRating: number;
 
     @Min(0)
     @Max(4)
+    @ExposeFrontend()
     materialClear: number;
 
     @Min(0)
     @Max(4)
+    @ExposeFrontend()
     studentDifficulties: number;
 
     // @IsValidCourse({ each: true })
     @Allow()
+    @ExposeFrontend()
     courses: string[]; 
 }
 
@@ -76,6 +90,7 @@ export class ProfessorDTO extends TruncatedProfessorDTO {
         });
         return value;
     })
+    @ExposeFrontend()
     reviews: Record<string, Review[]>;
 
     addReview(review: ReviewDTO, courseName: string) {

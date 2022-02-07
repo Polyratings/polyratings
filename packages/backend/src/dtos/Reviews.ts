@@ -19,28 +19,34 @@ import {
     MinLength,
 } from 'class-validator';
 import { plainToInstance, Type } from 'class-transformer';
-import { ExcludeFrontend } from '../utils/decorators';
+import { Default, ExcludeFrontend, ExposeFrontend } from '../utils/decorators';
 
 export class ReviewDTO extends BaseDTO implements Review {
     @IsUUID()
     @ExcludeFrontend()
-    id: string = crypto.randomUUID();
+    @Default(() => crypto.randomUUID())
+    id: string
 
     @IsUUID()
     @ExcludeFrontend()
     professor: string;
 
     @IsDefined()
+    @ExposeFrontend()
     grade: Grade;
 
     @IsDefined()
+    @ExposeFrontend()
     gradeLevel: GradeLevel;
 
     @IsDefined()
+    @ExposeFrontend()
     courseType: CourseType;
 
     @IsDate()
     @Type(() => Date)
+    @Default(() => new Date())
+    @ExposeFrontend()
     postDate: Date = new Date();
 
     @IsInt()
@@ -62,6 +68,7 @@ export class ReviewDTO extends BaseDTO implements Review {
     recognizesStudentDifficulties: number;
 
     @MinLength(20)
+    @ExposeFrontend()
     rating: string;
 
 }
@@ -76,21 +83,27 @@ export type PendingReviewStatus =
 // likely because of inheritance, so we may just have to explicitly enumerate all of the fields present
 export class PendingReviewDTO extends ReviewDTO {
     // Default state on creation is Queued
-    @IsDefined()
-    status: PendingReviewStatus = 'Queued';
+    @Allow()
+    @ExcludeFrontend()
+    @Default(() => 'Queued')
+    status: PendingReviewStatus;
 
     @Allow()
+    @ExposeFrontend()
     error?: string;
 
     @Allow()
+    @ExposeFrontend()
     sentimentResponse?: object; // TODO: Codify some data shape/structure for this
 
     @IsInt()
     @Min(100)
     @Max(599)
+    @ExposeFrontend()
     courseNum: number;
 
     @IsIn(DEPARTMENT_LIST)
+    @ExposeFrontend()
     department: string;
 
     static fromAddReviewRequest(request: AddReviewRequest): PendingReviewDTO {
