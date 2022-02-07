@@ -76,6 +76,24 @@ export class PendingReviewDTO extends ReviewDTO {
     @IsIn(DEPARTMENT_LIST)
     department: string;
 
+    @IsInt()
+    @Min(0)
+    @Max(4)
+    @ExcludeFrontend()
+    declare overallRating: number;
+
+    @IsInt()
+    @Min(0)
+    @Max(4)
+    @ExcludeFrontend()
+    declare presentsMaterialClearly: number;
+
+    @IsInt()
+    @Min(0)
+    @Max(4)
+    @ExcludeFrontend()
+    declare recognizesStudentDifficulties: number;
+
     static fromAddReviewRequest(request: AddReviewRequest): PendingReviewDTO {
         return plainToInstance(PendingReviewDTO, request)
     }

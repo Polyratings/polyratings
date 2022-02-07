@@ -1,75 +1,87 @@
-import { UserToken } from "@polyratings/backend/dtos/UserToken";
-import { PolyratingsError } from "@polyratings/backend/utils/errors";
-import { UserToken as UserTokenPlain } from "@polyratings/shared"
-import { plainToInstance } from "class-transformer";
-import * as jwt from '@tsndr/cloudflare-worker-jwt'
-import { User } from "@polyratings/backend/dtos/User";
+import { UserToken } from '@polyratings/backend/dtos/UserToken';
+import { PolyratingsError } from '@polyratings/backend/utils/errors';
+import { UserToken as UserTokenPlain } from '@polyratings/shared';
+import { plainToInstance } from 'class-transformer';
+import * as jwt from '@tsndr/cloudflare-worker-jwt';
+import { User } from '@polyratings/backend/dtos/User';
 
-const UTF8_MAX_BYTES = 4
+const UTF8_MAX_BYTES = 4;
 
 export class AuthStrategy {
-    private static SALT_SIZE = 10
+    private static SALT_SIZE = 10;
 
-    static async hashPassword(input:string):Promise<string> {
-        const textEncoder = new TextEncoder()
-        const textDecoder = new TextDecoder()
+    // Should jwtSigningKey be private?
+    constructor(public readonly jwtSigningKey: string) {}
 
-        const salt = new Uint8Array(AuthStrategy.SALT_SIZE * UTF8_MAX_BYTES)
-        crypto.getRandomValues(salt)
+    async hashPassword(input: string): Promise<string> {
+        const textEncoder = new TextEncoder();
+        const textDecoder = new TextDecoder();
 
-        const saltStr = textDecoder.decode(salt).substr(0, AuthStrategy.SALT_SIZE)
-        const combined = saltStr + input
+        const salt = new Uint8Array(AuthStrategy.SALT_SIZE * UTF8_MAX_BYTES);
+        crypto.getRandomValues(salt);
 
-        const hash = await crypto.subtle.digest('SHA-256', textEncoder.encode(combined))
+        const saltStr = textDecoder
+            .decode(salt)
+            .substr(0, AuthStrategy.SALT_SIZE);
+        const combined = saltStr + input;
 
-        const hashedPassword = saltStr + textDecoder.decode(hash)
-        return hashedPassword
+        const hash = await crypto.subtle.digest(
+            'SHA-256',
+            textEncoder.encode(combined),
+        );
+
+        const hashedPassword = saltStr + textDecoder.decode(hash);
+        return hashedPassword;
     }
 
-    static async verifyHash(hashedPassword:string, password:string):Promise<boolean> {
-        const textEncoder = new TextEncoder()
-        const textDecoder = new TextDecoder()
+    async verifyHash(
+        hashedPassword: string,
+        password: string,
+    ): Promise<boolean> {
+        const textEncoder = new TextEncoder();
+        const textDecoder = new TextDecoder();
 
-        const salt = hashedPassword.substr(0, AuthStrategy.SALT_SIZE)
-        const storedHash = hashedPassword.substr(AuthStrategy.SALT_SIZE)
+        const salt = hashedPassword.substr(0, AuthStrategy.SALT_SIZE);
+        const storedHash = hashedPassword.substr(AuthStrategy.SALT_SIZE);
 
-        const combined = salt + password
+        const combined = salt + password;
 
-        const computedHash = await crypto.subtle.digest('SHA-256', textEncoder.encode(combined))
-        const computedHashStr = textDecoder.decode(computedHash)
+        const computedHash = await crypto.subtle.digest(
+            'SHA-256',
+            textEncoder.encode(combined),
+        );
+        const computedHashStr = textDecoder.decode(computedHash);
 
-        return storedHash === computedHashStr
+        return storedHash === computedHashStr;
     }
 
-    static async verify(authHeader:string | null): Promise<UserToken> {
-        if(!authHeader) {
-            throw new PolyratingsError(401, 'Bad Credentials')
+    async verify(authHeader: string | null): Promise<UserToken> {
+        if (!authHeader) {
+            throw new PolyratingsError(401, 'Bad Credentials');
         }
 
-        const token = authHeader.replace('Bearer ', '')
-        // @ts-expect-error JWT_SIGNING_KEY is an environment variable
-        const secret = JWT_SIGNING_KEY
-        const isValid = await jwt.verify(token, secret)
-        if(!isValid) {
-            throw new PolyratingsError(401, "Invalid JWT " + token)
+        const token = authHeader.replace('Bearer ', '');
+        const isValid = await jwt.verify(token, this.jwtSigningKey);
+        if (!isValid) {
+            throw new PolyratingsError(401, 'Invalid JWT ' + token);
         }
 
         // If token is valid payload should be as well
-        const payload = jwt.decode(token)
+        const payload = jwt.decode(token);
 
-        return plainToInstance(UserToken, payload)
+        return plainToInstance(UserToken, payload);
     }
 
-    static async createToken(user:User) {
-        const { username } = user
+    async createToken(user: User) {
+        const { username } = user;
         const payload: UserTokenPlain = {
             sub: username,
             username,
-            exp: Math.floor(Date.now() / 1000) + (2 * (60 * 60)) // Expires: Now + 2h
-        }
-        
+            exp: Math.floor(Date.now() / 1000) + 2 * (60 * 60), // Expires: Now + 2h
+        };
+
         // @ts-expect-error JWT_SIGNING_KEY is an environment variable
-        const secret = JWT_SIGNING_KEY
-        return jwt.sign(payload, secret)
+        const secret = JWT_SIGNING_KEY;
+        return jwt.sign(payload, secret);
     }
 }

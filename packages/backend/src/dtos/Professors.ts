@@ -1,12 +1,28 @@
-import { Allow, IsDefined, IsIn, IsInt, IsNotEmpty, IsUUID, Max, Min } from 'class-validator';
+import {
+    Allow,
+    IsIn,
+    IsInt,
+    IsNotEmpty,
+    IsUUID,
+    Max,
+    Min,
+} from 'class-validator';
 import { plainToInstance, Transform } from 'class-transformer';
-import { BaseDTO, GradeLevel, Grade, CourseType, DEPARTMENT_LIST, Teacher, Review as SharedReview } from '@polyratings/shared';
+import {
+    BaseDTO,
+    GradeLevel,
+    Grade,
+    CourseType,
+    DEPARTMENT_LIST,
+    Teacher,
+    Review as SharedReview,
+} from '@polyratings/shared';
 import { ExcludeFrontend } from '../utils/decorators';
 
 class Review extends BaseDTO implements SharedReview {
     @IsUUID()
     @ExcludeFrontend()
-    id:string
+    id: string;
 
     @IsUUID()
     @ExcludeFrontend()
@@ -59,11 +75,11 @@ export class TruncatedProfessorDTO extends BaseDTO implements Teacher {
 
 export class ProfessorDTO extends TruncatedProfessorDTO {
     @Allow()
-    @Transform(({value, options}) => {
+    @Transform(({ value, options }) => {
         Object.entries(value).forEach(([course, reviews]) => {
-            value[course] = plainToInstance(Review, reviews, options)
-        })
-        return value
+            value[course] = plainToInstance(Review, reviews, options);
+        });
+        return value;
     })
     reviews: Record<string, Review[]>;
 }
