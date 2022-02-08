@@ -6,6 +6,9 @@ import {
     BaseDTO,
     AddReviewRequest,
     DEPARTMENT_LIST,
+    Default,
+    ExcludeFrontend,
+    ExposeFrontend,
 } from '@polyratings/shared';
 import {
     Allow,
@@ -19,13 +22,12 @@ import {
     MinLength,
 } from 'class-validator';
 import { plainToInstance, Type } from 'class-transformer';
-import { Default, ExcludeFrontend, ExposeFrontend } from '../utils/decorators';
 
 export class ReviewDTO extends BaseDTO implements Review {
     @IsUUID()
     @ExcludeFrontend()
     @Default(() => crypto.randomUUID())
-    id: string
+    id: string;
 
     @IsUUID()
     @ExcludeFrontend()
@@ -70,14 +72,9 @@ export class ReviewDTO extends BaseDTO implements Review {
     @MinLength(20)
     @ExposeFrontend()
     rating: string;
-
 }
 
-export type PendingReviewStatus =
-    | 'Queued'
-    | 'Processing'
-    | 'Successful'
-    | 'Failed';
+export type PendingReviewStatus = 'Queued' | 'Processing' | 'Successful' | 'Failed';
 
 // TODO: Determine why class-transformer/validator is unable to validate/transform this object
 // likely because of inheritance, so we may just have to explicitly enumerate all of the fields present

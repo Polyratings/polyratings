@@ -1,5 +1,5 @@
 import { Allow, IsIn, IsInt, IsNotEmpty, IsUUID, Max, Min } from 'class-validator';
-import { plainToInstance, Transform } from 'class-transformer';
+import { instanceToPlain, plainToInstance, Transform } from 'class-transformer';
 import {
     BaseDTO,
     GradeLevel,
@@ -7,9 +7,10 @@ import {
     CourseType,
     DEPARTMENT_LIST,
     Teacher,
+    ExcludeFrontend,
+    ExposeFrontend,
     Review as SharedReview,
 } from '@polyratings/shared';
-import { ExcludeFrontend, ExposeFrontend } from '../utils/decorators';
 import { ReviewDTO } from './Reviews';
 import { roundToPrecision } from '../utils/math';
 
@@ -89,7 +90,7 @@ export class ProfessorDTO extends TruncatedProfessorDTO {
             value[course] = plainToInstance(Review, reviews, options);
         });
         return value;
-    })
+    }, {toClassOnly: true})
     @ExposeFrontend()
     reviews: Record<string, Review[]>;
 

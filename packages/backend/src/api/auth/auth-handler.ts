@@ -2,7 +2,6 @@ import { Env } from '@polyratings/backend/bindings';
 import { Context } from 'sunder';
 import { AuthResponse, LoginRequest } from '@polyratings/shared';
 import { PolyratingsError } from '@polyratings/backend/utils/errors';
-import { plainToInstance } from 'class-transformer';
 import { User } from '@polyratings/backend/dtos/User';
 
 export class AuthHandler {
@@ -20,10 +19,8 @@ export class AuthHandler {
             throw new PolyratingsError(401, 'Incorrect Credentials');
         }
 
-        const token = ctx.env.authStrategy.createToken(user);
-        ctx.response.body = plainToInstance(AuthResponse, {
-            accessToken: token,
-        });
+        const token = await ctx.env.authStrategy.createToken(user);
+        ctx.response.body = AuthResponse.new(token)
     }
 
     // Convenience for registering users

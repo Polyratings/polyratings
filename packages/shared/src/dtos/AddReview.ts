@@ -1,7 +1,9 @@
-import { Allow, IsDefined, IsIn, IsInt, IsNotEmpty, IsUUID, Max, Min, MinLength } from 'class-validator';
+import { IsBoolean, IsDefined, IsIn, IsInt, IsNotEmpty, IsOptional, IsString, IsUUID, Max, Min, MinLength } from 'class-validator';
 import { DEPARTMENT_LIST } from '../constants';
 import { BaseDTO } from './BaseDTO';
 import { CourseType, Grade, GradeLevel } from '../interfaces';
+import { ExposeFrontend } from '../decorators';
+import { plainToInstance } from 'class-transformer';
 
 /**
  * The expected content of a POST request to `POST /professors/:id/ratings`
@@ -47,11 +49,20 @@ export class AddReviewRequest extends BaseDTO {
 }
 
 export class AddReviewResponse extends BaseDTO {
+    @ExposeFrontend()
+    @IsBoolean()
+    success: boolean
 
-    constructor(
-        public readonly success: boolean, 
-        public readonly statusMessage: string,
-        public readonly newReviewId?: string) {
-        super()
+    @ExposeFrontend()
+    @IsString()
+    statusMessage: string
+
+    @IsOptional()
+    @IsString()
+    @ExposeFrontend()
+    newReviewId?: string
+
+    static new(success:boolean, statusMessage:string, newReviewId?:string):AddReviewResponse {
+        return plainToInstance(AddReviewResponse, {success, statusMessage, newReviewId})
     }
 }

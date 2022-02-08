@@ -17,7 +17,7 @@ export class RatingHandler {
         await ctx.env.kvDao.addPendingReview(pendingReview);
 
         ctx.response.status = 202;
-        ctx.response.body = new AddReviewResponse(
+        ctx.response.body = AddReviewResponse.new(
             true,
             // TODO: Replace with runtime url
             `Queued new rating, please call GET https://sunder.polyratings.dev/ratings/${pendingReview.id} to begin processing.`,
@@ -52,7 +52,7 @@ export class RatingHandler {
 
         if (passedAnalysis) {
             pendingRating.status = 'Successful';
-            ctx.response.body = new ProcessingReviewResponse(
+            ctx.response.body = ProcessingReviewResponse.new(
                 true,
                 'Review has successfully been processed, it should be on the site within the next hour.',
             );
@@ -60,7 +60,7 @@ export class RatingHandler {
             await ctx.env.kvDao.addPendingReview(pendingRating);
         } else {
             pendingRating.status = 'Failed';
-            ctx.response.body = new ProcessingReviewResponse(
+            ctx.response.body = ProcessingReviewResponse.new(
                 false,
                 'Review failed sentiment analysis, please contact nobody@example.org for assistance',
             );
