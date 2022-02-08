@@ -29,7 +29,7 @@ kv_namespaces = [
 ]
 
 [env.beta]
-name = 'bea-backend'
+name = 'beta-backend'
 route = 'api-beta.polyratings.dev/*'
 usage = "bundled"
 kv_namespaces = [
