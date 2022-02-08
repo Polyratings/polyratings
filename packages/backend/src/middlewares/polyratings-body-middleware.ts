@@ -14,11 +14,18 @@ export async function polyratingsBodyMiddleware(
     next: MiddlewareNextFunction,
 ) {
     await next();
-    if (ctx.response.body && (ctx.response.body.constructor as typeof BaseDTO).__base_dto_marker__) {
-        ctx.response.body = instanceToPlain(ctx.response.body, {strategy: 'exposeAll'});
-    } else if(ctx.response.body instanceof DtoBypass) {
-        ctx.response.body = ctx.response.body.payload
+    if (
+        ctx.response.body &&
+        (ctx.response.body.constructor as typeof BaseDTO).__base_dto_marker__
+    ) {
+        // TODO(mfish33): Find why strategy:'excludeAll' does not work for record types?
+        //  We could replace the record with a array type
+        ctx.response.body = instanceToPlain(ctx.response.body);
+    } else if (ctx.response.body instanceof DtoBypass) {
+        ctx.response.body = ctx.response.body.payload;
     } else if (ctx.response.body) {
-        throw new Error(`Response for ${ctx.request.url} is not of type BaseDTO\nIt is of type: ${ctx.response.body.constructor.name}`);
+        throw new Error(
+            `Response for ${ctx.request.url} is not of type BaseDTO\nIt is of type: ${ctx.response.body.constructor.name}`,
+        );
     }
 }

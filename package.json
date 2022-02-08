@@ -2,7 +2,7 @@
   "name": "root",
   "private": true,
   "scripts": {
-    "bootstrap": "lerna bootstrap",
+    "bootstrap": "lerna bootstrap --hoist -- -f",
     "build": "lerna run build",
     "start": "lerna run start:prod --parallel",
     "start:dev": "lerna run start:dev --parallel",

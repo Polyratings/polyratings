@@ -1,9 +1,7 @@
 export interface UserToken {
-    username:string
+    username:string;
 
-    sub:string
+    sub:string;
 
-    nbf:number,
-
-    exp:number
+    exp:number;
 }

@@ -1,7 +1,8 @@
 {
   "compilerOptions": {
     "experimentalDecorators": true,
-    "module": "commonjs",
+    "module": "ESNEXT",
+    "moduleResolution": "node",
     "declaration": true,
     "removeComments": true,
     "allowSyntheticDefaultImports": true,

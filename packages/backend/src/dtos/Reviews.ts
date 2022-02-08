@@ -1,74 +1,115 @@
-import { GradeLevel, Grade, CourseType, Review, BaseDTO, AddReviewRequest } from '@polyratings/shared';
-import { IsDate, IsDefined, IsInt, IsUUID, Max, Min, MinLength } from 'class-validator';
-import { Expose, Type } from 'class-transformer';
+import {
+    GradeLevel,
+    Grade,
+    CourseType,
+    Review,
+    BaseDTO,
+    AddReviewRequest,
+    DEPARTMENT_LIST,
+    Default,
+    ExcludeFrontend,
+    ExposeFrontend,
+} from '@polyratings/shared';
+import {
+    Allow,
+    IsDate,
+    IsDefined,
+    IsIn,
+    IsInt,
+    IsUUID,
+    Max,
+    Min,
+    MinLength,
+} from 'class-validator';
+import { plainToInstance, Type } from 'class-transformer';
 
 export class ReviewDTO extends BaseDTO implements Review {
     @IsUUID()
+    @ExcludeFrontend()
+    @Default(() => crypto.randomUUID())
     id: string;
 
     @IsUUID()
+    @ExcludeFrontend()
     professor: string;
 
-    @Expose()
     @IsDefined()
+    @ExposeFrontend()
     grade: Grade;
 
-    @Expose()
     @IsDefined()
+    @ExposeFrontend()
     gradeLevel: GradeLevel;
 
-    @Expose()
     @IsDefined()
+    @ExposeFrontend()
     courseType: CourseType;
 
-    @Expose()
     @IsDate()
     @Type(() => Date)
-    postDate: Date;
+    @Default(() => new Date())
+    @ExposeFrontend()
+    postDate: Date = new Date();
 
-    @Expose()
     @IsInt()
     @Min(0)
     @Max(4)
-    overallRating?: number;
+    @ExcludeFrontend()
+    overallRating: number;
 
-    @Expose()
     @IsInt()
     @Min(0)
     @Max(4)
-    presentsMaterialClearly?: number;
+    @ExcludeFrontend()
+    presentsMaterialClearly: number;
 
-    @Expose()
     @IsInt()
     @Min(0)
     @Max(4)
-    recognizesStudentDifficulties?: number;
+    @ExcludeFrontend()
+    recognizesStudentDifficulties: number;
 
-    @Expose()
     @MinLength(20)
+    @ExposeFrontend()
     rating: string;
 }
 
-export type PendingReviewStatus = "Queued" | "Processing" | "Successful" | "Failed";
+export type PendingReviewStatus = 'Queued' | 'Processing' | 'Successful' | 'Failed';
 
+// TODO: Determine why class-transformer/validator is unable to validate/transform this object
+// likely because of inheritance, so we may just have to explicitly enumerate all of the fields present
 export class PendingReviewDTO extends ReviewDTO {
-    @IsDefined()
+    // Default state on creation is Queued
+    @Allow()
+    @ExcludeFrontend()
+    @Default(() => 'Queued')
     status: PendingReviewStatus;
-    sentimentResponse?: object // TODO: Codify some data shape/structure for this
 
-    constructor(id: string, request: AddReviewRequest) {
-        super();
+    @Allow()
+    @ExposeFrontend()
+    error?: string;
 
-        this.id = id;
-        this.status = 'Queued';
-        this.professor = request.professor;
-        this.courseType = request.courseType;
-        this.grade = request.grade;
-        this.gradeLevel = request.gradeLevel;
-        this.postDate = new Date();
-        this.overallRating = request.overallRating;
-        this.presentsMaterialClearly = request.presentsMaterialClearly;
-        this.recognizesStudentDifficulties = request.recognizesStudentDifficulties;
-        this.rating = request.rating;
+    @Allow()
+    @ExposeFrontend()
+    sentimentResponse?: object; // TODO: Codify some data shape/structure for this
+
+    @IsInt()
+    @Min(100)
+    @Max(599)
+    @ExposeFrontend()
+    courseNum: number;
+
+    @IsIn(DEPARTMENT_LIST)
+    @ExposeFrontend()
+    department: string;
+
+    static fromAddReviewRequest(request: AddReviewRequest): PendingReviewDTO {
+        return plainToInstance(PendingReviewDTO, request);
+    }
+
+    toReviewDTO(): ReviewDTO {
+        return plainToInstance(ReviewDTO, this, {
+            excludeExtraneousValues: true,
+        });
     }
 }
