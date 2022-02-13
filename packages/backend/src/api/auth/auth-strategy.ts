@@ -80,8 +80,7 @@ export class AuthStrategy {
             exp: Math.floor(Date.now() / 1000) + 2 * (60 * 60), // Expires: Now + 2h
         };
 
-        // @ts-expect-error JWT_SIGNING_KEY is an environment variable
-        const secret = JWT_SIGNING_KEY;
+        const secret = this.jwtSigningKey;
         return jwt.sign(payload, secret);
     }
 }

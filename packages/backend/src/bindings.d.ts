@@ -13,6 +13,7 @@ export class Env {
             env.POLYRATINGS,
             env.POLYRATINGS_USERS,
             env.PROCESSING_QUEUE,
+            env.POLYRATINGS_TEACHER_APPROVAL_QUEUE
         );
         this.perspectiveDao = new PerspectiveDAO(env.PERSPECTIVE_API_KEY);
         this.authStrategy = new AuthStrategy(env.JWT_SIGNING_KEY);

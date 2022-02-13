@@ -5,13 +5,7 @@ import { CourseType, Grade, GradeLevel } from '../interfaces';
 import { ExposeFrontend } from '../decorators';
 import { plainToInstance } from 'class-transformer';
 
-/**
- * The expected content of a POST request to `POST /professors/:id/ratings`
- */
-export class AddReviewRequest extends BaseDTO {
-    @IsUUID()
-    professor: string;
-
+export class NewReviewBase {
     @IsDefined()
     gradeLevel: GradeLevel;
 
@@ -46,6 +40,14 @@ export class AddReviewRequest extends BaseDTO {
 
     @MinLength(20)
     rating: string;
+}
+
+/**
+ * The expected content of a POST request to `POST /professors/:id/ratings`
+ */
+export class AddReviewRequest extends NewReviewBase {
+    @IsUUID()
+    professor: string;
 }
 
 export class AddReviewResponse extends BaseDTO {

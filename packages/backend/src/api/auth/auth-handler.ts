@@ -9,6 +9,7 @@ export class AuthHandler {
         const { username, password } = ctx.data;
 
         const user = await ctx.env.kvDao.getUser(username);
+        console.log(user)
 
         const isAuthenticated = await ctx.env.authStrategy.verifyHash(
             user.password,
