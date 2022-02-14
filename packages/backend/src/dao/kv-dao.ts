@@ -12,7 +12,7 @@ export class KVDAO {
         private polyratingsNamespace: KVNamespace,
         private usersNamespace: KVNamespace,
         private processingQueueNamespace: KVNamespace,
-        private professorApprovalQueueNamespace:KVNamespace
+        private professorApprovalQueueNamespace: KVNamespace,
     ) {}
 
     // HACK: class-validator/transformer cannot actually parse through the entire
@@ -42,9 +42,12 @@ export class KVDAO {
     async putProfessor(professor: ProfessorDTO) {
         await validateOrReject(professor, DEFAULT_VALIDATOR_OPTIONS);
 
-        const existingProfessor = await this.getProfessor(professor.id)
-        if(existingProfessor.firstName !== professor.firstName || existingProfessor.lastName !== professor.lastName) {
-            throw new Error('Possible teacher collision detected')
+        const existingProfessor = await this.getProfessor(professor.id);
+        if (
+            existingProfessor.firstName !== professor.firstName ||
+            existingProfessor.lastName !== professor.lastName
+        ) {
+            throw new Error('Possible teacher collision detected');
         }
 
         await this.polyratingsNamespace.put(professor.id, JSON.stringify(professor));
@@ -55,8 +58,8 @@ export class KVDAO {
         // TODO: Investigate better structure for the professor list
         const professorIndex = profList.findIndex((t) => t.id == professor.id);
         const truncatedProf = professor.toTruncatedProfessorDTO();
-        if(professorIndex == -1) {
-            profList.push(truncatedProf)
+        if (professorIndex == -1) {
+            profList.push(truncatedProf);
         } else {
             profList[professorIndex] = truncatedProf;
         }
@@ -69,12 +72,12 @@ export class KVDAO {
 
         const profList = JSON.parse(await this.getAllProfessors()) as TruncatedProfessorDTO[];
         const professorIndex = profList.findIndex((t) => t.id == id);
-        
-        if(professorIndex == -1) {
-            throw new Error('Professor entity existed for removal but not in all professor list')
+
+        if (professorIndex == -1) {
+            throw new Error('Professor entity existed for removal but not in all professor list');
         }
-        
-        profList.splice(professorIndex, 1)
+
+        profList.splice(professorIndex, 1);
         await this.putAllProfessors(profList);
     }
 
@@ -103,8 +106,8 @@ export class KVDAO {
         const professor = await this.getProfessor(pendingReview.professor);
         const newReview = pendingReview.toReviewDTO();
         professor.addReview(newReview, `${pendingReview.department} ${pendingReview.courseNum}`);
-        
-        this.putProfessor(professor)
+
+        this.putProfessor(professor);
     }
 
     async getUser(username: string): Promise<User> {
@@ -123,8 +126,8 @@ export class KVDAO {
         await this.usersNamespace.put(user.username, JSON.stringify(user));
     }
 
-    async putPendingProfessor(professor:ProfessorDTO) {
-        await validateOrReject(professor, DEFAULT_VALIDATOR_OPTIONS)
+    async putPendingProfessor(professor: ProfessorDTO) {
+        await validateOrReject(professor, DEFAULT_VALIDATOR_OPTIONS);
 
         await this.professorApprovalQueueNamespace.put(professor.id, JSON.stringify(professor));
     }
@@ -138,13 +141,17 @@ export class KVDAO {
         return await transformAndValidate(ProfessorDTO, JSON.parse(pendingProfessorString));
     }
 
-    async getAllPendingProfessors():Promise<ProfessorDTO[]> {
-        const keys = await this.professorApprovalQueueNamespace.list()
-        const professorStrings = await Promise.all(keys.keys.map(key => this.professorApprovalQueueNamespace.get(key.name)))
-        return professorStrings.map(plainStr => plainToInstance(ProfessorDTO, JSON.parse(plainStr!)))
+    async getAllPendingProfessors(): Promise<ProfessorDTO[]> {
+        const keys = await this.professorApprovalQueueNamespace.list();
+        const professorStrings = await Promise.all(
+            keys.keys.map((key) => this.professorApprovalQueueNamespace.get(key.name)),
+        );
+        return professorStrings.map((plainStr) =>
+            plainToInstance(ProfessorDTO, JSON.parse(plainStr!)),
+        );
     }
 
     removePendingProfessor(id: string): Promise<void> {
-        return this.professorApprovalQueueNamespace.delete(id)
+        return this.professorApprovalQueueNamespace.delete(id);
     }
 }

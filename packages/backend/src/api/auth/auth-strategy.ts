@@ -20,24 +20,16 @@ export class AuthStrategy {
         const salt = new Uint8Array(AuthStrategy.SALT_SIZE * UTF8_MAX_BYTES);
         crypto.getRandomValues(salt);
 
-        const saltStr = textDecoder
-            .decode(salt)
-            .substr(0, AuthStrategy.SALT_SIZE);
+        const saltStr = textDecoder.decode(salt).substr(0, AuthStrategy.SALT_SIZE);
         const combined = saltStr + input;
 
-        const hash = await crypto.subtle.digest(
-            'SHA-256',
-            textEncoder.encode(combined),
-        );
+        const hash = await crypto.subtle.digest('SHA-256', textEncoder.encode(combined));
 
         const hashedPassword = saltStr + textDecoder.decode(hash);
         return hashedPassword;
     }
 
-    async verifyHash(
-        hashedPassword: string,
-        password: string,
-    ): Promise<boolean> {
+    async verifyHash(hashedPassword: string, password: string): Promise<boolean> {
         const textEncoder = new TextEncoder();
         const textDecoder = new TextDecoder();
 
@@ -46,10 +38,7 @@ export class AuthStrategy {
 
         const combined = salt + password;
 
-        const computedHash = await crypto.subtle.digest(
-            'SHA-256',
-            textEncoder.encode(combined),
-        );
+        const computedHash = await crypto.subtle.digest('SHA-256', textEncoder.encode(combined));
         const computedHashStr = textDecoder.decode(computedHash);
 
         return storedHash === computedHashStr;

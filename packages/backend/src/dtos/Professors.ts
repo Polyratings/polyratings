@@ -50,25 +50,28 @@ export class TruncatedProfessorDTO extends BaseDTO implements Teacher {
     // @IsValidCourse({ each: true })
     @Allow()
     @ExposeFrontend()
-    courses: string[]; 
+    courses: string[];
 }
 
 export class ProfessorDTO extends TruncatedProfessorDTO {
     // TODO: Validate teachers reviews
     @Allow()
-    @Transform(({ value, options }) => {
-        Object.entries(value).forEach(([course, reviews]) => {
-            value[course] = plainToInstance(ReviewDTO, reviews, options);
-        });
-        return value;
-    }, {toClassOnly: true})
+    @Transform(
+        ({ value, options }) => {
+            Object.entries(value).forEach(([course, reviews]) => {
+                value[course] = plainToInstance(ReviewDTO, reviews, options);
+            });
+            return value;
+        },
+        { toClassOnly: true },
+    )
     @ExposeFrontend()
     reviews: Record<string, ReviewDTO[]>;
 
     addReview(review: ReviewDTO, courseName: string) {
         // Ensure that the review has the correct professor id
         // TODO: Investigate the necessity of having this field
-        review.professor = this.id
+        review.professor = this.id;
 
         if (!this.courses.includes(courseName)) {
             this.courses.push(courseName);
@@ -98,39 +101,38 @@ export class ProfessorDTO extends TruncatedProfessorDTO {
         this.overallRating = roundToPrecision(newOverall, 2);
     }
 
-    toTruncatedProfessorDTO():TruncatedProfessorDTO {
-        return plainToInstance(TruncatedProfessorDTO, this, {excludeExtraneousValues: true})
+    toTruncatedProfessorDTO(): TruncatedProfessorDTO {
+        return plainToInstance(TruncatedProfessorDTO, this, { excludeExtraneousValues: true });
     }
 
-    static fromAddProfessorRequest(addProfessorRequest:AddProfessorRequest):ProfessorDTO {
-
-        const plainReview:PlainNewProfessorReviewDTO = {
+    static fromAddProfessorRequest(addProfessorRequest: AddProfessorRequest): ProfessorDTO {
+        const plainReview: PlainNewProfessorReviewDTO = {
             professor: addProfessorRequest.id,
-            ...addProfessorRequest.review
-        }
+            ...addProfessorRequest.review,
+        };
         // Not put in a function since any other time we should be going to a pending
         const review = plainToInstance(ReviewDTO, plainReview, {
             excludeExtraneousValues: true,
         });
 
-        const courseName = `${addProfessorRequest.review.department} ${addProfessorRequest.review.courseNum}`
-        const plain:PlainProfessorDTO = {
+        const courseName = `${addProfessorRequest.review.department} ${addProfessorRequest.review.courseNum}`;
+        const plain: PlainProfessorDTO = {
             overallRating: review.overallRating,
             studentDifficulties: review.recognizesStudentDifficulties,
             materialClear: review.presentsMaterialClearly,
             courses: [courseName],
             reviews: {
-                [courseName]: [review]
+                [courseName]: [review],
             },
-            ...addProfessorRequest
-        }
+            ...addProfessorRequest,
+        };
 
         return plainToInstance(ProfessorDTO, plain, {
-            excludeExtraneousValues: true
-        })
+            excludeExtraneousValues: true,
+        });
     }
 }
 
 // Not Pretty but will at least cause compile time errors
-type PlainProfessorDTO = Omit<ProfessorDTO, 'addReview' | 'toTruncatedProfessorDTO'>
-type PlainNewProfessorReviewDTO = Omit<ReviewDTO, 'postDate' | 'id'>
+type PlainProfessorDTO = Omit<ProfessorDTO, 'addReview' | 'toTruncatedProfessorDTO'>;
+type PlainNewProfessorReviewDTO = Omit<ReviewDTO, 'postDate' | 'id'>;

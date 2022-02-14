@@ -9,19 +9,16 @@ export class AuthHandler {
         const { username, password } = ctx.data;
 
         const user = await ctx.env.kvDao.getUser(username);
-        console.log(user)
+        console.log(user);
 
-        const isAuthenticated = await ctx.env.authStrategy.verifyHash(
-            user.password,
-            password,
-        );
+        const isAuthenticated = await ctx.env.authStrategy.verifyHash(user.password, password);
 
         if (!isAuthenticated) {
             throw new PolyratingsError(401, 'Incorrect Credentials');
         }
 
         const token = await ctx.env.authStrategy.createToken(user);
-        ctx.response.body = AuthResponse.new(token)
+        ctx.response.body = AuthResponse.new(token);
     }
 
     // Convenience for registering users
