@@ -41,6 +41,12 @@ export class KVDAO {
 
     async putProfessor(professor: ProfessorDTO) {
         await validateOrReject(professor, DEFAULT_VALIDATOR_OPTIONS);
+
+        const existingProfessor = await this.getProfessor(professor.id)
+        if(existingProfessor.firstName !== professor.firstName || existingProfessor.lastName !== professor.lastName) {
+            throw new Error('Possible teacher collision detected')
+        }
+
         await this.polyratingsNamespace.put(professor.id, JSON.stringify(professor));
 
         // Not actually of type TruncatedProfessorDTO just the plain version
