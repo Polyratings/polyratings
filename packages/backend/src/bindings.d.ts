@@ -24,6 +24,7 @@ export interface CloudflareEnv {
     POLYRATINGS: KVNamespace;
     PROCESSING_QUEUE: KVNamespace;
     POLYRATINGS_USERS: KVNamespace;
+    POLYRATINGS_TEACHER_APPROVAL_QUEUE:KVNamespace;
     JWT_SIGNING_KEY: string;
     PERSPECTIVE_API_KEY: string;
 }
