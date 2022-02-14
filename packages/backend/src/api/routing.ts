@@ -2,7 +2,7 @@ import { Router } from 'sunder';
 import { Env } from '@polyratings/backend/bindings';
 import { ProfessorHandler } from '@polyratings/backend/api/professors/professor-handler';
 import { withValidatedBody } from '@polyratings/backend/middlewares/with-validated-body';
-import { AddReviewRequest, LoginRequest } from '@polyratings/shared';
+import { AddProfessorRequest, AddReviewRequest, LoginRequest } from '@polyratings/shared';
 import { RatingHandler } from '@polyratings/backend/api/ratings/rating-handler';
 import { withMiddlewares } from '@polyratings/backend/middlewares/with-middlewares';
 import { AuthHandler } from './auth/auth-handler';
@@ -11,22 +11,20 @@ import { AdminHandler } from './admin/admin-handler';
 
 export function registerRoutes(router: Router<Env>) {
     router.get('/professors', ProfessorHandler.getProfessorList);
+    router.post(
+        '/professors',
+        withMiddlewares(withValidatedBody(AddProfessorRequest), ProfessorHandler.addNewProfessor),
+    );
 
     router.get('/professors/:id', ProfessorHandler.getSingleProfessor);
 
     router.post(
         '/professors/:id/ratings',
-        withMiddlewares(
-            withValidatedBody(AddReviewRequest),
-            RatingHandler.addNewRating,
-        ),
+        withMiddlewares(withValidatedBody(AddReviewRequest), RatingHandler.addNewRating),
     );
     router.get('/ratings/:id', RatingHandler.processRating);
 
-    router.post(
-        '/login',
-        withMiddlewares(withValidatedBody(LoginRequest), AuthHandler.login),
-    );
+    router.post('/login', withMiddlewares(withValidatedBody(LoginRequest), AuthHandler.login));
 
     router.post(
         '/register/:secret',
@@ -35,12 +33,22 @@ export function registerRoutes(router: Router<Env>) {
 
     router.delete(
         '/admin/rating',
-        withMiddlewares(
-            withValidatedBody(LoginRequest, true),
-            withAuth,
-            AdminHandler.removeRating,
-        ),
+        withMiddlewares(withValidatedBody(LoginRequest, true), withAuth, AdminHandler.removeRating),
     );
+
+    router.get('/admin/pending', withMiddlewares(withAuth, AdminHandler.pendingProfessors));
+
+    router.post(
+        '/admin/pending/:id',
+        withMiddlewares(withAuth, AdminHandler.approvePendingTeacher),
+    );
+
+    router.delete(
+        '/admin/pending/:id',
+        withMiddlewares(withAuth, AdminHandler.rejectPendingTeacher),
+    );
+
+    router.delete('/admin/professor/:id', withMiddlewares(withAuth, AdminHandler.removeProfessor));
 
     // no-op catch-all (which also applies generic OPTIONS headers)
     // eslint-disable-next-line @typescript-eslint/no-empty-function

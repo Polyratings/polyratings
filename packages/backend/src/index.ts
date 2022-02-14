@@ -6,11 +6,7 @@ import { CloudflareEnv, Env } from '@polyratings/backend/bindings.d';
 const backend = polyratingsBackend();
 
 export default {
-    async fetch(
-        request: Request,
-        env: CloudflareEnv,
-        ctx: CloudflareEventFunctions,
-    ) {
+    async fetch(request: Request, env: CloudflareEnv, ctx: CloudflareEventFunctions) {
         return backend.fetch(request, new Env(env), ctx);
     },
 };

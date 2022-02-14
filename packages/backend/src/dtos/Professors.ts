@@ -1,43 +1,14 @@
 import { Allow, IsIn, IsInt, IsNotEmpty, IsUUID, Max, Min } from 'class-validator';
-import { instanceToPlain, plainToInstance, Transform } from 'class-transformer';
+import { plainToInstance, Transform } from 'class-transformer';
 import {
     BaseDTO,
-    GradeLevel,
-    Grade,
-    CourseType,
     DEPARTMENT_LIST,
     Teacher,
-    ExcludeFrontend,
     ExposeFrontend,
-    Review as SharedReview,
+    AddProfessorRequest,
 } from '@polyratings/shared';
 import { ReviewDTO } from './Reviews';
 import { roundToPrecision } from '../utils/math';
-
-class Review extends BaseDTO implements SharedReview {
-    @IsUUID()
-    @ExcludeFrontend()
-    id: string;
-
-    @IsUUID()
-    @ExcludeFrontend()
-    professor: string;
-
-    @ExposeFrontend()
-    gradeLevel: GradeLevel;
-
-    @ExposeFrontend()
-    grade: Grade;
-
-    @ExposeFrontend()
-    courseType: CourseType;
-
-    @ExposeFrontend()
-    postDate: Date;
-
-    @ExposeFrontend()
-    rating: string;
-}
 
 export class TruncatedProfessorDTO extends BaseDTO implements Teacher {
     @IsUUID()
@@ -79,22 +50,29 @@ export class TruncatedProfessorDTO extends BaseDTO implements Teacher {
     // @IsValidCourse({ each: true })
     @Allow()
     @ExposeFrontend()
-    courses: string[]; 
+    courses: string[];
 }
 
 export class ProfessorDTO extends TruncatedProfessorDTO {
     // TODO: Validate teachers reviews
     @Allow()
-    @Transform(({ value, options }) => {
-        Object.entries(value).forEach(([course, reviews]) => {
-            value[course] = plainToInstance(Review, reviews, options);
-        });
-        return value;
-    }, {toClassOnly: true})
+    @Transform(
+        ({ value, options }) => {
+            Object.entries(value).forEach(([course, reviews]) => {
+                value[course] = plainToInstance(ReviewDTO, reviews, options);
+            });
+            return value;
+        },
+        { toClassOnly: true },
+    )
     @ExposeFrontend()
-    reviews: Record<string, Review[]>;
+    reviews: Record<string, ReviewDTO[]>;
 
     addReview(review: ReviewDTO, courseName: string) {
+        // Ensure that the review has the correct professor id
+        // TODO: Investigate the necessity of having this field
+        review.professor = this.id;
+
         if (!this.courses.includes(courseName)) {
             this.courses.push(courseName);
         }
@@ -123,7 +101,38 @@ export class ProfessorDTO extends TruncatedProfessorDTO {
         this.overallRating = roundToPrecision(newOverall, 2);
     }
 
-    toTruncatedProfessorDTO():TruncatedProfessorDTO {
-        return plainToInstance(TruncatedProfessorDTO, this, {excludeExtraneousValues: true})
+    toTruncatedProfessorDTO(): TruncatedProfessorDTO {
+        return plainToInstance(TruncatedProfessorDTO, this, { excludeExtraneousValues: true });
+    }
+
+    static fromAddProfessorRequest(addProfessorRequest: AddProfessorRequest): ProfessorDTO {
+        const plainReview: PlainNewProfessorReviewDTO = {
+            professor: addProfessorRequest.id,
+            ...addProfessorRequest.review,
+        };
+        // Not put in a function since any other time we should be going to a pending
+        const review = plainToInstance(ReviewDTO, plainReview, {
+            excludeExtraneousValues: true,
+        });
+
+        const courseName = `${addProfessorRequest.review.department} ${addProfessorRequest.review.courseNum}`;
+        const plain: PlainProfessorDTO = {
+            overallRating: review.overallRating,
+            studentDifficulties: review.recognizesStudentDifficulties,
+            materialClear: review.presentsMaterialClearly,
+            courses: [courseName],
+            reviews: {
+                [courseName]: [review],
+            },
+            ...addProfessorRequest,
+        };
+
+        return plainToInstance(ProfessorDTO, plain, {
+            excludeExtraneousValues: true,
+        });
     }
 }
+
+// Not Pretty but will at least cause compile time errors
+type PlainProfessorDTO = Omit<ProfessorDTO, 'addReview' | 'toTruncatedProfessorDTO'>;
+type PlainNewProfessorReviewDTO = Omit<ReviewDTO, 'postDate' | 'id'>;

@@ -3,10 +3,7 @@ import { Env } from '@polyratings/backend/bindings';
 import { ValidationError } from 'class-validator';
 import { PolyratingsError } from '@polyratings/backend/utils/errors';
 import { AuthenticatedWithBody } from './auth-middleware';
-import {
-    Constructs,
-    transformAndValidate,
-} from '../utils/transform-and-validate';
+import { Constructs, transformAndValidate } from '../utils/transform-and-validate';
 
 // Function overloads to allow use with authentication middleware
 export function withValidatedBody<T extends object>(
@@ -16,21 +13,12 @@ export function withValidatedBody<T extends object>(
 export function withValidatedBody<T extends object>(
     targetType: Constructs<T>,
     withAuth: boolean,
-): (
-    ctx: Context<Env, unknown, AuthenticatedWithBody<T>>,
-    next: MiddlewareNextFunction,
-) => unknown;
+): (ctx: Context<Env, unknown, AuthenticatedWithBody<T>>, next: MiddlewareNextFunction) => unknown;
 
 export function withValidatedBody<T extends object>(targetType: Constructs<T>) {
-    return async (
-        ctx: Context<Env, unknown, T>,
-        next: MiddlewareNextFunction,
-    ) => {
+    return async (ctx: Context<Env, unknown, T>, next: MiddlewareNextFunction) => {
         try {
-            ctx.data = await transformAndValidate(
-                targetType,
-                await ctx.request.json(),
-            );
+            ctx.data = await transformAndValidate(targetType, await ctx.request.json());
         } catch (err) {
             const responseErrors: object[] = [];
             for (const error of err as ValidationError[]) {

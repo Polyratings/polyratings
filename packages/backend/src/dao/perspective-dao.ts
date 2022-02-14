@@ -1,14 +1,11 @@
 import { PendingReviewDTO } from '@polyratings/backend/dtos/Reviews';
 
-const ANALYZE_COMMENT_URL =
-    'https://commentanalyzer.googleapis.com/v1alpha1/comments:analyze';
+const ANALYZE_COMMENT_URL = 'https://commentanalyzer.googleapis.com/v1alpha1/comments:analyze';
 
 export class PerspectiveDAO {
     constructor(private readonly apiKey: string) {}
 
-    async analyzeReview(
-        review: PendingReviewDTO,
-    ): Promise<AnalyzeCommentResponse> {
+    async analyzeReview(review: PendingReviewDTO): Promise<AnalyzeCommentResponse> {
         // TODO: Perhaps we should define a default request?
         const requestBody: AnalyzeCommentRequest = {
             comment: {
@@ -25,13 +22,13 @@ export class PerspectiveDAO {
             clientToken: 'Polyratings',
         };
 
-        const httpResponse = await fetch(
-            `${ANALYZE_COMMENT_URL}?key=${this.apiKey}`,
-            { body: JSON.stringify(requestBody), method: 'POST' },
-        );
+        const httpResponse = await fetch(`${ANALYZE_COMMENT_URL}?key=${this.apiKey}`, {
+            body: JSON.stringify(requestBody),
+            method: 'POST',
+        });
 
         if (httpResponse.status !== 200) {
-            throw { status: httpResponse.status, message: httpResponse.statusText }
+            throw { status: httpResponse.status, message: httpResponse.statusText };
         }
 
         return httpResponse.json();
@@ -94,9 +91,7 @@ export interface AnalyzeCommentRequest {
         text: string;
         type: 'PLAIN_TEXT';
     };
-    requestedAttributes: Partial<
-        Record<PerspectiveAttributeNames, PerspectiveRequestedAttribute>
-    >;
+    requestedAttributes: Partial<Record<PerspectiveAttributeNames, PerspectiveRequestedAttribute>>;
     languages?: string[];
     doNotStore?: boolean;
     clientToken?: string;
@@ -105,9 +100,7 @@ export interface AnalyzeCommentRequest {
 }
 
 export interface AnalyzeCommentResponse {
-    attributeScores: Partial<
-        Record<PerspectiveAttributeNames, PerspectiveAttributeScore>
-    >;
+    attributeScores: Partial<Record<PerspectiveAttributeNames, PerspectiveAttributeScore>>;
     languages: string[];
     clientToken: string;
 }

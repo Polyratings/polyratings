@@ -25,7 +25,8 @@ usage = "bundled"
 kv_namespaces = [
     { binding = "POLYRATINGS", id = "c6bf2730306a4e65bb8aa7412ae6f250", preview_id = "1c0b9ffba23c46f2928b7af696de1862"},
     { binding = "PROCESSING_QUEUE", id = "845ba14e564c411fa52543408e15c53e", preview_id = "7efebba0f4d04f369066284dd9749ed4"},
-    { binding = "POLYRATINGS_USERS", id = "a23f7444e3c34913b7f04223fd1920d3", preview_id = "a23f7444e3c34913b7f04223fd1920d3"}
+    { binding = "POLYRATINGS_USERS", id = "a23f7444e3c34913b7f04223fd1920d3", preview_id = "a23f7444e3c34913b7f04223fd1920d3"},
+    { binding = "POLYRATINGS_TEACHER_APPROVAL_QUEUE", id = "6adc0bac1438487f82de330b94684e73", preview_id = "6adc0bac1438487f82de330b94684e73"}
 ]
 
 [env.beta]
@@ -34,7 +35,9 @@ route = 'api-beta.polyratings.dev/*'
 usage = "bundled"
 kv_namespaces = [
     { binding = "POLYRATINGS", id = "c6bf2730306a4e65bb8aa7412ae6f250", preview_id = "1c0b9ffba23c46f2928b7af696de1862"},
-    { binding = "PROCESSING_QUEUE", id = "845ba14e564c411fa52543408e15c53e", preview_id = "7efebba0f4d04f369066284dd9749ed4"}
+    { binding = "PROCESSING_QUEUE", id = "845ba14e564c411fa52543408e15c53e", preview_id = "7efebba0f4d04f369066284dd9749ed4"},
+    { binding = "POLYRATINGS_USERS", id = "a23f7444e3c34913b7f04223fd1920d3", preview_id = "a23f7444e3c34913b7f04223fd1920d3"},
+    { binding = "POLYRATINGS_TEACHER_APPROVAL_QUEUE", id = "6adc0bac1438487f82de330b94684e73", preview_id = "6adc0bac1438487f82de330b94684e73"}
 ]
 
 [env.prod]
@@ -43,7 +46,9 @@ route = "testing.polyratings.dev/*"
 usage = "bundled"
 kv_namespaces = [
     { binding = "POLYRATINGS", id = "c6bf2730306a4e65bb8aa7412ae6f250", preview_id = "1c0b9ffba23c46f2928b7af696de1862"},
-    { binding = "PROCESSING_QUEUE", id  = "845ba14e564c411fa52543408e15c53e", preview_id = "7efebba0f4d04f369066284dd9749ed4"}
+    { binding = "PROCESSING_QUEUE", id  = "845ba14e564c411fa52543408e15c53e", preview_id = "7efebba0f4d04f369066284dd9749ed4"},
+    { binding = "POLYRATINGS_USERS", id = "a23f7444e3c34913b7f04223fd1920d3", preview_id = "a23f7444e3c34913b7f04223fd1920d3"},
+    { binding = "POLYRATINGS_TEACHER_APPROVAL_QUEUE", id = "6adc0bac1438487f82de330b94684e73", preview_id = "6adc0bac1438487f82de330b94684e73"}
 ]
 
 [dev]
