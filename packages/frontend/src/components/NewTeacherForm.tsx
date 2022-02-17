@@ -11,6 +11,19 @@ import { departments } from '@/constants';
 import { useService } from '@/hooks';
 import { EvaluateTeacherForm } from '.';
 
+// The below code requires some weird behavior to allow two forms to be submitted with one button and get normal validation
+// HTML Structure:
+// <TeacherForm />
+// <ReviewForm />
+// <Submit-Button /> This triggers both the above forms
+// Information Flow process:
+// 1. The form button below is pressed
+// 2. `kickOffSubmit` is called
+// 3. We set the teacher form to have no submit handler other than error checking
+// 4. The override handler of the review form is tripped and `reviewFormSubmitOverride` is called
+// 5. A new handler for the teacher form is set and then it is submitted
+// 6. The handler fires and the teacher gets requested to be added
+
 interface NewTeacherFormInputs {
   teacherFirstName: string;
   teacherLastName: string;
@@ -39,7 +52,7 @@ export function NewTeacherForm() {
     }
     // @ts-expect-error Ignore ts error for onSubmit handler
     teacherFormRef.current.onsubmit = handleSubmit(() => {});
-    // Double submit form to get error messages
+    // Submit both forms to get error messages on both immediately
     teacherFormRef.current?.requestSubmit();
     reviewFormRef.current?.requestSubmit();
   };
@@ -49,6 +62,7 @@ export function NewTeacherForm() {
     if (!teacherFormRef.current) {
       return;
     }
+
     // @ts-expect-error Ignore ts error for onSubmit handler
     teacherFormRef.current.onsubmit = handleSubmit(async (teacherData) => {
       setLoading(true);
@@ -69,6 +83,7 @@ export function NewTeacherForm() {
       }
       setLoading(false);
     });
+    
     teacherFormRef.current?.requestSubmit();
   };
 
