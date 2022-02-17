@@ -17,7 +17,7 @@ export function injectorFactory() {
     { provide: AuthService, useClass: AuthService, deps: [LOCAL_STORAGE, FETCH] },
     { provide: HttpService, useClass: HttpService, deps: [AuthService, FETCH] },
     { provide: TeacherService, useClass: TeacherService, deps: [HttpService, LOCAL_STORAGE] },
-    { provide: ReviewService, useClass: ReviewService, deps: [HttpService] },
+    { provide: ReviewService, useClass: ReviewService, deps: [HttpService, TeacherService] },
     { provide: Logger, useClass: Logger },
   ]);
 }

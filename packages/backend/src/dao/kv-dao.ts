@@ -96,7 +96,7 @@ export class KVDAO {
         await this.processingQueueNamespace.put(review.id, JSON.stringify(review));
     }
 
-    async addReview(pendingReview: PendingReviewDTO) {
+    async addReview(pendingReview: PendingReviewDTO): Promise<ProfessorDTO> {
         await validateOrReject(pendingReview, DEFAULT_VALIDATOR_OPTIONS);
 
         if (pendingReview.status !== 'Successful') {
@@ -108,6 +108,7 @@ export class KVDAO {
         professor.addReview(newReview, `${pendingReview.department} ${pendingReview.courseNum}`);
 
         this.putProfessor(professor);
+        return professor
     }
 
     async getUser(username: string): Promise<User> {

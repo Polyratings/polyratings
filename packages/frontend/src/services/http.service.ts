@@ -21,7 +21,7 @@ export class HttpService {
     }
     if (res.status >= 300) {
       const errorPayload = await res.json()
-      throw errorPayload.message
+      throw new Error(JSON.stringify(errorPayload.message))
     }
     return res;
   }

@@ -106,8 +106,10 @@ export class ProfessorDTO extends TruncatedProfessorDTO {
     }
 
     static fromAddProfessorRequest(addProfessorRequest: AddProfessorRequest): ProfessorDTO {
+        const newProfessorId = crypto.randomUUID()
+
         const plainReview: PlainNewProfessorReviewDTO = {
-            professor: addProfessorRequest.id,
+            professor: newProfessorId,
             ...addProfessorRequest.review,
         };
         // Not put in a function since any other time we should be going to a pending
@@ -117,6 +119,7 @@ export class ProfessorDTO extends TruncatedProfessorDTO {
 
         const courseName = `${addProfessorRequest.review.department} ${addProfessorRequest.review.courseNum}`;
         const plain: PlainProfessorDTO = {
+            id: newProfessorId,
             overallRating: review.overallRating,
             studentDifficulties: review.recognizesStudentDifficulties,
             materialClear: review.presentsMaterialClearly,

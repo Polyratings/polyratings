@@ -3,7 +3,7 @@ import { useForm } from 'react-hook-form';
 import { ErrorMessage } from '@hookform/error-message';
 // import { EvaluateTeacherForm } from "./EvaluateTeacherForm";
 import ClipLoader from 'react-spinners/ClipLoader';
-import { Teacher, AddReview } from '@polyratings/shared';
+import { NewReviewBase, AddProfessorRequest } from '@polyratings/shared';
 import { toast } from 'react-toastify';
 import { useHistory } from 'react-router';
 import { TeacherService } from '@/services';
@@ -45,34 +45,27 @@ export function NewTeacherForm() {
   };
 
   // Use closure in order to access the data from the two forms
-  const reviewFormSubmitOverride = (reviewOverrideData: AddReview) => {
+  const reviewFormSubmitOverride = (reviewOverrideData: NewReviewBase) => {
     if (!teacherFormRef.current) {
       return;
     }
     // @ts-expect-error Ignore ts error for onSubmit handler
     teacherFormRef.current.onsubmit = handleSubmit(async (teacherData) => {
       setLoading(true);
-      const newTeacher: Teacher = {
-        id: '',
+      const newTeacher: AddProfessorRequest = {
         firstName: teacherData.teacherFirstName,
         lastName: teacherData.teacherLastName,
         department: teacherData.teacherDepartment,
         numEvals: 1,
-        overallRating: reviewOverrideData.overallRating,
-        studentDifficulties: reviewOverrideData.recognizesStudentDifficulties,
-        materialClear: reviewOverrideData.presentsMaterialClearly,
-        courses: [reviewOverrideData.classIdOrName],
-        reviews: {
-          [reviewOverrideData.classIdOrName]: [reviewOverrideData.review],
-        },
+        review:reviewOverrideData,
       };
 
       try {
-        const newTeacherId = await teacherService.addNewTeacher(newTeacher);
-        toast.success('Thank you for adding a teacher');
-        history.push(`/teacher/${newTeacherId}`);
+        await teacherService.addNewTeacher(newTeacher);
+        toast.success('Thank you for adding a teacher. It will be reviewed manually and will be available soon');
+        history.push('/');
       } catch (e) {
-        setNetworkErrorText(e as string);
+        setNetworkErrorText((e as Error).toString());
       }
       setLoading(false);
     });
@@ -130,9 +123,6 @@ export function NewTeacherForm() {
       </form>
       <h2 className="text-2xl font-bold my-2">Review</h2>
       <EvaluateTeacherForm
-        teacher={null}
-        setTeacher={() => {}}
-        closeForm={() => {}}
         innerRef={reviewFormRef}
         overrideSubmitHandler={reviewFormSubmitOverride}
       />

@@ -4,7 +4,7 @@ interface AppConfiguration {
 }
 
 const devConfig: AppConfiguration = {
-  remoteUrl: 'https:///sunder.polyratings.dev',
+  remoteUrl: 'https:///sunder-backend.addison-polyratings.workers.dev',
   base: '/',
 };
 
