@@ -32,7 +32,7 @@ interface EvaluateTeacherFormInputs {
 }
 
 interface EvaluateTeacherFormProps {
-    teacher?: Teacher;
+    teacher?: Teacher | null;
     setTeacher?: (teacher: Teacher) => void;
     closeForm?: () => void;
     overrideSubmitHandler?: (review: NewReviewBase) => void | Promise<void>;
