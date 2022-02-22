@@ -4,9 +4,11 @@
   "scripts": {
     "bootstrap": "lerna bootstrap --hoist -- -f",
     "build": "lerna run build",
-    "start": "lerna run start:prod --parallel",
     "start:dev": "lerna run start:dev --parallel",
-    "test": "lerna run test --stream"
+    "test": "lerna run test --stream",
+    "deploy:prod": "npm run deploy:prod --stream",
+    "deploy:beta": "npm run deploy:beta --stream",
+    "deploy:dev": "npm run deploy:dev --stream"
   },
   "devDependencies": {
     "lerna": "^4.0.0"
