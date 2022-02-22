@@ -18,9 +18,9 @@ type = "ESModule"
 globs = ["**/*.js"]
 
 # TODO: Change env.sunder and env.dev to use non-prod datasets
-[env.sunder]
-name = 'sunder-backend'
-route = 'sunder.polyratings.dev/*'
+[env.dev]
+name = 'dev-backend'
+route = 'api-dev.polyratings.dev/*'
 usage = "bundled"
 kv_namespaces = [
     { binding = "POLYRATINGS", id = "c6bf2730306a4e65bb8aa7412ae6f250", preview_id = "1c0b9ffba23c46f2928b7af696de1862"},
@@ -41,8 +41,8 @@ kv_namespaces = [
 ]
 
 [env.prod]
-name = "testing-backend"
-route = "testing.polyratings.dev/*"
+name = "prod-backend"
+route = "api-prod.polyratings.dev/*"
 usage = "bundled"
 kv_namespaces = [
     { binding = "POLYRATINGS", id = "c6bf2730306a4e65bb8aa7412ae6f250", preview_id = "1c0b9ffba23c46f2928b7af696de1862"},

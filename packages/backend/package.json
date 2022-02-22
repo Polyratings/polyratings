@@ -8,7 +8,10 @@
         "build": "tsc && npm run build:fast",
         "stats": "esbuild-visualizer --metadata ./stats/metadata.json --filename ./stats/stats.html",
         "format": "prettier --write  '*.{json,js}' 'src/**/*.{js,ts}'",
-        "lint": "eslint --max-warnings=0 src && prettier --check '*.{json,js}' 'src/**/*.{js,ts}'"
+        "lint": "eslint --max-warnings=0 src && prettier --check '*.{json,js}' 'src/**/*.{js,ts}'",
+        "deploy:prod": "wrangler publish --env prod",
+        "deploy:beta": "wrangler publish --env beta",
+        "deploy:dev": "wrangler publish --env dev"
     },
     "author": "Addison Tustin <addison@atustin.dev>",
     "license": "GPL-3.0",
@@ -21,6 +24,7 @@
     },
     "devDependencies": {
         "@cloudflare/workers-types": "^3.3.1",
+        "@cloudflare/wrangler": "1.19.8",
         "@types/jest": "^27.4.0",
         "@types/node": "^17.0.10",
         "@typescript-eslint/eslint-plugin": "^5.10.0",

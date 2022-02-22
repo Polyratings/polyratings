@@ -1,0 +1,48 @@
+name: Continuous Integration and Deployment
+
+on:
+  push:
+    branches: [*]
+  pull_request:
+    branches: [*]
+
+jobs:
+  ci:
+    runs-on: ubuntu-latest
+    steps:
+      - name: checkout
+        uses: actions/checkout@master
+
+      - name: Install Top Level Dependencies
+        run: |
+          npm ci
+      
+      - name: Install Dependencies
+        run: |
+          npm run bootstrap
+
+      - name: Build Packages
+        run: |
+          npm run build
+
+      - name: Test Packages
+        run: |
+          npm run test
+  
+  deploy_master:
+    needs: ci
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/master'
+    steps:
+      - name: Deploy Prod
+        run: |
+          npm run deploy:prod
+
+  deploy_beta:
+  needs: ci
+  runs-on: ubuntu-latest
+  if: github.ref == 'refs/heads/beta'
+  steps:
+    - name: Deploy Beta
+      run: |
+        npm run deploy:beta
