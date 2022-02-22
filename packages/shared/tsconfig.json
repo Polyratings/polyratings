@@ -1,7 +1,6 @@
 {
   "compilerOptions": {
     "experimentalDecorators": true,
-    "module": "UMD",
     "moduleResolution": "node",
     "declaration": true,
     "removeComments": true,

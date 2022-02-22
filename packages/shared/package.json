@@ -2,10 +2,13 @@
   "name": "@polyratings/shared",
   "version": "1.0.0",
   "description": "",
-  "main": "dist/index.js",
+  "main": "dist/cjs/index.js",
+  "module": "dist/esm/index.js",
   "scripts": {
     "start:dev": "tsc --watch",
-    "build": "tsc"
+    "build:esm": "tsc --module esnext --outdir dist/esm",
+    "build:cjs": "tsc --module commonjs --outdir dist/cjs",
+    "build": "npm run build:esm && npm run build:cjs"
   },
   "devDependencies": {
     "typescript": "^4.4.4"
