@@ -1,7 +1,7 @@
 {
   "compilerOptions": {
     "experimentalDecorators": true,
-    "module": "ESNEXT",
+    "module": "UMD",
     "moduleResolution": "node",
     "declaration": true,
     "removeComments": true,

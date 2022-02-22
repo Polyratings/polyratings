@@ -52,12 +52,14 @@ export class RatingHandler {
 
         if (passedAnalysis) {
             pendingRating.status = 'Successful';
+            const updatedTeacher = await ctx.env.kvDao.addReview(pendingRating);
+            await ctx.env.kvDao.addPendingReview(pendingRating);
+            
             ctx.response.body = ProcessingReviewResponse.new(
                 true,
-                'Review has successfully been processed, it should be on the site within the next hour.',
+                'Review has successfully been processed, it should be on the site within the next minute.',
+                updatedTeacher
             );
-            await ctx.env.kvDao.addReview(pendingRating);
-            await ctx.env.kvDao.addPendingReview(pendingRating);
         } else {
             pendingRating.status = 'Failed';
             ctx.response.body = ProcessingReviewResponse.new(

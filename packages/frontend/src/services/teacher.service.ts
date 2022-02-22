@@ -1,4 +1,4 @@
-import { Teacher, TeacherIdResponse } from '@polyratings/shared';
+import { AddProfessorRequest, Teacher } from '@polyratings/shared';
 import { config } from '@/App.config';
 import { getRandomSubarray, intersectingDbEntities } from '@/utils';
 import { HttpService } from './http.service';
@@ -119,16 +119,14 @@ export class TeacherService {
     return this.allTeachers;
   }
 
-  public async addNewTeacher(newTeacher: Teacher): Promise<number> {
-    const res = await this.httpService.fetch(`${config.remoteUrl}/teacher`, {
+  public async addNewTeacher(newTeacher: AddProfessorRequest): Promise<void> {
+    await this.httpService.fetch(`${config.remoteUrl}/professors`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify(newTeacher),
-    });
-    const teacherIdResponse = (await res.json()) as TeacherIdResponse;
-    return teacherIdResponse.teacherId;
+    });;
   }
 
   private addTeacherToCache(teacher: Teacher) {
@@ -137,6 +135,10 @@ export class TeacherService {
       exp: Date.now() + TEACHER_CACHE_TIME,
     };
     this.storage.setItem(INDIVIDUAL_TEACHER_CACHE_KEY, JSON.stringify(this.teacherCache));
+  }
+
+  public overrideCacheEntry(teacher:Teacher) {
+    this.addTeacherToCache(teacher)
   }
 
   private removeTeacherFromCache(id: string) {
