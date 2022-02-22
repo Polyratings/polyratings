@@ -10,8 +10,6 @@ export default defineConfig({
   base: process.env.GITHUB_WORKFLOW ? '/polyratings-revamp/' : '/',
   plugins: [react(), tsconfigPaths()],
   build: {
-    // Needed since we are compiling shared as a UMD package to make jest happy :(
-    commonjsOptions: { exclude: ['@polyratings/shared'], include: [] },
     sourcemap: true,
     rollupOptions:{
       plugins:[
@@ -21,8 +19,5 @@ export default defineConfig({
           sourcemap: true
       })]
     }
-  },
-  optimizeDeps: {
-    include: ['@polyratings/shared'],
-  },
+  }
 });
