@@ -35,10 +35,10 @@ jobs:
           npm run deploy:prod
 
   deploy_beta:
-  needs: ci
-  runs-on: ubuntu-latest
-  if: github.ref == 'refs/heads/beta'
-  steps:
-    - name: Deploy Beta
-      run: |
-        npm run deploy:beta
+    needs: ci
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/beta'
+    steps:
+      - name: Deploy Beta
+        run: |
+          npm run deploy:beta
