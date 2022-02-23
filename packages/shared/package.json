@@ -11,6 +11,8 @@
     "build": "npm run build:esm && npm run build:cjs"
   },
   "devDependencies": {
+    "@polyratings/eslint-config": "*",
+    "eslint": "^8.7.0",
     "typescript": "^4.4.4"
   },
   "peerDependencies": {

@@ -1,7 +1,7 @@
 export interface UserToken {
-    username:string;
+    username: string;
 
-    sub:string;
+    sub: string;
 
-    exp:number;
+    exp: number;
 }

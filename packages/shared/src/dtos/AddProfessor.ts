@@ -1,8 +1,7 @@
 import { Type } from "class-transformer";
-import { Equals, IsIn, IsNotEmpty, IsUUID, Min, ValidateNested } from "class-validator";
-import { DEPARTMENT_LIST } from "../constants";
-import { NewReviewBase } from './AddReview'
-
+import { Equals, IsIn, IsNotEmpty, ValidateNested } from "class-validator";
+import { DEPARTMENT_LIST } from "@/constants";
+import { NewReviewBase } from "./AddReview";
 
 export class AddProfessorRequest {
     @IsIn(DEPARTMENT_LIST)
@@ -16,8 +15,8 @@ export class AddProfessorRequest {
 
     @Equals(1)
     numEvals: number;
-    
+
     @ValidateNested()
     @Type(() => NewReviewBase)
-    review:NewReviewBase
+    review: NewReviewBase;
 }

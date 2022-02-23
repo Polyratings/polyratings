@@ -12,6 +12,9 @@
     "incremental": true,
     "skipLibCheck": true,
     "strict": true,
+    "paths": {
+      "@/*": ["src/*"]
+  },
     "strictPropertyInitialization": false
   }
 }

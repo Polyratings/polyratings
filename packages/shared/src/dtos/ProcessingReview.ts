@@ -1,25 +1,27 @@
-import { plainToInstance, Type } from 'class-transformer';
-import { Allow, IsBoolean, IsOptional, IsString, ValidateNested } from 'class-validator';
-import { Teacher } from '../interfaces';
-import { ExposeFrontend } from '../decorators';
-import { BaseDTO } from './BaseDTO';
+import { plainToInstance } from "class-transformer";
+import { Allow, IsBoolean, IsOptional, IsString } from "class-validator";
+import { Teacher, ExposeFrontend, BaseDTO } from "@/index";
 
 export class ProcessingReviewResponse extends BaseDTO {
     @IsBoolean()
     @ExposeFrontend()
-    success: boolean
+    success: boolean;
 
     @IsOptional()
     @IsString()
     @ExposeFrontend()
-    message?: string
+    message?: string;
 
     @IsOptional()
     @Allow()
     @ExposeFrontend()
-    updatedProfessor?:Teacher
+    updatedProfessor?: Teacher;
 
-    static new(success: boolean, message?: string, updatedProfessor?:Teacher):ProcessingReviewResponse {
-        return plainToInstance(ProcessingReviewResponse, { success, message, updatedProfessor })
+    static new(
+        success: boolean,
+        message?: string,
+        updatedProfessor?: Teacher,
+    ): ProcessingReviewResponse {
+        return plainToInstance(ProcessingReviewResponse, { success, message, updatedProfessor });
     }
 }

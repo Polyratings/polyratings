@@ -1,9 +1,17 @@
-import { IsBoolean, IsDefined, IsIn, IsInt, IsNotEmpty, IsOptional, IsString, IsUUID, Max, Min, MinLength } from 'class-validator';
-import { DEPARTMENT_LIST } from '../constants';
-import { BaseDTO } from './BaseDTO';
-import { CourseType, Grade, GradeLevel } from '../interfaces';
-import { ExposeFrontend } from '../decorators';
-import { plainToInstance } from 'class-transformer';
+import {
+    IsBoolean,
+    IsDefined,
+    IsIn,
+    IsInt,
+    IsOptional,
+    IsString,
+    IsUUID,
+    Max,
+    Min,
+    MinLength,
+} from "class-validator";
+import { plainToInstance } from "class-transformer";
+import { DEPARTMENT_LIST, CourseType, Grade, GradeLevel, ExposeFrontend, BaseDTO } from "@/index";
 
 export class NewReviewBase {
     @IsDefined()
@@ -53,18 +61,18 @@ export class AddReviewRequest extends NewReviewBase {
 export class AddReviewResponse extends BaseDTO {
     @ExposeFrontend()
     @IsBoolean()
-    success: boolean
+    success: boolean;
 
     @ExposeFrontend()
     @IsString()
-    statusMessage: string
+    statusMessage: string;
 
     @IsOptional()
     @IsString()
     @ExposeFrontend()
-    newReviewId?: string
+    newReviewId?: string;
 
-    static new(success:boolean, statusMessage:string, newReviewId?:string):AddReviewResponse {
-        return plainToInstance(AddReviewResponse, {success, statusMessage, newReviewId})
+    static new(success: boolean, statusMessage: string, newReviewId?: string): AddReviewResponse {
+        return plainToInstance(AddReviewResponse, { success, statusMessage, newReviewId });
     }
 }

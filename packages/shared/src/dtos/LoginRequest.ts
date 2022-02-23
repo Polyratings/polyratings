@@ -1,10 +1,10 @@
 import { IsString } from "class-validator";
-import { BaseDTO } from "../dtos";
+import { BaseDTO } from ".";
 
 export class LoginRequest extends BaseDTO {
     @IsString()
-    username:string
+    username: string;
 
     @IsString()
-    password:string
+    password: string;
 }
