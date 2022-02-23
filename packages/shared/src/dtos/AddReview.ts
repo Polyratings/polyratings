@@ -11,7 +11,7 @@ import {
     MinLength,
 } from "class-validator";
 import { plainToInstance } from "class-transformer";
-import { DEPARTMENT_LIST, CourseType, Grade, GradeLevel, ExposeFrontend, BaseDTO } from "@/index";
+import { DEPARTMENT_LIST, CourseType, Grade, GradeLevel, ExposeFrontend, BaseDTO } from "../index";
 
 export class NewReviewBase {
     @IsDefined()

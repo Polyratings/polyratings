@@ -1,6 +1,6 @@
 import { plainToInstance } from "class-transformer";
 import { IsString } from "class-validator";
-import { ExposeFrontend, BaseDTO } from "@/index";
+import { ExposeFrontend, BaseDTO } from "../index";
 
 export class AuthResponse extends BaseDTO {
     @ExposeFrontend()
