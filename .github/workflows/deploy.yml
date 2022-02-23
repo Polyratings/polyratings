@@ -46,6 +46,8 @@ jobs:
           npm run build
     
       - name: Deploy Prod
+        env:
+          CF_API_TOKEN: ${{ secrets.CF_API_TOKEN }}
         run: |
           npm run deploy:prod
 
