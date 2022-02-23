@@ -6,9 +6,9 @@
     "build": "lerna run build",
     "start:dev": "lerna run start:dev --parallel",
     "test": "lerna run test --stream",
-    "deploy:prod": "npm run deploy:prod --stream",
-    "deploy:beta": "npm run deploy:beta --stream",
-    "deploy:dev": "npm run deploy:dev --stream"
+    "deploy:prod": "lerna run deploy:prod --stream",
+    "deploy:beta": "lerna run deploy:beta --stream",
+    "deploy:dev": "lerna run deploy:dev --stream"
   },
   "devDependencies": {
     "lerna": "^4.0.0"
