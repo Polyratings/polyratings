@@ -30,6 +30,21 @@ jobs:
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/master'
     steps:
+      - name: checkout
+        uses: actions/checkout@master
+
+      - name: Install Top Level Dependencies
+        run: |
+          npm ci
+    
+      - name: Install Dependencies
+        run: |
+          npm run bootstrap
+
+      - name: Build Packages
+        run: |
+          npm run build
+    
       - name: Deploy Prod
         run: |
           npm run deploy:prod
@@ -39,6 +54,21 @@ jobs:
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/beta'
     steps:
+      - name: checkout
+        uses: actions/checkout@master
+
+      - name: Install Top Level Dependencies
+        run: |
+          npm ci
+    
+      - name: Install Dependencies
+        run: |
+          npm run bootstrap
+
+      - name: Build Packages
+        run: |
+          npm run build
+    
       - name: Deploy Beta
         run: |
           npm run deploy:beta
