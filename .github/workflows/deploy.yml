@@ -24,53 +24,17 @@ jobs:
       - name: Test Packages
         run: |
           npm run test
-  
-  deploy_master:
-    needs: ci
-    runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/master'
-    steps:
-      - name: checkout
-        uses: actions/checkout@master
 
-      - name: Install Top Level Dependencies
-        run: |
-          npm ci
-    
-      - name: Install Dependencies
-        run: |
-          npm run bootstrap
-
-      - name: Build Packages
-        run: |
-          npm run build
-    
       - name: Deploy Prod
+        if: github.ref == 'refs/heads/prod'
         env:
           CF_API_TOKEN: ${{ secrets.CF_API_TOKEN }}
         run: |
           npm run deploy:prod
 
-  deploy_beta:
-    needs: ci
-    runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/beta'
-    steps:
-      - name: checkout
-        uses: actions/checkout@master
-
-      - name: Install Top Level Dependencies
-        run: |
-          npm ci
-    
-      - name: Install Dependencies
-        run: |
-          npm run bootstrap
-
-      - name: Build Packages
-        run: |
-          npm run build
-    
       - name: Deploy Beta
+        if: github.ref == 'refs/heads/beta'
+        env:
+          CF_API_TOKEN: ${{ secrets.CF_API_TOKEN }}
         run: |
           npm run deploy:beta
