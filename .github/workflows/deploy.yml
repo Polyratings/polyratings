@@ -3,7 +3,7 @@ name: Continuous Integration and Deployment
 on: [push]
 
 jobs:
-  ci:
+  Integration_And_Deployment:
     runs-on: ubuntu-latest
     steps:
       - name: checkout
