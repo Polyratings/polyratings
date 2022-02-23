@@ -13,13 +13,11 @@ const prodConfig: AppConfiguration = {
     base: "/",
 };
 
-const githubPagesConfig: AppConfiguration = {
-    remoteUrl: "https://api-beta.polyratings.dev",
-    base: "/polyratings-revamp/",
+const betaConfig: AppConfiguration = {
+    remoteUrl: "https://api-prod.polyratings.dev",
+    base: "/",
 };
 
-const regularConfig = process.env.NODE_ENV === "development" ? devConfig : prodConfig;
+const liveConfig = window.location.href.includes("beta.") ? betaConfig : prodConfig;
 
-export const config = window.location.href.includes("github.io")
-    ? githubPagesConfig
-    : regularConfig;
+export const config = process.env.NODE_ENV === "development" ? devConfig : liveConfig;

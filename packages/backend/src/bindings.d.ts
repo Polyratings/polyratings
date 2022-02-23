@@ -12,7 +12,7 @@ export class Env {
 
     constructor(private env: CloudflareEnv) {
         this.kvDao = new KVDAO(
-            env.POLYRATINGS,
+            env.POLYRATINGS_TEACHERS,
             env.POLYRATINGS_USERS,
             env.PROCESSING_QUEUE,
             env.POLYRATINGS_TEACHER_APPROVAL_QUEUE,
@@ -23,7 +23,7 @@ export class Env {
 }
 
 export interface CloudflareEnv {
-    POLYRATINGS: KVNamespace;
+    POLYRATINGS_TEACHERS: KVNamespace;
     PROCESSING_QUEUE: KVNamespace;
     POLYRATINGS_USERS: KVNamespace;
     POLYRATINGS_TEACHER_APPROVAL_QUEUE: KVNamespace;
