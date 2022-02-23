@@ -30,6 +30,7 @@
         "tailwind-scrollbar-hide": "^1.0.3"
     },
     "devDependencies": {
+        "@polyratings/eslint-config": "*",
         "@tailwindcss/forms": "^0.3.4",
         "@testing-library/jest-dom": "5.16.1",
         "@testing-library/react": "^12.1.2",
@@ -46,15 +47,10 @@
         "@types/tailwindcss": "^2.2.1",
         "@types/testing-library__jest-dom": "^5.14.2",
         "@types/testing-library__react": "^10.2.0",
-        "@typescript-eslint/eslint-plugin": "^5.8.0",
-        "@typescript-eslint/parser": "^5.8.0",
         "@vitejs/plugin-react": "^1.0.0",
         "autoprefixer": "^10.3.7",
         "dom-storage": "^2.1.0",
         "eslint": "^8.5.0",
-        "eslint-config-airbnb": "^19.0.4",
-        "eslint-config-prettier": "^8.3.0",
-        "eslint-plugin-prettier": "^4.0.0",
         "isomorphic-fetch": "^3.0.0",
         "jest": "^27.4.3",
         "jsdom": "^19.0.0",

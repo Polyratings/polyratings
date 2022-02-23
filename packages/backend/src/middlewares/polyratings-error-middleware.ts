@@ -1,5 +1,5 @@
-import { Context, HttpStatus, MiddlewareNextFunction } from 'sunder';
-import { PolyratingsError } from '@polyratings/backend/utils/errors';
+import { Context, HttpStatus, MiddlewareNextFunction } from "sunder";
+import { PolyratingsError } from "@polyratings/backend/utils/errors";
 
 export async function polyratingsErrorMiddleware(
     ctx: Context<unknown>,
@@ -17,10 +17,11 @@ export async function polyratingsErrorMiddleware(
             ctx.response.body = { message: err.body, status: err.status };
         } else {
             // TODO: setup webhook? for error logging in discord
+            // eslint-disable-next-line no-console
             console.error(err);
             ctx.response.status = HttpStatus.InternalServerError;
             ctx.response.body = {
-                message: 'Internal server error: non-http error.',
+                message: "Internal server error: non-http error.",
             };
         }
     }

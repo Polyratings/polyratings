@@ -1,7 +1,7 @@
-import { Context, MiddlewareNextFunction } from 'sunder';
-import { BaseDTO } from '@polyratings/shared';
-import { instanceToPlain } from 'class-transformer';
-import { DtoBypass } from '../dtos/DtoBypass';
+import { Context, MiddlewareNextFunction } from "sunder";
+import { BaseDTO } from "@polyratings/shared";
+import { instanceToPlain } from "class-transformer";
+import { DtoBypass } from "@polyratings/backend/dtos/DtoBypass";
 
 /**
  * The goal of this middleware is to coerce all response bodies to be of a BaseDTO type, which essentially enforces
@@ -16,6 +16,7 @@ export async function polyratingsBodyMiddleware(
     await next();
     if (
         ctx.response.body &&
+        // eslint-disable-next-line no-underscore-dangle
         (ctx.response.body.constructor as typeof BaseDTO).__base_dto_marker__
     ) {
         // TODO(mfish33): Find why strategy:'excludeAll' does not work for record types?

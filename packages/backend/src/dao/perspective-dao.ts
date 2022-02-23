@@ -1,6 +1,6 @@
-import { PendingReviewDTO } from '@polyratings/backend/dtos/Reviews';
+import { PendingReviewDTO } from "@polyratings/backend/dtos/Reviews";
 
-const ANALYZE_COMMENT_URL = 'https://commentanalyzer.googleapis.com/v1alpha1/comments:analyze';
+const ANALYZE_COMMENT_URL = "https://commentanalyzer.googleapis.com/v1alpha1/comments:analyze";
 
 export class PerspectiveDAO {
     constructor(private readonly apiKey: string) {}
@@ -10,7 +10,7 @@ export class PerspectiveDAO {
         const requestBody: AnalyzeCommentRequest = {
             comment: {
                 text: review.rating,
-                type: 'PLAIN_TEXT',
+                type: "PLAIN_TEXT",
             },
             requestedAttributes: {
                 SEVERE_TOXICITY: {},
@@ -18,17 +18,19 @@ export class PerspectiveDAO {
                 THREAT: {},
                 SEXUALLY_EXPLICIT: {},
             },
-            languages: ['en'],
-            clientToken: 'Polyratings',
+            languages: ["en"],
+            clientToken: "Polyratings",
         };
 
         const httpResponse = await fetch(`${ANALYZE_COMMENT_URL}?key=${this.apiKey}`, {
             body: JSON.stringify(requestBody),
-            method: 'POST',
+            method: "POST",
         });
 
         if (httpResponse.status !== 200) {
-            throw { status: httpResponse.status, message: httpResponse.statusText };
+            throw new Error(
+                JSON.stringify({ status: httpResponse.status, message: httpResponse.statusText }),
+            );
         }
 
         return httpResponse.json();
@@ -49,25 +51,25 @@ export type PerspectiveAttributeNames =
     | PerspectiveExperimentalAttributeNames;
 
 export type PerspectiveProductionAttributeNames =
-    | 'TOXICITY'
-    | 'SEVERE_TOXICITY'
-    | 'IDENTITY_ATTACK'
-    | 'INSULT'
-    | 'PROFANITY'
-    | 'THREAT';
+    | "TOXICITY"
+    | "SEVERE_TOXICITY"
+    | "IDENTITY_ATTACK"
+    | "INSULT"
+    | "PROFANITY"
+    | "THREAT";
 
 export type PerspectiveExperimentalAttributeNames =
-    | 'TOXICITY_EXPERIMENTAL'
-    | 'SEVERE_TOXICITY_EXPERIMENTAL'
-    | 'IDENTITY_ATTACK_EXPERIMENTAL'
-    | 'INSULT_EXPERIMENTAL'
-    | 'PROFANITY_EXPERIMENTAL'
-    | 'THREAT_EXPERIMENTAL'
-    | 'SEXUALLY_EXPLICIT'
-    | 'FLIRTATION';
+    | "TOXICITY_EXPERIMENTAL"
+    | "SEVERE_TOXICITY_EXPERIMENTAL"
+    | "IDENTITY_ATTACK_EXPERIMENTAL"
+    | "INSULT_EXPERIMENTAL"
+    | "PROFANITY_EXPERIMENTAL"
+    | "THREAT_EXPERIMENTAL"
+    | "SEXUALLY_EXPLICIT"
+    | "FLIRTATION";
 
 export interface PerspectiveRequestedAttribute {
-    scoreType?: 'PROBABILITY';
+    scoreType?: "PROBABILITY";
     scoreThreshold?: number; // needs to be between 0 and 1
 }
 
@@ -89,7 +91,7 @@ export interface PerspectiveAttributeScore {
 export interface AnalyzeCommentRequest {
     comment: {
         text: string;
-        type: 'PLAIN_TEXT';
+        type: "PLAIN_TEXT";
     };
     requestedAttributes: Partial<Record<PerspectiveAttributeNames, PerspectiveRequestedAttribute>>;
     languages?: string[];

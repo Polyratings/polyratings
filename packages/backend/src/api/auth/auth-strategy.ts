@@ -1,9 +1,10 @@
-import { UserToken } from '@polyratings/backend/dtos/UserToken';
-import { PolyratingsError } from '@polyratings/backend/utils/errors';
-import { UserToken as UserTokenPlain } from '@polyratings/shared';
-import { plainToInstance } from 'class-transformer';
-import * as jwt from '@tsndr/cloudflare-worker-jwt';
-import { User } from '@polyratings/backend/dtos/User';
+/* eslint-disable class-methods-use-this */
+import { UserToken } from "@polyratings/backend/dtos/UserToken";
+import { PolyratingsError } from "@polyratings/backend/utils/errors";
+import { UserToken as UserTokenPlain } from "@polyratings/shared";
+import { plainToInstance } from "class-transformer";
+import * as jwt from "@tsndr/cloudflare-worker-jwt";
+import { User } from "@polyratings/backend/dtos/User";
 
 const UTF8_MAX_BYTES = 4;
 
@@ -23,7 +24,7 @@ export class AuthStrategy {
         const saltStr = textDecoder.decode(salt).substr(0, AuthStrategy.SALT_SIZE);
         const combined = saltStr + input;
 
-        const hash = await crypto.subtle.digest('SHA-256', textEncoder.encode(combined));
+        const hash = await crypto.subtle.digest("SHA-256", textEncoder.encode(combined));
 
         const hashedPassword = saltStr + textDecoder.decode(hash);
         return hashedPassword;
@@ -38,7 +39,7 @@ export class AuthStrategy {
 
         const combined = salt + password;
 
-        const computedHash = await crypto.subtle.digest('SHA-256', textEncoder.encode(combined));
+        const computedHash = await crypto.subtle.digest("SHA-256", textEncoder.encode(combined));
         const computedHashStr = textDecoder.decode(computedHash);
 
         return storedHash === computedHashStr;
@@ -46,13 +47,13 @@ export class AuthStrategy {
 
     async verify(authHeader: string | null): Promise<UserToken> {
         if (!authHeader) {
-            throw new PolyratingsError(401, 'Bad Credentials');
+            throw new PolyratingsError(401, "Bad Credentials");
         }
 
-        const token = authHeader.replace('Bearer ', '');
+        const token = authHeader.replace("Bearer ", "");
         const isValid = await jwt.verify(token, this.jwtSigningKey);
         if (!isValid) {
-            throw new PolyratingsError(401, 'Invalid JWT ' + token);
+            throw new PolyratingsError(401, `Invalid JWT ${token}`);
         }
 
         // If token is valid payload should be as well

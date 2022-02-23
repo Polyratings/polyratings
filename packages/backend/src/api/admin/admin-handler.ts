@@ -1,13 +1,13 @@
-import { Env } from '@polyratings/backend/bindings';
-import { DtoBypass } from '@polyratings/backend/dtos/DtoBypass';
-import { AuthenticatedWithBody } from '@polyratings/backend/middlewares/auth-middleware';
-import { LoginRequest } from '@polyratings/shared';
-import { Context } from 'sunder';
+import { Env } from "@polyratings/backend/bindings";
+import { DtoBypass } from "@polyratings/backend/dtos/DtoBypass";
+import { AuthenticatedWithBody } from "@polyratings/backend/middlewares/auth-middleware";
+import { LoginRequest } from "@polyratings/shared";
+import { Context } from "sunder";
 
 export class AdminHandler {
     // TODO: Replace with real method
     static removeRating(ctx: Context<Env, unknown, AuthenticatedWithBody<LoginRequest>>) {
-        console.log(ctx.data);
+        ctx.response.body = new DtoBypass(ctx.data);
     }
 
     static async pendingProfessors(ctx: Context<Env, unknown, AuthenticatedWithBody<unknown>>) {

@@ -1,9 +1,12 @@
-import { Context, MiddlewareNextFunction } from 'sunder';
-import { Env } from '@polyratings/backend/bindings';
-import { ValidationError } from 'class-validator';
-import { PolyratingsError } from '@polyratings/backend/utils/errors';
-import { AuthenticatedWithBody } from './auth-middleware';
-import { Constructs, transformAndValidate } from '../utils/transform-and-validate';
+import { Context, MiddlewareNextFunction } from "sunder";
+import { Env } from "@polyratings/backend/bindings";
+import { ValidationError } from "class-validator";
+import { PolyratingsError } from "@polyratings/backend/utils/errors";
+import {
+    Constructs,
+    transformAndValidate,
+} from "@polyratings/backend/utils/transform-and-validate";
+import { AuthenticatedWithBody } from "./auth-middleware";
 
 // Function overloads to allow use with authentication middleware
 export function withValidatedBody<T extends object>(
@@ -20,14 +23,10 @@ export function withValidatedBody<T extends object>(targetType: Constructs<T>) {
         try {
             ctx.data = await transformAndValidate(targetType, await ctx.request.json());
         } catch (err) {
-            const responseErrors: object[] = [];
-            for (const error of err as ValidationError[]) {
-                responseErrors.push({
-                    propertyName: error.property,
-                    reasonForFailure: error.constraints,
-                });
-            }
-
+            const responseErrors = (err as ValidationError[]).map((error) => ({
+                propertyName: error.property,
+                reasonForFailure: error.constraints,
+            }));
             throw new PolyratingsError(400, responseErrors);
         }
         return next();

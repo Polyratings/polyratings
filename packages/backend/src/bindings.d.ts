@@ -1,11 +1,13 @@
-import { KVDAO } from '@polyratings/backend/dao/kv-dao';
-import { CloudflareEnv } from '@polyratings/backend/index';
-import { PerspectiveDAO } from '@polyratings/backend/dao/perspective-dao';
-import { AuthStrategy } from '@polyratings/backend/api/auth/auth-strategy';
+import { KVDAO } from "@polyratings/backend/dao/kv-dao";
+import { CloudflareEnv } from "@polyratings/backend/index";
+import { PerspectiveDAO } from "@polyratings/backend/dao/perspective-dao";
+import { AuthStrategy } from "@polyratings/backend/api/auth/auth-strategy";
 
 export class Env {
     kvDao: KVDAO;
+
     perspectiveDao: PerspectiveDAO;
+
     authStrategy: AuthStrategy;
 
     constructor(private env: CloudflareEnv) {

@@ -1,4 +1,4 @@
-import { IsNotEmpty } from 'class-validator';
+import { IsNotEmpty } from "class-validator";
 
 // Purposely do not extend BaseDto so it can not be returned from the backend
 export class User {

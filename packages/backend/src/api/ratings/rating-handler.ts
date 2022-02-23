@@ -1,14 +1,14 @@
-import { Context } from 'sunder';
-import { Env } from '@polyratings/backend/bindings';
-import { AddReviewRequest, AddReviewResponse, ProcessingReviewResponse } from '@polyratings/shared';
-import { PolyratingsError } from '@polyratings/backend/utils/errors';
-import { PendingReviewDTO } from '@polyratings/backend/dtos/Reviews';
+import { Context } from "sunder";
+import { Env } from "@polyratings/backend/bindings";
+import { AddReviewRequest, AddReviewResponse, ProcessingReviewResponse } from "@polyratings/shared";
+import { PolyratingsError } from "@polyratings/backend/utils/errors";
+import { PendingReviewDTO } from "@polyratings/backend/dtos/Reviews";
 
 export class RatingHandler {
     static async addNewRating(ctx: Context<Env, { id: string }, AddReviewRequest>) {
         if (ctx.params.id !== ctx.data.professor) {
             throw new PolyratingsError(400, {
-                message: 'Failed validation on Professor ID',
+                message: "Failed validation on Professor ID",
             });
         }
 
@@ -28,10 +28,10 @@ export class RatingHandler {
     static async processRating(ctx: Context<Env, { id: string }>) {
         const pendingRating = await ctx.env.kvDao.getPendingReview(ctx.params.id);
 
-        if (pendingRating.status !== 'Queued') {
+        if (pendingRating.status !== "Queued") {
             throw new PolyratingsError(
                 405,
-                'Cannot perform operation on pending rating in terminal state!',
+                "Cannot perform operation on pending rating in terminal state!",
             );
         }
 
@@ -45,26 +45,26 @@ export class RatingHandler {
             analysisResponse.attributeScores.SEXUALLY_EXPLICIT?.summaryScore?.value,
         ].reduce((acc, num) => {
             if (num === undefined) {
-                throw new Error('Not all of perspective summery scores were received');
+                throw new Error("Not all of perspective summery scores were received");
             }
             return num < 0.8 && acc;
         }, true);
 
         if (passedAnalysis) {
-            pendingRating.status = 'Successful';
+            pendingRating.status = "Successful";
             const updatedTeacher = await ctx.env.kvDao.addReview(pendingRating);
             await ctx.env.kvDao.addPendingReview(pendingRating);
-            
+
             ctx.response.body = ProcessingReviewResponse.new(
                 true,
-                'Review has successfully been processed, it should be on the site within the next minute.',
-                updatedTeacher
+                "Review has successfully been processed, it should be on the site within the next minute.",
+                updatedTeacher,
             );
         } else {
-            pendingRating.status = 'Failed';
+            pendingRating.status = "Failed";
             ctx.response.body = ProcessingReviewResponse.new(
                 false,
-                'Review failed sentiment analysis, please contact nobody@example.org for assistance',
+                "Review failed sentiment analysis, please contact nobody@example.org for assistance",
             );
         }
     }

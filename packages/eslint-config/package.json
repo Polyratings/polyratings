@@ -1,0 +1,16 @@
+{
+  "name": "@polyratings/eslint-config",
+  "version": "0.0.1",
+  "description": "> TODO: description",
+  "author": "mfish33 <maxmfishernj@gmail.com>",
+  "homepage": "https://github.com/Polyratings/polyratings#readme",
+  "main": "index.js",
+  "devDependencies": {
+    "@typescript-eslint/eslint-plugin": "^5.8.0",
+    "@typescript-eslint/parser": "^5.8.0",
+    "eslint": "^8.5.0",
+    "eslint-config-airbnb": "^19.0.4",
+    "eslint-config-prettier": "^8.3.0",
+    "eslint-plugin-prettier": "^4.0.0"
+  }
+}

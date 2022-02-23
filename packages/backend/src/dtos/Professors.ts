@@ -1,14 +1,14 @@
-import { Allow, IsIn, IsInt, IsNotEmpty, IsUUID, Max, Min } from 'class-validator';
-import { plainToInstance, Transform } from 'class-transformer';
+import { Allow, IsIn, IsInt, IsNotEmpty, IsUUID, Max, Min } from "class-validator";
+import { plainToInstance, Transform } from "class-transformer";
 import {
     BaseDTO,
     DEPARTMENT_LIST,
     Teacher,
     ExposeFrontend,
     AddProfessorRequest,
-} from '@polyratings/shared';
-import { ReviewDTO } from './Reviews';
-import { roundToPrecision } from '../utils/math';
+} from "@polyratings/shared";
+import { roundToPrecision } from "@polyratings/backend/utils/math";
+import { ReviewDTO } from "./Reviews";
 
 export class TruncatedProfessorDTO extends BaseDTO implements Teacher {
     @IsUUID()
@@ -93,7 +93,7 @@ export class ProfessorDTO extends TruncatedProfessorDTO {
         const newOverall =
             (this.overallRating * this.numEvals + review.overallRating) / (this.numEvals + 1);
 
-        this.numEvals = this.numEvals + 1;
+        this.numEvals += 1;
 
         // this properly rounds all of our statistics to the nearest hundredth
         this.materialClear = roundToPrecision(newMaterial, 2);
@@ -106,7 +106,7 @@ export class ProfessorDTO extends TruncatedProfessorDTO {
     }
 
     static fromAddProfessorRequest(addProfessorRequest: AddProfessorRequest): ProfessorDTO {
-        const newProfessorId = crypto.randomUUID()
+        const newProfessorId = crypto.randomUUID();
 
         const plainReview: PlainNewProfessorReviewDTO = {
             professor: newProfessorId,
@@ -137,5 +137,5 @@ export class ProfessorDTO extends TruncatedProfessorDTO {
 }
 
 // Not Pretty but will at least cause compile time errors
-type PlainProfessorDTO = Omit<ProfessorDTO, 'addReview' | 'toTruncatedProfessorDTO'>;
-type PlainNewProfessorReviewDTO = Omit<ReviewDTO, 'postDate' | 'id'>;
+type PlainProfessorDTO = Omit<ProfessorDTO, "addReview" | "toTruncatedProfessorDTO">;
+type PlainNewProfessorReviewDTO = Omit<ReviewDTO, "postDate" | "id">;

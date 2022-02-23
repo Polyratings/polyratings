@@ -9,7 +9,7 @@ import {
     Default,
     ExcludeFrontend,
     ExposeFrontend,
-} from '@polyratings/shared';
+} from "@polyratings/shared";
 import {
     Allow,
     IsDate,
@@ -20,8 +20,8 @@ import {
     Max,
     Min,
     MinLength,
-} from 'class-validator';
-import { plainToInstance, Type } from 'class-transformer';
+} from "class-validator";
+import { plainToInstance, Type } from "class-transformer";
 
 export class ReviewDTO extends BaseDTO implements Review {
     @IsUUID()
@@ -74,7 +74,7 @@ export class ReviewDTO extends BaseDTO implements Review {
     rating: string;
 }
 
-export type PendingReviewStatus = 'Queued' | 'Processing' | 'Successful' | 'Failed';
+export type PendingReviewStatus = "Queued" | "Processing" | "Successful" | "Failed";
 
 // TODO: Determine why class-transformer/validator is unable to validate/transform this object
 // likely because of inheritance, so we may just have to explicitly enumerate all of the fields present
@@ -82,7 +82,7 @@ export class PendingReviewDTO extends ReviewDTO {
     // Default state on creation is Queued
     @Allow()
     @ExcludeFrontend()
-    @Default(() => 'Queued')
+    @Default(() => "Queued")
     status: PendingReviewStatus;
 
     @Allow()

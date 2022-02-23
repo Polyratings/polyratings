@@ -1,8 +1,8 @@
-import { Context } from 'sunder';
-import { Env } from '@polyratings/backend/bindings';
-import { DtoBypass } from '@polyratings/backend/dtos/DtoBypass';
-import { AddProfessorRequest } from '@polyratings/shared';
-import { ProfessorDTO } from '@polyratings/backend/dtos/Professors';
+import { Context } from "sunder";
+import { Env } from "@polyratings/backend/bindings";
+import { DtoBypass } from "@polyratings/backend/dtos/DtoBypass";
+import { AddProfessorRequest } from "@polyratings/shared";
+import { ProfessorDTO } from "@polyratings/backend/dtos/Professors";
 
 export class ProfessorHandler {
     /**
@@ -28,7 +28,8 @@ export class ProfessorHandler {
 
         const existingPendingProfessors = await ctx.env.kvDao.getAllPendingProfessors();
         const duplicateProfessor = existingPendingProfessors.find(
-            (prof) => prof.firstName == professor.firstName && prof.lastName == prof.lastName,
+            (prof) =>
+                prof.firstName === professor.firstName && prof.lastName === professor.lastName,
         );
 
         if (duplicateProfessor) {
@@ -41,6 +42,6 @@ export class ProfessorHandler {
 
         ctx.response.status = 202;
         ctx.response.statusText =
-            'The request for the new professor has been accepted and is pending manual approval';
+            "The request for the new professor has been accepted and is pending manual approval";
     }
 }
