@@ -9,7 +9,7 @@ interface AutoCompleteProps {
     maxDropDownSize: number;
     value: string;
     className?: string;
-    disableDropdown:boolean
+    disableDropdown: boolean;
 }
 
 export function AutoComplete({
@@ -20,7 +20,7 @@ export function AutoComplete({
     maxDropDownSize,
     value: inputValue,
     className = '',
-    disableDropdown
+    disableDropdown,
 }: AutoCompleteProps) {
     const [filteredSuggestions, setFilteredSuggestions] = useState<string[]>([]);
     const [showSuggestions, setShowSuggestions] = useState(false);
@@ -45,7 +45,7 @@ export function AutoComplete({
         setShowSuggestions(true);
     };
 
-    const onClick = (clickedValue:string) => {
+    const onClick = (clickedValue: string) => {
         parentOnChange(clickedValue);
         onResult(clickedValue);
         setShowSuggestions(false);
@@ -71,10 +71,13 @@ export function AutoComplete({
                     setActiveSuggestionIndex(activeSuggestionIndex + 1);
                 }
                 return;
-            case 'Enter':{
+            case 'Enter': {
                 setShowSuggestions(false);
                 setActiveSuggestionIndex(-1);
-                const searchValue = activeSuggestionIndex === -1 ? inputValue : filteredSuggestions[activeSuggestionIndex]
+                const searchValue =
+                    activeSuggestionIndex === -1
+                        ? inputValue
+                        : filteredSuggestions[activeSuggestionIndex];
                 parentOnChange(searchValue);
                 onResult(searchValue);
             }

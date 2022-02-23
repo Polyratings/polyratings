@@ -45,7 +45,6 @@ export function EvaluateTeacherForm({
     overrideSubmitHandler,
     innerRef,
 }: EvaluateTeacherFormProps) {
-
     const {
         register,
         handleSubmit,
@@ -65,7 +64,7 @@ export function EvaluateTeacherForm({
     const onSubmit: SubmitHandler<EvaluateTeacherFormInputs> = async (formResult) => {
         setLoading(true);
         const courseNum =
-        formResult.knownClass && formResult.knownClass !== 'other'
+            formResult.knownClass && formResult.knownClass !== 'other'
                 ? parseInt(formResult.knownClass.split(' ')[1], 10)
                 : parseInt(formResult.unknownClassNumber, 10);
         const department =
@@ -93,11 +92,11 @@ export function EvaluateTeacherForm({
                 // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
                 const body: AddReviewRequest = { professor: teacher!.id, ...reviewBase };
                 const updatedProfessor = await reviewService.uploadReview(body);
-                if(setTeacher) {
-                    setTeacher(updatedProfessor)
+                if (setTeacher) {
+                    setTeacher(updatedProfessor);
                 }
                 toast.success('Thank you for your review');
-                if(closeForm) {
+                if (closeForm) {
                     closeForm();
                 }
             } catch (e) {
@@ -255,7 +254,10 @@ export function EvaluateTeacherForm({
             <textarea
                 {...register('reviewText', {
                     required: { value: true, message: 'Writing a review is required' },
-                    minLength: { value: 20, message: 'Review text must be at least 20 characters long' }
+                    minLength: {
+                        value: 20,
+                        message: 'Review text must be at least 20 characters long',
+                    },
                 })}
                 className="w-full h-64 rounded text-black p-2"
             />

@@ -11,22 +11,21 @@ let result: RenderResult<UserToken | null>;
 
 // JWT token for user mfish33
 const mockToken =
-  // eslint-disable-next-line max-len
-  'eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJtZmlzaDMzIiwidXNlcm5hbWUiOiJtZmlzaDMzIiwibmJmIjoxNjQzOTEzODQ0LCJleHAiOjE2NDM5MTc0NDQsImlhdCI6MTY0MzkxMDI0NH0.UBCBPWlVjHAXpmVD-6n72GeAj-wEBc4_DM-7BqCG-8o';
+    // eslint-disable-next-line max-len
+    'eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJtZmlzaDMzIiwidXNlcm5hbWUiOiJtZmlzaDMzIiwibmJmIjoxNjQzOTEzODQ0LCJleHAiOjE2NDM5MTc0NDQsImlhdCI6MTY0MzkxMDI0NH0.UBCBPWlVjHAXpmVD-6n72GeAj-wEBc4_DM-7BqCG-8o';
 
-
-let undoChanges:UndoChanges
+let undoChanges: UndoChanges;
 describe('UseAuth', () => {
     beforeAll(() => {
         undoChanges = injector.addProviders([
             {
-                provide: FETCH, 
-                useValue: () => new Response(JSON.stringify({ accessToken: mockToken}))
-            }
-        ])
-    })
+                provide: FETCH,
+                useValue: () => new Response(JSON.stringify({ accessToken: mockToken })),
+            },
+        ]);
+    });
 
-    afterAll(() => undoChanges())
+    afterAll(() => undoChanges());
 
     beforeEach(() => {
         ({ result } = renderHook(() => useAuth()));
@@ -38,9 +37,9 @@ describe('UseAuth', () => {
 
     it('is reactive', async () => {
         act(() => {
-            const authService = useService(AuthService)
-            authService.login('mfish33', 'test123')
+            const authService = useService(AuthService);
+            authService.login('mfish33', 'test123');
         });
-        await waitFor(() => expect(result.current?.username).toBe('mfish33'))   
+        await waitFor(() => expect(result.current?.username).toBe('mfish33'));
     });
 });

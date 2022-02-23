@@ -8,16 +8,12 @@ export const UNEXPANDED_LIMIT = 2;
 export interface ClassSectionProps {
     reviews: Review[];
     taughtClass: string;
-    disableDropDown:boolean
+    disableDropDown: boolean;
 }
 
-export function ClassSection({
-    reviews,
-    taughtClass,
-    disableDropDown
-}:ClassSectionProps) {
+export function ClassSection({ reviews, taughtClass, disableDropDown }: ClassSectionProps) {
     const [expanded, setExpanded] = useState(false);
-    const unexpandedReviewCount = disableDropDown ? reviews.length : UNEXPANDED_LIMIT
+    const unexpandedReviewCount = disableDropDown ? reviews.length : UNEXPANDED_LIMIT;
     const unexpandedReviews = reviews.slice(0, unexpandedReviewCount);
     const expandedReviews = reviews.slice(unexpandedReviewCount);
 
@@ -29,6 +25,7 @@ export function ClassSection({
             <h2 className="text-center text-4xl text-cal-poly-green">{taughtClass}</h2>
             <div className="container md:max-w-5xl flex flex-col m-auto px-2">
                 {unexpandedReviews.map((review, i) => (
+                    // eslint-disable-next-line react/no-array-index-key
                     <ReviewCard key={i} review={review} />
                 ))}
             </div>
@@ -40,6 +37,7 @@ export function ClassSection({
             >
                 <div className="container md:max-w-5xl flex flex-col m-auto px-2">
                     {expandedReviews.map((review, i) => (
+                        // eslint-disable-next-line react/no-array-index-key
                         <ReviewCard key={i} review={review} />
                     ))}
                 </div>
@@ -70,9 +68,7 @@ export function ClassSection({
 
 function ReviewCard({ review }: { review: Review }) {
     return (
-        <div
-            className="bg-white w-full rounded-3xl py-2 px-4 my-2 border-cal-poly-gold border-4 flex flex-col md:flex-row"
-        >
+        <div className="bg-white w-full rounded-3xl py-2 px-4 my-2 border-cal-poly-gold border-4 flex flex-col md:flex-row">
             <div className="hidden md:flex flex-col w-32 flex-shrink-0 m-auto mr-4 text-center text-sm">
                 <div>{review.gradeLevel}</div>
                 <div>{review.grade}</div>

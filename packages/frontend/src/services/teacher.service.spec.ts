@@ -47,7 +47,7 @@ const mockTeacher: Teacher = {
                 rating: 'MY RATING BODY',
                 // TODO: Find a better way of representing dates
                 // Make the mock date a string to comply with JSON stringify
-                postDate: (new Date()).toString() as never,
+                postDate: new Date().toString() as never,
             },
         ],
     },
@@ -63,11 +63,11 @@ async function mockFetch(target: string) {
     return new Response(JSON.stringify(mockTeacher));
 }
 
-function createTeacherService(clearLocalStorage:boolean): TeacherService {
-    beforeTestFetchCount = fetchCount
-    if(clearLocalStorage) {
-        localStorage.clear()
-    }    
+function createTeacherService(clearLocalStorage: boolean): TeacherService {
+    beforeTestFetchCount = fetchCount;
+    if (clearLocalStorage) {
+        localStorage.clear();
+    }
 
     // Create a new injector each test to fully reset state
     const injector = injectorFactory();
@@ -79,126 +79,140 @@ function createTeacherService(clearLocalStorage:boolean): TeacherService {
     ]);
 
     const [teacherService] = useInjectorHook(TeacherService, injector);
-    return teacherService
+    return teacherService;
 }
 
 let teacherService: TeacherService;
 describe('Teacher Service', () => {
     beforeEach(() => {
-        teacherService = createTeacherService(true)
+        teacherService = createTeacherService(true);
     });
 
     it('Can get all teachers', async () => {
-        const allTeachers = await teacherService.getAllTeachers()
-        expect(allTeachers).toEqual(mockAllTeachers)
-    })
+        const allTeachers = await teacherService.getAllTeachers();
+        expect(allTeachers).toEqual(mockAllTeachers);
+    });
 
     it('Should not have multiple fetch calls for all teachers', async () => {
-        await teacherService.getAllTeachers()
-        await teacherService.getAllTeachers()
-        expect(beforeTestFetchCount + 1).toBe(fetchCount)
-    })
+        await teacherService.getAllTeachers();
+        await teacherService.getAllTeachers();
+        expect(beforeTestFetchCount + 1).toBe(fetchCount);
+    });
 
     it('Loads all teachers from a cache if not expired', async () => {
-        await teacherService.getAllTeachers()
-        const currentFetch = fetchCount
-        const newTeacherService = createTeacherService(false)
-        await newTeacherService.getAllTeachers()
-        expect(currentFetch).toBe(fetchCount)
-    })
-
+        await teacherService.getAllTeachers();
+        const currentFetch = fetchCount;
+        const newTeacherService = createTeacherService(false);
+        await newTeacherService.getAllTeachers();
+        expect(currentFetch).toBe(fetchCount);
+    });
 
     it('Refetch all teachers if expired', async () => {
-        await teacherService.getAllTeachers()
-        const currentFetch = fetchCount
+        await teacherService.getAllTeachers();
+        const currentFetch = fetchCount;
 
-        const currentDate = Date.now()
-        const dateNowSpy = jest.spyOn(Date, 'now').mockImplementation(() => currentDate + TEACHER_CACHE_TIME + 5);
+        const currentDate = Date.now();
+        const dateNowSpy = jest
+            .spyOn(Date, 'now')
+            .mockImplementation(() => currentDate + TEACHER_CACHE_TIME + 5);
 
-        const newTeacherService = createTeacherService(false)
-        await newTeacherService.getAllTeachers()
-        expect(currentFetch + 1).toBe(fetchCount)
+        const newTeacherService = createTeacherService(false);
+        await newTeacherService.getAllTeachers();
+        expect(currentFetch + 1).toBe(fetchCount);
 
-        dateNowSpy.mockRestore()
-    })
+        dateNowSpy.mockRestore();
+    });
 
     it('Should fetch a teacher', async () => {
-        const teacher = await teacherService.getTeacher(mockTeacher.id)
-        expect(teacher).toEqual(mockTeacher)
-    })
+        const teacher = await teacherService.getTeacher(mockTeacher.id);
+        expect(teacher).toEqual(mockTeacher);
+    });
 
     it('Should only fetch a teacher once', async () => {
         // Wait for all teachers to be loaded once
-        await teacherService.getAllTeachers()
-        const currentFetchCount = fetchCount
-        await teacherService.getTeacher(mockTeacher.id)
-        await teacherService.getTeacher(mockTeacher.id)
-        expect(currentFetchCount + 1).toBe(fetchCount);  
-    })
+        await teacherService.getAllTeachers();
+        const currentFetchCount = fetchCount;
+        await teacherService.getTeacher(mockTeacher.id);
+        await teacherService.getTeacher(mockTeacher.id);
+        expect(currentFetchCount + 1).toBe(fetchCount);
+    });
 
     it('Should keep teacher between instances', async () => {
         // Wait for all teachers since that is automatically kicked off
-        await teacherService.getAllTeachers()
-        await teacherService.getTeacher(mockTeacher.id)
-        const currentFetch = fetchCount
-        
-        const newTeacherService = createTeacherService(false)
-        await newTeacherService.getTeacher(mockTeacher.id)
+        await teacherService.getAllTeachers();
+        await teacherService.getTeacher(mockTeacher.id);
+        const currentFetch = fetchCount;
 
-        expect(currentFetch).toBe(fetchCount)
-    })
+        const newTeacherService = createTeacherService(false);
+        await newTeacherService.getTeacher(mockTeacher.id);
+
+        expect(currentFetch).toBe(fetchCount);
+    });
 
     it('Refetch teacher if expired', async () => {
         // Wait for all teachers since that is automatically kicked off
-        await teacherService.getAllTeachers()
-        await teacherService.getTeacher(mockTeacher.id)
-        const currentFetch = fetchCount
-        
-        const newTeacherService = createTeacherService(false)
-        await newTeacherService.getAllTeachers()
+        await teacherService.getAllTeachers();
+        await teacherService.getTeacher(mockTeacher.id);
+        const currentFetch = fetchCount;
 
-        const currentDate = Date.now()
-        const dateNowSpy = jest.spyOn(Date, 'now').mockImplementation(() => currentDate + TEACHER_CACHE_TIME + 5);
+        const newTeacherService = createTeacherService(false);
+        await newTeacherService.getAllTeachers();
 
-        await teacherService.getTeacher(mockTeacher.id)
-        expect(currentFetch + 1).toBe(fetchCount)
-        
-        dateNowSpy.mockRestore()
-    })
+        const currentDate = Date.now();
+        const dateNowSpy = jest
+            .spyOn(Date, 'now')
+            .mockImplementation(() => currentDate + TEACHER_CACHE_TIME + 5);
+
+        await teacherService.getTeacher(mockTeacher.id);
+        expect(currentFetch + 1).toBe(fetchCount);
+
+        dateNowSpy.mockRestore();
+    });
 
     it('Can search by name', async () => {
         // FirstName LastName
-        let searchResults = await teacherService.searchForTeacher('name', `${mockTeacher.firstName} ${mockTeacher.lastName}`)
-        expect(searchResults[0]).toEqual(mockAllTeachers[0])
+        let searchResults = await teacherService.searchForTeacher(
+            'name',
+            `${mockTeacher.firstName} ${mockTeacher.lastName}`,
+        );
+        expect(searchResults[0]).toEqual(mockAllTeachers[0]);
 
         // LastName FirstName
-        searchResults = await teacherService.searchForTeacher('name', `${mockTeacher.lastName} ${mockTeacher.firstName}`)
-        expect(searchResults[0]).toEqual(mockAllTeachers[0])
+        searchResults = await teacherService.searchForTeacher(
+            'name',
+            `${mockTeacher.lastName} ${mockTeacher.firstName}`,
+        );
+        expect(searchResults[0]).toEqual(mockAllTeachers[0]);
 
         // LastName only
-        searchResults = await teacherService.searchForTeacher('name', `${mockTeacher.lastName}`)
-        expect(searchResults[0]).toEqual(mockAllTeachers[0])
+        searchResults = await teacherService.searchForTeacher('name', `${mockTeacher.lastName}`);
+        expect(searchResults[0]).toEqual(mockAllTeachers[0]);
 
         // FirstName only
-        searchResults = await teacherService.searchForTeacher('name', `${mockTeacher.firstName}`)
-        expect(searchResults[0]).toEqual(mockAllTeachers[0])
-    })
+        searchResults = await teacherService.searchForTeacher('name', `${mockTeacher.firstName}`);
+        expect(searchResults[0]).toEqual(mockAllTeachers[0]);
+    });
 
     it('Can search by class', async () => {
-        const searchResults = await teacherService.searchForTeacher('class', mockAllTeachers[0].courses[0])
-        expect(searchResults[0]).toEqual(mockAllTeachers[0])
-    })
+        const searchResults = await teacherService.searchForTeacher(
+            'class',
+            mockAllTeachers[0].courses[0],
+        );
+        expect(searchResults[0]).toEqual(mockAllTeachers[0]);
+    });
 
     it('Can search by department', async () => {
-        const searchResults = await teacherService.searchForTeacher('department', mockAllTeachers[0].department)
-        expect(searchResults[0]).toEqual(mockAllTeachers[0])
-    })
+        const searchResults = await teacherService.searchForTeacher(
+            'department',
+            mockAllTeachers[0].department,
+        );
+        expect(searchResults[0]).toEqual(mockAllTeachers[0]);
+    });
 
     it('Fires fetch when adding a new teacher', async () => {
-        await teacherService.getAllTeachers()
-        const currentFetchCount = fetchCount
-        await teacherService.addNewTeacher({} as never)
-        expect(fetchCount).toBe(currentFetchCount + 1)
-    })
-    
+        await teacherService.getAllTeachers();
+        const currentFetchCount = fetchCount;
+        await teacherService.addNewTeacher({} as never);
+        expect(fetchCount).toBe(currentFetchCount + 1);
+    });
 });
