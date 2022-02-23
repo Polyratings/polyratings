@@ -6,6 +6,8 @@
     "build": "lerna run build",
     "start:dev": "lerna run start:dev --parallel",
     "test": "lerna run test --stream",
+    "lint": "lerna run lint --stream",
+    "fix": "lerna run fix --stream",
     "deploy:prod": "lerna run deploy:prod --stream",
     "deploy:beta": "lerna run deploy:beta --stream",
     "deploy:dev": "lerna run deploy:dev --stream"

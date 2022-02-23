@@ -5,7 +5,9 @@
         "start:dev": "vite",
         "build": "tsc && vite build",
         "serve": "vite preview",
-        "test": "jest"
+        "test": "jest",
+        "lint": "eslint --max-warnings=0 .",
+        "fix": "eslint . --fix"
     },
     "dependencies": {
         "@hookform/error-message": "^2.0.0",

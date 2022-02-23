@@ -7,10 +7,11 @@
         "build:fast": "esbuild --minify --format=esm --define:this=self --bundle src/index.ts --outdir=dist --metafile=stats/metadata.json",
         "build": "tsc && npm run build:fast",
         "stats": "esbuild-visualizer --metadata ./stats/metadata.json --filename ./stats/stats.html",
-        "lint": "eslint --max-warnings=0 src",
         "deploy:prod": "wrangler publish --env prod",
         "deploy:beta": "wrangler publish --env beta",
-        "deploy:dev": "wrangler publish --env dev"
+        "deploy:dev": "wrangler publish --env dev",
+        "lint": "eslint --max-warnings=0 .",
+        "fix": "eslint . --fix"
     },
     "author": "Addison Tustin <addison@atustin.dev>",
     "license": "GPL-3.0",
@@ -20,8 +21,6 @@
         "@polyratings/eslint-config": "*",
         "@types/jest": "^27.4.0",
         "@types/node": "^17.0.10",
-        "@typescript-eslint/eslint-plugin": "^5.10.0",
-        "@typescript-eslint/parser": "^5.10.0",
         "cloudflare-worker-mock": "^1.2.0",
         "esbuild": "^0.14.13",
         "esbuild-visualizer": "^0.3.1",

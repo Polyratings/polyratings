@@ -8,7 +8,9 @@
     "start:dev": "tsc --watch",
     "build:esm": "tsc --module esnext --outdir dist/esm",
     "build:cjs": "tsc --module commonjs --outdir dist/cjs",
-    "build": "npm run build:esm && npm run build:cjs"
+    "build": "npm run build:esm && npm run build:cjs",
+    "lint": "eslint --max-warnings=0 .",
+    "fix": "eslint . --fix"
   },
   "devDependencies": {
     "@polyratings/eslint-config": "*",
