@@ -1,6 +1,8 @@
 import { plainToInstance } from "class-transformer";
 import { Allow, IsBoolean, IsOptional, IsString } from "class-validator";
-import { Teacher, ExposeFrontend, BaseDTO } from "../index";
+import { Teacher } from "../interfaces";
+import { ExposeFrontend } from "../decorators";
+import { BaseDTO } from "./BaseDTO";
 
 export class ProcessingReviewResponse extends BaseDTO {
     @IsBoolean()
