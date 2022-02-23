@@ -1,12 +1,12 @@
-import { useEffect, useState } from 'react';
-import { useWindowSize } from './useWindowSize';
+import { useEffect, useState } from "react";
+import { useWindowSize } from "./useWindowSize";
 
 export interface TailwindBreakpoints<T> {
     sm?: T;
     md?: T;
     lg?: T;
     xl?: T;
-    '2xl'?: T;
+    "2xl"?: T;
 }
 
 const breakpointRanges: TailwindBreakpoints<[number, number]> = {
@@ -14,7 +14,7 @@ const breakpointRanges: TailwindBreakpoints<[number, number]> = {
     md: [768, 1024],
     lg: [1024, 1280],
     xl: [1280, 1536],
-    '2xl': [1536, Infinity],
+    "2xl": [1536, Infinity],
 };
 
 type breakpointRangeEntry = [keyof typeof breakpointRanges, [number, number]];
@@ -27,7 +27,7 @@ export function useTailwindBreakpoint<T>(breakpoints: TailwindBreakpoints<T>, de
     internalValues.md = breakpoints.md ?? internalValues.sm;
     internalValues.lg = breakpoints.lg ?? internalValues.md;
     internalValues.xl = breakpoints.xl ?? internalValues.lg;
-    internalValues['2xl'] = breakpoints['2xl'] ?? internalValues.xl;
+    internalValues["2xl"] = breakpoints["2xl"] ?? internalValues.xl;
 
     useEffect(() => {
         const windowWidth = window.innerWidth;

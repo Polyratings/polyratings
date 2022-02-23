@@ -1,2 +1,2 @@
-export * from './renderWithRouter';
-export * from './setWindowSize';
+export * from "./renderWithRouter";
+export * from "./setWindowSize";

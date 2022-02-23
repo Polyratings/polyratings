@@ -1,4 +1,4 @@
-import { AuthService } from './auth.service';
+import { AuthService } from "./auth.service";
 
 export class HttpService {
     constructor(private authService: AuthService, private globalFetch: typeof window.fetch) {}
@@ -14,7 +14,7 @@ export class HttpService {
         if (res.status === 401) {
             // TODO: Find a way to do this cleaner
             this.authService.signOut();
-            const LOGIN_ROUTE = '/login';
+            const LOGIN_ROUTE = "/login";
             if (window.location.pathname !== LOGIN_ROUTE) {
                 window.location.replace(LOGIN_ROUTE);
             }

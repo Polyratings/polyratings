@@ -1,30 +1,30 @@
-import { useInjectorHook } from '@mindspace-io/react';
-import { Teacher } from '@polyratings/shared';
-import { HttpService, injectorFactory, TeacherService } from '.';
-import { TEACHER_CACHE_TIME } from './teacher.service';
+import { useInjectorHook } from "@mindspace-io/react";
+import { Teacher } from "@polyratings/shared";
+import { HttpService, injectorFactory, TeacherService } from ".";
+import { TEACHER_CACHE_TIME } from "./teacher.service";
 
 const mockAllTeachers: Teacher[] = [
     {
-        id: '12-52',
-        firstName: 'Max',
-        lastName: 'Fisher',
-        department: 'CSC',
+        id: "12-52",
+        firstName: "Max",
+        lastName: "Fisher",
+        department: "CSC",
         overallRating: 4,
         studentDifficulties: 3.5,
         materialClear: 3,
         numEvals: 1,
-        courses: ['CSC 101'],
+        courses: ["CSC 101"],
     },
     {
-        id: '901-2134',
-        firstName: 'Ben',
-        lastName: 'Miller',
-        department: 'BIO',
+        id: "901-2134",
+        firstName: "Ben",
+        lastName: "Miller",
+        department: "BIO",
         overallRating: 2.5,
         studentDifficulties: 1.2,
         materialClear: 3,
         numEvals: 5,
-        courses: ['BIO 103', 'BIO 248'],
+        courses: ["BIO 103", "BIO 248"],
     },
 ];
 
@@ -39,12 +39,12 @@ const mockTeacher: Teacher = {
     numEvals: mockAllTeachers[0].numEvals,
     courses: mockAllTeachers[0].courses,
     reviews: {
-        'CSC 101': [
+        "CSC 101": [
             {
-                grade: 'A',
-                gradeLevel: 'Junior',
-                courseType: 'Major (Required)',
-                rating: 'MY RATING BODY',
+                grade: "A",
+                gradeLevel: "Junior",
+                courseType: "Major (Required)",
+                rating: "MY RATING BODY",
                 // TODO: Find a better way of representing dates
                 // Make the mock date a string to comply with JSON stringify
                 postDate: new Date().toString() as never,
@@ -57,7 +57,7 @@ let fetchCount = 0;
 let beforeTestFetchCount = 0;
 async function mockFetch(target: string) {
     fetchCount += 1;
-    if (target.endsWith('professors')) {
+    if (target.endsWith("professors")) {
         return new Response(JSON.stringify(mockAllTeachers));
     }
     return new Response(JSON.stringify(mockTeacher));
@@ -83,23 +83,23 @@ function createTeacherService(clearLocalStorage: boolean): TeacherService {
 }
 
 let teacherService: TeacherService;
-describe('Teacher Service', () => {
+describe("Teacher Service", () => {
     beforeEach(() => {
         teacherService = createTeacherService(true);
     });
 
-    it('Can get all teachers', async () => {
+    it("Can get all teachers", async () => {
         const allTeachers = await teacherService.getAllTeachers();
         expect(allTeachers).toEqual(mockAllTeachers);
     });
 
-    it('Should not have multiple fetch calls for all teachers', async () => {
+    it("Should not have multiple fetch calls for all teachers", async () => {
         await teacherService.getAllTeachers();
         await teacherService.getAllTeachers();
         expect(beforeTestFetchCount + 1).toBe(fetchCount);
     });
 
-    it('Loads all teachers from a cache if not expired', async () => {
+    it("Loads all teachers from a cache if not expired", async () => {
         await teacherService.getAllTeachers();
         const currentFetch = fetchCount;
         const newTeacherService = createTeacherService(false);
@@ -107,13 +107,13 @@ describe('Teacher Service', () => {
         expect(currentFetch).toBe(fetchCount);
     });
 
-    it('Refetch all teachers if expired', async () => {
+    it("Refetch all teachers if expired", async () => {
         await teacherService.getAllTeachers();
         const currentFetch = fetchCount;
 
         const currentDate = Date.now();
         const dateNowSpy = jest
-            .spyOn(Date, 'now')
+            .spyOn(Date, "now")
             .mockImplementation(() => currentDate + TEACHER_CACHE_TIME + 5);
 
         const newTeacherService = createTeacherService(false);
@@ -123,12 +123,12 @@ describe('Teacher Service', () => {
         dateNowSpy.mockRestore();
     });
 
-    it('Should fetch a teacher', async () => {
+    it("Should fetch a teacher", async () => {
         const teacher = await teacherService.getTeacher(mockTeacher.id);
         expect(teacher).toEqual(mockTeacher);
     });
 
-    it('Should only fetch a teacher once', async () => {
+    it("Should only fetch a teacher once", async () => {
         // Wait for all teachers to be loaded once
         await teacherService.getAllTeachers();
         const currentFetchCount = fetchCount;
@@ -137,7 +137,7 @@ describe('Teacher Service', () => {
         expect(currentFetchCount + 1).toBe(fetchCount);
     });
 
-    it('Should keep teacher between instances', async () => {
+    it("Should keep teacher between instances", async () => {
         // Wait for all teachers since that is automatically kicked off
         await teacherService.getAllTeachers();
         await teacherService.getTeacher(mockTeacher.id);
@@ -149,7 +149,7 @@ describe('Teacher Service', () => {
         expect(currentFetch).toBe(fetchCount);
     });
 
-    it('Refetch teacher if expired', async () => {
+    it("Refetch teacher if expired", async () => {
         // Wait for all teachers since that is automatically kicked off
         await teacherService.getAllTeachers();
         await teacherService.getTeacher(mockTeacher.id);
@@ -160,7 +160,7 @@ describe('Teacher Service', () => {
 
         const currentDate = Date.now();
         const dateNowSpy = jest
-            .spyOn(Date, 'now')
+            .spyOn(Date, "now")
             .mockImplementation(() => currentDate + TEACHER_CACHE_TIME + 5);
 
         await teacherService.getTeacher(mockTeacher.id);
@@ -169,47 +169,47 @@ describe('Teacher Service', () => {
         dateNowSpy.mockRestore();
     });
 
-    it('Can search by name', async () => {
+    it("Can search by name", async () => {
         // FirstName LastName
         let searchResults = await teacherService.searchForTeacher(
-            'name',
+            "name",
             `${mockTeacher.firstName} ${mockTeacher.lastName}`,
         );
         expect(searchResults[0]).toEqual(mockAllTeachers[0]);
 
         // LastName FirstName
         searchResults = await teacherService.searchForTeacher(
-            'name',
+            "name",
             `${mockTeacher.lastName} ${mockTeacher.firstName}`,
         );
         expect(searchResults[0]).toEqual(mockAllTeachers[0]);
 
         // LastName only
-        searchResults = await teacherService.searchForTeacher('name', `${mockTeacher.lastName}`);
+        searchResults = await teacherService.searchForTeacher("name", `${mockTeacher.lastName}`);
         expect(searchResults[0]).toEqual(mockAllTeachers[0]);
 
         // FirstName only
-        searchResults = await teacherService.searchForTeacher('name', `${mockTeacher.firstName}`);
+        searchResults = await teacherService.searchForTeacher("name", `${mockTeacher.firstName}`);
         expect(searchResults[0]).toEqual(mockAllTeachers[0]);
     });
 
-    it('Can search by class', async () => {
+    it("Can search by class", async () => {
         const searchResults = await teacherService.searchForTeacher(
-            'class',
+            "class",
             mockAllTeachers[0].courses[0],
         );
         expect(searchResults[0]).toEqual(mockAllTeachers[0]);
     });
 
-    it('Can search by department', async () => {
+    it("Can search by department", async () => {
         const searchResults = await teacherService.searchForTeacher(
-            'department',
+            "department",
             mockAllTeachers[0].department,
         );
         expect(searchResults[0]).toEqual(mockAllTeachers[0]);
     });
 
-    it('Fires fetch when adding a new teacher', async () => {
+    it("Fires fetch when adding a new teacher", async () => {
         await teacherService.getAllTeachers();
         const currentFetchCount = fetchCount;
         await teacherService.addNewTeacher({} as never);

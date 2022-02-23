@@ -1,7 +1,7 @@
 export function About() {
-    const cardStyle = 'bg-white px-4 py-2 shadow-md border-cal-poly-gold border-2 rounded-md mb-10';
-    const paragraphStyle = 'py-[2px]';
-    const subTitleStyle = 'text-cal-poly-green font-medium text-center text-3xl mb-2';
+    const cardStyle = "bg-white px-4 py-2 shadow-md border-cal-poly-gold border-2 rounded-md mb-10";
+    const paragraphStyle = "py-[2px]";
+    const subTitleStyle = "text-cal-poly-green font-medium text-center text-3xl mb-2";
     return (
         <div className="container m-auto px-2 md:px-12 max-w-7xl">
             <h1 className="text-4xl text-cal-poly-green mb-7 mt-12 font-semibold pl-1 md:pl-0">

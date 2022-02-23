@@ -1,8 +1,8 @@
-import { Teacher } from '@polyratings/shared';
-import { useHistory } from 'react-router-dom';
-import star from '@/assets/star.svg';
-import { useService } from '@/hooks';
-import { TeacherService } from '@/services';
+import { Teacher } from "@polyratings/shared";
+import { useHistory } from "react-router-dom";
+import star from "@/assets/star.svg";
+import { useService } from "@/hooks";
+import { TeacherService } from "@/services";
 
 interface TeacherCardProps {
     teacher: Teacher | null;
@@ -30,7 +30,7 @@ export function TeacherCard({ teacher, beforeNavigation = () => {} }: TeacherCar
         <div onClick={onClick}>
             <div
                 className="w-full h-32 border-cal-poly-gold border-4 bg-white flex justify-between items-center text-cal-poly-green cursor-pointer"
-                style={{ borderRadius: '1.5rem' }}
+                style={{ borderRadius: "1.5rem" }}
             >
                 <h3 className="text-3xl font-medium pl-3">
                     {teacher?.lastName}, {teacher?.firstName}

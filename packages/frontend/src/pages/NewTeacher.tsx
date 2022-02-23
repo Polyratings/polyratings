@@ -1,5 +1,5 @@
-import loginBackground from '@/assets/home-header.webp';
-import { NewTeacherForm } from '@/components';
+import loginBackground from "@/assets/home-header.webp";
+import { NewTeacherForm } from "@/components";
 
 export function NewTeacher() {
     // Redirect to homepage if in authenticated state
@@ -9,9 +9,9 @@ export function NewTeacher() {
                 className="h-screenWoNav justify-center items-center hidden sm:flex"
                 style={{
                     backgroundImage: `url(${loginBackground})`,
-                    backgroundRepeat: 'no-repeat',
-                    backgroundPosition: 'center',
-                    backgroundSize: 'cover',
+                    backgroundRepeat: "no-repeat",
+                    backgroundPosition: "center",
+                    backgroundSize: "cover",
                 }}
             >
                 <div className="shadow">

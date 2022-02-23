@@ -1,5 +1,5 @@
-import { AuthService } from '@/services';
-import { useService, useObservable } from '.';
+import { AuthService } from "@/services";
+import { useService, useObservable } from ".";
 
 export function useAuth() {
     const authService = useService(AuthService);

@@ -1,8 +1,8 @@
-import { useEffect } from 'react';
-import { useHistory } from 'react-router-dom';
-import { toast } from 'react-toastify';
-import { UserToken } from '@polyratings/shared';
-import { useAuth } from './useAuth';
+import { useEffect } from "react";
+import { useHistory } from "react-router-dom";
+import { toast } from "react-toastify";
+import { UserToken } from "@polyratings/shared";
+import { useAuth } from "./useAuth";
 
 export function useProtectedRoute<B extends boolean>(
     authenticated: B,

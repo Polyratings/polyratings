@@ -1,17 +1,17 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { JwtAuthResponse, UserToken } from '@polyratings/shared';
-import { waitFor } from '@testing-library/dom';
-import { useInjectorHook } from '@mindspace-io/react';
-import { AuthService, FETCH, injectorFactory } from '.';
+import { JwtAuthResponse, UserToken } from "@polyratings/shared";
+import { waitFor } from "@testing-library/dom";
+import { useInjectorHook } from "@mindspace-io/react";
+import { AuthService, FETCH, injectorFactory } from ".";
 
 // JWT token with email = mfish33@calpoly.edu
 const mockToken =
     // eslint-disable-next-line max-len
-    'eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJtZmlzaDMzIiwidXNlcm5hbWUiOiJtZmlzaDMzIiwibmJmIjoxNjQzOTEzODQ0LCJleHAiOjE2NDM5MTc0NDQsImlhdCI6MTY0MzkxMDI0NH0.UBCBPWlVjHAXpmVD-6n72GeAj-wEBc4_DM-7BqCG-8o';
+    "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJtZmlzaDMzIiwidXNlcm5hbWUiOiJtZmlzaDMzIiwibmJmIjoxNjQzOTEzODQ0LCJleHAiOjE2NDM5MTc0NDQsImlhdCI6MTY0MzkxMDI0NH0.UBCBPWlVjHAXpmVD-6n72GeAj-wEBc4_DM-7BqCG-8o";
 
 let fetchFunction: (target: string, options: RequestInit) => Response;
 let authService: AuthService;
-describe('Auth Service', () => {
+describe("Auth Service", () => {
     beforeEach(() => {
         // Create a new injector each test to fully reset state
         const injector = injectorFactory();
@@ -24,16 +24,16 @@ describe('Auth Service', () => {
         [authService] = useInjectorHook(AuthService, injector);
     });
 
-    it('Returns null for a user when none is present', () => {
+    it("Returns null for a user when none is present", () => {
         expect(authService.getUser()).toBeNull();
         expect(authService.getJwt()).toBeNull();
     });
 
-    it('Attempts to login with correct credentials', async () => {
-        const username = 'mfish33';
-        const password = 'test123';
+    it("Attempts to login with correct credentials", async () => {
+        const username = "mfish33";
+        const password = "test123";
         fetchFunction = (target, options) => {
-            expect(target.endsWith('login')).toBeTruthy();
+            expect(target.endsWith("login")).toBeTruthy();
             const body = JSON.parse(options.body as string);
             expect(body.username).toBe(username);
             expect(body.password).toBe(password);
@@ -44,20 +44,20 @@ describe('Auth Service', () => {
             return new Response(JSON.stringify(res));
         };
         const user = await authService.login(username, password);
-        expect(user.username).toBe('mfish33');
+        expect(user.username).toBe("mfish33");
 
         expect(authService.getJwt()).toBe(mockToken);
-        expect(authService.getUser()?.username).toBe('mfish33');
+        expect(authService.getUser()?.username).toBe("mfish33");
     });
 
-    it('Removes user information after sign out', async () => {
+    it("Removes user information after sign out", async () => {
         fetchFunction = () => {
             const res: JwtAuthResponse = {
                 accessToken: mockToken,
             };
             return new Response(JSON.stringify(res));
         };
-        await authService.login('mfish33', 'test123');
+        await authService.login("mfish33", "test123");
         authService.signOut();
         expect(authService.getUser()).toBeNull();
         expect(authService.getJwt()).toBeNull();
@@ -74,7 +74,7 @@ describe('Auth Service', () => {
             };
             return new Response(JSON.stringify(res));
         };
-        const user = await authService.login('mfish33', 'test123');
+        const user = await authService.login("mfish33", "test123");
         authService.signOut();
         await waitFor(() => {
             expect(authStates).toHaveLength(3);

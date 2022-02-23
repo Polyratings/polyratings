@@ -1,13 +1,13 @@
-import { Link, useLocation } from 'react-router-dom';
-import '@/styles/hamburgers.css';
-import AnimateHeight from 'react-animate-height';
-import { useEffect, useState } from 'react';
-import { AuthService } from '@/services';
-import { useService, useAuth } from '@/hooks';
-import { SearchBar } from './SearchBar';
-import Logo from '@/assets/Logo.png';
+import { Link, useLocation } from "react-router-dom";
+import "@/styles/hamburgers.css";
+import AnimateHeight from "react-animate-height";
+import { useEffect, useState } from "react";
+import { AuthService } from "@/services";
+import { useService, useAuth } from "@/hooks";
+import { SearchBar } from "./SearchBar";
+import Logo from "@/assets/Logo.png";
 
-const HIDE_SEARCH_BAR_ROUTES = ['/', '/search/name', '/search/class', '/search/department'];
+const HIDE_SEARCH_BAR_ROUTES = ["/", "/search/name", "/search/class", "/search/department"];
 
 export function Navbar() {
     const [mobileNavOpen, setMobileNav] = useState(false);
@@ -31,7 +31,7 @@ export function Navbar() {
             <div
                 onClick={triggerMobileNav}
                 className={`hamburger hamburger--slider block md:hidden  ${
-                    mobileNavOpen ? 'is-active hamburgerTurn' : ''
+                    mobileNavOpen ? "is-active hamburgerTurn" : ""
                 }`}
             >
                 <div className="hamburger-box">
@@ -42,7 +42,7 @@ export function Navbar() {
             {/* Mobile hamburger dropdown */}
             <AnimateHeight
                 duration={500}
-                height={mobileNavOpen ? 'auto' : 0}
+                height={mobileNavOpen ? "auto" : 0}
                 className="absolute top-12 left-0 bg-cal-poly-green w-full z-50 transform -translate-y-1"
             >
                 <div className="flex flex-col text-center text-xl text-white">
@@ -50,7 +50,7 @@ export function Navbar() {
                         Home
                     </Link>
                     <Link className="my-1" to="/newTeacher" onClick={triggerMobileNav}>
-                        {' '}
+                        {" "}
                         Add a Teacher
                     </Link>
                     <Link className="my-1" to="/search/name" onClick={triggerMobileNav}>
@@ -82,15 +82,15 @@ export function Navbar() {
                 )}
 
                 <Link className="mr-7" to="/newTeacher">
-                    {' '}
+                    {" "}
                     Add a Teacher
                 </Link>
                 <Link className="mr-7" to="/search/name">
-                    {' '}
+                    {" "}
                     Professor List
                 </Link>
                 <Link className="mr-7" to="/about">
-                    {' '}
+                    {" "}
                     About
                 </Link>
                 {/* <Link className="mr-7" to="contact">Contact</Link> */}

@@ -1,13 +1,13 @@
-import { render, RenderResult } from '@testing-library/react';
-import { MinMaxSlider } from '.';
+import { render, RenderResult } from "@testing-library/react";
+import { MinMaxSlider } from ".";
 
 const setCurrentPos = (pos: [number, number]) => {
     currentSliderPos = pos;
 };
 let currentSliderPos: [number, number];
 let documentBody: RenderResult;
-describe('<TwoPosSlider />', () => {
-    it('Creates a slider with default resolution', () => {
+describe("<TwoPosSlider />", () => {
+    it("Creates a slider with default resolution", () => {
         currentSliderPos = [0, 10];
         documentBody = render(
             <MinMaxSlider onchange={setCurrentPos} domain={[0, 10]} value={currentSliderPos} />,

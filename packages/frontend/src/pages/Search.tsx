@@ -1,10 +1,10 @@
-import { useHistory, useParams } from 'react-router-dom';
-import { useState, useEffect, useRef, ElementRef } from 'react';
-import { Teacher } from '@polyratings/shared';
-import { WindowScroller } from 'fish-react-virtualized/dist/commonjs/WindowScroller';
-import { List } from 'fish-react-virtualized/dist/commonjs/List';
-import { Location } from 'history';
-import { TeacherService, Logger } from '@/services';
+import { useHistory, useParams } from "react-router-dom";
+import { useState, useEffect, useRef, ElementRef } from "react";
+import { Teacher } from "@polyratings/shared";
+import { WindowScroller } from "fish-react-virtualized/dist/commonjs/WindowScroller";
+import { List } from "fish-react-virtualized/dist/commonjs/List";
+import { Location } from "history";
+import { TeacherService, Logger } from "@/services";
 import {
     TeacherCard,
     SearchBar,
@@ -12,9 +12,9 @@ import {
     Filters,
     TEACHER_CARD_HEIGHT,
     FilterState,
-} from '@/components';
-import { useService, useQuery, useTailwindBreakpoint } from '@/hooks';
-import { TeacherSearchType } from '@/services/teacher.service';
+} from "@/components";
+import { useService, useQuery, useTailwindBreakpoint } from "@/hooks";
+import { TeacherSearchType } from "@/services/teacher.service";
 
 export interface SearchPageState {
     searchTerm: SearchState;
@@ -28,14 +28,14 @@ export function Search({ location }: SearchPageProps) {
     const previousState = location.state as SearchPageState | undefined;
     const query = useQuery();
 
-    const navigatedSearchTerm = query.get('term');
+    const navigatedSearchTerm = query.get("term");
     const { searchType } = useParams<{ searchType: TeacherSearchType }>();
 
     const teacherService = useService(TeacherService);
 
     const loadedSearchTerm = previousState?.searchTerm ?? {
         type: searchType,
-        searchValue: navigatedSearchTerm ?? '',
+        searchValue: navigatedSearchTerm ?? "",
     };
     const [searchState, setSearchState] = useState<SearchState>(loadedSearchTerm);
     const [searchResults, setSearchResults] = useState<Teacher[]>([]);
@@ -64,7 +64,7 @@ export function Search({ location }: SearchPageProps) {
             sm: 600,
             md: 672,
             lg: 600,
-            '2xl': 672,
+            "2xl": 672,
         },
         window.innerWidth - 20,
     );
@@ -83,7 +83,7 @@ export function Search({ location }: SearchPageProps) {
             } catch (e) {
                 const logger = useService(Logger);
                 logger.error(`Failed to search for teacher with term: ${searchState}`, e);
-                history.push('/');
+                history.push("/");
             }
         }
         retrieveSearchData();
@@ -115,20 +115,20 @@ export function Search({ location }: SearchPageProps) {
                     {mobileFilterBreakpoint && (
                         <div
                             className={`bg-gray-300 w-[calc(100vw-2rem)] h-screen fixed top-0 z-10 transition-all left-0 transform 
-              ${mobileFiltersOpened ? '-translate-x-0' : '-translate-x-full'}`}
+              ${mobileFiltersOpened ? "-translate-x-0" : "-translate-x-full"}`}
                         >
                             <div
                                 onClick={() => setMobileFiltersOpened(!mobileFiltersOpened)}
                                 data-testid="mobile-filters"
                                 className={`bg-gray-400 w-8 h-12 absolute -right-8 transition-all 
                   ${
-                      mobileFiltersOpened ? 'top-0 rounded-r-none' : 'top-14 rounded-r'
+                      mobileFiltersOpened ? "top-0 rounded-r-none" : "top-14 rounded-r"
                   } flex items-center justify-center`}
                             >
                                 <svg
                                     xmlns="http://www.w3.org/2000/svg"
                                     className={`h-6 w-6 transform transition-all ${
-                                        mobileFiltersOpened ? 'rotate-180' : 'rotate-0'
+                                        mobileFiltersOpened ? "rotate-180" : "rotate-0"
                                     }`}
                                     fill="none"
                                     viewBox="0 0 24 24"
@@ -191,7 +191,7 @@ export function Search({ location }: SearchPageProps) {
 // This is an extension of ideas expressed in this thread:
 // https://stackoverflow.com/questions/38839510/forcing-a-react-router-link-to-load-a-page-even-if-were-already-on-that-page
 export function SearchWrapper({ location }: SearchPageProps) {
-    const [prevKey, setPrevKey] = useState('');
+    const [prevKey, setPrevKey] = useState("");
     if (!location.state && prevKey !== location.key) {
         setPrevKey(location.key || `${Date.now()}`);
     }

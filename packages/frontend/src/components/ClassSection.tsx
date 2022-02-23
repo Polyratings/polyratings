@@ -1,7 +1,7 @@
-import { Review } from '@polyratings/shared';
-import { useState } from 'react';
-import AnchorLink from 'react-anchor-link-smooth-scroll';
-import AnimateHeight from 'react-animate-height';
+import { Review } from "@polyratings/shared";
+import { useState } from "react";
+import AnchorLink from "react-anchor-link-smooth-scroll";
+import AnimateHeight from "react-animate-height";
 
 export const UNEXPANDED_LIMIT = 2;
 
@@ -32,8 +32,8 @@ export function ClassSection({ reviews, taughtClass, disableDropDown }: ClassSec
 
             <AnimateHeight
                 duration={500}
-                height={expanded ? 'auto' : unexpandedPreviewHeight(reviews)}
-                className={`transition-all ${expanded ? '' : 'opacity-25'}`}
+                height={expanded ? "auto" : unexpandedPreviewHeight(reviews)}
+                className={`transition-all ${expanded ? "" : "opacity-25"}`}
             >
                 <div className="container md:max-w-5xl flex flex-col m-auto px-2">
                     {expandedReviews.map((review, i) => (
@@ -74,9 +74,9 @@ function ReviewCard({ review }: { review: Review }) {
                 <div>{review.grade}</div>
                 <div>{review.courseType}</div>
                 <div>
-                    {new Date(review.postDate).toLocaleString('en-US', {
-                        year: 'numeric',
-                        month: 'short',
+                    {new Date(review.postDate).toLocaleString("en-US", {
+                        year: "numeric",
+                        month: "short",
                     })}
                 </div>
             </div>

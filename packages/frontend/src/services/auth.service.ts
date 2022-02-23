@@ -1,9 +1,9 @@
-import { BehaviorSubject } from 'rxjs';
-import { JwtAuthResponse, UserToken } from '@polyratings/shared';
-import jwtDecode from 'jwt-decode';
-import { config } from '@/App.config';
+import { BehaviorSubject } from "rxjs";
+import { JwtAuthResponse, UserToken } from "@polyratings/shared";
+import jwtDecode from "jwt-decode";
+import { config } from "@/App.config";
 
-const USER_LOCAL_STORAGE_KEY = 'user';
+const USER_LOCAL_STORAGE_KEY = "user";
 
 export class AuthService {
     private jwtToken: string | null = null;
@@ -27,9 +27,9 @@ export class AuthService {
 
     public async login(username: string, password: string): Promise<UserToken> {
         const loginRes = await this.fetch(`${config.remoteUrl}/login`, {
-            method: 'POST',
+            method: "POST",
             headers: {
-                'Content-Type': 'application/json',
+                "Content-Type": "application/json",
             },
             body: JSON.stringify({ username, password }),
         });

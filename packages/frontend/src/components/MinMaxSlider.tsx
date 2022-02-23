@@ -1,5 +1,5 @@
-import Slider, { createSliderWithTooltip } from 'rc-slider';
-import 'rc-slider/assets/index.css';
+import Slider, { createSliderWithTooltip } from "rc-slider";
+import "rc-slider/assets/index.css";
 
 const Range = createSliderWithTooltip(Slider.Range);
 
@@ -27,14 +27,14 @@ export function MinMaxSlider({
         [min]: min,
         [max]: max,
     };
-    const handleStyles = { borderColor: '#1F4715' };
+    const handleStyles = { borderColor: "#1F4715" };
     return (
         <div className="w-full h-10">
             <style>{overrideHoverCss}</style>
             <Range
                 onChange={(v) => onchange(v as [number, number])}
                 value={value}
-                trackStyle={[{ backgroundColor: '#1F4715' }]}
+                trackStyle={[{ backgroundColor: "#1F4715" }]}
                 handleStyle={[handleStyles, handleStyles]}
                 min={min}
                 max={max}

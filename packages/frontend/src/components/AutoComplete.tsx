@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { useTailwindBreakpoint } from '@/hooks';
+import { useState } from "react";
+import { useTailwindBreakpoint } from "@/hooks";
 
 interface AutoCompleteProps {
     onResult: (result: string) => void;
@@ -19,7 +19,7 @@ export function AutoComplete({
     onChange: parentOnChange,
     maxDropDownSize,
     value: inputValue,
-    className = '',
+    className = "",
     disableDropdown,
 }: AutoCompleteProps) {
     const [filteredSuggestions, setFilteredSuggestions] = useState<string[]>([]);
@@ -59,19 +59,19 @@ export function AutoComplete({
     const onKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
         // eslint-disable-next-line default-case
         switch (e.code) {
-            case 'ArrowUp':
+            case "ArrowUp":
                 e.preventDefault();
                 if (activeSuggestionIndex > -1) {
                     setActiveSuggestionIndex(activeSuggestionIndex - 1);
                 }
                 return;
-            case 'ArrowDown':
+            case "ArrowDown":
                 e.preventDefault();
                 if (activeSuggestionIndex < filteredSuggestions.length - 1) {
                     setActiveSuggestionIndex(activeSuggestionIndex + 1);
                 }
                 return;
-            case 'Enter': {
+            case "Enter": {
                 setShowSuggestions(false);
                 setActiveSuggestionIndex(-1);
                 const searchValue =
@@ -91,7 +91,7 @@ export function AutoComplete({
                 {filteredSuggestions.map((suggestion, index) => (
                     <li
                         className={`z-50 cursor-pointer ${
-                            activeSuggestionIndex === index ? 'bg-gray-300' : ''
+                            activeSuggestionIndex === index ? "bg-gray-300" : ""
                         }`}
                         onMouseEnter={() => setActiveSuggestionIndex(index)}
                         key={suggestion}

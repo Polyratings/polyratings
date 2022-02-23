@@ -1,13 +1,13 @@
 /* eslint-disable react/no-array-index-key */
-import { useEffect, useState } from 'react';
-import { Teacher } from '@polyratings/shared';
-import homeHeader from '@/assets/home-header.webp';
-import homeCurveTransition from '@/assets/home-curve-transition.svg';
-import star from '@/assets/star.svg';
-import worstOfWorstBackground from '@/assets/worst-of-worst-background.webp';
-import { TeacherService } from '@/services';
-import { SearchBar, TeacherCard } from '@/components';
-import { useService } from '@/hooks';
+import { useEffect, useState } from "react";
+import { Teacher } from "@polyratings/shared";
+import homeHeader from "@/assets/home-header.webp";
+import homeCurveTransition from "@/assets/home-curve-transition.svg";
+import star from "@/assets/star.svg";
+import worstOfWorstBackground from "@/assets/worst-of-worst-background.webp";
+import { TeacherService } from "@/services";
+import { SearchBar, TeacherCard } from "@/components";
+import { useService } from "@/hooks";
 
 export function Home() {
     const [bestTeacher, setBestTeacher] = useState<Teacher | null>(null);
@@ -31,9 +31,9 @@ export function Home() {
             <div
                 style={{
                     backgroundImage: `url(${homeHeader})`,
-                    backgroundRepeat: 'no-repeat',
-                    backgroundPosition: 'center',
-                    backgroundSize: 'cover',
+                    backgroundRepeat: "no-repeat",
+                    backgroundPosition: "center",
+                    backgroundSize: "cover",
                 }}
                 className="relative h-screenWoNav lg:h-screen3/5"
             >
@@ -65,7 +65,7 @@ export function Home() {
 
                 <div
                     className="bg-cal-poly-green h-80 rounded-3xl border-8 border-black flex flex-col justify-center items-center"
-                    style={{ width: '35rem' }}
+                    style={{ width: "35rem" }}
                 >
                     <h3 className="text-white text-5xl font-semibold text-center">
                         Featured Teacher
@@ -84,11 +84,11 @@ export function Home() {
             <div
                 style={{
                     backgroundImage: `url(${worstOfWorstBackground})`,
-                    backgroundRepeat: 'no-repeat',
-                    backgroundPosition: 'center',
-                    backgroundSize: 'cover',
-                    minHeight: '100vh',
-                    clipPath: 'polygon(0 100%,0 10%,100% 0,100% 100%)',
+                    backgroundRepeat: "no-repeat",
+                    backgroundPosition: "center",
+                    backgroundSize: "cover",
+                    minHeight: "100vh",
+                    clipPath: "polygon(0 100%,0 10%,100% 0,100% 100%)",
                 }}
                 className="mt-8 xl:mt-16 lg:block hidden"
             >

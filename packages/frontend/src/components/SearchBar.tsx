@@ -1,9 +1,9 @@
-import { useEffect, useRef, useState } from 'react';
-import { useHistory } from 'react-router-dom';
-import { TeacherSearchType, TeacherService } from '@/services/teacher.service';
-import { AutoComplete } from '.';
-import { useService } from '@/hooks';
-import { departments } from '@/constants';
+import { useEffect, useRef, useState } from "react";
+import { useHistory } from "react-router-dom";
+import { TeacherSearchType, TeacherService } from "@/services/teacher.service";
+import { AutoComplete } from ".";
+import { useService } from "@/hooks";
+import { departments } from "@/constants";
 
 export interface SearchState {
     type: TeacherSearchType;
@@ -22,8 +22,8 @@ export function SearchBar({
     showOnlyInput,
     disableAutoComplete = false,
 }: SearchBarProps) {
-    const [searchValue, setSearchValue] = useState(initialState?.searchValue ?? '');
-    const [searchType, setSearchType] = useState<TeacherSearchType>(initialState?.type ?? 'name');
+    const [searchValue, setSearchValue] = useState(initialState?.searchValue ?? "");
+    const [searchType, setSearchType] = useState<TeacherSearchType>(initialState?.type ?? "name");
     const teacherService = useService(TeacherService);
     const formRef = useRef<HTMLFormElement>(null);
 
@@ -43,19 +43,19 @@ export function SearchBar({
     const autoCompleteFilter = async (value: string): Promise<string[]> => {
         // eslint-disable-next-line default-case
         switch (searchType) {
-            case 'name':
+            case "name":
                 return teacherService
                     .searchForTeacher(searchType, value)
                     .then((result) => result.map((t) => `${t.lastName}, ${t.firstName}`));
-            case 'department':
+            case "department":
                 return departments.filter((dep) => dep.includes(value.toUpperCase()));
-            case 'class': {
+            case "class": {
                 const allTeachers = await teacherService.getAllTeachers();
                 const allCourses = new Set(allTeachers.flatMap((t) => t.courses));
                 return [...allCourses].filter((course) => course.includes(value.toUpperCase()));
             }
         }
-        throw new Error('Not all autocomplete cases handled');
+        throw new Error("Not all autocomplete cases handled");
     };
 
     return (

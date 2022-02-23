@@ -1,17 +1,17 @@
-import { RenderResult, waitFor } from '@testing-library/react';
-import { Teacher } from '@polyratings/shared';
-import userEvent from '@testing-library/user-event';
-import { MemoryHistory } from 'history';
-import { injector, TeacherService } from '@/services';
-import { TeacherCard } from './TeacherCard';
-import { renderWithRouter } from '@/test-utils';
+import { RenderResult, waitFor } from "@testing-library/react";
+import { Teacher } from "@polyratings/shared";
+import userEvent from "@testing-library/user-event";
+import { MemoryHistory } from "history";
+import { injector, TeacherService } from "@/services";
+import { TeacherCard } from "./TeacherCard";
+import { renderWithRouter } from "@/test-utils";
 
 const mockTeacher: Teacher = {
-    id: 'uuid-v4',
-    firstName: 'Ben',
-    lastName: 'Fisher',
-    department: 'CSC',
-    courses: ['CSC 101', 'CSC 202'],
+    id: "uuid-v4",
+    firstName: "Ben",
+    lastName: "Fisher",
+    department: "CSC",
+    courses: ["CSC 101", "CSC 202"],
     overallRating: 3.2,
     studentDifficulties: 3.9,
     materialClear: 2.9,
@@ -22,7 +22,7 @@ const getComponentDiv = () => documentBody.container.children[0];
 
 let documentBody: RenderResult;
 let history: MemoryHistory<unknown>;
-describe('<TeacherCard />', () => {
+describe("<TeacherCard />", () => {
     beforeEach(() => {
         injector.addProviders([{ provide: TeacherService, useValue: { getTeacher: () => {} } }]);
         // Workaround to allow destructuring with declared variables
@@ -50,12 +50,12 @@ describe('<TeacherCard />', () => {
         expect(documentBody.getByText(mockTeacher.numEvals, { exact: false })).toBeInTheDocument();
     });
 
-    it('Redirects on click', async () => {
+    it("Redirects on click", async () => {
         userEvent.click(getComponentDiv());
         await waitFor(() => expect(history.location.pathname).toBe(`/teacher/${mockTeacher.id}`));
     });
 
-    it('Runs custom handler on click', async () => {
+    it("Runs custom handler on click", async () => {
         let clicked = false;
         ({ documentBody, history } = renderWithRouter(() => (
             <TeacherCard

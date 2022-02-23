@@ -1,15 +1,15 @@
-import { useState, useRef } from 'react';
-import { useForm } from 'react-hook-form';
-import { ErrorMessage } from '@hookform/error-message';
+import { useState, useRef } from "react";
+import { useForm } from "react-hook-form";
+import { ErrorMessage } from "@hookform/error-message";
 // import { EvaluateTeacherForm } from "./EvaluateTeacherForm";
-import ClipLoader from 'react-spinners/ClipLoader';
-import { NewReviewBase, AddProfessorRequest } from '@polyratings/shared';
-import { toast } from 'react-toastify';
-import { useHistory } from 'react-router';
-import { TeacherService } from '@/services';
-import { departments } from '@/constants';
-import { useService } from '@/hooks';
-import { EvaluateTeacherForm } from '.';
+import ClipLoader from "react-spinners/ClipLoader";
+import { NewReviewBase, AddProfessorRequest } from "@polyratings/shared";
+import { toast } from "react-toastify";
+import { useHistory } from "react-router";
+import { TeacherService } from "@/services";
+import { departments } from "@/constants";
+import { useService } from "@/hooks";
+import { EvaluateTeacherForm } from ".";
 
 // The below code requires some weird behavior to allow two forms to be submitted with one button and get normal validation
 // HTML Structure:
@@ -39,7 +39,7 @@ export function NewTeacherForm() {
         formState: { errors },
     } = useForm<NewTeacherFormInputs>();
     const teacherService = useService(TeacherService);
-    const [networkErrorText, setNetworkErrorText] = useState('');
+    const [networkErrorText, setNetworkErrorText] = useState("");
     const [loading, setLoading] = useState(false);
     const reviewFormRef = useRef<HTMLFormElement>(null);
     const teacherFormRef = useRef<HTMLFormElement>(null);
@@ -77,9 +77,9 @@ export function NewTeacherForm() {
             try {
                 await teacherService.addNewTeacher(newTeacher);
                 toast.success(
-                    'Thank you for adding a teacher. It will be reviewed manually and will be available soon',
+                    "Thank you for adding a teacher. It will be reviewed manually and will be available soon",
                 );
-                history.push('/');
+                history.push("/");
             } catch (e) {
                 setNetworkErrorText((e as Error).toString());
             }
@@ -90,12 +90,12 @@ export function NewTeacherForm() {
     };
 
     return (
-        <div className="p-5 bg-gray-300 opacity-100 rounded relative" style={{ width: '40rem' }}>
+        <div className="p-5 bg-gray-300 opacity-100 rounded relative" style={{ width: "40rem" }}>
             <form onSubmit={handleSubmit(() => {})} ref={teacherFormRef}>
                 <h2 className="text-2xl font-bold">Teacher</h2>
                 <div className="flex mt-2">
                     <h4>Department</h4>
-                    <select className="h-7 rounded ml-2" {...register('teacherDepartment')}>
+                    <select className="h-7 rounded ml-2" {...register("teacherDepartment")}>
                         {departments.map((d) => (
                             <option key={d} value={d}>
                                 {d}
@@ -109,8 +109,8 @@ export function NewTeacherForm() {
                         type="text"
                         className="rounded h-7 w-44 ml-4 pl-2"
                         placeholder="First Name"
-                        {...register('teacherFirstName', {
-                            required: { value: true, message: 'Teacher First Name Required' },
+                        {...register("teacherFirstName", {
+                            required: { value: true, message: "Teacher First Name Required" },
                         })}
                     />
                 </div>
@@ -120,8 +120,8 @@ export function NewTeacherForm() {
                         type="text"
                         className="rounded h-7 w-44 ml-4 pl-2"
                         placeholder="Last Name"
-                        {...register('teacherLastName', {
-                            required: { value: true, message: 'Teacher Last Name Required' },
+                        {...register("teacherLastName", {
+                            required: { value: true, message: "Teacher Last Name Required" },
                         })}
                     />
                 </div>
@@ -149,7 +149,7 @@ export function NewTeacherForm() {
                     className="bg-cal-poly-green text-white rounded-lg p-2 shadow w-24"
                     type="button"
                     onClick={kickOffSubmit}
-                    style={{ display: loading ? 'none' : 'block' }}
+                    style={{ display: loading ? "none" : "block" }}
                 >
                     Submit
                 </button>

@@ -1,14 +1,14 @@
-import { useLocation } from 'react-router-dom';
-import { useState, useEffect, forwardRef, useImperativeHandle } from 'react';
-import { Teacher } from '@polyratings/shared';
-import { MinMaxSlider } from '@/components';
+import { useLocation } from "react-router-dom";
+import { useState, useEffect, forwardRef, useImperativeHandle } from "react";
+import { Teacher } from "@polyratings/shared";
+import { MinMaxSlider } from "@/components";
 
 type SortingOptions =
-    | 'relevant'
-    | 'alphabetical'
-    | 'overallRating'
-    | 'recognizesStudentDifficulties'
-    | 'presentsMaterialClearly';
+    | "relevant"
+    | "alphabetical"
+    | "overallRating"
+    | "recognizesStudentDifficulties"
+    | "presentsMaterialClearly";
 
 export interface FilterProps {
     teachers: Teacher[];
@@ -54,7 +54,7 @@ const FilterRenderFunction: React.ForwardRefRenderFunction<FilterHandle, FilterP
         previousState?.numberOfEvaluationsFilter ?? [1, 2],
     );
     const [reverseFilter, setReverseFilter] = useState(previousState?.reverseFilter ?? false);
-    const [sortBy, setSortBy] = useState<SortingOptions>(previousState?.sortBy ?? 'relevant');
+    const [sortBy, setSortBy] = useState<SortingOptions>(previousState?.sortBy ?? "relevant");
 
     // Internal duplicate of result
     const [preDepartmentFilters, setPreDepartmentFilters] = useState<Teacher[]>([]);
@@ -139,7 +139,7 @@ const FilterRenderFunction: React.ForwardRefRenderFunction<FilterHandle, FilterP
             return 0;
         },
         relevant: () => {
-            throw new Error('not a sort');
+            throw new Error("not a sort");
         },
         overallRating: (a, b) => b.overallRating - a.overallRating,
         recognizesStudentDifficulties: (a, b) => b.studentDifficulties - a.studentDifficulties,
@@ -147,7 +147,7 @@ const FilterRenderFunction: React.ForwardRefRenderFunction<FilterHandle, FilterP
     };
 
     // Use keyof to hopefully stop spelling errors in the future
-    const departmentFilterKey: keyof FilterState = 'departmentFilters';
+    const departmentFilterKey: keyof FilterState = "departmentFilters";
     const filterCalculationDependencies = Object.entries(getState())
         .filter(([k]) => k !== departmentFilterKey)
         .map(([, v]) => v);
@@ -164,7 +164,7 @@ const FilterRenderFunction: React.ForwardRefRenderFunction<FilterHandle, FilterP
         });
 
         // relevant is no sort applied
-        if (sortBy !== 'relevant') {
+        if (sortBy !== "relevant") {
             filteredResult.sort(sortingMap[sortBy]);
         }
 
@@ -177,7 +177,7 @@ const FilterRenderFunction: React.ForwardRefRenderFunction<FilterHandle, FilterP
     }, Object.values(filterCalculationDependencies));
 
     return (
-        <div className={className ?? ''}>
+        <div className={className ?? ""}>
             <h2 className="text-xl font-bold transform -translate-x-4 pb-1">Sort by:</h2>
             <div className="flex items-center">
                 <select
@@ -197,7 +197,7 @@ const FilterRenderFunction: React.ForwardRefRenderFunction<FilterHandle, FilterP
                 <svg
                     xmlns="http://www.w3.org/2000/svg"
                     className={`h-5 w-5 hover:text-cal-poly-green transform transition-all ${
-                        reverseFilter ? 'rotate-180' : ''
+                        reverseFilter ? "rotate-180" : ""
                     }`}
                     fill="none"
                     viewBox="0 0 24 24"
@@ -241,14 +241,14 @@ const FilterRenderFunction: React.ForwardRefRenderFunction<FilterHandle, FilterP
             </div>
 
             {[
-                { name: 'Overall Rating:', filter: setAvgRatingFilter, value: avgRatingFilter },
+                { name: "Overall Rating:", filter: setAvgRatingFilter, value: avgRatingFilter },
                 {
-                    name: 'Recognizes Student Difficulties:',
+                    name: "Recognizes Student Difficulties:",
                     filter: setStudentDifficultyFilter,
                     value: studentDifficultyFilter,
                 },
                 {
-                    name: 'Presents Material Clearly:',
+                    name: "Presents Material Clearly:",
                     filter: setMaterialClearFilter,
                     value: materialClearFilter,
                 },

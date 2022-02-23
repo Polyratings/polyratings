@@ -1,5 +1,15 @@
 {
+    "[typescript][javascript][typescriptreact]": {
+		"editor.codeActionsOnSave": {
+			"source.fixAll.eslint": true,
+		},
+		"editor.formatOnSave": true,
+		"editor.defaultFormatter": "dbaeumer.vscode-eslint",
+	},
+	"eslint.format.enable": true,
     "yaml.schemas": {
         "https://json.schemastore.org/github-workflow.json": "file:///Users/maxfisher/shadow/polyratings/.github/workflows/deploy.yml"
-    }
+    },
+	"files.eol": "\n",
+	"files.insertFinalNewline": true,
 }

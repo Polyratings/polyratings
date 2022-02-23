@@ -1,7 +1,7 @@
-import { render } from '@testing-library/react';
-import { Router, Route } from 'react-router-dom';
-import { createMemoryHistory } from 'history';
-import { ReactNode } from 'react';
+import { render } from "@testing-library/react";
+import { Router, Route } from "react-router-dom";
+import { createMemoryHistory } from "history";
+import { ReactNode } from "react";
 
 export function renderWithRouter(creator: () => ReactNode) {
     const history = createMemoryHistory();

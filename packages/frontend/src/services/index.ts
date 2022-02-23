@@ -1,12 +1,12 @@
-import { DependencyInjector, InjectionToken, makeInjector } from '@mindspace-io/react';
-import { AuthService } from './auth.service';
-import { HttpService } from './http.service';
-import { Logger } from './logger.service';
-import { ReviewService } from './review.service';
-import { TeacherService } from './teacher.service';
+import { DependencyInjector, InjectionToken, makeInjector } from "@mindspace-io/react";
+import { AuthService } from "./auth.service";
+import { HttpService } from "./http.service";
+import { Logger } from "./logger.service";
+import { ReviewService } from "./review.service";
+import { TeacherService } from "./teacher.service";
 
-export const LOCAL_STORAGE = new InjectionToken<Storage>('local-storage');
-export const FETCH = new InjectionToken<typeof fetch>('fetch');
+export const LOCAL_STORAGE = new InjectionToken<Storage>("local-storage");
+export const FETCH = new InjectionToken<typeof fetch>("fetch");
 
 export const injector: DependencyInjector = injectorFactory();
 

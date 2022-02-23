@@ -1,5 +1,5 @@
-import { useInjectorHook } from '@mindspace-io/react';
-import { injector } from '@/services';
+import { useInjectorHook } from "@mindspace-io/react";
+import { injector } from "@/services";
 
 type Constructs<T> = new (...args: never[]) => T;
 

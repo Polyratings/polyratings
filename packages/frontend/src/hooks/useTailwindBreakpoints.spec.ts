@@ -1,15 +1,15 @@
-import { renderHook, RenderResult } from '@testing-library/react-hooks';
-import { act } from 'react-dom/test-utils';
-import { waitFor } from '@testing-library/dom';
-import { setWindowSize } from '@/test-utils';
-import { useTailwindBreakpoint } from './useTailwindBreakpoints';
+import { renderHook, RenderResult } from "@testing-library/react-hooks";
+import { act } from "react-dom/test-utils";
+import { waitFor } from "@testing-library/dom";
+import { setWindowSize } from "@/test-utils";
+import { useTailwindBreakpoint } from "./useTailwindBreakpoints";
 
 const DEFAULT_VALUE = 1;
 const SM_VALUE = 2;
 const XL_VALUE = 3;
 
 let result: RenderResult<number>;
-describe('UseTailwindBreakpoints', () => {
+describe("UseTailwindBreakpoints", () => {
     beforeEach(() => {
         ({ result } = renderHook(() =>
             useTailwindBreakpoint(
@@ -22,7 +22,7 @@ describe('UseTailwindBreakpoints', () => {
         ));
     });
 
-    it('sends default value if small', async () => {
+    it("sends default value if small", async () => {
         act(() => {
             setWindowSize(100, window.innerHeight);
         });
@@ -31,7 +31,7 @@ describe('UseTailwindBreakpoints', () => {
         });
     });
 
-    it('uses sm value for sm range', async () => {
+    it("uses sm value for sm range", async () => {
         act(() => {
             setWindowSize(650, window.innerWidth);
         });
@@ -40,7 +40,7 @@ describe('UseTailwindBreakpoints', () => {
         });
     });
 
-    it('uses largest value when above the range', async () => {
+    it("uses largest value when above the range", async () => {
         act(() => {
             setWindowSize(2000, window.innerWidth);
         });

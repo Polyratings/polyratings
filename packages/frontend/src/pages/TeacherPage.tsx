@@ -1,13 +1,13 @@
 /* eslint-disable react/no-unstable-nested-components */
-import { useState, useEffect } from 'react';
-import { useHistory, useParams } from 'react-router-dom';
-import { Review, Teacher } from '@polyratings/shared';
-import AnimateHeight from 'react-animate-height';
-import AnchorLink from 'react-anchor-link-smooth-scroll';
-import StarRatings from 'react-star-ratings';
-import { TeacherService, Logger } from '@/services';
-import { Backdrop, ClassSection, EvaluateTeacherForm } from '@/components';
-import { useService } from '@/hooks';
+import { useState, useEffect } from "react";
+import { useHistory, useParams } from "react-router-dom";
+import { Review, Teacher } from "@polyratings/shared";
+import AnimateHeight from "react-animate-height";
+import AnchorLink from "react-anchor-link-smooth-scroll";
+import StarRatings from "react-star-ratings";
+import { TeacherService, Logger } from "@/services";
+import { Backdrop, ClassSection, EvaluateTeacherForm } from "@/components";
+import { useService } from "@/hooks";
 
 interface ClassReviews {
     taughtClass: string;
@@ -31,7 +31,7 @@ export function TeacherPage() {
         const teacherByDepartments = Object.entries(teacherData?.reviews || {}).reduce(
             (acc, [taughtClass, reviews]) => {
                 const obj: ClassReviews = { taughtClass, reviews };
-                const [department] = taughtClass.split(' ');
+                const [department] = taughtClass.split(" ");
                 if (acc[department]) {
                     acc[department].push(obj);
                 } else {
@@ -45,8 +45,8 @@ export function TeacherPage() {
         // Sort departments by class number
         Object.values(teacherByDepartments).forEach((deparment) =>
             deparment.sort((a, b) => {
-                const [, aNumber] = a.taughtClass.split(' ');
-                const [, bNumber] = b.taughtClass.split(' ');
+                const [, aNumber] = a.taughtClass.split(" ");
+                const [, bNumber] = b.taughtClass.split(" ");
                 return parseInt(aNumber, 10) - parseInt(bNumber, 10);
             }),
         );
@@ -72,7 +72,7 @@ export function TeacherPage() {
             } catch (e) {
                 const logger = useService(Logger);
                 logger.error(`Failed to load teacher with id: ${id}`, e);
-                history.push('/');
+                history.push("/");
             }
         }
         retrieveTeacherData();
@@ -107,7 +107,7 @@ export function TeacherPage() {
                 <Backdrop>
                     <div
                         className="bg-gray-300 opacity-100 rounded shadow p-5"
-                        style={{ width: '40rem' }}
+                        style={{ width: "40rem" }}
                     >
                         <EvaluateTeacherForm
                             teacher={teacherData}
@@ -141,7 +141,7 @@ export function TeacherPage() {
                     >
                         Evaluate Teacher
                     </button>
-                </div>{' '}
+                </div>{" "}
                 <div className="text-right">
                     <h2 className="text-4xl text-cal-poly-green">
                         {teacherData?.overallRating} / 4.00
@@ -174,12 +174,12 @@ export function TeacherPage() {
                     className="bg-cal-poly-green text-white rounded-lg p-2 shadow mt-2"
                     type="button"
                 >
-                    {teacherEvaluationShownMobile ? 'Close Evaluation' : 'Evaluate Teacher'}
+                    {teacherEvaluationShownMobile ? "Close Evaluation" : "Evaluate Teacher"}
                 </button>
             </div>
 
             <div className="container lg:max-w-5xl bg-cal-poly-green h-1 mx-auto mt-2" />
-            <AnimateHeight duration={500} height={teacherEvaluationShownMobile ? 'auto' : 0}>
+            <AnimateHeight duration={500} height={teacherEvaluationShownMobile ? "auto" : 0}>
                 <div className="bg-cal-poly-green text-white p-5">
                     <EvaluateTeacherForm
                         teacher={teacherData}

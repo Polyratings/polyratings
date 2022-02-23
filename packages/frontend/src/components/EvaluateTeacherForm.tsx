@@ -1,8 +1,8 @@
-import { RefObject, useState } from 'react';
-import { useForm, SubmitHandler } from 'react-hook-form';
-import { ErrorMessage } from '@hookform/error-message';
-import { toast } from 'react-toastify';
-import ClipLoader from 'react-spinners/ClipLoader';
+import { RefObject, useState } from "react";
+import { useForm, SubmitHandler } from "react-hook-form";
+import { ErrorMessage } from "@hookform/error-message";
+import { toast } from "react-toastify";
+import ClipLoader from "react-spinners/ClipLoader";
 import {
     CourseType,
     Grade,
@@ -13,10 +13,10 @@ import {
     GradeOptions,
     GradeLevelOptions,
     CourseTypeOptions,
-} from '@polyratings/shared';
-import { ReviewService } from '@/services';
-import { departments } from '@/constants';
-import { useService } from '@/hooks';
+} from "@polyratings/shared";
+import { ReviewService } from "@/services";
+import { departments } from "@/constants";
+import { useService } from "@/hooks";
 
 interface EvaluateTeacherFormInputs {
     knownClass: string | undefined;
@@ -56,20 +56,20 @@ export function EvaluateTeacherForm({
         },
     });
 
-    const knownClassValue = watch('knownClass');
+    const knownClassValue = watch("knownClass");
     const reviewService = useService(ReviewService);
-    const [networkErrorText, setNetworkErrorText] = useState('');
+    const [networkErrorText, setNetworkErrorText] = useState("");
     const [loading, setLoading] = useState(false);
 
     const onSubmit: SubmitHandler<EvaluateTeacherFormInputs> = async (formResult) => {
         setLoading(true);
         const courseNum =
-            formResult.knownClass && formResult.knownClass !== 'other'
-                ? parseInt(formResult.knownClass.split(' ')[1], 10)
+            formResult.knownClass && formResult.knownClass !== "other"
+                ? parseInt(formResult.knownClass.split(" ")[1], 10)
                 : parseInt(formResult.unknownClassNumber, 10);
         const department =
-            formResult.knownClass && formResult.knownClass !== 'other'
-                ? formResult.knownClass.split(' ')[0]
+            formResult.knownClass && formResult.knownClass !== "other"
+                ? formResult.knownClass.split(" ")[0]
                 : formResult.unknownClassDepartment;
 
         const reviewBase: NewReviewBase = {
@@ -95,7 +95,7 @@ export function EvaluateTeacherForm({
                 if (setTeacher) {
                     setTeacher(updatedProfessor);
                 }
-                toast.success('Thank you for your review');
+                toast.success("Thank you for your review");
                 if (closeForm) {
                     closeForm();
                 }
@@ -107,9 +107,9 @@ export function EvaluateTeacherForm({
     };
 
     const numericalRatings: { label: string; inputName: keyof EvaluateTeacherFormInputs }[] = [
-        { label: 'Overall Rating', inputName: 'overallRating' },
-        { label: 'Recognizes Student Difficulties', inputName: 'recognizesStudentDifficulties' },
-        { label: 'Presents Material Clearly', inputName: 'presentsMaterialClearly' },
+        { label: "Overall Rating", inputName: "overallRating" },
+        { label: "Recognizes Student Difficulties", inputName: "recognizesStudentDifficulties" },
+        { label: "Presents Material Clearly", inputName: "presentsMaterialClearly" },
     ];
 
     const classInformation: {
@@ -118,18 +118,18 @@ export function EvaluateTeacherForm({
         options: Readonly<string[]>;
     }[] = [
         {
-            label: 'Year',
-            inputName: 'year',
+            label: "Year",
+            inputName: "year",
             options: GradeLevelOptions,
         },
         {
-            label: 'Grade Achieved',
-            inputName: 'grade',
+            label: "Grade Achieved",
+            inputName: "grade",
             options: GradeOptions,
         },
         {
-            label: 'Reason For Taking',
-            inputName: 'reasonForTaking',
+            label: "Reason For Taking",
+            inputName: "reasonForTaking",
             options: CourseTypeOptions,
         },
     ];
@@ -153,7 +153,7 @@ export function EvaluateTeacherForm({
             <h4>Class</h4>
             <div className="flex flex-col sm:flex-row sm:justify-between">
                 {teacher && (
-                    <select className="h-7 rounded w-40 text-black" {...register('knownClass')}>
+                    <select className="h-7 rounded w-40 text-black" {...register("knownClass")}>
                         {Object.keys(teacher.reviews || {})?.map((c) => (
                             <option value={c} key={c}>
                                 {c}
@@ -165,9 +165,9 @@ export function EvaluateTeacherForm({
 
                 <div
                     className="text-black pt-1 sm:pt-0"
-                    style={{ display: knownClassValue ? 'none' : 'block' }}
+                    style={{ display: knownClassValue ? "none" : "block" }}
                 >
-                    <select className="h-7 rounded" {...register('unknownClassDepartment')}>
+                    <select className="h-7 rounded" {...register("unknownClassDepartment")}>
                         {departments.map((d) => (
                             <option key={d} value={d}>
                                 {d}
@@ -178,10 +178,10 @@ export function EvaluateTeacherForm({
                         className="h-7 w-16 ml-2 rounded appearance-none"
                         type="number"
                         placeholder="class #"
-                        {...register('unknownClassNumber', {
+                        {...register("unknownClassNumber", {
                             required: {
                                 value: !knownClassValue,
-                                message: 'Class Number is required',
+                                message: "Class Number is required",
                             },
                         })}
                     />
@@ -252,11 +252,11 @@ export function EvaluateTeacherForm({
             </div>
             <h4 className="mt-4">Review:</h4>
             <textarea
-                {...register('reviewText', {
-                    required: { value: true, message: 'Writing a review is required' },
+                {...register("reviewText", {
+                    required: { value: true, message: "Writing a review is required" },
                     minLength: {
                         value: 20,
-                        message: 'Review text must be at least 20 characters long',
+                        message: "Review text must be at least 20 characters long",
                     },
                 })}
                 className="w-full h-64 rounded text-black p-2"
@@ -272,7 +272,7 @@ export function EvaluateTeacherForm({
                     <div>
                         <button
                             className="bg-cal-poly-gold sm:bg-cal-poly-green text-white rounded-lg p-2 shadow w-24"
-                            style={{ display: loading ? 'none' : 'block' }}
+                            style={{ display: loading ? "none" : "block" }}
                             type="submit"
                         >
                             Submit

@@ -3,10 +3,10 @@ import {
     AddReviewResponse,
     ProcessingReviewResponse,
     Teacher,
-} from '@polyratings/shared';
-import { config } from '@/App.config';
-import { HttpService } from './http.service';
-import { TeacherService } from '.';
+} from "@polyratings/shared";
+import { config } from "@/App.config";
+import { HttpService } from "./http.service";
+import { TeacherService } from ".";
 
 export class ReviewService {
     constructor(private httpService: HttpService, private teacherService: TeacherService) {}
@@ -15,9 +15,9 @@ export class ReviewService {
         const addReviewRes = await this.httpService.fetch(
             `${config.remoteUrl}/professors/${addReviewRequest.professor}/ratings`,
             {
-                method: 'POST',
+                method: "POST",
                 headers: {
-                    'Content-Type': 'application/json',
+                    "Content-Type": "application/json",
                 },
                 body: JSON.stringify(addReviewRequest),
             },

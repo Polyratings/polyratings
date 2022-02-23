@@ -1,18 +1,18 @@
-import { AddProfessorRequest, Teacher } from '@polyratings/shared';
-import { config } from '@/App.config';
-import { getRandomSubarray, intersectingDbEntities } from '@/utils';
-import { HttpService } from './http.service';
+import { AddProfessorRequest, Teacher } from "@polyratings/shared";
+import { config } from "@/App.config";
+import { getRandomSubarray, intersectingDbEntities } from "@/utils";
+import { HttpService } from "./http.service";
 
 export const TEACHER_CACHE_TIME = 1000 * 60 * 10;
-const ALL_TEACHER_CACHE_KEY = 'ALL_TEACHERS';
-const INDIVIDUAL_TEACHER_CACHE_KEY = 'TEACHERS';
+const ALL_TEACHER_CACHE_KEY = "ALL_TEACHERS";
+const INDIVIDUAL_TEACHER_CACHE_KEY = "TEACHERS";
 
 interface TeacherCacheEntry {
     exp: number;
     teacher: Teacher;
 }
 
-export type TeacherSearchType = 'name' | 'department' | 'class';
+export type TeacherSearchType = "name" | "department" | "class";
 
 export class TeacherService {
     private allTeachers: Promise<Teacher[]>;
@@ -90,8 +90,8 @@ export class TeacherService {
         const allTeachers = await this.allTeachers;
 
         switch (type) {
-            case 'name': {
-                const tokens = value.toLowerCase().split(' ');
+            case "name": {
+                const tokens = value.toLowerCase().split(" ");
                 const tokenMatches = tokens.map((token) =>
                     allTeachers.filter((teacher) =>
                         `${teacher.lastName}, ${teacher.firstName}`.toLowerCase().includes(token),
@@ -100,14 +100,14 @@ export class TeacherService {
                 const { intersect, nonIntersect } = intersectingDbEntities(tokenMatches);
                 return [...intersect, ...nonIntersect];
             }
-            case 'class': {
+            case "class": {
                 const courseName = value.toUpperCase();
                 // use includes to possibly be more lenient
                 return allTeachers.filter((teacher) =>
                     teacher.courses.find((course) => course.includes(courseName)),
                 );
             }
-            case 'department': {
+            case "department": {
                 const department = value.toUpperCase();
                 // Use starts with since most times with department you are looking for an exact match
                 return allTeachers.filter((teacher) => teacher.department.startsWith(department));
@@ -123,9 +123,9 @@ export class TeacherService {
 
     public async addNewTeacher(newTeacher: AddProfessorRequest): Promise<void> {
         await this.httpService.fetch(`${config.remoteUrl}/professors`, {
-            method: 'POST',
+            method: "POST",
             headers: {
-                'Content-Type': 'application/json',
+                "Content-Type": "application/json",
             },
             body: JSON.stringify(newTeacher),
         });

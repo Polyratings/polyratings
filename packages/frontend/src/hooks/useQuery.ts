@@ -1,5 +1,5 @@
-import { useMemo } from 'react';
-import { useLocation } from 'react-router-dom';
+import { useMemo } from "react";
+import { useLocation } from "react-router-dom";
 
 // From: https://v5.reactrouter.com/web/example/query-parameters
 // A custom hook that builds on useLocation to parse
