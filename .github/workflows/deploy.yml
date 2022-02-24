@@ -32,7 +32,7 @@ jobs:
       - name: Deploy Prod
         if: github.ref == 'refs/heads/master'
         env:
-          CF_API_KEY: ${{ secrets.CF_API_TOKEN }}
+          CF_API_KEY: ${{ secrets.CF_API_KEY }}
           CF_EMAIL: ${{ secrets.CF_EMAIL }}
         run: |
           npm run deploy:prod
@@ -40,7 +40,7 @@ jobs:
       - name: Deploy Beta
         if: github.ref == 'refs/heads/beta'
         env:
-          CF_API_KEY: ${{ secrets.CF_API_TOKEN }}
+          CF_API_KEY: ${{ secrets.CF_API_KEY }}
           CF_EMAIL: ${{ secrets.CF_EMAIL }}
         run: |
           npm run deploy:beta
