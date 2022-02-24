@@ -1,0 +1,15 @@
+{
+  "compilerOptions": {
+      "target": "ESNext",
+      "module": "ESNext",
+      "lib": ["ESNext"],
+      "experimentalDecorators": true,
+      "strictPropertyInitialization": false,
+      "moduleResolution": "Node",
+      "strict": true,
+      "skipLibCheck": true,
+      "noEmitHelpers": true,
+      "outDir": "./dist",
+  },
+  "include": ["src/**/*", "src/*"]
+}

@@ -39,6 +39,33 @@ export class KVDAO {
         return transformAndValidate(ProfessorDTO, JSON.parse(profString));
     }
 
+    async getProfessorKeys(): Promise<string[]> {
+        const professorKeys: string[] = [];
+        let cursor: string | undefined;
+        do {
+            let options = {};
+            if (cursor) {
+                options = { cursor };
+            }
+            // Have to be consecutive
+            // eslint-disable-next-line no-await-in-loop
+            const result = await this.polyratingsNamespace.list(options);
+            cursor = result.cursor;
+            result.keys.forEach((key) => {
+                professorKeys.push(key.name);
+            });
+        } while (cursor);
+
+        return professorKeys;
+    }
+
+    async getProfessorUnchecked(id: string): Promise<string> {
+        const val = await this.polyratingsNamespace.get(id);
+        // unchecked so it will not even do a null check
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+        return val!;
+    }
+
     async putProfessor(professor: ProfessorDTO) {
         await validateOrReject(professor, DEFAULT_VALIDATOR_OPTIONS);
 

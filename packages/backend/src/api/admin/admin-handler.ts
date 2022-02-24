@@ -1,7 +1,7 @@
 import { Env } from "@polyratings/backend/bindings";
 import { DtoBypass } from "@polyratings/backend/dtos/DtoBypass";
 import { AuthenticatedWithBody } from "@polyratings/backend/middlewares/auth-middleware";
-import { LoginRequest } from "@polyratings/shared";
+import { LoginRequest, ProfessorKeyList } from "@polyratings/shared";
 import { Context } from "sunder";
 
 export class AdminHandler {
@@ -31,5 +31,21 @@ export class AdminHandler {
     static async removeProfessor(ctx: Context<Env, { id: string }>) {
         const { id } = ctx.params;
         await ctx.env.kvDao.removeProfessor(id);
+    }
+
+    static async getProfessorKeys(ctx: Context<Env, unknown, AuthenticatedWithBody<unknown>>) {
+        // Initial request
+        const professorKeys = await ctx.env.kvDao.getProfessorKeys();
+        ctx.response.body = new DtoBypass(professorKeys);
+    }
+
+    static async getProfessorValues(
+        ctx: Context<Env, unknown, AuthenticatedWithBody<ProfessorKeyList>>,
+    ) {
+        const { professorKeys } = ctx.data.body;
+        const values = await Promise.all(
+            professorKeys.map((key) => ctx.env.kvDao.getProfessorUnchecked(key)),
+        );
+        ctx.response.body = new DtoBypass(values);
     }
 }

@@ -2,7 +2,12 @@ import { Router } from "sunder";
 import { Env } from "@polyratings/backend/bindings";
 import { ProfessorHandler } from "@polyratings/backend/api/professors/professor-handler";
 import { withValidatedBody } from "@polyratings/backend/middlewares/with-validated-body";
-import { AddProfessorRequest, AddReviewRequest, LoginRequest } from "@polyratings/shared";
+import {
+    AddProfessorRequest,
+    AddReviewRequest,
+    LoginRequest,
+    ProfessorKeyList,
+} from "@polyratings/shared";
 import { RatingHandler } from "@polyratings/backend/api/ratings/rating-handler";
 import { withMiddlewares } from "@polyratings/backend/middlewares/with-middlewares";
 import { withAuth } from "@polyratings/backend/middlewares/auth-middleware";
@@ -27,8 +32,8 @@ export function registerRoutes(router: Router<Env>) {
     router.post("/login", withMiddlewares(withValidatedBody(LoginRequest), AuthHandler.login));
 
     router.post(
-        "/register/:secret",
-        withMiddlewares(withValidatedBody(LoginRequest), AuthHandler.register),
+        "/register",
+        withMiddlewares(withValidatedBody(LoginRequest, true), withAuth, AuthHandler.register),
     );
 
     router.delete(
@@ -49,6 +54,17 @@ export function registerRoutes(router: Router<Env>) {
     );
 
     router.delete("/admin/professor/:id", withMiddlewares(withAuth, AdminHandler.removeProfessor));
+
+    router.get("/admin/professor/keys", withMiddlewares(withAuth, AdminHandler.getProfessorKeys));
+
+    router.post(
+        "/admin/professor/values",
+        withMiddlewares(
+            withValidatedBody(ProfessorKeyList, true),
+            withAuth,
+            AdminHandler.getProfessorValues,
+        ),
+    );
 
     // no-op catch-all (which also applies generic OPTIONS headers)
     // eslint-disable-next-line @typescript-eslint/no-empty-function

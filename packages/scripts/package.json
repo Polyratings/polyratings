@@ -1,0 +1,26 @@
+{
+  "type": "module",
+  "name": "@polyratings/scripts",
+  "version": "0.0.1",
+  "description": "> TODO: description",
+  "author": "mfish33 <maxmfishernj@gmail.com>",
+  "homepage": "https://github.com/Polyratings/polyratings#readme",
+  "license": "ISC",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Polyratings/polyratings.git"
+  },
+  "scripts": {
+    "test": "echo \"Error: run tests from root\" && exit 1"
+  },
+  "devDependencies": {
+    "@types/uuid": "^8.3.4",
+    "typescript": "^4.5.5"
+  },
+  "dependencies": {
+    "@polyratings/shared": "*",
+    "dotenv": "16.0.0",
+    "node-fetch": "^3.2.0",
+    "uuid": "^8.3.2"
+  }
+}
