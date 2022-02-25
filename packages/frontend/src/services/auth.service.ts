@@ -1,5 +1,5 @@
 import { BehaviorSubject } from "rxjs";
-import { JwtAuthResponse, UserToken } from "@polyratings/shared";
+import { AuthResponse, UserToken } from "@polyratings/shared";
 import jwtDecode from "jwt-decode";
 import { config } from "@/App.config";
 
@@ -39,7 +39,7 @@ export class AuthService {
             throw errorPayload.message;
         }
 
-        const loginBody = (await loginRes.json()) as JwtAuthResponse;
+        const loginBody = (await loginRes.json()) as AuthResponse;
         const jwt = loginBody.accessToken;
 
         // We know that this is a valid user since we just got a jwt

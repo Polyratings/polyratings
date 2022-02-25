@@ -1,6 +1,8 @@
-import { DbEntryProperties } from "@polyratings/shared";
+interface HasId {
+    id: string;
+}
 
-export function intersectingDbEntities<T extends DbEntryProperties>(
+export function intersectingDbEntities<T extends HasId>(
     arrays: T[][],
 ): { intersect: T[]; nonIntersect: T[] } {
     if (arrays.length === 1) {

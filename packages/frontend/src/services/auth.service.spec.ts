@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { JwtAuthResponse, UserToken } from "@polyratings/shared";
+import { AuthResponse, UserToken } from "@polyratings/shared";
 import { waitFor } from "@testing-library/dom";
 import { useInjectorHook } from "@mindspace-io/react";
 import { AuthService, FETCH, injectorFactory } from ".";
@@ -38,7 +38,7 @@ describe("Auth Service", () => {
             expect(body.username).toBe(username);
             expect(body.password).toBe(password);
 
-            const res: JwtAuthResponse = {
+            const res: AuthResponse = {
                 accessToken: mockToken,
             };
             return new Response(JSON.stringify(res));
@@ -52,7 +52,7 @@ describe("Auth Service", () => {
 
     it("Removes user information after sign out", async () => {
         fetchFunction = () => {
-            const res: JwtAuthResponse = {
+            const res: AuthResponse = {
                 accessToken: mockToken,
             };
             return new Response(JSON.stringify(res));
@@ -69,7 +69,7 @@ describe("Auth Service", () => {
             authStates.push(authState),
         );
         fetchFunction = () => {
-            const res: JwtAuthResponse = {
+            const res: AuthResponse = {
                 accessToken: mockToken,
             };
             return new Response(JSON.stringify(res));

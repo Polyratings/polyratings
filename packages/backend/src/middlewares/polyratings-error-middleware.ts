@@ -1,5 +1,6 @@
 import { Context, HttpStatus, MiddlewareNextFunction } from "sunder";
 import { PolyratingsError } from "@polyratings/backend/utils/errors";
+import { PolyratingsError as PolyratingsErrorPublic } from "@polyratings/shared";
 
 export async function polyratingsErrorMiddleware(
     ctx: Context<unknown>,
@@ -20,9 +21,10 @@ export async function polyratingsErrorMiddleware(
             // eslint-disable-next-line no-console
             console.error(err);
             ctx.response.status = HttpStatus.InternalServerError;
-            ctx.response.body = {
+            const body: PolyratingsErrorPublic = {
                 message: "Internal server error: non-http error.",
             };
+            ctx.response.body = body;
         }
     }
 }

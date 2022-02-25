@@ -1,0 +1,155 @@
+{
+  "inputs": {
+    "../../node_modules/toml/lib/parser.js": {
+      "bytes": 104929,
+      "imports": []
+    },
+    "../../node_modules/toml/lib/compiler.js": {
+      "bytes": 5132,
+      "imports": []
+    },
+    "../../node_modules/toml/index.js": {
+      "bytes": 218,
+      "imports": [
+        {
+          "path": "../../node_modules/toml/lib/parser.js",
+          "kind": "require-call"
+        },
+        {
+          "path": "../../node_modules/toml/lib/compiler.js",
+          "kind": "require-call"
+        }
+      ]
+    },
+    "src/logger.ts": {
+      "bytes": 403,
+      "imports": []
+    },
+    "src/steps/syncProfessors.ts": {
+      "bytes": 915,
+      "imports": [
+        {
+          "path": "src/logger.ts",
+          "kind": "import-statement"
+        }
+      ]
+    },
+    "src/utils/chunkArray.ts": {
+      "bytes": 245,
+      "imports": []
+    },
+    "src/wrappers/kv-wrapper.ts": {
+      "bytes": 3118,
+      "imports": [
+        {
+          "path": "src/utils/chunkArray.ts",
+          "kind": "import-statement"
+        },
+        {
+          "path": "src/logger.ts",
+          "kind": "import-statement"
+        }
+      ]
+    },
+    "src/wrappers/worker-wrapper.ts": {
+      "bytes": 2710,
+      "imports": [
+        {
+          "path": "src/utils/chunkArray.ts",
+          "kind": "import-statement"
+        },
+        {
+          "path": "src/logger.ts",
+          "kind": "import-statement"
+        }
+      ]
+    },
+    "../backend/wrangler.toml": {
+      "bytes": 1883,
+      "imports": []
+    },
+    "src/entry.ts": {
+      "bytes": 3079,
+      "imports": [
+        {
+          "path": "../../node_modules/toml/index.js",
+          "kind": "import-statement"
+        },
+        {
+          "path": "src/steps/syncProfessors.ts",
+          "kind": "import-statement"
+        },
+        {
+          "path": "src/wrappers/kv-wrapper.ts",
+          "kind": "import-statement"
+        },
+        {
+          "path": "src/logger.ts",
+          "kind": "import-statement"
+        },
+        {
+          "path": "src/wrappers/worker-wrapper.ts",
+          "kind": "import-statement"
+        },
+        {
+          "path": "../backend/wrangler.toml",
+          "kind": "import-statement"
+        }
+      ]
+    },
+    "src/worker.ts": {
+      "bytes": 148,
+      "imports": [
+        {
+          "path": "src/entry.ts",
+          "kind": "import-statement"
+        }
+      ]
+    }
+  },
+  "outputs": {
+    "dist/worker.js": {
+      "imports": [],
+      "exports": [
+        "default"
+      ],
+      "entryPoint": "src/worker.ts",
+      "inputs": {
+        "../../node_modules/toml/lib/parser.js": {
+          "bytesInOutput": 119262
+        },
+        "../../node_modules/toml/lib/compiler.js": {
+          "bytesInOutput": 5452
+        },
+        "../../node_modules/toml/index.js": {
+          "bytesInOutput": 331
+        },
+        "src/entry.ts": {
+          "bytesInOutput": 1854
+        },
+        "src/logger.ts": {
+          "bytesInOutput": 251
+        },
+        "src/steps/syncProfessors.ts": {
+          "bytesInOutput": 784
+        },
+        "src/utils/chunkArray.ts": {
+          "bytesInOutput": 201
+        },
+        "src/wrappers/kv-wrapper.ts": {
+          "bytesInOutput": 2194
+        },
+        "src/wrappers/worker-wrapper.ts": {
+          "bytesInOutput": 1961
+        },
+        "../backend/wrangler.toml": {
+          "bytesInOutput": 1910
+        },
+        "src/worker.ts": {
+          "bytesInOutput": 97
+        }
+      },
+      "bytes": 135913
+    }
+  }
+}

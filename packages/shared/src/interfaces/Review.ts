@@ -17,11 +17,6 @@ export const CourseTypeOptions = [
 ] as const;
 export type CourseType = typeof CourseTypeOptions[number];
 
-/**
- * There may potentially be significant overlap between a Review and ReviewEntry
- * this is done as a design practice to sanitize data between the backend data
- * stores and the frontend.
- */
 export interface Review {
     gradeLevel: GradeLevel;
     grade: Grade;

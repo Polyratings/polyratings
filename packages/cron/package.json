@@ -1,0 +1,38 @@
+{
+  "name": "@polyratings/cron",
+  "version": "0.0.1",
+  "description": "> TODO: description",
+  "author": "mfish33 <maxmfishernj@gmail.com>",
+  "homepage": "https://github.com/Polyratings/polyratings#readme",
+  "license": "ISC",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Polyratings/polyratings.git"
+  },
+  "scripts": {
+    "run:local": "node dist/local",
+    "build:fast": "esbuild --format=esm --define:this=self --bundle src/worker.ts --outdir=dist --metafile=stats/metadata.json --loader:.toml=text",
+    "build:local": "esbuild --format=cjs --bundle src/local.ts --outdir=dist --platform=node --loader:.toml=text",
+    "build": "tsc && npm run build:fast",
+    "deploy:prod": "wrangler publish --env prod",
+    "deploy:beta": "wrangler publish --env prod",
+    "lint": "eslint --max-warnings=0 .",
+    "fix": "eslint . --fix"
+  },
+  "devDependencies": {
+    "@polyratings/eslint-config": "*",
+    "@types/node-fetch": "^2.6.1",
+    "@cloudflare/workers-types": "^3.3.1",
+    "dotenv": "^16.0.0",
+    "esbuild": "^0.14.13",
+    "esbuild-visualizer": "^0.3.1",
+    "eslint": "^8.7.0",
+    "node-fetch": "^2.6.7",
+    "@types/uuid": "^8.3.4",
+    "typescript": "^4.5.5"
+  },
+  "dependencies": {
+    "@polyratings/shared": "*",
+    "toml":"^3.0.0"
+  }
+}
