@@ -1,3 +1,4 @@
+import "reflect-metadata";
 import { Teacher } from "@polyratings/shared";
 import * as toml from "toml";
 import * as fs from "node:fs";

@@ -33,6 +33,7 @@
   },
   "dependencies": {
     "@polyratings/shared": "*",
+    "reflect-metadata": "^0.1.13",
     "toml":"^3.0.0"
   }
 }
