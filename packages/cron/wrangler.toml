@@ -18,7 +18,7 @@ type = "ESModule"
 globs = ["**/*.js"]
 
 [triggers]
-crons = ["0 0 * * *"]
+crons = ["0 9 * * *"]
 
 [env.prod]
 name = "polyratings-prod-cron"

@@ -1,18 +1,17 @@
 // Disable any since there is no types when dealing with cloudflare API
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { chunkArray } from "../utils/chunkArray";
+import { chunkArray } from "@polyratings/shared";
 import { Logger } from "../logger";
 
 const CLOUDFLARE_API_BASE_URL = "https://api.cloudflare.com/client/v4/";
-export function cloudflareKVInit(authKey: string, authEmail: string) {
+export function cloudflareKVInit(apiToken: string) {
     return class {
         constructor(public accountId: string, public namespaceId: string) {}
 
         public async cloudflareFetch(url: string, init?: RequestInit): Promise<Response> {
             const options = init || {};
             options.headers = {
-                "X-Auth-Key": authKey,
-                "X-Auth-Email": authEmail,
+                Authorization: `Bearer ${apiToken}`,
             };
             if (init?.body) {
                 options.headers["Content-Type"] = "application/json";

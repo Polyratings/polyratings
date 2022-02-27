@@ -2,51 +2,28 @@ import { AddProfessorRequest, Teacher } from "@polyratings/shared";
 import { config } from "@/App.config";
 import { getRandomSubarray, intersectingDbEntities } from "@/utils";
 import { HttpService } from "./http.service";
+import { StorageService } from ".";
 
 export const TEACHER_CACHE_TIME = 1000 * 60 * 10;
 const ALL_TEACHER_CACHE_KEY = "ALL_TEACHERS";
-const INDIVIDUAL_TEACHER_CACHE_KEY = "TEACHERS";
-
-interface TeacherCacheEntry {
-    exp: number;
-    teacher: Teacher;
-}
 
 export type TeacherSearchType = "name" | "department" | "class";
 
 export class TeacherService {
     private allTeachers: Promise<Teacher[]>;
 
-    private teacherCache: { [id: string]: TeacherCacheEntry };
-
-    constructor(private httpService: HttpService, private storage: Storage) {
-        const individualTeacherCacheStr = this.storage.getItem(INDIVIDUAL_TEACHER_CACHE_KEY);
-        this.teacherCache = individualTeacherCacheStr ? JSON.parse(individualTeacherCacheStr) : {};
-
-        const cachedAllTeacherCacheStr = this.storage.getItem(ALL_TEACHER_CACHE_KEY);
-        if (cachedAllTeacherCacheStr) {
-            const allTeacherCache: { exp: number; data: Teacher[] } =
-                JSON.parse(cachedAllTeacherCacheStr);
-            if (Date.now() < allTeacherCache.exp) {
-                // List has not expired
-                this.allTeachers = Promise.resolve(allTeacherCache.data);
-                // Return early no need to fetch the teacher list
-                return;
-            }
-        }
-
-        this.allTeachers = (async () => {
-            const res = await this.httpService.fetch(`${config.remoteUrl}/professors`);
-            const data = await res.json();
-            this.storage.setItem(
-                ALL_TEACHER_CACHE_KEY,
-                JSON.stringify({
-                    exp: Date.now() + TEACHER_CACHE_TIME,
-                    data,
-                }),
-            );
-            return data;
-        })();
+    constructor(private httpService: HttpService, private storageService: StorageService) {
+        this.allTeachers = storageService
+            .getItem<Teacher[]>(ALL_TEACHER_CACHE_KEY)
+            .then(async (result) => {
+                if (result) {
+                    return result.data;
+                }
+                const res = await this.httpService.fetch(`${config.remoteUrl}/professors`);
+                const data = await res.json();
+                storageService.setItem(ALL_TEACHER_CACHE_KEY, data, TEACHER_CACHE_TIME);
+                return data;
+            });
     }
 
     public async getRandomBestTeacher(): Promise<Teacher> {
@@ -66,11 +43,9 @@ export class TeacherService {
     }
 
     public async getTeacher(id: string): Promise<Teacher> {
-        if (this.teacherCache[id]) {
-            if (Date.now() < this.teacherCache[id].exp) {
-                return this.teacherCache[id].teacher;
-            }
-            this.removeTeacherFromCache(id);
+        const localTeacherCacheEntry = await this.storageService.getItem<Teacher>(id);
+        if (localTeacherCacheEntry) {
+            return localTeacherCacheEntry.data;
         }
 
         const res = await this.httpService.fetch(`${config.remoteUrl}/professors/${id}`);
@@ -132,19 +107,10 @@ export class TeacherService {
     }
 
     private addTeacherToCache(teacher: Teacher) {
-        this.teacherCache[teacher.id] = {
-            teacher,
-            exp: Date.now() + TEACHER_CACHE_TIME,
-        };
-        this.storage.setItem(INDIVIDUAL_TEACHER_CACHE_KEY, JSON.stringify(this.teacherCache));
+        this.storageService.setItem(teacher.id, teacher, TEACHER_CACHE_TIME);
     }
 
     public overrideCacheEntry(teacher: Teacher) {
         this.addTeacherToCache(teacher);
-    }
-
-    private removeTeacherFromCache(id: string) {
-        delete this.teacherCache[id];
-        this.storage.setItem(INDIVIDUAL_TEACHER_CACHE_KEY, JSON.stringify(this.teacherCache));
     }
 }

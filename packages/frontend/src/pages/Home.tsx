@@ -1,6 +1,7 @@
 /* eslint-disable react/no-array-index-key */
 import { useEffect, useState } from "react";
 import { Teacher } from "@polyratings/shared";
+import { Link } from "react-router-dom";
 import homeHeader from "@/assets/home-header.webp";
 import homeCurveTransition from "@/assets/home-curve-transition.svg";
 import star from "@/assets/star.svg";
@@ -59,7 +60,10 @@ export function Home() {
                         A good teacher can make or break a class. Here at Polyratings we believe
                         that you should not be rolling the dice when you register for a class. This
                         version of Polyratings is a ground up rebuild of the entire website. Read
-                        more about it here
+                        more about it{" "}
+                        <Link to="/about" className="pointer underline text-blue-600">
+                            here
+                        </Link>
                     </p>
                 </div>
 

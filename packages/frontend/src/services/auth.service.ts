@@ -2,19 +2,24 @@ import { BehaviorSubject } from "rxjs";
 import { AuthResponse, UserToken } from "@polyratings/shared";
 import jwtDecode from "jwt-decode";
 import { config } from "@/App.config";
+import { StorageService } from "./storage.service";
 
-const USER_LOCAL_STORAGE_KEY = "user";
+export const USER_TOKEN_CACHE_KEY = "user";
+
+// 2h token expiry
+const USER_TOKEN_EXPIRY_TIME = 1000 * 60 * 60 * 2;
 
 export class AuthService {
     private jwtToken: string | null = null;
 
     public isAuthenticatedSubject = new BehaviorSubject<null | UserToken>(null);
 
-    constructor(private storage: Storage, private fetch: typeof window.fetch) {
-        const jwt = storage.getItem(USER_LOCAL_STORAGE_KEY) as string | null;
-        if (jwt) {
-            this.setAuthState(jwt);
-        }
+    constructor(private storageService: StorageService, private fetch: typeof window.fetch) {
+        storageService.getItem<string>(USER_TOKEN_CACHE_KEY).then((jwtCacheEntry) => {
+            if (jwtCacheEntry) {
+                this.setAuthState(jwtCacheEntry.data);
+            }
+        });
     }
 
     public getJwt(): string | null {
@@ -55,9 +60,9 @@ export class AuthService {
         const user = this.getUser();
         this.isAuthenticatedSubject.next(user);
         if (jwtToken) {
-            this.storage.setItem(USER_LOCAL_STORAGE_KEY, jwtToken);
+            this.storageService.setItem(USER_TOKEN_CACHE_KEY, jwtToken, USER_TOKEN_EXPIRY_TIME);
         } else {
-            this.storage.removeItem(USER_LOCAL_STORAGE_KEY);
+            this.storageService.removeItem(USER_TOKEN_CACHE_KEY);
         }
         return user;
     }

@@ -1,13 +1,15 @@
 import { Env } from "@polyratings/backend/bindings";
 import { DtoBypass } from "@polyratings/backend/dtos/DtoBypass";
 import { AuthenticatedWithBody } from "@polyratings/backend/middlewares/auth-middleware";
-import { LoginRequest, ProfessorKeyList } from "@polyratings/shared";
+import { ProfessorKeyList } from "@polyratings/shared";
 import { Context } from "sunder";
 
 export class AdminHandler {
-    // TODO: Replace with real method
-    static removeRating(ctx: Context<Env, unknown, AuthenticatedWithBody<LoginRequest>>) {
-        ctx.response.body = new DtoBypass(ctx.data);
+    // Limitation of sunder path param. Can not resolve both variables
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    static async removeRating(ctx: Context<Env, any, AuthenticatedWithBody<unknown>>) {
+        const { professorId, reviewId } = ctx.params;
+        await ctx.env.kvDao.removeReview(professorId, reviewId);
     }
 
     static async pendingProfessors(ctx: Context<Env, unknown, AuthenticatedWithBody<unknown>>) {
@@ -34,7 +36,6 @@ export class AdminHandler {
     }
 
     static async getProfessorKeys(ctx: Context<Env, unknown, AuthenticatedWithBody<unknown>>) {
-        // Initial request
         const professorKeys = await ctx.env.kvDao.getProfessorKeys();
         ctx.response.body = new DtoBypass(professorKeys);
     }

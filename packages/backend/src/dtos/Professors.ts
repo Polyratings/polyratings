@@ -8,6 +8,7 @@ import {
     AddProfessorRequest,
 } from "@polyratings/shared";
 import { roundToPrecision } from "@polyratings/backend/utils/math";
+import { PolyratingsError } from "@polyratings/backend/utils/errors";
 import { ReviewDTO } from "./Reviews";
 
 export class TruncatedProfessorDTO extends BaseDTO implements Teacher {
@@ -101,6 +102,62 @@ export class ProfessorDTO extends TruncatedProfessorDTO {
         this.overallRating = roundToPrecision(newOverall, 2);
     }
 
+    removeReview(reviewId: string) {
+        const targetCourse = Object.entries(this.reviews).find(([, courseReviews]) =>
+            courseReviews.find((review) => review.id === reviewId),
+        );
+
+        if (!targetCourse) {
+            throw new PolyratingsError(404, "Review Does not exist");
+        }
+
+        const [courseName, reviews] = targetCourse;
+
+        let removedReview: ReviewDTO;
+        if (reviews.length === 1) {
+            [removedReview] = this.reviews[courseName];
+            delete this.reviews[courseName];
+            const coursesIndex = this.courses.indexOf(courseName);
+            if (coursesIndex === -1) {
+                throw new Error("Course to be removed is missing from professorDTO courses");
+            }
+            // Modifies in place
+            this.courses.splice(coursesIndex, 1);
+        } else {
+            // We know this index is good since we found it previously
+            const reviewIndex = reviews.findIndex((review) => review.id === reviewId);
+            removedReview = this.reviews[courseName][reviewIndex];
+            // Modifies in place
+            this.reviews[courseName].splice(reviewIndex, 1);
+        }
+
+        if (this.numEvals === 1) {
+            this.materialClear = 0;
+            this.studentDifficulties = 0;
+            this.overallRating = 0;
+            this.numEvals = 0;
+        } else {
+            // Adjust stats
+            const newMaterial =
+                (this.materialClear * this.numEvals - removedReview.presentsMaterialClearly) /
+                (this.numEvals - 1);
+            const newStudentDiff =
+                (this.studentDifficulties * this.numEvals -
+                    removedReview.recognizesStudentDifficulties) /
+                (this.numEvals - 1);
+            const newOverall =
+                (this.overallRating * this.numEvals - removedReview.overallRating) /
+                (this.numEvals - 1);
+
+            this.numEvals -= 1;
+
+            // this properly rounds all of our statistics to the nearest hundredth
+            this.materialClear = roundToPrecision(newMaterial, 2);
+            this.studentDifficulties = roundToPrecision(newStudentDiff, 2);
+            this.overallRating = roundToPrecision(newOverall, 2);
+        }
+    }
+
     toTruncatedProfessorDTO(): TruncatedProfessorDTO {
         return plainToInstance(TruncatedProfessorDTO, this, { excludeExtraneousValues: true });
     }
@@ -137,5 +194,8 @@ export class ProfessorDTO extends TruncatedProfessorDTO {
 }
 
 // Not Pretty but will at least cause compile time errors
-type PlainProfessorDTO = Omit<ProfessorDTO, "addReview" | "toTruncatedProfessorDTO">;
+type PlainProfessorDTO = Omit<
+    ProfessorDTO,
+    "addReview" | "removeReview" | "toTruncatedProfessorDTO"
+>;
 type PlainNewProfessorReviewDTO = Omit<ReviewDTO, "postDate" | "id">;

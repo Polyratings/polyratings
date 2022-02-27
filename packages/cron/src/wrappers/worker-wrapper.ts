@@ -1,5 +1,4 @@
-import { AuthResponse, PolyratingsError, Teacher } from "@polyratings/shared";
-import { chunkArray } from "../utils/chunkArray";
+import { AuthResponse, PolyratingsError, Teacher, chunkArray } from "@polyratings/shared";
 import { Logger } from "../logger";
 
 export class PolyratingsWorkerWrapper {
@@ -37,7 +36,7 @@ export class PolyratingsWorkerWrapper {
 
         const loginBody = (await res.json()) as AuthResponse;
         this.token = loginBody.accessToken;
-        Logger.info(`Logged into ${this.baseUrl}`);
+        Logger.info(`Logged into ${this.baseUrl} as ${username}`);
     }
 
     async professorKeys(): Promise<string[]> {

@@ -1,7 +1,6 @@
 import "reflect-metadata";
 import { Teacher } from "@polyratings/shared";
 import * as toml from "toml";
-import * as fs from "node:fs";
 import { syncProfessors } from "./steps/syncProfessors";
 import { cloudflareKVInit } from "./wrappers/kv-wrapper";
 import { Logger } from "./logger";
@@ -30,7 +29,7 @@ export async function main(env: Record<string, string>) {
         try {
             await task(runtimeEnv);
         } catch (e) {
-            Logger.error(`Failed to run \`${name}\`\n`, `Got Error: ${(e as Error).toString()}`);
+            Logger.error(`Failed to run \`${name}\`\n`, `Got Error: ${JSON.stringify(e)}`);
         }
     }
 }
@@ -79,9 +78,9 @@ async function createRuntimeEnvironment(globalEnv: Record<string, string>): Prom
     await polyratingsProdWorker.login(polyratingsCIUsername, polyratingsCIPassword);
     const prodProfessorData = await polyratingsProdWorker.professorEntries();
     Logger.info(`Got ${prodProfessorData.length} professors from prod`);
-    fs.writeFileSync("./dump.json", JSON.stringify(prodProfessorData));
 
-    const KVWrapper = cloudflareKVInit(globalEnv.CF_API_KEY, globalEnv.CF_EMAIL);
+    console.log(globalEnv.CF_API_TOKEN);
+    const KVWrapper = cloudflareKVInit(globalEnv.CF_API_TOKEN);
 
     const out: CronEnv = {
         accountId,

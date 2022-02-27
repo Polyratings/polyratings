@@ -37,11 +37,14 @@ export function registerRoutes(router: Router<Env>) {
     );
 
     router.delete(
-        "/admin/rating",
-        withMiddlewares(withValidatedBody(LoginRequest, true), withAuth, AdminHandler.removeRating),
+        "/admin/rating/:professorId/:reviewId",
+        withMiddlewares(withAuth, AdminHandler.removeRating),
     );
 
-    router.get("/admin/pending", withMiddlewares(withAuth, AdminHandler.pendingProfessors));
+    router.get(
+        "/admin/professors/pending",
+        withMiddlewares(withAuth, AdminHandler.pendingProfessors),
+    );
 
     router.post(
         "/admin/pending/:id",

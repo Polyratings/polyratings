@@ -69,12 +69,15 @@ export class KVDAO {
     async putProfessor(professor: ProfessorDTO) {
         await validateOrReject(professor, DEFAULT_VALIDATOR_OPTIONS);
 
-        const existingProfessor = await this.getProfessor(professor.id);
-        if (
-            existingProfessor.firstName !== professor.firstName ||
-            existingProfessor.lastName !== professor.lastName
-        ) {
-            throw new Error("Possible teacher collision detected");
+        // Need to check if key exists in order to not throw an error when calling `getProfessor`
+        if (await this.polyratingsNamespace.get(professor.id)) {
+            const existingProfessor = await this.getProfessor(professor.id);
+            if (
+                existingProfessor.firstName !== professor.firstName ||
+                existingProfessor.lastName !== professor.lastName
+            ) {
+                throw new Error("Possible teacher collision detected");
+            }
         }
 
         await this.polyratingsNamespace.put(professor.id, JSON.stringify(professor));
@@ -85,6 +88,7 @@ export class KVDAO {
         // TODO: Investigate better structure for the professor list
         const professorIndex = profList.findIndex((t) => t.id === professor.id);
         const truncatedProf = professor.toTruncatedProfessorDTO();
+
         if (professorIndex === -1) {
             profList.push(truncatedProf);
         } else {
@@ -138,6 +142,12 @@ export class KVDAO {
         return professor;
     }
 
+    async removeReview(professorId: string, reviewId: string) {
+        const professor = await this.getProfessor(professorId);
+        professor.removeReview(reviewId);
+        return this.putProfessor(professor);
+    }
+
     async getUser(username: string): Promise<User> {
         const userString = await this.usersNamespace.get(username);
 
@@ -174,10 +184,12 @@ export class KVDAO {
         const professorStrings = await Promise.all(
             keys.keys.map((key) => this.professorApprovalQueueNamespace.get(key.name)),
         );
-        return professorStrings.map((plainStr) =>
-            // We can use non null assertion since we know the key is good from the previous call
-            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-            plainToInstance(ProfessorDTO, JSON.parse(plainStr!)),
+        return (
+            professorStrings
+                .filter((plainStr) => plainStr)
+                // We filter to make sure there is no race condition and keys are actually defined
+                // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+                .map((plainStr) => plainToInstance(ProfessorDTO, JSON.parse(plainStr!)))
         );
     }
 

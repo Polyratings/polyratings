@@ -23,7 +23,11 @@ export function Navbar() {
     }, [location]);
 
     return (
-        <div className="w-screen bg-cal-poly-green h-12 flex justify-between px-5 items-center">
+        <div
+            className={`w-screen ${
+                isAuthenticated ? "bg-red-800" : "bg-cal-poly-green"
+            } h-12 flex justify-between px-5 items-center`}
+        >
             <Link to="/" onClick={() => setMobileNav(false)}>
                 <img src={Logo} alt="Polyratings logo" className="h-8" />
             </Link>
@@ -93,7 +97,12 @@ export function Navbar() {
                     {" "}
                     About
                 </Link>
-                {/* <Link className="mr-7" to="contact">Contact</Link> */}
+                {isAuthenticated && (
+                    <Link className="mr-7" to="/admin">
+                        {" "}
+                        Admin
+                    </Link>
+                )}
                 {isAuthenticated && (
                     <div
                         onClick={() => authService.signOut()}

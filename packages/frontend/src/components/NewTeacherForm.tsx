@@ -77,7 +77,7 @@ export function NewTeacherForm() {
             try {
                 await teacherService.addNewTeacher(newTeacher);
                 toast.success(
-                    "Thank you for adding a teacher. It will be reviewed manually and will be available soon",
+                    "Thank you for adding a professor. It will be reviewed manually and will be available soon",
                 );
                 history.push("/");
             } catch (e) {
