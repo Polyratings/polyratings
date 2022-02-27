@@ -62,12 +62,22 @@ export class StorageService {
             cachedAt: Date.now(),
         };
         const transaction = db.transaction(POLYRATINGS_OBJECT_STORE, "readwrite");
-        transaction.objectStore(POLYRATINGS_OBJECT_STORE).put(cacheEntry, cacheKey);
+        await transaction.objectStore(POLYRATINGS_OBJECT_STORE).put(cacheEntry, cacheKey);
     }
 
     public async removeItem(cacheKey: string) {
         const db = await this.databaseConnection;
         const transaction = db.transaction(POLYRATINGS_OBJECT_STORE, "readwrite");
         transaction.objectStore(POLYRATINGS_OBJECT_STORE).delete(cacheKey);
+    }
+
+    public async clearAllStorage() {
+        const db = await this.databaseConnection;
+        const transaction = db.transaction(POLYRATINGS_OBJECT_STORE, "readwrite");
+        const request = transaction.objectStore(POLYRATINGS_OBJECT_STORE).clear();
+        return new Promise<void>((resolve, reject) => {
+            request.onsuccess = () => resolve();
+            request.onerror = () => reject();
+        });
     }
 }

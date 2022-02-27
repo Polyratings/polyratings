@@ -21,7 +21,7 @@ export class TeacherService {
                 }
                 const res = await this.httpService.fetch(`${config.remoteUrl}/professors`);
                 const data = await res.json();
-                storageService.setItem(ALL_TEACHER_CACHE_KEY, data, TEACHER_CACHE_TIME);
+                await storageService.setItem(ALL_TEACHER_CACHE_KEY, data, TEACHER_CACHE_TIME);
                 return data;
             });
     }

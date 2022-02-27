@@ -1,7 +1,8 @@
-import { render, RenderResult } from "@testing-library/react";
+import { RenderResult } from "@testing-library/react";
 import { UndoChanges } from "@mindspace-io/react";
 import { injector, TeacherService } from "@/services";
 import { Home } from ".";
+import { renderWithRouter } from "@/test-utils";
 
 const createMockTeacher = (id: string) => ({
     id,
@@ -52,7 +53,7 @@ describe("<Home />", () => {
     });
 
     beforeEach(() => {
-        documentBody = render(<Home />);
+        ({ documentBody } = renderWithRouter(() => <Home />));
     });
 
     it("has title", async () => {

@@ -1,6 +1,6 @@
 import { useInjectorHook } from "@mindspace-io/react";
 import { Teacher } from "@polyratings/shared";
-import { HttpService, injectorFactory, TeacherService } from ".";
+import { HttpService, injectorFactory, StorageService, TeacherService } from ".";
 import { TEACHER_CACHE_TIME } from "./teacher.service";
 
 const mockAllTeachers: Teacher[] = [
@@ -63,11 +63,8 @@ async function mockFetch(target: string) {
     return new Response(JSON.stringify(mockTeacher));
 }
 
-function createTeacherService(clearLocalStorage: boolean): TeacherService {
+async function createTeacherService(clearStorage: boolean): Promise<TeacherService> {
     beforeTestFetchCount = fetchCount;
-    if (clearLocalStorage) {
-        localStorage.clear();
-    }
 
     // Create a new injector each test to fully reset state
     const injector = injectorFactory();
@@ -78,14 +75,21 @@ function createTeacherService(clearLocalStorage: boolean): TeacherService {
         },
     ]);
 
+    if (clearStorage) {
+        const [storageService] = useInjectorHook(StorageService, injector) as unknown as [
+            StorageService,
+        ];
+        await storageService.clearAllStorage();
+    }
+
     const [teacherService] = useInjectorHook(TeacherService, injector);
     return teacherService;
 }
 
 let teacherService: TeacherService;
 describe("Teacher Service", () => {
-    beforeEach(() => {
-        teacherService = createTeacherService(true);
+    beforeEach(async () => {
+        teacherService = await createTeacherService(true);
     });
 
     it("Can get all teachers", async () => {
@@ -102,7 +106,7 @@ describe("Teacher Service", () => {
     it("Loads all teachers from a cache if not expired", async () => {
         await teacherService.getAllTeachers();
         const currentFetch = fetchCount;
-        const newTeacherService = createTeacherService(false);
+        const newTeacherService = await createTeacherService(false);
         await newTeacherService.getAllTeachers();
         expect(currentFetch).toBe(fetchCount);
     });
@@ -116,7 +120,7 @@ describe("Teacher Service", () => {
             .spyOn(Date, "now")
             .mockImplementation(() => currentDate + TEACHER_CACHE_TIME + 5);
 
-        const newTeacherService = createTeacherService(false);
+        const newTeacherService = await createTeacherService(false);
         await newTeacherService.getAllTeachers();
         expect(currentFetch + 1).toBe(fetchCount);
 
@@ -143,7 +147,7 @@ describe("Teacher Service", () => {
         await teacherService.getTeacher(mockTeacher.id);
         const currentFetch = fetchCount;
 
-        const newTeacherService = createTeacherService(false);
+        const newTeacherService = await createTeacherService(false);
         await newTeacherService.getTeacher(mockTeacher.id);
 
         expect(currentFetch).toBe(fetchCount);
@@ -155,7 +159,7 @@ describe("Teacher Service", () => {
         await teacherService.getTeacher(mockTeacher.id);
         const currentFetch = fetchCount;
 
-        const newTeacherService = createTeacherService(false);
+        const newTeacherService = await createTeacherService(false);
         await newTeacherService.getAllTeachers();
 
         const currentDate = Date.now();
