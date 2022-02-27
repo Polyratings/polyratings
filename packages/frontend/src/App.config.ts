@@ -9,12 +9,12 @@ const devConfig: AppConfiguration = {
 };
 
 const prodConfig: AppConfiguration = {
-    remoteUrl: "https://api-beta.polyratings.dev",
+    remoteUrl: "https://api-prod.polyratings.dev",
     base: "/",
 };
 
 const betaConfig: AppConfiguration = {
-    remoteUrl: "https://api-prod.polyratings.dev",
+    remoteUrl: "https://api-beta.polyratings.dev",
     base: "/",
 };
 
