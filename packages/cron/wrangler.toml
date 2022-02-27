@@ -20,9 +20,6 @@ globs = ["**/*.js"]
 [triggers]
 crons = ["0 0 * * *"]
 
-[env.dev]
-name = 'polyratings-dev-cron'
-
 [env.prod]
 name = "polyratings-prod-cron"
 
