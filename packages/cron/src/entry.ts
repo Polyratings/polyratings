@@ -79,7 +79,6 @@ async function createRuntimeEnvironment(globalEnv: Record<string, string>): Prom
     const prodProfessorData = await polyratingsProdWorker.professorEntries();
     Logger.info(`Got ${prodProfessorData.length} professors from prod`);
 
-    console.log(globalEnv.CF_API_TOKEN);
     const KVWrapper = cloudflareKVInit(globalEnv.CF_API_TOKEN);
 
     const out: CronEnv = {
