@@ -3,11 +3,10 @@ import { useForm } from "react-hook-form";
 import { ErrorMessage } from "@hookform/error-message";
 // import { EvaluateTeacherForm } from "./EvaluateTeacherForm";
 import ClipLoader from "react-spinners/ClipLoader";
-import { NewReviewBase, AddProfessorRequest } from "@polyratings/shared";
+import { NewReviewBase, AddProfessorRequest, DEPARTMENT_LIST } from "@polyratings/shared";
 import { toast } from "react-toastify";
 import { useHistory } from "react-router";
 import { TeacherService } from "@/services";
-import { departments } from "@/constants";
 import { useService } from "@/hooks";
 import { EvaluateTeacherForm } from ".";
 
@@ -96,7 +95,7 @@ export function NewTeacherForm() {
                 <div className="flex mt-2">
                     <h4>Department</h4>
                     <select className="h-7 rounded ml-2" {...register("teacherDepartment")}>
-                        {departments.map((d) => (
+                        {DEPARTMENT_LIST.map((d) => (
                             <option key={d} value={d}>
                                 {d}
                             </option>

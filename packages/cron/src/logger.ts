@@ -10,6 +10,7 @@ export class Logger {
         console.warn(...args);
     }
 
+    // TODO: Add remote logging capabilities
     static error(...args: any[]) {
         console.error(...args);
     }

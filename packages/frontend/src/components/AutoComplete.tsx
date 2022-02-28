@@ -1,10 +1,15 @@
 import { useState } from "react";
 import { useTailwindBreakpoint } from "@/hooks";
 
-interface AutoCompleteProps {
-    onResult: (result: string) => void;
+export interface AutoCompleteOption<T> {
+    display: string;
+    metadata: T;
+}
+
+interface AutoCompleteProps<T> {
+    onResult: (result: AutoCompleteOption<T>) => void;
     onChange: (partial: string) => void;
-    filterFn: (search: string) => string[] | Promise<string[]>;
+    filterFn: (search: string) => AutoCompleteOption<T>[] | Promise<AutoCompleteOption<T>[]>;
     placeholder: string;
     maxDropDownSize: number;
     value: string;
@@ -12,7 +17,7 @@ interface AutoCompleteProps {
     disableDropdown: boolean;
 }
 
-export function AutoComplete({
+export function AutoComplete<T>({
     onResult,
     placeholder,
     filterFn,
@@ -21,8 +26,8 @@ export function AutoComplete({
     value: inputValue,
     className = "",
     disableDropdown,
-}: AutoCompleteProps) {
-    const [filteredSuggestions, setFilteredSuggestions] = useState<string[]>([]);
+}: AutoCompleteProps<T>) {
+    const [filteredSuggestions, setFilteredSuggestions] = useState<AutoCompleteOption<T>[]>([]);
     const [showSuggestions, setShowSuggestions] = useState(false);
     const [activeSuggestionIndex, setActiveSuggestionIndex] = useState(-1);
 
@@ -45,8 +50,8 @@ export function AutoComplete({
         setShowSuggestions(true);
     };
 
-    const onClick = (clickedValue: string) => {
-        parentOnChange(clickedValue);
+    const onClick = (clickedValue: AutoCompleteOption<T>) => {
+        parentOnChange(clickedValue.display);
         onResult(clickedValue);
         setShowSuggestions(false);
     };
@@ -72,13 +77,16 @@ export function AutoComplete({
                 }
                 return;
             case "Enter": {
+                // Not actively over option so let normal submit handler deal with it
+                if (activeSuggestionIndex === -1) {
+                    return;
+                }
+                e.preventDefault();
+                e.stopPropagation();
                 setShowSuggestions(false);
                 setActiveSuggestionIndex(-1);
-                const searchValue =
-                    activeSuggestionIndex === -1
-                        ? inputValue
-                        : filteredSuggestions[activeSuggestionIndex];
-                parentOnChange(searchValue);
+                const searchValue = filteredSuggestions[activeSuggestionIndex];
+                parentOnChange(searchValue.display);
                 onResult(searchValue);
             }
         }
@@ -94,11 +102,11 @@ export function AutoComplete({
                             activeSuggestionIndex === index ? "bg-gray-300" : ""
                         }`}
                         onMouseEnter={() => setActiveSuggestionIndex(index)}
-                        key={suggestion}
+                        key={suggestion.display}
                         onClick={() => onClick(suggestion)}
                         onMouseDown={(e) => e.preventDefault()}
                     >
-                        {suggestion}
+                        {suggestion.display}
                     </li>
                 ))}
             </ul>

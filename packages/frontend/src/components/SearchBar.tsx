@@ -1,9 +1,9 @@
 import { useEffect, useRef, useState } from "react";
 import { useHistory } from "react-router-dom";
+import { DEPARTMENT_LIST } from "@polyratings/shared";
 import { TeacherSearchType, TeacherService } from "@/services/teacher.service";
-import { AutoComplete } from ".";
+import { AutoComplete, AutoCompleteOption } from ".";
 import { useService } from "@/hooks";
-import { departments } from "@/constants";
 
 export interface SearchState {
     type: TeacherSearchType;
@@ -40,19 +40,28 @@ export function SearchBar({
         history.push(`/search/${searchType}?term=${encodeURIComponent(searchValue)}`);
     };
 
-    const autoCompleteFilter = async (value: string): Promise<string[]> => {
+    const autoCompleteFilter = async (
+        value: string,
+    ): Promise<AutoCompleteOption<{ id: string } | undefined>[]> => {
         // eslint-disable-next-line default-case
         switch (searchType) {
             case "name":
-                return teacherService
-                    .searchForTeacher(searchType, value)
-                    .then((result) => result.map((t) => `${t.lastName}, ${t.firstName}`));
+                return teacherService.searchForTeacher(searchType, value).then((result) =>
+                    result.map((t) => ({
+                        display: `${t.lastName}, ${t.firstName}`,
+                        metadata: { id: t.id },
+                    })),
+                );
             case "department":
-                return departments.filter((dep) => dep.includes(value.toUpperCase()));
+                return DEPARTMENT_LIST.filter((dep) => dep.includes(value.toUpperCase())).map(
+                    (dep) => ({ display: dep, metadata: undefined }),
+                );
             case "class": {
                 const allTeachers = await teacherService.getAllTeachers();
                 const allCourses = new Set(allTeachers.flatMap((t) => t.courses));
-                return [...allCourses].filter((course) => course.includes(value.toUpperCase()));
+                return [...allCourses]
+                    .filter((course) => course.includes(value.toUpperCase()))
+                    .map((course) => ({ display: course, metadata: undefined }));
             }
         }
         throw new Error("Not all autocomplete cases handled");
@@ -78,10 +87,15 @@ export function SearchBar({
                 )}
 
                 <AutoComplete
-                    onResult={(value) => {
-                        setSearchValue(value);
-                        // let update happen first
-                        setTimeout(() => formRef.current?.requestSubmit());
+                    onResult={async (value) => {
+                        if (value.metadata) {
+                            // Ensure teacher in the cache before loading
+                            await teacherService.getTeacher(value.metadata.id);
+                            history.push(`/teacher/${value.metadata.id}`);
+                        } else {
+                            // Use timeout to let current value update and then trigger and then form submission
+                            setTimeout(() => formRef.current?.requestSubmit());
+                        }
                     }}
                     onChange={setSearchValue}
                     placeholder={`Enter a ${searchType}`}

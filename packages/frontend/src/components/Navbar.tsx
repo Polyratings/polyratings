@@ -53,7 +53,7 @@ export function Navbar() {
                     <Link className="my-1" to="/" onClick={triggerMobileNav}>
                         Home
                     </Link>
-                    <Link className="my-1" to="/newTeacher" onClick={triggerMobileNav}>
+                    <Link className="my-1" to="/new-teacher" onClick={triggerMobileNav}>
                         {" "}
                         Add a Teacher
                     </Link>
@@ -85,7 +85,7 @@ export function Navbar() {
                     </div>
                 )}
 
-                <Link className="mr-7" to="/newTeacher">
+                <Link className="mr-7" to="/new-teacher">
                     {" "}
                     Add a Teacher
                 </Link>

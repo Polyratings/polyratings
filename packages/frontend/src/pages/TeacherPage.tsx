@@ -78,6 +78,13 @@ export function TeacherPage() {
         retrieveTeacherData();
     }, []);
 
+    const NaEvalZero = (val: unknown) => {
+        if (teacherData?.numEvals) {
+            return val;
+        }
+        return "N/A";
+    };
+
     function ClassScroll({
         outerClassName,
         innerClassName,
@@ -124,7 +131,7 @@ export function TeacherPage() {
                         {teacherData?.lastName}, {teacherData?.firstName}
                     </h2>
                     <div>
-                        {teacherData?.overallRating && (
+                        {Boolean(teacherData?.overallRating) && (
                             <StarRatings
                                 rating={teacherData?.overallRating}
                                 starRatedColor="#BD8B13"
@@ -144,11 +151,15 @@ export function TeacherPage() {
                 </div>{" "}
                 <div className="text-right">
                     <h2 className="text-4xl text-cal-poly-green">
-                        {teacherData?.overallRating} / 4.00
+                        {NaEvalZero(teacherData?.overallRating)} / 4.00
                     </h2>
                     <p>{teacherData?.numEvals} evaluations</p>
-                    <p> Recognizes Student Difficulties: {teacherData?.studentDifficulties}</p>
-                    <p>Presents Material Clearly: {teacherData?.materialClear} </p>
+                    <p>
+                        {" "}
+                        Recognizes Student Difficulties:{" "}
+                        {NaEvalZero(teacherData?.studentDifficulties)}
+                    </p>
+                    <p>Presents Material Clearly: {NaEvalZero(teacherData?.materialClear)}</p>
                 </div>
             </div>
 
@@ -157,18 +168,11 @@ export function TeacherPage() {
                     {teacherData?.lastName}, {teacherData?.firstName}
                 </h2>
                 <p>{teacherData?.department}</p>
+                <p>Overall Rating: {NaEvalZero(teacherData?.overallRating)} / 4.00</p>
                 <p>
-                    Overall Rating:
-                    {teacherData?.overallRating} / 4.00
+                    Recognizes Student Difficulties: {NaEvalZero(teacherData?.studentDifficulties)}
                 </p>
-                <p>
-                    Recognizes Student Difficulties:
-                    {teacherData?.studentDifficulties}
-                </p>
-                <p>
-                    Presents Material Clearly:
-                    {teacherData?.materialClear}
-                </p>
+                <p>Presents Material Clearly: {NaEvalZero(teacherData?.materialClear)}</p>
                 <button
                     onClick={() => setTeacherEvaluationShownMobile(!teacherEvaluationShownMobile)}
                     className="bg-cal-poly-green text-white rounded-lg p-2 shadow mt-2"
@@ -198,6 +202,11 @@ export function TeacherPage() {
                         disableDropDown={teacherReviews.length < 3}
                     />
                 ))}
+            {!teacherReviews?.length && (
+                <h2 className="text-4xl text-center text-cal-poly-green mt-10">
+                    Be the first to add a rating!
+                </h2>
+            )}
             <ClassScroll
                 outerClassName="hidden xl:flex flex-col fixed ml-4 top-1/2 transform -translate-y-1/2 max-h-10/12 overflow-y-auto"
                 innerClassName="text-cal-poly-green text-lg font-semibold mt-2"

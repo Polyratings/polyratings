@@ -13,9 +13,9 @@ import {
     GradeOptions,
     GradeLevelOptions,
     CourseTypeOptions,
+    DEPARTMENT_LIST,
 } from "@polyratings/shared";
 import { ReviewService } from "@/services";
-import { departments } from "@/constants";
 import { useService } from "@/hooks";
 
 interface EvaluateTeacherFormInputs {
@@ -168,7 +168,7 @@ export function EvaluateTeacherForm({
                     style={{ display: knownClassValue ? "none" : "block" }}
                 >
                     <select className="h-7 rounded" {...register("unknownClassDepartment")}>
-                        {departments.map((d) => (
+                        {DEPARTMENT_LIST.map((d) => (
                             <option key={d} value={d}>
                                 {d}
                             </option>
