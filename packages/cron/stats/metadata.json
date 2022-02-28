@@ -1,5 +1,973 @@
 {
   "inputs": {
+    "../../node_modules/@sentry/minimal/node_modules/tslib/tslib.js": {
+      "bytes": 13204,
+      "imports": []
+    },
+    "../../node_modules/@sentry/minimal/node_modules/tslib/modules/index.js": {
+      "bytes": 943,
+      "imports": [
+        {
+          "path": "../../node_modules/@sentry/minimal/node_modules/tslib/tslib.js",
+          "kind": "import-statement"
+        }
+      ]
+    },
+    "../../node_modules/@sentry/hub/node_modules/tslib/tslib.js": {
+      "bytes": 13204,
+      "imports": []
+    },
+    "../../node_modules/@sentry/hub/node_modules/tslib/modules/index.js": {
+      "bytes": 943,
+      "imports": [
+        {
+          "path": "../../node_modules/@sentry/hub/node_modules/tslib/tslib.js",
+          "kind": "import-statement"
+        }
+      ]
+    },
+    "../../node_modules/@sentry/utils/esm/async.js": {
+      "bytes": 411,
+      "imports": []
+    },
+    "../../node_modules/@sentry/utils/esm/is.js": {
+      "bytes": 4258,
+      "imports": []
+    },
+    "../../node_modules/@sentry/utils/esm/browser.js": {
+      "bytes": 3321,
+      "imports": [
+        {
+          "path": "../../node_modules/@sentry/utils/esm/is.js",
+          "kind": "import-statement"
+        }
+      ]
+    },
+    "../../node_modules/@sentry/utils/node_modules/tslib/tslib.js": {
+      "bytes": 13204,
+      "imports": []
+    },
+    "../../node_modules/@sentry/utils/node_modules/tslib/modules/index.js": {
+      "bytes": 943,
+      "imports": [
+        {
+          "path": "../../node_modules/@sentry/utils/node_modules/tslib/tslib.js",
+          "kind": "import-statement"
+        }
+      ]
+    },
+    "../../node_modules/@sentry/utils/esm/polyfill.js": {
+      "bytes": 813,
+      "imports": []
+    },
+    "../../node_modules/@sentry/utils/esm/error.js": {
+      "bytes": 632,
+      "imports": [
+        {
+          "path": "../../node_modules/@sentry/utils/node_modules/tslib/modules/index.js",
+          "kind": "import-statement"
+        },
+        {
+          "path": "../../node_modules/@sentry/utils/esm/polyfill.js",
+          "kind": "import-statement"
+        }
+      ]
+    },
+    "../../node_modules/@sentry/utils/esm/dsn.js": {
+      "bytes": 4005,
+      "imports": [
+        {
+          "path": "../../node_modules/@sentry/utils/node_modules/tslib/modules/index.js",
+          "kind": "import-statement"
+        },
+        {
+          "path": "../../node_modules/@sentry/utils/esm/error.js",
+          "kind": "import-statement"
+        }
+      ]
+    },
+    "../../node_modules/@sentry/utils/esm/node.js": {
+      "bytes": 1755,
+      "imports": []
+    },
+    "../../node_modules/@sentry/utils/esm/string.js": {
+      "bytes": 2681,
+      "imports": [
+        {
+          "path": "../../node_modules/@sentry/utils/esm/is.js",
+          "kind": "import-statement"
+        }
+      ]
+    },
+    "../../node_modules/@sentry/utils/esm/misc.js": {
+      "bytes": 8761,
+      "imports": [
+        {
+          "path": "../../node_modules/@sentry/utils/esm/node.js",
+          "kind": "import-statement"
+        },
+        {
+          "path": "../../node_modules/@sentry/utils/esm/string.js",
+          "kind": "import-statement"
+        }
+      ]
+    },
+    "../../node_modules/@sentry/utils/esm/logger.js": {
+      "bytes": 2039,
+      "imports": [
+        {
+          "path": "../../node_modules/@sentry/utils/esm/misc.js",
+          "kind": "import-statement"
+        }
+      ]
+    },
+    "../../node_modules/@sentry/utils/esm/memo.js": {
+      "bytes": 1634,
+      "imports": []
+    },
+    "../../node_modules/@sentry/utils/esm/stacktrace.js": {
+      "bytes": 531,
+      "imports": []
+    },
+    "../../node_modules/@sentry/utils/esm/object.js": {
+      "bytes": 12320,
+      "imports": [
+        {
+          "path": "../../node_modules/@sentry/utils/node_modules/tslib/modules/index.js",
+          "kind": "import-statement"
+        },
+        {
+          "path": "../../node_modules/@sentry/utils/esm/browser.js",
+          "kind": "import-statement"
+        },
+        {
+          "path": "../../node_modules/@sentry/utils/esm/is.js",
+          "kind": "import-statement"
+        },
+        {
+          "path": "../../node_modules/@sentry/utils/esm/memo.js",
+          "kind": "import-statement"
+        },
+        {
+          "path": "../../node_modules/@sentry/utils/esm/stacktrace.js",
+          "kind": "import-statement"
+        },
+        {
+          "path": "../../node_modules/@sentry/utils/esm/string.js",
+          "kind": "import-statement"
+        }
+      ]
+    },
+    "../../node_modules/@sentry/utils/esm/supports.js": {
+      "bytes": 5210,
+      "imports": [
+        {
+          "path": "../../node_modules/@sentry/utils/esm/logger.js",
+          "kind": "import-statement"
+        },
+        {
+          "path": "../../node_modules/@sentry/utils/esm/misc.js",
+          "kind": "import-statement"
+        }
+      ]
+    },
+    "../../node_modules/@sentry/utils/esm/instrument.js": {
+      "bytes": 22019,
+      "imports": [
+        {
+          "path": "../../node_modules/@sentry/utils/node_modules/tslib/modules/index.js",
+          "kind": "import-statement"
+        },
+        {
+          "path": "../../node_modules/@sentry/utils/esm/is.js",
+          "kind": "import-statement"
+        },
+        {
+          "path": "../../node_modules/@sentry/utils/esm/logger.js",
+          "kind": "import-statement"
+        },
+        {
+          "path": "../../node_modules/@sentry/utils/esm/misc.js",
+          "kind": "import-statement"
+        },
+        {
+          "path": "../../node_modules/@sentry/utils/esm/object.js",
+          "kind": "import-statement"
+        },
+        {
+          "path": "../../node_modules/@sentry/utils/esm/stacktrace.js",
+          "kind": "import-statement"
+        },
+        {
+          "path": "../../node_modules/@sentry/utils/esm/supports.js",
+          "kind": "import-statement"
+        }
+      ]
+    },
+    "../../node_modules/@sentry/utils/esm/path.js": {
+      "bytes": 4901,
+      "imports": []
+    },
+    "../../node_modules/@sentry/utils/esm/syncpromise.js": {
+      "bytes": 6534,
+      "imports": [
+        {
+          "path": "../../node_modules/@sentry/utils/esm/is.js",
+          "kind": "import-statement"
+        }
+      ]
+    },
+    "../../node_modules/@sentry/utils/esm/promisebuffer.js": {
+      "bytes": 4193,
+      "imports": [
+        {
+          "path": "../../node_modules/@sentry/utils/esm/error.js",
+          "kind": "import-statement"
+        },
+        {
+          "path": "../../node_modules/@sentry/utils/esm/syncpromise.js",
+          "kind": "import-statement"
+        }
+      ]
+    },
+    "../../node_modules/@sentry/utils/esm/time.js": {
+      "bytes": 7307,
+      "imports": [
+        {
+          "path": "../../node_modules/@sentry/utils/esm/misc.js",
+          "kind": "import-statement"
+        },
+        {
+          "path": "../../node_modules/@sentry/utils/esm/node.js",
+          "kind": "import-statement"
+        }
+      ]
+    },
+    "../../node_modules/@sentry/utils/esm/index.js": {
+      "bytes": 505,
+      "imports": [
+        {
+          "path": "../../node_modules/@sentry/utils/esm/async.js",
+          "kind": "import-statement"
+        },
+        {
+          "path": "../../node_modules/@sentry/utils/esm/browser.js",
+          "kind": "import-statement"
+        },
+        {
+          "path": "../../node_modules/@sentry/utils/esm/dsn.js",
+          "kind": "import-statement"
+        },
+        {
+          "path": "../../node_modules/@sentry/utils/esm/error.js",
+          "kind": "import-statement"
+        },
+        {
+          "path": "../../node_modules/@sentry/utils/esm/instrument.js",
+          "kind": "import-statement"
+        },
+        {
+          "path": "../../node_modules/@sentry/utils/esm/is.js",
+          "kind": "import-statement"
+        },
+        {
+          "path": "../../node_modules/@sentry/utils/esm/logger.js",
+          "kind": "import-statement"
+        },
+        {
+          "path": "../../node_modules/@sentry/utils/esm/memo.js",
+          "kind": "import-statement"
+        },
+        {
+          "path": "../../node_modules/@sentry/utils/esm/misc.js",
+          "kind": "import-statement"
+        },
+        {
+          "path": "../../node_modules/@sentry/utils/esm/node.js",
+          "kind": "import-statement"
+        },
+        {
+          "path": "../../node_modules/@sentry/utils/esm/object.js",
+          "kind": "import-statement"
+        },
+        {
+          "path": "../../node_modules/@sentry/utils/esm/path.js",
+          "kind": "import-statement"
+        },
+        {
+          "path": "../../node_modules/@sentry/utils/esm/promisebuffer.js",
+          "kind": "import-statement"
+        },
+        {
+          "path": "../../node_modules/@sentry/utils/esm/stacktrace.js",
+          "kind": "import-statement"
+        },
+        {
+          "path": "../../node_modules/@sentry/utils/esm/string.js",
+          "kind": "import-statement"
+        },
+        {
+          "path": "../../node_modules/@sentry/utils/esm/supports.js",
+          "kind": "import-statement"
+        },
+        {
+          "path": "../../node_modules/@sentry/utils/esm/syncpromise.js",
+          "kind": "import-statement"
+        },
+        {
+          "path": "../../node_modules/@sentry/utils/esm/time.js",
+          "kind": "import-statement"
+        }
+      ]
+    },
+    "../../node_modules/@sentry/hub/esm/scope.js": {
+      "bytes": 15754,
+      "imports": [
+        {
+          "path": "../../node_modules/@sentry/hub/node_modules/tslib/modules/index.js",
+          "kind": "import-statement"
+        },
+        {
+          "path": "../../node_modules/@sentry/utils/esm/index.js",
+          "kind": "import-statement"
+        }
+      ]
+    },
+    "../../node_modules/@sentry/types/esm/loglevel.js": {
+      "bytes": 550,
+      "imports": []
+    },
+    "../../node_modules/@sentry/types/esm/session.js": {
+      "bytes": 697,
+      "imports": []
+    },
+    "../../node_modules/@sentry/types/esm/severity.js": {
+      "bytes": 1434,
+      "imports": []
+    },
+    "../../node_modules/@sentry/types/esm/status.js": {
+      "bytes": 1479,
+      "imports": []
+    },
+    "../../node_modules/@sentry/types/esm/transaction.js": {
+      "bytes": 424,
+      "imports": []
+    },
+    "../../node_modules/@sentry/types/esm/index.js": {
+      "bytes": 272,
+      "imports": [
+        {
+          "path": "../../node_modules/@sentry/types/esm/loglevel.js",
+          "kind": "import-statement"
+        },
+        {
+          "path": "../../node_modules/@sentry/types/esm/session.js",
+          "kind": "import-statement"
+        },
+        {
+          "path": "../../node_modules/@sentry/types/esm/severity.js",
+          "kind": "import-statement"
+        },
+        {
+          "path": "../../node_modules/@sentry/types/esm/status.js",
+          "kind": "import-statement"
+        },
+        {
+          "path": "../../node_modules/@sentry/types/esm/transaction.js",
+          "kind": "import-statement"
+        }
+      ]
+    },
+    "../../node_modules/@sentry/hub/esm/session.js": {
+      "bytes": 3951,
+      "imports": [
+        {
+          "path": "../../node_modules/@sentry/types/esm/index.js",
+          "kind": "import-statement"
+        },
+        {
+          "path": "../../node_modules/@sentry/utils/esm/index.js",
+          "kind": "import-statement"
+        }
+      ]
+    },
+    "../../node_modules/@sentry/hub/esm/hub.js": {
+      "bytes": 17994,
+      "imports": [
+        {
+          "path": "../../node_modules/@sentry/hub/node_modules/tslib/modules/index.js",
+          "kind": "import-statement"
+        },
+        {
+          "path": "../../node_modules/@sentry/types/esm/index.js",
+          "kind": "import-statement"
+        },
+        {
+          "path": "../../node_modules/@sentry/utils/esm/index.js",
+          "kind": "import-statement"
+        },
+        {
+          "path": "../../node_modules/@sentry/hub/esm/scope.js",
+          "kind": "import-statement"
+        },
+        {
+          "path": "../../node_modules/@sentry/hub/esm/session.js",
+          "kind": "import-statement"
+        }
+      ]
+    },
+    "../../node_modules/@sentry/hub/esm/sessionflusher.js": {
+      "bytes": 4961,
+      "imports": [
+        {
+          "path": "../../node_modules/@sentry/types/esm/index.js",
+          "kind": "import-statement"
+        },
+        {
+          "path": "../../node_modules/@sentry/utils/esm/index.js",
+          "kind": "import-statement"
+        },
+        {
+          "path": "../../node_modules/@sentry/hub/esm/hub.js",
+          "kind": "import-statement"
+        }
+      ]
+    },
+    "../../node_modules/@sentry/hub/esm/index.js": {
+      "bytes": 356,
+      "imports": [
+        {
+          "path": "../../node_modules/@sentry/hub/esm/scope.js",
+          "kind": "import-statement"
+        },
+        {
+          "path": "../../node_modules/@sentry/hub/esm/session.js",
+          "kind": "import-statement"
+        },
+        {
+          "path": "../../node_modules/@sentry/hub/esm/sessionflusher.js",
+          "kind": "import-statement"
+        },
+        {
+          "path": "../../node_modules/@sentry/hub/esm/hub.js",
+          "kind": "import-statement"
+        }
+      ]
+    },
+    "../../node_modules/@sentry/minimal/esm/index.js": {
+      "bytes": 6760,
+      "imports": [
+        {
+          "path": "../../node_modules/@sentry/minimal/node_modules/tslib/modules/index.js",
+          "kind": "import-statement"
+        },
+        {
+          "path": "../../node_modules/@sentry/hub/esm/index.js",
+          "kind": "import-statement"
+        }
+      ]
+    },
+    "../../node_modules/@sentry/core/esm/api.js": {
+      "bytes": 5438,
+      "imports": [
+        {
+          "path": "../../node_modules/@sentry/utils/esm/index.js",
+          "kind": "import-statement"
+        }
+      ]
+    },
+    "../../node_modules/@sentry/core/node_modules/tslib/tslib.js": {
+      "bytes": 13204,
+      "imports": []
+    },
+    "../../node_modules/@sentry/core/node_modules/tslib/modules/index.js": {
+      "bytes": 943,
+      "imports": [
+        {
+          "path": "../../node_modules/@sentry/core/node_modules/tslib/tslib.js",
+          "kind": "import-statement"
+        }
+      ]
+    },
+    "../../node_modules/@sentry/core/esm/integration.js": {
+      "bytes": 3147,
+      "imports": [
+        {
+          "path": "../../node_modules/@sentry/core/node_modules/tslib/modules/index.js",
+          "kind": "import-statement"
+        },
+        {
+          "path": "../../node_modules/@sentry/hub/esm/index.js",
+          "kind": "import-statement"
+        },
+        {
+          "path": "../../node_modules/@sentry/utils/esm/index.js",
+          "kind": "import-statement"
+        }
+      ]
+    },
+    "../../node_modules/@sentry/core/esm/baseclient.js": {
+      "bytes": 20595,
+      "imports": [
+        {
+          "path": "../../node_modules/@sentry/core/node_modules/tslib/modules/index.js",
+          "kind": "import-statement"
+        },
+        {
+          "path": "../../node_modules/@sentry/hub/esm/index.js",
+          "kind": "import-statement"
+        },
+        {
+          "path": "../../node_modules/@sentry/types/esm/index.js",
+          "kind": "import-statement"
+        },
+        {
+          "path": "../../node_modules/@sentry/utils/esm/index.js",
+          "kind": "import-statement"
+        },
+        {
+          "path": "../../node_modules/@sentry/core/esm/integration.js",
+          "kind": "import-statement"
+        }
+      ]
+    },
+    "../../node_modules/@sentry/core/esm/transports/noop.js": {
+      "bytes": 691,
+      "imports": [
+        {
+          "path": "../../node_modules/@sentry/types/esm/index.js",
+          "kind": "import-statement"
+        },
+        {
+          "path": "../../node_modules/@sentry/utils/esm/index.js",
+          "kind": "import-statement"
+        }
+      ]
+    },
+    "../../node_modules/@sentry/core/esm/basebackend.js": {
+      "bytes": 2140,
+      "imports": [
+        {
+          "path": "../../node_modules/@sentry/utils/esm/index.js",
+          "kind": "import-statement"
+        },
+        {
+          "path": "../../node_modules/@sentry/core/esm/transports/noop.js",
+          "kind": "import-statement"
+        }
+      ]
+    },
+    "../../node_modules/@sentry/core/esm/request.js": {
+      "bytes": 3899,
+      "imports": [
+        {
+          "path": "../../node_modules/@sentry/core/node_modules/tslib/modules/index.js",
+          "kind": "import-statement"
+        }
+      ]
+    },
+    "../../node_modules/@sentry/core/esm/sdk.js": {
+      "bytes": 682,
+      "imports": [
+        {
+          "path": "../../node_modules/@sentry/hub/esm/index.js",
+          "kind": "import-statement"
+        },
+        {
+          "path": "../../node_modules/@sentry/utils/esm/index.js",
+          "kind": "import-statement"
+        }
+      ]
+    },
+    "../../node_modules/@sentry/core/esm/version.js": {
+      "bytes": 70,
+      "imports": []
+    },
+    "../../node_modules/@sentry/core/esm/integrations/functiontostring.js": {
+      "bytes": 1107,
+      "imports": []
+    },
+    "../../node_modules/@sentry/core/esm/integrations/inboundfilters.js": {
+      "bytes": 7660,
+      "imports": [
+        {
+          "path": "../../node_modules/@sentry/core/node_modules/tslib/modules/index.js",
+          "kind": "import-statement"
+        },
+        {
+          "path": "../../node_modules/@sentry/hub/esm/index.js",
+          "kind": "import-statement"
+        },
+        {
+          "path": "../../node_modules/@sentry/utils/esm/index.js",
+          "kind": "import-statement"
+        }
+      ]
+    },
+    "../../node_modules/@sentry/core/esm/integrations/index.js": {
+      "bytes": 139,
+      "imports": [
+        {
+          "path": "../../node_modules/@sentry/core/esm/integrations/functiontostring.js",
+          "kind": "import-statement"
+        },
+        {
+          "path": "../../node_modules/@sentry/core/esm/integrations/inboundfilters.js",
+          "kind": "import-statement"
+        }
+      ]
+    },
+    "../../node_modules/@sentry/core/esm/index.js": {
+      "bytes": 739,
+      "imports": [
+        {
+          "path": "../../node_modules/@sentry/minimal/esm/index.js",
+          "kind": "import-statement"
+        },
+        {
+          "path": "../../node_modules/@sentry/hub/esm/index.js",
+          "kind": "import-statement"
+        },
+        {
+          "path": "../../node_modules/@sentry/core/esm/api.js",
+          "kind": "import-statement"
+        },
+        {
+          "path": "../../node_modules/@sentry/core/esm/baseclient.js",
+          "kind": "import-statement"
+        },
+        {
+          "path": "../../node_modules/@sentry/core/esm/basebackend.js",
+          "kind": "import-statement"
+        },
+        {
+          "path": "../../node_modules/@sentry/core/esm/request.js",
+          "kind": "import-statement"
+        },
+        {
+          "path": "../../node_modules/@sentry/core/esm/sdk.js",
+          "kind": "import-statement"
+        },
+        {
+          "path": "../../node_modules/@sentry/core/esm/transports/noop.js",
+          "kind": "import-statement"
+        },
+        {
+          "path": "../../node_modules/@sentry/core/esm/version.js",
+          "kind": "import-statement"
+        },
+        {
+          "path": "../../node_modules/@sentry/core/esm/integrations/index.js",
+          "kind": "import-statement"
+        }
+      ]
+    },
+    "../../node_modules/uuid/dist/esm-browser/rng.js": {
+      "bytes": 1040,
+      "imports": []
+    },
+    "../../node_modules/uuid/dist/esm-browser/regex.js": {
+      "bytes": 133,
+      "imports": []
+    },
+    "../../node_modules/uuid/dist/esm-browser/validate.js": {
+      "bytes": 141,
+      "imports": [
+        {
+          "path": "../../node_modules/uuid/dist/esm-browser/regex.js",
+          "kind": "import-statement"
+        }
+      ]
+    },
+    "../../node_modules/uuid/dist/esm-browser/stringify.js": {
+      "bytes": 1463,
+      "imports": [
+        {
+          "path": "../../node_modules/uuid/dist/esm-browser/validate.js",
+          "kind": "import-statement"
+        }
+      ]
+    },
+    "../../node_modules/uuid/dist/esm-browser/v1.js": {
+      "bytes": 3296,
+      "imports": [
+        {
+          "path": "../../node_modules/uuid/dist/esm-browser/rng.js",
+          "kind": "import-statement"
+        },
+        {
+          "path": "../../node_modules/uuid/dist/esm-browser/stringify.js",
+          "kind": "import-statement"
+        }
+      ]
+    },
+    "../../node_modules/uuid/dist/esm-browser/parse.js": {
+      "bytes": 1104,
+      "imports": [
+        {
+          "path": "../../node_modules/uuid/dist/esm-browser/validate.js",
+          "kind": "import-statement"
+        }
+      ]
+    },
+    "../../node_modules/uuid/dist/esm-browser/v35.js": {
+      "bytes": 1657,
+      "imports": [
+        {
+          "path": "../../node_modules/uuid/dist/esm-browser/stringify.js",
+          "kind": "import-statement"
+        },
+        {
+          "path": "../../node_modules/uuid/dist/esm-browser/parse.js",
+          "kind": "import-statement"
+        }
+      ]
+    },
+    "../../node_modules/uuid/dist/esm-browser/md5.js": {
+      "bytes": 6852,
+      "imports": []
+    },
+    "../../node_modules/uuid/dist/esm-browser/v3.js": {
+      "bytes": 105,
+      "imports": [
+        {
+          "path": "../../node_modules/uuid/dist/esm-browser/v35.js",
+          "kind": "import-statement"
+        },
+        {
+          "path": "../../node_modules/uuid/dist/esm-browser/md5.js",
+          "kind": "import-statement"
+        }
+      ]
+    },
+    "../../node_modules/uuid/dist/esm-browser/v4.js": {
+      "bytes": 544,
+      "imports": [
+        {
+          "path": "../../node_modules/uuid/dist/esm-browser/rng.js",
+          "kind": "import-statement"
+        },
+        {
+          "path": "../../node_modules/uuid/dist/esm-browser/stringify.js",
+          "kind": "import-statement"
+        }
+      ]
+    },
+    "../../node_modules/uuid/dist/esm-browser/sha1.js": {
+      "bytes": 2488,
+      "imports": []
+    },
+    "../../node_modules/uuid/dist/esm-browser/v5.js": {
+      "bytes": 108,
+      "imports": [
+        {
+          "path": "../../node_modules/uuid/dist/esm-browser/v35.js",
+          "kind": "import-statement"
+        },
+        {
+          "path": "../../node_modules/uuid/dist/esm-browser/sha1.js",
+          "kind": "import-statement"
+        }
+      ]
+    },
+    "../../node_modules/uuid/dist/esm-browser/nil.js": {
+      "bytes": 54,
+      "imports": []
+    },
+    "../../node_modules/uuid/dist/esm-browser/version.js": {
+      "bytes": 200,
+      "imports": [
+        {
+          "path": "../../node_modules/uuid/dist/esm-browser/validate.js",
+          "kind": "import-statement"
+        }
+      ]
+    },
+    "../../node_modules/uuid/dist/esm-browser/index.js": {
+      "bytes": 412,
+      "imports": [
+        {
+          "path": "../../node_modules/uuid/dist/esm-browser/v1.js",
+          "kind": "import-statement"
+        },
+        {
+          "path": "../../node_modules/uuid/dist/esm-browser/v3.js",
+          "kind": "import-statement"
+        },
+        {
+          "path": "../../node_modules/uuid/dist/esm-browser/v4.js",
+          "kind": "import-statement"
+        },
+        {
+          "path": "../../node_modules/uuid/dist/esm-browser/v5.js",
+          "kind": "import-statement"
+        },
+        {
+          "path": "../../node_modules/uuid/dist/esm-browser/nil.js",
+          "kind": "import-statement"
+        },
+        {
+          "path": "../../node_modules/uuid/dist/esm-browser/version.js",
+          "kind": "import-statement"
+        },
+        {
+          "path": "../../node_modules/uuid/dist/esm-browser/validate.js",
+          "kind": "import-statement"
+        },
+        {
+          "path": "../../node_modules/uuid/dist/esm-browser/stringify.js",
+          "kind": "import-statement"
+        },
+        {
+          "path": "../../node_modules/uuid/dist/esm-browser/parse.js",
+          "kind": "import-statement"
+        }
+      ]
+    },
+    "../../node_modules/toucan-js/node_modules/cookie/index.js": {
+      "bytes": 4076,
+      "imports": []
+    },
+    "../../node_modules/stackframe/stackframe.js": {
+      "bytes": 4944,
+      "imports": []
+    },
+    "../../node_modules/error-stack-parser/error-stack-parser.js": {
+      "bytes": 8713,
+      "imports": [
+        {
+          "path": "../../node_modules/stackframe/stackframe.js",
+          "kind": "require-call"
+        }
+      ]
+    },
+    "../../node_modules/stack-generator/stack-generator.js": {
+      "bytes": 1619,
+      "imports": [
+        {
+          "path": "../../node_modules/stackframe/stackframe.js",
+          "kind": "require-call"
+        }
+      ]
+    },
+    "../../node_modules/stacktrace-gps/node_modules/source-map/lib/util.js": {
+      "bytes": 10484,
+      "imports": []
+    },
+    "../../node_modules/stacktrace-gps/node_modules/source-map/lib/binary-search.js": {
+      "bytes": 4249,
+      "imports": []
+    },
+    "../../node_modules/stacktrace-gps/node_modules/source-map/lib/array-set.js": {
+      "bytes": 2760,
+      "imports": [
+        {
+          "path": "../../node_modules/stacktrace-gps/node_modules/source-map/lib/util.js",
+          "kind": "require-call"
+        }
+      ]
+    },
+    "../../node_modules/stacktrace-gps/node_modules/source-map/lib/base64.js": {
+      "bytes": 1540,
+      "imports": []
+    },
+    "../../node_modules/stacktrace-gps/node_modules/source-map/lib/base64-vlq.js": {
+      "bytes": 4714,
+      "imports": [
+        {
+          "path": "../../node_modules/stacktrace-gps/node_modules/source-map/lib/base64.js",
+          "kind": "require-call"
+        }
+      ]
+    },
+    "../../node_modules/stacktrace-gps/node_modules/source-map/lib/quick-sort.js": {
+      "bytes": 3616,
+      "imports": []
+    },
+    "../../node_modules/stacktrace-gps/node_modules/source-map/lib/source-map-consumer.js": {
+      "bytes": 38390,
+      "imports": [
+        {
+          "path": "../../node_modules/stacktrace-gps/node_modules/source-map/lib/util.js",
+          "kind": "require-call"
+        },
+        {
+          "path": "../../node_modules/stacktrace-gps/node_modules/source-map/lib/binary-search.js",
+          "kind": "require-call"
+        },
+        {
+          "path": "../../node_modules/stacktrace-gps/node_modules/source-map/lib/array-set.js",
+          "kind": "require-call"
+        },
+        {
+          "path": "../../node_modules/stacktrace-gps/node_modules/source-map/lib/base64-vlq.js",
+          "kind": "require-call"
+        },
+        {
+          "path": "../../node_modules/stacktrace-gps/node_modules/source-map/lib/quick-sort.js",
+          "kind": "require-call"
+        }
+      ]
+    },
+    "../../node_modules/stacktrace-gps/stacktrace-gps.js": {
+      "bytes": 14963,
+      "imports": [
+        {
+          "path": "../../node_modules/stacktrace-gps/node_modules/source-map/lib/source-map-consumer.js",
+          "kind": "require-call"
+        },
+        {
+          "path": "../../node_modules/stackframe/stackframe.js",
+          "kind": "require-call"
+        }
+      ]
+    },
+    "../../node_modules/stacktrace-js/stacktrace.js": {
+      "bytes": 8711,
+      "imports": [
+        {
+          "path": "../../node_modules/error-stack-parser/error-stack-parser.js",
+          "kind": "require-call"
+        },
+        {
+          "path": "../../node_modules/stack-generator/stack-generator.js",
+          "kind": "require-call"
+        },
+        {
+          "path": "../../node_modules/stacktrace-gps/stacktrace-gps.js",
+          "kind": "require-call"
+        }
+      ]
+    },
+    "../../node_modules/toucan-js/dist/index.esm.js": {
+      "bytes": 27187,
+      "imports": [
+        {
+          "path": "../../node_modules/@sentry/core/esm/index.js",
+          "kind": "import-statement"
+        },
+        {
+          "path": "../../node_modules/@sentry/utils/esm/index.js",
+          "kind": "import-statement"
+        },
+        {
+          "path": "../../node_modules/uuid/dist/esm-browser/index.js",
+          "kind": "import-statement"
+        },
+        {
+          "path": "../../node_modules/toucan-js/node_modules/cookie/index.js",
+          "kind": "import-statement"
+        },
+        {
+          "path": "../../node_modules/stacktrace-js/stacktrace.js",
+          "kind": "import-statement"
+        },
+        {
+          "path": "../../node_modules/@sentry/hub/esm/index.js",
+          "kind": "import-statement"
+        }
+      ]
+    },
     "../../node_modules/reflect-metadata/Reflect.js": {
       "bytes": 51230,
       "imports": []
@@ -26,7 +994,7 @@
       ]
     },
     "src/logger.ts": {
-      "bytes": 404,
+      "bytes": 449,
       "imports": []
     },
     "src/steps/syncProfessors.ts": {
@@ -4882,7 +5850,7 @@
       ]
     },
     "src/entry.ts": {
-      "bytes": 4019,
+      "bytes": 4105,
       "imports": [
         {
           "path": "../../node_modules/reflect-metadata/Reflect.js",
@@ -4919,8 +5887,12 @@
       ]
     },
     "src/worker.ts": {
-      "bytes": 417,
+      "bytes": 712,
       "imports": [
+        {
+          "path": "../../node_modules/toucan-js/dist/index.esm.js",
+          "kind": "import-statement"
+        },
         {
           "path": "src/entry.ts",
           "kind": "import-statement"
@@ -4936,29 +5908,152 @@
       ],
       "entryPoint": "src/worker.ts",
       "inputs": {
+        "../../node_modules/@sentry/hub/node_modules/tslib/tslib.js": {
+          "bytesInOutput": 14172
+        },
+        "../../node_modules/@sentry/utils/node_modules/tslib/tslib.js": {
+          "bytesInOutput": 14175
+        },
+        "../../node_modules/toucan-js/node_modules/cookie/index.js": {
+          "bytesInOutput": 3335
+        },
+        "../../node_modules/stackframe/stackframe.js": {
+          "bytesInOutput": 4823
+        },
+        "../../node_modules/error-stack-parser/error-stack-parser.js": {
+          "bytesInOutput": 6883
+        },
+        "../../node_modules/stack-generator/stack-generator.js": {
+          "bytesInOutput": 1504
+        },
+        "../../node_modules/stacktrace-gps/node_modules/source-map/lib/util.js": {
+          "bytesInOutput": 7722
+        },
+        "../../node_modules/stacktrace-gps/node_modules/source-map/lib/binary-search.js": {
+          "bytesInOutput": 1549
+        },
+        "../../node_modules/stacktrace-gps/node_modules/source-map/lib/array-set.js": {
+          "bytesInOutput": 1813
+        },
+        "../../node_modules/stacktrace-gps/node_modules/source-map/lib/base64.js": {
+          "bytesInOutput": 1169
+        },
+        "../../node_modules/stacktrace-gps/node_modules/source-map/lib/base64-vlq.js": {
+          "bytesInOutput": 1738
+        },
+        "../../node_modules/stacktrace-gps/node_modules/source-map/lib/quick-sort.js": {
+          "bytesInOutput": 989
+        },
+        "../../node_modules/stacktrace-gps/node_modules/source-map/lib/source-map-consumer.js": {
+          "bytesInOutput": 23295
+        },
+        "../../node_modules/stacktrace-gps/stacktrace-gps.js": {
+          "bytesInOutput": 10951
+        },
+        "../../node_modules/stacktrace-js/stacktrace.js": {
+          "bytesInOutput": 6016
+        },
         "../../node_modules/toml/lib/parser.js": {
-          "bytesInOutput": 119264
+          "bytesInOutput": 119266
         },
         "../../node_modules/toml/lib/compiler.js": {
-          "bytesInOutput": 5452
+          "bytesInOutput": 5454
         },
         "../../node_modules/toml/index.js": {
-          "bytesInOutput": 331
+          "bytesInOutput": 333
         },
         "../../node_modules/validator/lib/util/assertString.js": {
-          "bytesInOutput": 1246
+          "bytesInOutput": 1249
         },
         "../../node_modules/validator/lib/isUUID.js": {
-          "bytesInOutput": 1204
+          "bytesInOutput": 1207
         },
         "../../node_modules/validator/lib/isLength.js": {
-          "bytesInOutput": 1493
+          "bytesInOutput": 1496
+        },
+        "../../node_modules/@sentry/hub/node_modules/tslib/modules/index.js": {
+          "bytesInOutput": 447
+        },
+        "../../node_modules/@sentry/utils/esm/is.js": {
+          "bytesInOutput": 1133
+        },
+        "../../node_modules/@sentry/utils/esm/browser.js": {
+          "bytesInOutput": 1988
+        },
+        "../../node_modules/@sentry/utils/node_modules/tslib/modules/index.js": {
+          "bytesInOutput": 795
+        },
+        "../../node_modules/@sentry/utils/esm/polyfill.js": {
+          "bytesInOutput": 351
+        },
+        "../../node_modules/@sentry/utils/esm/error.js": {
+          "bytesInOutput": 388
+        },
+        "../../node_modules/@sentry/utils/esm/dsn.js": {
+          "bytesInOutput": 2779
+        },
+        "../../node_modules/@sentry/utils/esm/node.js": {
+          "bytesInOutput": 208
+        },
+        "../../node_modules/@sentry/utils/esm/string.js": {
+          "bytesInOutput": 208
+        },
+        "../../node_modules/@sentry/utils/esm/misc.js": {
+          "bytesInOutput": 228
+        },
+        "../../node_modules/@sentry/utils/esm/memo.js": {
+          "bytesInOutput": 874
+        },
+        "../../node_modules/@sentry/utils/esm/stacktrace.js": {
+          "bytesInOutput": 260
+        },
+        "../../node_modules/@sentry/utils/esm/object.js": {
+          "bytesInOutput": 4840
+        },
+        "../../node_modules/@sentry/utils/esm/syncpromise.js": {
+          "bytesInOutput": 4375
+        },
+        "../../node_modules/@sentry/utils/esm/time.js": {
+          "bytesInOutput": 2252
+        },
+        "../../node_modules/@sentry/hub/esm/scope.js": {
+          "bytesInOutput": 10189
+        },
+        "../../node_modules/@sentry/hub/esm/index.js": {
+          "bytesInOutput": 0
+        },
+        "../../node_modules/@sentry/core/esm/api.js": {
+          "bytesInOutput": 3384
+        },
+        "../../node_modules/@sentry/core/esm/index.js": {
+          "bytesInOutput": 0
+        },
+        "../../node_modules/uuid/dist/esm-browser/rng.js": {
+          "bytesInOutput": 546
+        },
+        "../../node_modules/uuid/dist/esm-browser/regex.js": {
+          "bytesInOutput": 139
+        },
+        "../../node_modules/uuid/dist/esm-browser/validate.js": {
+          "bytesInOutput": 124
+        },
+        "../../node_modules/uuid/dist/esm-browser/stringify.js": {
+          "bytesInOutput": 881
+        },
+        "../../node_modules/uuid/dist/esm-browser/v4.js": {
+          "bytesInOutput": 371
+        },
+        "../../node_modules/uuid/dist/esm-browser/index.js": {
+          "bytesInOutput": 0
+        },
+        "../../node_modules/toucan-js/dist/index.esm.js": {
+          "bytesInOutput": 13452
         },
         "../../node_modules/reflect-metadata/Reflect.js": {
           "bytesInOutput": 24375
         },
         "src/entry.ts": {
-          "bytesInOutput": 2482
+          "bytesInOutput": 2519
         },
         "src/logger.ts": {
           "bytesInOutput": 252
@@ -5012,7 +6107,7 @@
           "bytesInOutput": 482
         },
         "../../node_modules/class-validator/esm5/decorator/common/ValidateNested.js": {
-          "bytesInOutput": 885
+          "bytesInOutput": 889
         },
         "../../node_modules/class-validator/esm5/decorator/common/Equals.js": {
           "bytesInOutput": 520
@@ -5042,7 +6137,7 @@
           "bytesInOutput": 462
         },
         "../../node_modules/class-validator/esm5/decorator/typechecker/IsString.js": {
-          "bytesInOutput": 477
+          "bytesInOutput": 479
         },
         "../../node_modules/class-validator/esm5/decorator/typechecker/IsArray.js": {
           "bytesInOutput": 439
@@ -5084,7 +6179,7 @@
           "bytesInOutput": 161
         },
         "../shared/dist/esm/dtos/BaseDTO.js": {
-          "bytesInOutput": 711
+          "bytesInOutput": 713
         },
         "../shared/dist/esm/decorators.js": {
           "bytesInOutput": 136
@@ -5129,10 +6224,10 @@
           "bytesInOutput": 590
         },
         "src/worker.ts": {
-          "bytesInOutput": 97
+          "bytesInOutput": 326
         }
       },
-      "bytes": 227963
+      "bytes": 381793
     }
   }
 }

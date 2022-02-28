@@ -1,6 +1,7 @@
 import "reflect-metadata";
 import { Teacher } from "@polyratings/shared";
 import * as toml from "toml";
+import Toucan from "toucan-js";
 import { syncProfessors } from "./steps/syncProfessors";
 import { cloudflareKVInit } from "./wrappers/kv-wrapper";
 import { Logger } from "./logger";
@@ -11,11 +12,12 @@ import { PolyratingsWorkerWrapper } from "./wrappers/worker-wrapper";
 import backendDeployToml from "../../backend/wrangler.toml";
 import { clearProcessingQueues } from "./steps/clearProcessingQueues";
 
-export async function main(env: Record<string, string>) {
+export async function main(env: Record<string, string>, sentry?: Toucan) {
     let runtimeEnv: CronEnv;
     try {
         runtimeEnv = await createRuntimeEnvironment(env);
     } catch (e) {
+        sentry?.captureException(e);
         Logger.error(`Failed to create cron runtime environment\nReceived Error: ${e}`);
         return;
     }
@@ -29,6 +31,7 @@ export async function main(env: Record<string, string>) {
         try {
             await task(runtimeEnv);
         } catch (e) {
+            sentry?.captureException(e);
             Logger.error(`Failed to run \`${name}\`\n`, `Got Error: ${JSON.stringify(e)}`);
         }
     }
