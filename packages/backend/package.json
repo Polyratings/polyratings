@@ -4,7 +4,7 @@
     "description": "Cloudflare Workers project for the Polyratings site backend",
     "main": "index.js",
     "scripts": {
-        "build:fast": "esbuild --minify --format=esm --define:this=self --bundle src/index.ts --outdir=dist --metafile=stats/metadata.json",
+        "build:fast": "esbuild --format=esm --define:this=self --bundle src/index.ts --outdir=dist --metafile=stats/metadata.json",
         "build": "tsc && npm run build:fast",
         "stats": "esbuild-visualizer --metadata ./stats/metadata.json --filename ./stats/stats.html",
         "deploy:prod": "wrangler publish --env prod",
@@ -36,6 +36,7 @@
         "@tsndr/cloudflare-worker-jwt": "^1.1.5",
         "class-transformer": "^0.5.1",
         "class-validator": "^0.13.2",
+        "toucan-js": "^2.5.0",
         "reflect-metadata": "^0.1.13",
         "sunder": "^0.10.1"
     }
