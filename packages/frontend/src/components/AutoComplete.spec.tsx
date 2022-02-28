@@ -3,7 +3,7 @@ import userEvent from "@testing-library/user-event";
 import { useState } from "react";
 import { act } from "react-dom/test-utils";
 import { setWindowSize } from "@/test-utils";
-import { AutoComplete } from ".";
+import { AutoComplete, AutoCompleteOption } from ".";
 
 function Wrapper({ disableDropdown }: { disableDropdown: boolean }) {
     const [value, setValue] = useState("");
@@ -13,7 +13,7 @@ function Wrapper({ disableDropdown }: { disableDropdown: boolean }) {
             placeholder="MyPlaceHolderText"
             // Use += since we are not using useState in the test
             onResult={(val) => {
-                submitValue = val;
+                submitValue = val.display;
             }}
             onChange={setValue}
             maxDropDownSize={3}
@@ -21,7 +21,9 @@ function Wrapper({ disableDropdown }: { disableDropdown: boolean }) {
             disableDropdown={disableDropdown}
             filterFn={(val) => {
                 const arr = ["a", "ab", "abb", "abbb", "abbbb"];
-                return arr.filter((s) => s.startsWith(val));
+                return arr
+                    .filter((s) => s.startsWith(val))
+                    .map((str) => ({ display: str } as AutoCompleteOption<undefined>));
             }}
         />
     );
@@ -62,16 +64,16 @@ describe("<AutoComplete />", () => {
 
     it("Properly submits a value", async () => {
         const input = autoComplete.getByPlaceholderText("MyPlaceHolderText");
-        userEvent.type(input, "abb{enter}");
+        await userEvent.type(input, "abb{arrowdown}{enter}", { delay: 20 });
 
         await waitFor(() => expect(submitValue).toBe("abb"));
     });
 
-    it("Submit value does not have to be a valid search", async () => {
+    it("Only triggers submit when highlighting option", async () => {
         const input = autoComplete.getByPlaceholderText("MyPlaceHolderText");
-        userEvent.type(input, "dddd{enter}");
+        userEvent.type(input, "ab{enter}");
 
-        await waitFor(() => expect(submitValue).toBe("dddd"));
+        await waitFor(() => expect(submitValue).toBe(""));
     });
 
     it("Can select a value in the drop down", async () => {
