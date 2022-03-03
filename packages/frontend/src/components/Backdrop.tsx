@@ -1,23 +1,21 @@
 import { ReactNode, useEffect } from "react";
 
 export function Backdrop({ children }: { children: ReactNode }) {
-    window.scrollTo(0, 0);
-
     // Fix scroll position
     useEffect(() => {
+        const initialY = window.scrollY;
+        window.scrollTo(0, 0);
         document.body.style.height = "100vh";
         document.body.style.overflowY = "hidden";
         return () => {
             document.body.style.height = "auto";
             document.body.style.overflowY = "auto";
+            window.scrollTo(0, initialY);
         };
     }, []);
 
     return (
-        <div
-            className="bg-black bg-opacity-80 flex justify-center items-center absolute left-0 w-screen h-screen z-10"
-            style={{ top: window.pageYOffset }}
-        >
+        <div className="bg-black bg-opacity-80 flex justify-center items-center fixed left-0 top-0 w-screen h-screen z-50">
             {children}
         </div>
     );

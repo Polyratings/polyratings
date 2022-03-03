@@ -17,16 +17,16 @@ main = './index.js' # TODO: figure out what actually goes here!!
 type = "ESModule"
 globs = ["**/*.js"]
 
-# TODO: Change env.sunder and env.dev to use non-prod datasets
 [env.dev]
 name = 'polyratings-dev-backend'
 route = 'api-dev.polyratings.dev/*'
 usage = "bundled"
 kv_namespaces = [
     { binding = "POLYRATINGS_TEACHERS", id = "20700dd12582422b9f91a0a1695ace88"},
-    { binding = "PROCESSING_QUEUE", id = "845ba14e564c411fa52543408e15c53e"},
-    { binding = "POLYRATINGS_USERS", id = "a23f7444e3c34913b7f04223fd1920d3"},
-    { binding = "POLYRATINGS_TEACHER_APPROVAL_QUEUE", id = "6adc0bac1438487f82de330b94684e73"}
+    { binding = "PROCESSING_QUEUE", id = "ada7d85a6912462ebaaaed5304f58323"},
+    { binding = "POLYRATINGS_USERS", id = "67f2fa91ef8a4625afdb07bfbbf9e2dd"},
+    { binding = "POLYRATINGS_TEACHER_APPROVAL_QUEUE", id = "133cd03378e64984b5d8afb702dc53d2"},
+    { binding = "POLYRATINGS_REPORTS", id = "3f3235ea2ed3456497e65e0ed980a31a"}
 ]
 
 [env.beta]
@@ -35,9 +35,10 @@ route = 'api-beta.polyratings.dev/*'
 usage = "bundled"
 kv_namespaces = [
     { binding = "POLYRATINGS_TEACHERS", id = "3a5904587fe943679bf97e59d95b7632"},
-    { binding = "PROCESSING_QUEUE", id = "845ba14e564c411fa52543408e15c53e"},
-    { binding = "POLYRATINGS_USERS", id = "a23f7444e3c34913b7f04223fd1920d3"},
-    { binding = "POLYRATINGS_TEACHER_APPROVAL_QUEUE", id = "6adc0bac1438487f82de330b94684e73"}
+    { binding = "PROCESSING_QUEUE", id = "a25ee370718a4d0e86aeba48f7156618"},
+    { binding = "POLYRATINGS_USERS", id = "37ebe11fcc9e4a96b502e8bb9f52513f"},
+    { binding = "POLYRATINGS_TEACHER_APPROVAL_QUEUE", id = "69bc139b671b4ac08c6fe7e594dad512"},
+    { binding = "POLYRATINGS_REPORTS", id = "ad342efbc164446fb20125d7c135625f"}
 ]
 
 [env.prod]
@@ -48,7 +49,8 @@ kv_namespaces = [
     { binding = "POLYRATINGS_TEACHERS", id = "c6bf2730306a4e65bb8aa7412ae6f250"},
     { binding = "PROCESSING_QUEUE", id  = "845ba14e564c411fa52543408e15c53e"},
     { binding = "POLYRATINGS_USERS", id = "a23f7444e3c34913b7f04223fd1920d3"},
-    { binding = "POLYRATINGS_TEACHER_APPROVAL_QUEUE", id = "6adc0bac1438487f82de330b94684e73"}
+    { binding = "POLYRATINGS_TEACHER_APPROVAL_QUEUE", id = "6adc0bac1438487f82de330b94684e73"},
+    { binding = "POLYRATINGS_REPORTS", id = "e7cdc104b5c047f498c0cc702a487bdf"}
 ]
 
 [dev]

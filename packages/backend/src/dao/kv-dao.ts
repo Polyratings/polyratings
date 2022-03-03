@@ -6,6 +6,10 @@ import { PendingReviewDTO } from "@polyratings/backend/dtos/Reviews";
 import { transformAndValidate } from "@polyratings/backend/utils/transform-and-validate";
 import { User } from "@polyratings/backend/dtos/User";
 import { plainToInstance } from "class-transformer";
+import { RatingReport } from "@polyratings/backend/dtos/RatingReport";
+import { BulkKey } from "@polyratings/shared";
+
+const KV_REQUESTS_PER_TRIGGER = 1000;
 
 export class KVDAO {
     constructor(
@@ -13,6 +17,7 @@ export class KVDAO {
         private usersNamespace: KVNamespace,
         private processingQueueNamespace: KVNamespace,
         private professorApprovalQueueNamespace: KVNamespace,
+        private reportsNamespace: KVNamespace,
     ) {}
 
     // HACK: class-validator/transformer cannot actually parse through the entire
@@ -39,8 +44,26 @@ export class KVDAO {
         return transformAndValidate(ProfessorDTO, JSON.parse(profString));
     }
 
-    async getProfessorKeys(): Promise<string[]> {
-        const professorKeys: string[] = [];
+    getBulkNamespace(bulkKey: BulkKey): KVNamespace {
+        switch (bulkKey) {
+            case "professors":
+                return this.polyratingsNamespace;
+            case "professor-queue":
+                return this.professorApprovalQueueNamespace;
+            case "users":
+                return this.usersNamespace;
+            case "reports":
+                return this.reportsNamespace;
+            case "rating-queue":
+                return this.processingQueueNamespace;
+            default:
+                throw new PolyratingsError(404, "Bulk key is not valid");
+        }
+    }
+
+    async getBulkKeys(bulkKey: BulkKey): Promise<string[]> {
+        const namespace = this.getBulkNamespace(bulkKey);
+        const keys: string[] = [];
         let cursor: string | undefined;
         do {
             let options = {};
@@ -49,21 +72,28 @@ export class KVDAO {
             }
             // Have to be consecutive
             // eslint-disable-next-line no-await-in-loop
-            const result = await this.polyratingsNamespace.list(options);
+            const result = await namespace.list(options);
             cursor = result.cursor;
             result.keys.forEach((key) => {
-                professorKeys.push(key.name);
+                keys.push(key.name);
             });
         } while (cursor);
 
-        return professorKeys;
+        return keys;
     }
 
-    async getProfessorUnchecked(id: string): Promise<string> {
-        const val = await this.polyratingsNamespace.get(id);
-        // unchecked so it will not even do a null check
+    async getBulkValues(bulkKey: BulkKey, keys: string[]) {
+        if (keys.length > KV_REQUESTS_PER_TRIGGER) {
+            throw new PolyratingsError(
+                400,
+                `Can not process more than ${KV_REQUESTS_PER_TRIGGER} keys per request`,
+            );
+        }
+        const namespace = this.getBulkNamespace(bulkKey);
+        const values = await Promise.all(keys.map((key) => namespace.get(key)));
+        // ts can not figure out that filter prevents the map from having null values
         // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-        return val!;
+        return values.filter((v) => v !== null).map((v) => JSON.parse(v!));
     }
 
     async putProfessor(professor: ProfessorDTO) {
@@ -195,5 +225,32 @@ export class KVDAO {
 
     removePendingProfessor(id: string): Promise<void> {
         return this.professorApprovalQueueNamespace.delete(id);
+    }
+
+    async getReport(ratingId: string): Promise<RatingReport> {
+        const ratingStr = await this.reportsNamespace.get(ratingId);
+        if (!ratingStr) {
+            throw new PolyratingsError(404, "Report does not exist!");
+        }
+
+        return transformAndValidate(RatingReport, JSON.parse(ratingStr));
+    }
+
+    async putReport(report: RatingReport): Promise<void> {
+        await validateOrReject(report, DEFAULT_VALIDATOR_OPTIONS);
+        const existingReportStr = await this.reportsNamespace.get(report.ratingId);
+
+        if (existingReportStr) {
+            const existingReport = plainToInstance(RatingReport, JSON.parse(existingReportStr));
+            existingReport.reports = existingReport.reports.concat(report.reports);
+            await validateOrReject(existingReport, DEFAULT_VALIDATOR_OPTIONS);
+            await this.reportsNamespace.put(report.ratingId, JSON.stringify(existingReport));
+        } else {
+            await this.reportsNamespace.put(report.ratingId, JSON.stringify(report));
+        }
+    }
+
+    async removeReport(ratingId: string) {
+        await this.reportsNamespace.delete(ratingId);
     }
 }

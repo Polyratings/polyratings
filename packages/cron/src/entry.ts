@@ -1,8 +1,7 @@
 import "reflect-metadata";
-import { Teacher } from "@polyratings/shared";
 import * as toml from "toml";
 import Toucan from "toucan-js";
-import { syncProfessors } from "./steps/syncProfessors";
+import { syncKvStore } from "./steps/syncKvStore";
 import { cloudflareKVInit } from "./wrappers/kv-wrapper";
 import { Logger } from "./logger";
 import { PolyratingsWorkerWrapper } from "./wrappers/worker-wrapper";
@@ -10,9 +9,9 @@ import { PolyratingsWorkerWrapper } from "./wrappers/worker-wrapper";
 // Typically this should be exported except it is a deployment file
 // eslint-disable-next-line import/no-relative-packages
 import backendDeployToml from "../../backend/wrangler.toml";
-import { clearProcessingQueues } from "./steps/clearProcessingQueues";
+import { clearKvStore } from "./steps/clearKvStore";
 
-export async function main(env: Record<string, string>, sentry?: Toucan) {
+export async function main(env: Record<string, string | undefined>, sentry?: Toucan) {
     let runtimeEnv: CronEnv;
     try {
         runtimeEnv = await createRuntimeEnvironment(env);
@@ -23,8 +22,14 @@ export async function main(env: Record<string, string>, sentry?: Toucan) {
     }
 
     const tasks = [
-        { name: "syncProfessors", task: syncProfessors },
-        { name: "clearProcessingQueues", task: clearProcessingQueues },
+        { name: "syncProfessors", task: syncKvStore("professors", "POLYRATINGS_TEACHERS") },
+        {
+            name: "syncProfessors",
+            task: syncKvStore("professor-queue", "POLYRATINGS_TEACHER_APPROVAL_QUEUE"),
+        },
+        { name: "syncProfessors", task: syncKvStore("users", "POLYRATINGS_USERS") },
+        { name: "syncProfessors", task: syncKvStore("reports", "POLYRATINGS_REPORTS") },
+        { name: "clearReviewQueue", task: clearKvStore("PROCESSING_QUEUE") },
     ];
 
     for (const { task, name } of tasks) {
@@ -32,26 +37,39 @@ export async function main(env: Record<string, string>, sentry?: Toucan) {
             await task(runtimeEnv);
         } catch (e) {
             sentry?.captureException(e);
-            Logger.error(`Failed to run \`${name}\`\n`, `Got Error: ${JSON.stringify(e)}`);
+            Logger.error(`Failed to run \`${name}\`\n`, `Got Error: ${e}`);
         }
     }
 }
 
 export interface CronEnv {
-    accountId: string;
-    prodProfessorData: [string, Teacher][];
-    prodWorkerUrl: string;
-    betaProfessorKvId: string;
-    devProfessorKvId: string;
-    reviewProcessingQueueId: string;
-    professorProcessingQueueId: string;
-    polyratingsCIUsername: string;
-    polyratingsCIPassword: string;
+    prodWorker: PolyratingsWorkerWrapper;
+    getKvId: typeof getKvId;
     KVWrapper: ReturnType<typeof cloudflareKVInit>;
 }
 
-async function createRuntimeEnvironment(globalEnv: Record<string, string>): Promise<CronEnv> {
-    const parsedToml = toml.parse(backendDeployToml);
+const parsedToml = toml.parse(backendDeployToml);
+export type EnvironmentKey = "prod" | "beta" | "dev";
+export type KvName =
+    | "POLYRATINGS_TEACHERS"
+    | "PROCESSING_QUEUE"
+    | "POLYRATINGS_TEACHER_APPROVAL_QUEUE"
+    | "POLYRATINGS_USERS"
+    | "POLYRATINGS_REPORTS";
+function getKvId(environmentKey: EnvironmentKey, kvName: KvName): string {
+    const id = parsedToml.env[environmentKey].kv_namespaces.find(
+        (namespace: Record<string, unknown>) => namespace.binding === kvName,
+    )?.id;
+
+    if (!id) {
+        throw new Error(`Could not find KV id for ${kvName} in ${environmentKey} environment`);
+    }
+    return id;
+}
+
+async function createRuntimeEnvironment(
+    globalEnv: Record<string, string | undefined>,
+): Promise<CronEnv> {
     const prodWorkerUrl = `https://${parsedToml.env.prod.route.slice(0, -1)}`;
     // Have to check for this key specifically since it is used before the undefined check
     if (!prodWorkerUrl) {
@@ -59,50 +77,23 @@ async function createRuntimeEnvironment(globalEnv: Record<string, string>): Prom
     }
 
     const accountId = parsedToml.account_id;
-    const betaProfessorKvId = parsedToml.env.beta.kv_namespaces.find(
-        (namespace: Record<string, unknown>) => namespace.binding === "POLYRATINGS_TEACHERS",
-    )?.id;
-    const devProfessorKvId = parsedToml.env.dev.kv_namespaces.find(
-        (namespace: Record<string, unknown>) => namespace.binding === "POLYRATINGS_TEACHERS",
-    )?.id;
-    const reviewProcessingQueueId = parsedToml.env.prod.kv_namespaces.find(
-        (namespace: Record<string, unknown>) => namespace.binding === "PROCESSING_QUEUE",
-    )?.id;
-    const professorProcessingQueueId = parsedToml.env.prod.kv_namespaces.find(
-        (namespace: Record<string, unknown>) =>
-            namespace.binding === "POLYRATINGS_TEACHER_APPROVAL_QUEUE",
-    )?.id;
-
     const polyratingsCIUsername = globalEnv.POLYRATINGS_CI_USERNAME;
     const polyratingsCIPassword = globalEnv.POLYRATINGS_CI_PASSWORD;
-
-    Logger.info("Getting professors from prod");
-    const polyratingsProdWorker = new PolyratingsWorkerWrapper(prodWorkerUrl);
-    await polyratingsProdWorker.login(polyratingsCIUsername, polyratingsCIPassword);
-    const prodProfessorData = await polyratingsProdWorker.professorEntries();
-    Logger.info(`Got ${prodProfessorData.length} professors from prod`);
-
-    const KVWrapper = cloudflareKVInit(globalEnv.CF_API_TOKEN);
-
-    const out: CronEnv = {
-        accountId,
-        betaProfessorKvId,
-        devProfessorKvId,
-        reviewProcessingQueueId,
-        professorProcessingQueueId,
-        prodWorkerUrl,
-        polyratingsCIPassword,
-        polyratingsCIUsername,
-        prodProfessorData,
-        KVWrapper,
-    };
+    const cfApiToken = globalEnv.CF_API_TOKEN;
 
     // Make sure all keys are defined
-    for (const [k, v] of Object.entries(out)) {
-        if (!v) {
-            throw new Error(`Could not create cron environment, key:${k} is not defined`);
-        }
+    if (!accountId || !polyratingsCIUsername || !polyratingsCIPassword || !cfApiToken) {
+        throw new Error("Could not create cron environment. A required variable was not set");
     }
 
-    return out;
+    const prodWorker = new PolyratingsWorkerWrapper(prodWorkerUrl);
+    await prodWorker.login(polyratingsCIUsername, polyratingsCIPassword);
+
+    const KVWrapper = cloudflareKVInit(cfApiToken, accountId);
+
+    return {
+        getKvId,
+        prodWorker,
+        KVWrapper,
+    };
 }

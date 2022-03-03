@@ -1,17 +1,115 @@
+/* eslint-disable react/no-unstable-nested-components */
 import DataTable from "react-data-table-component";
-import { useEffect, useState } from "react";
+import { Fragment, useEffect, useState } from "react";
 import { Teacher } from "@polyratings/shared";
-import { useService } from "@/hooks";
-import { AdminService, ConnectedReview } from "@/services";
+import { useAuth, useService } from "@/hooks";
+import { AdminService, ConnectedReview, JoinedRatingReport } from "@/services";
 
 export function Admin() {
-    return (
+    const authenticated = useAuth();
+    return authenticated ? (
         <div>
             <h1 className="text-center text-6xl font-semibold my-4">Polyratings Admin Panel</h1>
             <div className="container m-auto text-lg">
+                <ReportedReviews />
                 <PendingProfessors />
                 <RecentReviews />
             </div>
+        </div>
+    ) : (
+        <div>In order to use the admin panel you must be authenticated</div>
+    );
+}
+
+function ReportedReviews() {
+    const adminService = useService(AdminService);
+    const [reportedRatings, setReportedRatings] = useState([] as JoinedRatingReport[]);
+
+    useEffect(() => {
+        async function retrieveData() {
+            const reports = await adminService.getReports();
+            setReportedRatings(reports);
+        }
+        retrieveData();
+    }, []);
+
+    const columns = [
+        {
+            name: "Professor",
+            grow: 0.5,
+            selector: (row: JoinedRatingReport) =>
+                `${row.professor.lastName}, ${row.professor.firstName}`,
+        },
+        {
+            name: "Department",
+            grow: 0.5,
+            selector: (row: JoinedRatingReport) => row.professor.department,
+        },
+        {
+            name: "Rating Course",
+            grow: 0.5,
+            selector: (row: JoinedRatingReport) => row.courseName,
+        },
+        {
+            name: "Reason",
+            wrap: true,
+            grow: 1.5,
+            cell: (row: JoinedRatingReport) => (
+                <div className="flex flex-col w-full">
+                    {row.reports.map((report, idx) => (
+                        // Need to use index to help out with making each key unique
+                        // eslint-disable-next-line react/no-array-index-key
+                        <Fragment key={idx + report.reason + report.email}>
+                            {idx !== 0 && <div className="w-full h-1 bg-black my-2" />}
+                            {report.email && <div>Email: {report.email}</div>}
+                            <div>Reason: {report.reason}</div>
+                        </Fragment>
+                    ))}
+                </div>
+            ),
+        },
+        {
+            name: "Rating",
+            wrap: true,
+            grow: 3,
+            selector: (row: JoinedRatingReport) => row.review.rating,
+        },
+        {
+            name: "Keep Rating",
+            cell: (row: JoinedRatingReport) => (
+                <ConfirmationButton
+                    action={async () => {
+                        const reports = await adminService.removeReport(row.ratingId);
+                        setReportedRatings(reports);
+                    }}
+                    buttonClassName="p-2 bg-green-500 text-white rounded"
+                    buttonText="K"
+                />
+            ),
+            center: true,
+            grow: 0,
+        },
+        {
+            name: "Remove Rating",
+            cell: (row: JoinedRatingReport) => (
+                <ConfirmationButton
+                    action={async () => {
+                        const reports = await adminService.actOnReport(row.ratingId);
+                        setReportedRatings(reports);
+                    }}
+                    buttonClassName="p-2 bg-red-500 text-white rounded"
+                    buttonText="R"
+                />
+            ),
+            center: true,
+            grow: 0,
+        },
+    ];
+
+    return (
+        <div className="mt-4">
+            <h2 className="ml-1">Reported Ratings:</h2>
+            <DataTable columns={columns} data={reportedRatings} pagination />
         </div>
     );
 }
@@ -38,7 +136,7 @@ function PendingProfessors() {
             selector: (row: Teacher) => row.department,
         },
         {
-            name: "Rating Class",
+            name: "Rating Course",
             selector: (row: Teacher) => Object.keys(row.reviews ?? {})[0],
         },
         {
@@ -49,7 +147,6 @@ function PendingProfessors() {
         },
         {
             name: "Approve",
-            // eslint-disable-next-line react/no-unstable-nested-components
             cell: (row: Teacher) => (
                 <ConfirmationButton
                     action={async () => {
@@ -65,7 +162,6 @@ function PendingProfessors() {
         },
         {
             name: "Deny",
-            // eslint-disable-next-line react/no-unstable-nested-components
             cell: (row: Teacher) => (
                 <ConfirmationButton
                     action={async () => {
@@ -116,7 +212,6 @@ function RecentReviews() {
         },
         {
             name: "Remove",
-            // eslint-disable-next-line react/no-unstable-nested-components
             cell: (row: ConnectedReview) => (
                 <ConfirmationButton
                     action={async () => {

@@ -1,4 +1,4 @@
-import { AuthResponse, PolyratingsError, Teacher, chunkArray } from "@polyratings/shared";
+import { AuthResponse, PolyratingsError, chunkArray, BulkKey } from "@polyratings/shared";
 import { Logger } from "../logger";
 
 export class PolyratingsWorkerWrapper {
@@ -39,38 +39,36 @@ export class PolyratingsWorkerWrapper {
         Logger.info(`Logged into ${this.baseUrl} as ${username}`);
     }
 
-    async professorKeys(): Promise<string[]> {
-        const res = await this.polyratingsFetch(`${this.baseUrl}admin/professor/keys`);
-        Logger.info(`Got all professor keys for ${this.baseUrl}`);
+    async bulkKeys(bulkKey: BulkKey): Promise<string[]> {
+        const res = await this.polyratingsFetch(`${this.baseUrl}admin/bulk/${bulkKey}`);
+        Logger.info(`Got all ${bulkKey} keys for ${this.baseUrl}`);
         return res.json() as Promise<string[]>;
     }
 
-    async professorValues(keys: string[]): Promise<Teacher[]> {
+    async getBulkValues<T>(bulkKey: BulkKey, keys: string[]): Promise<T[]> {
         const workerKeyRetrievalChunkSize = 1000;
         const chunkedKeys = chunkArray(keys, workerKeyRetrievalChunkSize);
         const results = await Promise.all(
             chunkedKeys.map((chunk) =>
-                this.polyratingsFetch(`${this.baseUrl}admin/professor/values`, {
+                this.polyratingsFetch(`${this.baseUrl}admin/bulk/${bulkKey}`, {
                     method: "POST",
                     body: JSON.stringify({
-                        professorKeys: chunk,
+                        keys: chunk,
                     }),
                 }),
             ),
         );
 
-        const bodies = (await Promise.all(results.map((res) => res.json()))) as string[][];
+        const bodies2d = (await Promise.all(results.map((res) => res.json()))) as T[][];
+        const bodies = bodies2d.reduce((acc, curr) => acc.concat(curr), []);
 
-        const teachers2d = bodies.map((arr) => arr.map((t) => JSON.parse(t))) as Teacher[][];
-        const teachers = teachers2d.reduce((acc, curr) => acc.concat(curr), []);
-
-        Logger.info(`Received ${teachers.length} professors from ${this.baseUrl}`);
-        return teachers;
+        Logger.info(`Received ${bodies.length} from kv ${bulkKey} in ${this.baseUrl}`);
+        return bodies;
     }
 
-    async professorEntries(): Promise<[string, Teacher][]> {
-        const keys = await this.professorKeys();
-        const values = await this.professorValues(keys);
+    async bulkEntries<T>(bulkKey: BulkKey): Promise<[string, T][]> {
+        const keys = await this.bulkKeys(bulkKey);
+        const values = await this.getBulkValues<T>(bulkKey, keys);
         return keys.map((k, i) => [k, values[i]]);
     }
 }

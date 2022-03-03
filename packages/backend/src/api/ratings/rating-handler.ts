@@ -1,8 +1,14 @@
 import { Context } from "sunder";
 import { Env } from "@polyratings/backend/bindings";
-import { AddReviewRequest, AddReviewResponse, ProcessingReviewResponse } from "@polyratings/shared";
+import {
+    AddReviewRequest,
+    AddReviewResponse,
+    ProcessingReviewResponse,
+    ReportReviewRequest,
+} from "@polyratings/shared";
 import { PolyratingsError } from "@polyratings/backend/utils/errors";
 import { PendingReviewDTO } from "@polyratings/backend/dtos/Reviews";
+import { RatingReport } from "@polyratings/backend/dtos/RatingReport";
 
 export class RatingHandler {
     static async addNewRating(ctx: Context<Env, { id: string }, AddReviewRequest>) {
@@ -67,5 +73,10 @@ export class RatingHandler {
                 "Review failed sentiment analysis, please contact nobody@example.org for assistance",
             );
         }
+    }
+
+    static async reportRating(ctx: Context<Env, unknown, ReportReviewRequest>) {
+        const report = RatingReport.fromReportReviewRequest(ctx.data);
+        await ctx.env.kvDao.putReport(report);
     }
 }

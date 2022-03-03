@@ -2,6 +2,7 @@ import {
     AddReviewRequest,
     AddReviewResponse,
     ProcessingReviewResponse,
+    ReportReviewRequest,
     Teacher,
 } from "@polyratings/shared";
 import { config } from "@/App.config";
@@ -39,5 +40,15 @@ export class ReviewService {
 
         this.teacherService.overrideCacheEntry(processingResponse.updatedProfessor);
         return processingResponse.updatedProfessor;
+    }
+
+    async reportReview(report: ReportReviewRequest) {
+        await this.httpService.fetch(`${config.remoteUrl}/rating/report`, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify(report),
+        });
     }
 }

@@ -125,7 +125,7 @@ export function TeacherPage() {
                 </Backdrop>
             )}
 
-            <div className="container lg:max-w-5xl mx-auto hidden sm:flex justify-between py-2">
+            <div className="lg:max-w-5xl w-full mx-auto hidden sm:flex justify-between py-2 px-2">
                 <div>
                     <h2 className="text-4xl text-cal-poly-green">
                         {teacherData?.lastName}, {teacherData?.firstName}
@@ -182,7 +182,9 @@ export function TeacherPage() {
                 </button>
             </div>
 
-            <div className="container lg:max-w-5xl bg-cal-poly-green h-1 mx-auto mt-2" />
+            <div className="lg:max-w-5xl mx-auto mt-2 px-2">
+                <div className="bg-cal-poly-green h-1 w-full" />
+            </div>
             <AnimateHeight duration={500} height={teacherEvaluationShownMobile ? "auto" : 0}>
                 <div className="bg-cal-poly-green text-white p-5">
                     <EvaluateTeacherForm
@@ -193,12 +195,14 @@ export function TeacherPage() {
                 </div>
             </AnimateHeight>
 
-            {teacherReviews &&
+            {teacherData &&
+                teacherReviews &&
                 teacherReviews.map(({ taughtClass, reviews }) => (
                     <ClassSection
                         key={taughtClass}
                         reviews={reviews}
                         taughtClass={taughtClass}
+                        professorId={teacherData.id}
                         disableDropDown={teacherReviews.length < 3}
                     />
                 ))}

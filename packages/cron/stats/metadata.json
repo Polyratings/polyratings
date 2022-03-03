@@ -997,8 +997,8 @@
       "bytes": 449,
       "imports": []
     },
-    "src/steps/syncProfessors.ts": {
-      "bytes": 915,
+    "src/steps/syncKvStore.ts": {
+      "bytes": 1121,
       "imports": [
         {
           "path": "src/logger.ts",
@@ -1022,8 +1022,12 @@
       "bytes": 55,
       "imports": []
     },
+    "../shared/dist/esm/interfaces/RatingReport.js": {
+      "bytes": 51,
+      "imports": []
+    },
     "../shared/dist/esm/interfaces/index.js": {
-      "bytes": 151,
+      "bytes": 183,
       "imports": [
         {
           "path": "../shared/dist/esm/interfaces/Review.js",
@@ -1039,6 +1043,10 @@
         },
         {
           "path": "../shared/dist/esm/interfaces/PolyratingsError.js",
+          "kind": "import-statement"
+        },
+        {
+          "path": "../shared/dist/esm/interfaces/RatingReport.js",
           "kind": "import-statement"
         }
       ]
@@ -5722,8 +5730,8 @@
         }
       ]
     },
-    "../shared/dist/esm/dtos/ProfessorKeyList.js": {
-      "bytes": 894,
+    "../shared/dist/esm/dtos/Bulk.js": {
+      "bytes": 991,
       "imports": [
         {
           "path": "../../node_modules/class-validator/esm5/index.js",
@@ -5739,8 +5747,21 @@
         }
       ]
     },
+    "../shared/dist/esm/dtos/ReportReview.js": {
+      "bytes": 1139,
+      "imports": [
+        {
+          "path": "../../node_modules/class-validator/esm5/index.js",
+          "kind": "import-statement"
+        },
+        {
+          "path": "../shared/dist/esm/dtos/BaseDTO.js",
+          "kind": "import-statement"
+        }
+      ]
+    },
     "../shared/dist/esm/dtos/index.js": {
-      "bytes": 257,
+      "bytes": 277,
       "imports": [
         {
           "path": "../shared/dist/esm/dtos/AddReview.js",
@@ -5767,7 +5788,11 @@
           "kind": "import-statement"
         },
         {
-          "path": "../shared/dist/esm/dtos/ProfessorKeyList.js",
+          "path": "../shared/dist/esm/dtos/Bulk.js",
+          "kind": "import-statement"
+        },
+        {
+          "path": "../shared/dist/esm/dtos/ReportReview.js",
           "kind": "import-statement"
         }
       ]
@@ -5811,7 +5836,7 @@
       ]
     },
     "src/wrappers/kv-wrapper.ts": {
-      "bytes": 3071,
+      "bytes": 3049,
       "imports": [
         {
           "path": "../shared/dist/esm/index.js",
@@ -5824,7 +5849,7 @@
       ]
     },
     "src/wrappers/worker-wrapper.ts": {
-      "bytes": 2687,
+      "bytes": 2623,
       "imports": [
         {
           "path": "../shared/dist/esm/index.js",
@@ -5837,11 +5862,11 @@
       ]
     },
     "../backend/wrangler.toml": {
-      "bytes": 1883,
+      "bytes": 2063,
       "imports": []
     },
-    "src/steps/clearProcessingQueues.ts": {
-      "bytes": 697,
+    "src/steps/clearKvStore.ts": {
+      "bytes": 847,
       "imports": [
         {
           "path": "src/logger.ts",
@@ -5850,7 +5875,7 @@
       ]
     },
     "src/entry.ts": {
-      "bytes": 4105,
+      "bytes": 3625,
       "imports": [
         {
           "path": "../../node_modules/reflect-metadata/Reflect.js",
@@ -5861,7 +5886,7 @@
           "kind": "import-statement"
         },
         {
-          "path": "src/steps/syncProfessors.ts",
+          "path": "src/steps/syncKvStore.ts",
           "kind": "import-statement"
         },
         {
@@ -5881,7 +5906,7 @@
           "kind": "import-statement"
         },
         {
-          "path": "src/steps/clearProcessingQueues.ts",
+          "path": "src/steps/clearKvStore.ts",
           "kind": "import-statement"
         }
       ]
@@ -5964,6 +5989,21 @@
         },
         "../../node_modules/validator/lib/util/assertString.js": {
           "bytesInOutput": 1249
+        },
+        "../../node_modules/validator/lib/isByteLength.js": {
+          "bytesInOutput": 1434
+        },
+        "../../node_modules/validator/lib/util/merge.js": {
+          "bytesInOutput": 656
+        },
+        "../../node_modules/validator/lib/isFQDN.js": {
+          "bytesInOutput": 2090
+        },
+        "../../node_modules/validator/lib/isIP.js": {
+          "bytesInOutput": 2559
+        },
+        "../../node_modules/validator/lib/isEmail.js": {
+          "bytesInOutput": 5339
         },
         "../../node_modules/validator/lib/isUUID.js": {
           "bytesInOutput": 1207
@@ -6053,13 +6093,13 @@
           "bytesInOutput": 24375
         },
         "src/entry.ts": {
-          "bytesInOutput": 2519
+          "bytesInOutput": 2203
         },
         "src/logger.ts": {
           "bytesInOutput": 252
         },
-        "src/steps/syncProfessors.ts": {
-          "bytesInOutput": 784
+        "src/steps/syncKvStore.ts": {
+          "bytesInOutput": 855
         },
         "../shared/dist/esm/interfaces/index.js": {
           "bytesInOutput": 0
@@ -6106,6 +6146,9 @@
         "../../node_modules/class-validator/esm5/decorator/common/IsOptional.js": {
           "bytesInOutput": 482
         },
+        "../../node_modules/class-validator/esm5/decorator/common/ValidateIf.js": {
+          "bytesInOutput": 365
+        },
         "../../node_modules/class-validator/esm5/decorator/common/ValidateNested.js": {
           "bytesInOutput": 889
         },
@@ -6123,6 +6166,9 @@
         },
         "../../node_modules/class-validator/esm5/decorator/number/Min.js": {
           "bytesInOutput": 541
+        },
+        "../../node_modules/class-validator/esm5/decorator/string/IsEmail.js": {
+          "bytesInOutput": 607
         },
         "../../node_modules/class-validator/esm5/decorator/string/IsUUID.js": {
           "bytesInOutput": 596
@@ -6202,8 +6248,11 @@
         "../shared/dist/esm/dtos/AddProfessor.js": {
           "bytesInOutput": 1081
         },
-        "../shared/dist/esm/dtos/ProfessorKeyList.js": {
-          "bytesInOutput": 738
+        "../shared/dist/esm/dtos/Bulk.js": {
+          "bytesInOutput": 729
+        },
+        "../shared/dist/esm/dtos/ReportReview.js": {
+          "bytesInOutput": 1000
         },
         "../shared/dist/esm/utils/chunkArray.js": {
           "bytesInOutput": 201
@@ -6212,22 +6261,22 @@
           "bytesInOutput": 0
         },
         "src/wrappers/kv-wrapper.ts": {
-          "bytesInOutput": 2163
+          "bytesInOutput": 2114
         },
         "src/wrappers/worker-wrapper.ts": {
-          "bytesInOutput": 1976
+          "bytesInOutput": 1913
         },
         "../backend/wrangler.toml": {
-          "bytesInOutput": 1910
+          "bytesInOutput": 2090
         },
-        "src/steps/clearProcessingQueues.ts": {
-          "bytesInOutput": 590
+        "src/steps/clearKvStore.ts": {
+          "bytesInOutput": 688
         },
         "src/worker.ts": {
           "bytesInOutput": 326
         }
       },
-      "bytes": 381793
+      "bytes": 396166
     }
   }
 }

@@ -25,7 +25,7 @@ import { plainToInstance, Type } from "class-transformer";
 
 export class ReviewDTO extends BaseDTO implements Review {
     @IsUUID()
-    @ExcludeFrontend()
+    @ExposeFrontend()
     @Default(() => crypto.randomUUID())
     id: string;
 

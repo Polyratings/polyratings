@@ -2,9 +2,10 @@ import { Review } from "@polyratings/shared";
 import { render, RenderResult } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { ClassSection } from ".";
-
+// TODO: Add tests to report system as well as refactor for easier tests
 const mockReviews: Review[] = [
     {
+        id: "1",
         gradeLevel: "Senior",
         grade: "A",
         courseType: "Major (Required)",
@@ -12,6 +13,7 @@ const mockReviews: Review[] = [
         postDate: new Date(),
     },
     {
+        id: "2",
         gradeLevel: "Senior",
         grade: "A",
         courseType: "Major (Required)",
@@ -19,6 +21,7 @@ const mockReviews: Review[] = [
         postDate: new Date(),
     },
     {
+        id: "3",
         gradeLevel: "Senior",
         grade: "A",
         courseType: "Major (Required)",
@@ -33,6 +36,7 @@ describe("<ClassSection />", () => {
     beforeEach(() => {
         documentBody = render(
             <ClassSection
+                professorId="profId"
                 reviews={mockReviews}
                 taughtClass={mockTaughtClass}
                 disableDropDown={false}

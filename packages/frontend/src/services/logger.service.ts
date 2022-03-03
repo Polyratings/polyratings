@@ -1,6 +1,7 @@
 /* eslint-disable no-console */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable class-methods-use-this */
+import * as Sentry from "@sentry/react";
 
 export class Logger {
     info(...args: any[]) {
@@ -12,6 +13,11 @@ export class Logger {
     }
 
     error(...args: any[]) {
+        args.forEach((arg) => {
+            if (arg instanceof Error) {
+                Sentry.captureException(arg);
+            }
+        });
         console.error(...args);
     }
 

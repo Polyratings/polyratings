@@ -4,9 +4,9 @@ import { chunkArray } from "@polyratings/shared";
 import { Logger } from "../logger";
 
 const CLOUDFLARE_API_BASE_URL = "https://api.cloudflare.com/client/v4/";
-export function cloudflareKVInit(apiToken: string) {
+export function cloudflareKVInit(apiToken: string, accountId: string) {
     return class {
-        constructor(public accountId: string, public namespaceId: string) {}
+        constructor(public namespaceId: string) {}
 
         public async cloudflareFetch(url: string, init?: RequestInit): Promise<Response> {
             const options = init || {};
@@ -30,7 +30,7 @@ export function cloudflareKVInit(apiToken: string) {
             let cursor = "";
             let keyList: string[] = [];
             do {
-                let url = `${CLOUDFLARE_API_BASE_URL}accounts/${this.accountId}/storage/kv/namespaces/${this.namespaceId}/keys`;
+                let url = `${CLOUDFLARE_API_BASE_URL}accounts/${accountId}/storage/kv/namespaces/${this.namespaceId}/keys`;
                 if (cursor) {
                     url = `${url}?${new URLSearchParams({ cursor })}`;
                 }
@@ -55,7 +55,7 @@ export function cloudflareKVInit(apiToken: string) {
                     } to ${this.namespaceId}`,
                 );
                 await this.cloudflareFetch(
-                    `${CLOUDFLARE_API_BASE_URL}accounts/${this.accountId}/storage/kv/namespaces/${this.namespaceId}/bulk`,
+                    `${CLOUDFLARE_API_BASE_URL}accounts/${accountId}/storage/kv/namespaces/${this.namespaceId}/bulk`,
                     {
                         method: "PUT",
                         body: JSON.stringify(chunk),
@@ -70,7 +70,7 @@ export function cloudflareKVInit(apiToken: string) {
                 return;
             }
             await this.cloudflareFetch(
-                `${CLOUDFLARE_API_BASE_URL}accounts/${this.accountId}/storage/kv/namespaces/${this.namespaceId}/bulk`,
+                `${CLOUDFLARE_API_BASE_URL}accounts/${accountId}/storage/kv/namespaces/${this.namespaceId}/bulk`,
                 {
                     method: "DELETE",
                     body: JSON.stringify(keys),

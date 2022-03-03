@@ -18,6 +18,7 @@ export const CourseTypeOptions = [
 export type CourseType = typeof CourseTypeOptions[number];
 
 export interface Review {
+    id: string;
     gradeLevel: GradeLevel;
     grade: Grade;
     courseType: CourseType;

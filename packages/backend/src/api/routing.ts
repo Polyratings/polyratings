@@ -6,7 +6,8 @@ import {
     AddProfessorRequest,
     AddReviewRequest,
     LoginRequest,
-    ProfessorKeyList,
+    BulkValueRequest,
+    ReportReviewRequest,
 } from "@polyratings/shared";
 import { RatingHandler } from "@polyratings/backend/api/ratings/rating-handler";
 import { withMiddlewares } from "@polyratings/backend/middlewares/with-middlewares";
@@ -27,7 +28,12 @@ export function registerRoutes(router: Router<Env>) {
         "/professors/:id/ratings",
         withMiddlewares(withValidatedBody(AddReviewRequest), RatingHandler.addNewRating),
     );
+
     router.get("/ratings/:id", RatingHandler.processRating);
+    router.post(
+        "/rating/report",
+        withMiddlewares(withValidatedBody(ReportReviewRequest), RatingHandler.reportRating),
+    );
 
     router.post("/login", withMiddlewares(withValidatedBody(LoginRequest), AuthHandler.login));
 
@@ -58,16 +64,19 @@ export function registerRoutes(router: Router<Env>) {
 
     router.delete("/admin/professor/:id", withMiddlewares(withAuth, AdminHandler.removeProfessor));
 
-    router.get("/admin/professor/keys", withMiddlewares(withAuth, AdminHandler.getProfessorKeys));
+    router.get("/admin/bulk/:key", withMiddlewares(withAuth, AdminHandler.getBulkKeys));
 
     router.post(
-        "/admin/professor/values",
+        "/admin/bulk/:key",
         withMiddlewares(
-            withValidatedBody(ProfessorKeyList, true),
+            withValidatedBody(BulkValueRequest, true),
             withAuth,
-            AdminHandler.getProfessorValues,
+            AdminHandler.getBulkValues,
         ),
     );
+
+    router.put("/admin/reports/:id", withMiddlewares(withAuth, AdminHandler.actOnReport));
+    router.delete("/admin/reports/:id", withMiddlewares(withAuth, AdminHandler.removeReport));
 
     // no-op catch-all (which also applies generic OPTIONS headers)
     // eslint-disable-next-line @typescript-eslint/no-empty-function

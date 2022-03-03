@@ -1,7 +1,7 @@
 import { Env } from "@polyratings/backend/bindings";
 import { DtoBypass } from "@polyratings/backend/dtos/DtoBypass";
 import { AuthenticatedWithBody } from "@polyratings/backend/middlewares/auth-middleware";
-import { ProfessorKeyList } from "@polyratings/shared";
+import { BulkKey, BulkValueRequest } from "@polyratings/shared";
 import { Context } from "sunder";
 
 export class AdminHandler {
@@ -35,18 +35,30 @@ export class AdminHandler {
         await ctx.env.kvDao.removeProfessor(id);
     }
 
-    static async getProfessorKeys(ctx: Context<Env, unknown, AuthenticatedWithBody<unknown>>) {
-        const professorKeys = await ctx.env.kvDao.getProfessorKeys();
+    static async getBulkKeys(ctx: Context<Env, { key: string }, AuthenticatedWithBody<unknown>>) {
+        const bulkKey = ctx.params.key;
+        const professorKeys = await ctx.env.kvDao.getBulkKeys(bulkKey as BulkKey);
         ctx.response.body = new DtoBypass(professorKeys);
     }
 
-    static async getProfessorValues(
-        ctx: Context<Env, unknown, AuthenticatedWithBody<ProfessorKeyList>>,
+    static async getBulkValues(
+        ctx: Context<Env, { key: string }, AuthenticatedWithBody<BulkValueRequest>>,
     ) {
-        const { professorKeys } = ctx.data.body;
-        const values = await Promise.all(
-            professorKeys.map((key) => ctx.env.kvDao.getProfessorUnchecked(key)),
-        );
+        const bulkKey = ctx.params.key;
+        const kvKeys = ctx.data.body.keys;
+        const values = await ctx.env.kvDao.getBulkValues(bulkKey as BulkKey, kvKeys);
         ctx.response.body = new DtoBypass(values);
+    }
+
+    static async removeReport(ctx: Context<Env, { id: string }, AuthenticatedWithBody<unknown>>) {
+        const { id } = ctx.params;
+        await ctx.env.kvDao.removeReport(id);
+    }
+
+    static async actOnReport(ctx: Context<Env, { id: string }, AuthenticatedWithBody<unknown>>) {
+        const { id } = ctx.params;
+        const report = await ctx.env.kvDao.getReport(id);
+        await ctx.env.kvDao.removeReview(report.professorId, report.ratingId);
+        await ctx.env.kvDao.removeReport(id);
     }
 }

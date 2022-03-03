@@ -14,7 +14,11 @@ export const injector: DependencyInjector = injectorFactory();
 export function injectorFactory() {
     return makeInjector([
         { provide: FETCH, useFactory: () => window.fetch.bind(window) },
-        { provide: AuthService, useClass: AuthService, deps: [StorageService, FETCH] },
+        {
+            provide: AuthService,
+            useClass: AuthService,
+            deps: [StorageService, FETCH, StorageService],
+        },
         { provide: HttpService, useClass: HttpService, deps: [AuthService, FETCH] },
         { provide: TeacherService, useClass: TeacherService, deps: [HttpService, StorageService] },
         { provide: ReviewService, useClass: ReviewService, deps: [HttpService, TeacherService] },
