@@ -194,10 +194,36 @@ export class AdminService {
         // Sometimes the kv store does not update fast enough to be queried immediately
         return reports.filter((report) => report.ratingId !== ratingId);
     }
+
+    // TODO: Find a better way to handle normally private types on the frontend and in other places
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    public async getProcessedReviews(): Promise<any[]> {
+        const reviews = await this.bulkRead("rating-queue");
+        return (
+            reviews
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                .map((review: any) => {
+                    const scores = Object.entries(review.sentimentResponse ?? {}).reduce(
+                        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                        (acc, [key, scoresObj]: [string, any]) => {
+                            acc[key] = scoresObj.summaryScore.value;
+                            return acc;
+                        },
+                        {} as Record<string, number>,
+                    );
+                    return { scores, ...review };
+                })
+        );
+    }
 }
 
 export interface JoinedRatingReport extends RatingReport {
     professor: Teacher;
     review: Review;
     courseName: string;
+}
+export interface ProcessedReview {
+    rating: string;
+    status: string;
+    scores: Record<string, number>;
 }

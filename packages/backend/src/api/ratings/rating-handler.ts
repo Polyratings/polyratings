@@ -59,6 +59,7 @@ export class RatingHandler {
         if (passedAnalysis) {
             pendingRating.status = "Successful";
             const updatedTeacher = await ctx.env.kvDao.addReview(pendingRating);
+            // Update review in processing queue
             await ctx.env.kvDao.addPendingReview(pendingRating);
 
             ctx.response.body = ProcessingReviewResponse.new(
@@ -68,6 +69,8 @@ export class RatingHandler {
             );
         } else {
             pendingRating.status = "Failed";
+            // Update review in processing queue
+            await ctx.env.kvDao.addPendingReview(pendingRating);
             ctx.response.body = ProcessingReviewResponse.new(
                 false,
                 "Review failed sentiment analysis, please contact nobody@example.org for assistance",

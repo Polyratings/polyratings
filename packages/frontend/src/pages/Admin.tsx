@@ -3,7 +3,7 @@ import DataTable from "react-data-table-component";
 import { Fragment, useEffect, useState } from "react";
 import { Teacher } from "@polyratings/shared";
 import { useAuth, useService } from "@/hooks";
-import { AdminService, ConnectedReview, JoinedRatingReport } from "@/services";
+import { AdminService, ConnectedReview, JoinedRatingReport, ProcessedReview } from "@/services";
 
 export function Admin() {
     const authenticated = useAuth();
@@ -11,8 +11,9 @@ export function Admin() {
         <div>
             <h1 className="text-center text-6xl font-semibold my-4">Polyratings Admin Panel</h1>
             <div className="container m-auto text-lg">
-                <ReportedReviews />
                 <PendingProfessors />
+                <ReportedReviews />
+                <ProcessedReviews />
                 <RecentReviews />
             </div>
         </div>
@@ -181,6 +182,53 @@ function PendingProfessors() {
         <div className="mt-4">
             <h2 className="ml-1">Pending Professors:</h2>
             <DataTable columns={columns} data={pendingProfessors} pagination />
+        </div>
+    );
+}
+
+function ProcessedReviews() {
+    const adminService = useService(AdminService);
+    const [processedReviews, setProcessedReviews] = useState([] as ProcessedReview[]);
+
+    useEffect(() => {
+        async function retrieveData() {
+            const reviews = await adminService.getProcessedReviews();
+            setProcessedReviews(reviews);
+        }
+        retrieveData();
+    }, []);
+
+    const columns = [
+        {
+            name: "Status",
+            selector: (row: ProcessedReview) => row.status,
+            grow: 0.5,
+        },
+        {
+            name: "Scores",
+            grow: 1.5,
+            cell: (row: ProcessedReview) => (
+                <div className="flex flex-col">
+                    {Object.entries(row.scores).map(([name, score]) => (
+                        <div key={name}>
+                            {name}: {score}
+                        </div>
+                    ))}
+                </div>
+            ),
+        },
+        {
+            name: "Rating",
+            wrap: true,
+            grow: 3,
+            selector: (row: ProcessedReview) => row.rating,
+        },
+    ];
+
+    return (
+        <div className="mt-4">
+            <h2 className="ml-1">Processed Reviews:</h2>
+            <DataTable columns={columns} data={processedReviews} pagination />
         </div>
     );
 }
