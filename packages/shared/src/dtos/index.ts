@@ -7,3 +7,4 @@ export * from "./AddProfessor";
 export * from "./Bulk";
 export * from "./ReportReview";
 export * from "./MergeProfessor";
+export * from "./ChangeProfessor";

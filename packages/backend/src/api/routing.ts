@@ -9,6 +9,7 @@ import {
     BulkValueRequest,
     ReportReviewRequest,
     MergeProfessorRequest,
+    ChangeDepartmentRequest,
 } from "@polyratings/shared";
 import { RatingHandler } from "@polyratings/backend/api/ratings/rating-handler";
 import { withMiddlewares } from "@polyratings/backend/middlewares/with-middlewares";
@@ -71,6 +72,15 @@ export function registerRoutes(router: Router<Env>) {
             withValidatedBody(MergeProfessorRequest, true),
             withAuth,
             AdminHandler.mergeProfessor,
+        ),
+    );
+
+    router.post(
+        "/admin/professor/department",
+        withMiddlewares(
+            withValidatedBody(ChangeDepartmentRequest, true),
+            withAuth,
+            AdminHandler.changeDepartment,
         ),
     );
 

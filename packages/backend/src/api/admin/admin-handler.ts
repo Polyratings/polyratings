@@ -1,7 +1,12 @@
 import { Env } from "@polyratings/backend/bindings";
 import { DtoBypass } from "@polyratings/backend/dtos/DtoBypass";
 import { AuthenticatedWithBody } from "@polyratings/backend/middlewares/auth-middleware";
-import { BulkKey, BulkValueRequest, MergeProfessorRequest } from "@polyratings/shared";
+import {
+    BulkKey,
+    BulkValueRequest,
+    ChangeDepartmentRequest,
+    MergeProfessorRequest,
+} from "@polyratings/shared";
 import { Context } from "sunder";
 
 export class AdminHandler {
@@ -35,7 +40,9 @@ export class AdminHandler {
         await ctx.env.kvDao.removeProfessor(id);
     }
 
-    // Takes reviews of target professor and applies them to dest and then removes the target professor
+    /**
+     * Takes reviews of target professor and applies them to dest and then removes the target professor
+     */
     static async mergeProfessor(
         ctx: Context<Env, unknown, AuthenticatedWithBody<MergeProfessorRequest>>,
     ) {
@@ -49,6 +56,18 @@ export class AdminHandler {
 
         await ctx.env.kvDao.putProfessor(destProfessor);
         await ctx.env.kvDao.removeProfessor(sourceProfessor.id);
+    }
+
+    /**
+     * Changes a professors department
+     */
+    static async changeDepartment(
+        ctx: Context<Env, unknown, AuthenticatedWithBody<ChangeDepartmentRequest>>,
+    ) {
+        const { professorId, department } = ctx.data.body;
+        const professor = await ctx.env.kvDao.getProfessor(professorId);
+        professor.department = department;
+        await ctx.env.kvDao.putProfessor(professor);
     }
 
     static async getBulkKeys(ctx: Context<Env, { key: string }, AuthenticatedWithBody<unknown>>) {
