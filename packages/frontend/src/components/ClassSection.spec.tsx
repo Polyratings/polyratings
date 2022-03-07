@@ -1,6 +1,5 @@
 import { Review } from "@polyratings/shared";
 import { render, RenderResult } from "@testing-library/react";
-import userEvent from "@testing-library/user-event";
 import { ClassSection } from ".";
 // TODO: Add tests to report system as well as refactor for easier tests
 const mockReviews: Review[] = [
@@ -39,7 +38,6 @@ describe("<ClassSection />", () => {
                 professorId="profId"
                 reviews={mockReviews}
                 taughtClass={mockTaughtClass}
-                disableDropDown={false}
             />,
         );
     });
@@ -50,16 +48,5 @@ describe("<ClassSection />", () => {
 
     it("Shows text from first rating", () => {
         expect(documentBody.getByText(mockReviews[0].rating)).toBeInTheDocument();
-    });
-
-    it("Can Click Show More and Turns Into Show Less", async () => {
-        const showMoreButton = documentBody.getByText("Show More");
-        userEvent.click(showMoreButton);
-
-        const showLessButton = await documentBody.findByText("Show Less");
-        userEvent.click(showLessButton);
-
-        const showMoreButtonReset = await documentBody.findByText("Show More");
-        expect(showMoreButtonReset).toBeInTheDocument();
     });
 });

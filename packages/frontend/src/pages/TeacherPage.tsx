@@ -203,7 +203,6 @@ export function TeacherPage() {
                         reviews={reviews}
                         taughtClass={taughtClass}
                         professorId={teacherData.id}
-                        disableDropDown={teacherReviews.length < 3}
                     />
                 ))}
             {!teacherReviews?.length && (
