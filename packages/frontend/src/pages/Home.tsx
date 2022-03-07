@@ -62,7 +62,7 @@ export function Home() {
                         version of Polyratings is a ground up rebuild of the entire website. Read
                         more about it{" "}
                         <Link to="/about" className="pointer underline text-blue-600">
-                            here
+                            here.
                         </Link>
                     </p>
                 </div>
