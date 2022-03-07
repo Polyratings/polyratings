@@ -64,6 +64,11 @@ export function registerRoutes(router: Router<Env>) {
 
     router.delete("/admin/professor/:id", withMiddlewares(withAuth, AdminHandler.removeProfessor));
 
+    router.put(
+        "/admin/professor/merge/:dest/:source",
+        withMiddlewares(withAuth, AdminHandler.mergeProfessor),
+    );
+
     router.get("/admin/bulk/:key", withMiddlewares(withAuth, AdminHandler.getBulkKeys));
 
     router.post(
