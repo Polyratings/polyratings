@@ -68,7 +68,7 @@ export function Home() {
                     style={{ width: "35rem" }}
                 >
                     <h3 className="text-white text-5xl font-semibold text-center">
-                        Featured Teacher
+                        Featured Professor
                     </h3>
                     <div className="flex mt-2 mb-6">
                         {/* Nothing Unique about items  */}

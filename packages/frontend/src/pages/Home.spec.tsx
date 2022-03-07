@@ -1,4 +1,4 @@
-import { RenderResult } from "@testing-library/react";
+import { RenderResult, waitFor } from "@testing-library/react";
 import { UndoChanges } from "@mindspace-io/react";
 import { injector, TeacherService } from "@/services";
 import { Home } from ".";
@@ -16,9 +16,10 @@ const createMockTeacher = (id: string) => ({
     numEvals: 12,
 });
 
-// Makes sure that the component has loaded by looking for a single teacher which is gotten on load
+// Makes sure that the component has loaded waiting for all professors to load
+// Best of the best will be 3 professors and one will be for the featured professor
 const componentLoaded = async () => {
-    await documentBody.findAllByText("Fisher", { exact: false });
+    await waitFor(() => documentBody.getAllByText("Fisher", { exact: false }).length === 4);
 };
 
 let documentBody: RenderResult;
@@ -29,19 +30,15 @@ describe("<Home />", () => {
             {
                 provide: TeacherService,
                 useValue: {
-                    getRandomBestTeacher: async () => {
-                        // Used in order to allow tests to start before resolving
-                        // Prevents act warning
+                    getBestTeachers: async () => {
                         await new Promise((resolve) => {
                             setTimeout(resolve, 0);
                         });
-                        return createMockTeacher("1");
-                    },
-                    getRandomWorstTeachers: async () => {
-                        await new Promise((resolve) => {
-                            setTimeout(resolve, 0);
-                        });
-                        return [createMockTeacher("2"), createMockTeacher("3")];
+                        return [
+                            createMockTeacher("1"),
+                            createMockTeacher("2"),
+                            createMockTeacher("3"),
+                        ];
                     },
                 },
             },
@@ -66,20 +63,14 @@ describe("<Home />", () => {
     it("has featured Teacher", async () => {
         await componentLoaded();
         const matches = documentBody.getAllByRole("heading");
-        const polyratingsName = matches.find((match) => match.innerHTML === "Featured Teacher");
+        const polyratingsName = matches.find((match) => match.innerHTML === "Featured Professor");
         expect(polyratingsName).toBeTruthy();
     });
 
     it("has worst of the worst", async () => {
         await componentLoaded();
         const matches = documentBody.getAllByRole("heading");
-        const polyratingsName = matches.find((match) => match.innerHTML === "Worst of the Worst");
+        const polyratingsName = matches.find((match) => match.innerHTML === "Best of the Best");
         expect(polyratingsName).toBeTruthy();
-    });
-
-    it("Shows the amount of teachers given by the mock", async () => {
-        await componentLoaded();
-        const matches = await documentBody.findAllByText("Fisher", { exact: false });
-        expect(matches).toHaveLength(3);
     });
 });
