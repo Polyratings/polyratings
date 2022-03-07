@@ -40,7 +40,7 @@ function App() {
                 <Navbar />
                 <Switch>
                     <SentryRoute path="/teacher/:id" component={TeacherPage} />
-                    <SentryRoute path="/search/:searchType" component={SearchWrapper} />
+                    <SentryRoute path="/search/:searchType?" component={SearchWrapper} />
                     <SentryRoute path="/login" component={Login} />
                     <SentryRoute path="/new-teacher" component={NewTeacher} />
                     <SentryRoute path="/about" component={About} />

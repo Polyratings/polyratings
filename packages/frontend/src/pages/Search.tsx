@@ -29,12 +29,12 @@ export function Search({ location }: SearchPageProps) {
     const query = useQuery();
 
     const navigatedSearchTerm = query.get("term");
-    const { searchType } = useParams<{ searchType: TeacherSearchType }>();
+    const { searchType } = useParams<{ searchType: TeacherSearchType | undefined }>();
 
     const teacherService = useService(TeacherService);
 
     const loadedSearchTerm = previousState?.searchTerm ?? {
-        type: searchType,
+        type: searchType || "name",
         searchValue: navigatedSearchTerm ?? "",
     };
     const [searchState, setSearchState] = useState<SearchState>(loadedSearchTerm);
@@ -192,7 +192,7 @@ export function Search({ location }: SearchPageProps) {
 // https://stackoverflow.com/questions/38839510/forcing-a-react-router-link-to-load-a-page-even-if-were-already-on-that-page
 export function SearchWrapper({ location }: SearchPageProps) {
     const [prevKey, setPrevKey] = useState("");
-    if (!location.state && prevKey !== location.key) {
+    if (!location.state && location.key && prevKey !== location.key) {
         setPrevKey(location.key || `${Date.now()}`);
     }
     return <Search location={location} key={prevKey} />;
