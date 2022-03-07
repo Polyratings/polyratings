@@ -1,4 +1,4 @@
-import { RenderResult, waitFor } from "@testing-library/react";
+import { cleanup, RenderResult, waitFor } from "@testing-library/react";
 import { Teacher } from "@polyratings/shared";
 import userEvent from "@testing-library/user-event";
 import { MemoryHistory } from "history";
@@ -17,8 +17,6 @@ const mockTeacher: Teacher = {
     materialClear: 2.9,
     numEvals: 12,
 };
-
-const getComponentDiv = () => documentBody.container.children[0];
 
 let documentBody: RenderResult;
 let history: MemoryHistory<unknown>;
@@ -51,12 +49,14 @@ describe("<TeacherCard />", () => {
     });
 
     it("Redirects on click", async () => {
-        userEvent.click(getComponentDiv());
+        const el = documentBody.getByText(mockTeacher.firstName, { exact: false });
+        userEvent.click(el);
         await waitFor(() => expect(history.location.pathname).toBe(`/teacher/${mockTeacher.id}`));
     });
 
     it("Runs custom handler on click", async () => {
         let clicked = false;
+        cleanup();
         ({ documentBody, history } = renderWithRouter(() => (
             <TeacherCard
                 teacher={mockTeacher}
@@ -65,7 +65,8 @@ describe("<TeacherCard />", () => {
                 }}
             />
         )));
-        userEvent.click(getComponentDiv());
+        const el = documentBody.getByText(mockTeacher.firstName, { exact: false });
+        userEvent.click(el);
         await waitFor(() => expect(clicked).toBe(true));
     });
 });
