@@ -6,3 +6,4 @@ export * from "./ProcessingReview";
 export * from "./AddProfessor";
 export * from "./Bulk";
 export * from "./ReportReview";
+export * from "./MergeProfessor";

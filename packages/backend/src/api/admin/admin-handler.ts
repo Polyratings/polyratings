@@ -1,7 +1,7 @@
 import { Env } from "@polyratings/backend/bindings";
 import { DtoBypass } from "@polyratings/backend/dtos/DtoBypass";
 import { AuthenticatedWithBody } from "@polyratings/backend/middlewares/auth-middleware";
-import { BulkKey, BulkValueRequest } from "@polyratings/shared";
+import { BulkKey, BulkValueRequest, MergeProfessorRequest } from "@polyratings/shared";
 import { Context } from "sunder";
 
 export class AdminHandler {
@@ -36,12 +36,12 @@ export class AdminHandler {
     }
 
     // Takes reviews of target professor and applies them to dest and then removes the target professor
-    // Limitation of sunder path param. Can not resolve both variables
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    static async mergeProfessor(ctx: Context<Env, any>) {
-        const { dest, source } = ctx.params;
-        const destProfessor = await ctx.env.kvDao.getProfessor(dest);
-        const sourceProfessor = await ctx.env.kvDao.getProfessor(source);
+    static async mergeProfessor(
+        ctx: Context<Env, unknown, AuthenticatedWithBody<MergeProfessorRequest>>,
+    ) {
+        const { destId, sourceId } = ctx.data.body;
+        const destProfessor = await ctx.env.kvDao.getProfessor(destId);
+        const sourceProfessor = await ctx.env.kvDao.getProfessor(sourceId);
 
         Object.entries(sourceProfessor.reviews).forEach(([course, reviews]) => {
             reviews.forEach((review) => destProfessor.addReview(review, course));

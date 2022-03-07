@@ -8,6 +8,7 @@ import {
     LoginRequest,
     BulkValueRequest,
     ReportReviewRequest,
+    MergeProfessorRequest,
 } from "@polyratings/shared";
 import { RatingHandler } from "@polyratings/backend/api/ratings/rating-handler";
 import { withMiddlewares } from "@polyratings/backend/middlewares/with-middlewares";
@@ -64,9 +65,13 @@ export function registerRoutes(router: Router<Env>) {
 
     router.delete("/admin/professor/:id", withMiddlewares(withAuth, AdminHandler.removeProfessor));
 
-    router.put(
-        "/admin/professor/merge/:dest/:source",
-        withMiddlewares(withAuth, AdminHandler.mergeProfessor),
+    router.post(
+        "/admin/professor/merge",
+        withMiddlewares(
+            withValidatedBody(MergeProfessorRequest, true),
+            withAuth,
+            AdminHandler.mergeProfessor,
+        ),
     );
 
     router.get("/admin/bulk/:key", withMiddlewares(withAuth, AdminHandler.getBulkKeys));
