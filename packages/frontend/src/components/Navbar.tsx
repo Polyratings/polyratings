@@ -6,8 +6,16 @@ import { AuthService } from "@/services";
 import { useService, useAuth } from "@/hooks";
 import { SearchBar } from "./SearchBar";
 import Logo from "@/assets/Logo.png";
+import DiscordLogo from "@/assets/Discord-Logo-White.svg";
+import GithubLogo from "@/assets/github.svg";
 
-const HIDE_SEARCH_BAR_ROUTES = ["/", "/search/name", "/search/class", "/search/department"];
+const HIDE_SEARCH_BAR_ROUTES = [
+    "/",
+    "/search",
+    "/search/name",
+    "/search/class",
+    "/search/department",
+];
 
 export function Navbar() {
     const [mobileNavOpen, setMobileNav] = useState(false);
@@ -24,7 +32,7 @@ export function Navbar() {
 
     return (
         <div
-            className={`w-screen ${
+            className={`w-full ${
                 isAuthenticated ? "bg-red-800" : "bg-cal-poly-green"
             } h-12 flex justify-between px-5 items-center`}
         >
@@ -57,7 +65,7 @@ export function Navbar() {
                         {" "}
                         Add a Teacher
                     </Link>
-                    <Link className="my-1" to="/search/name" onClick={triggerMobileNav}>
+                    <Link className="my-1" to="/search" onClick={triggerMobileNav}>
                         Professor List
                     </Link>
                     <Link className="my-1" to="/about" onClick={triggerMobileNav}>
@@ -89,7 +97,7 @@ export function Navbar() {
                     {" "}
                     Add a Teacher
                 </Link>
-                <Link className="mr-7" to="/search/name">
+                <Link className="mr-7" to="/search">
                     {" "}
                     Professor List
                 </Link>
@@ -97,6 +105,24 @@ export function Navbar() {
                     {" "}
                     About
                 </Link>
+                <a href="https://discord.gg/jD4mfMugYN" target="_blank" rel="noreferrer">
+                    <img
+                        src={DiscordLogo}
+                        alt="Discord Link"
+                        className="w-9 opacity-80 hover:opacity-100 transition-all mr-7 hidden lg:block mt-[0.15rem]"
+                    />
+                </a>
+                <a
+                    href="https://github.com/Polyratings/polyratings"
+                    target="_blank"
+                    rel="noreferrer"
+                >
+                    <img
+                        src={GithubLogo}
+                        alt="Github Link"
+                        className="w-8 opacity-80 hover:opacity-100 transition-all mr-1 hidden lg:block"
+                    />
+                </a>
                 {isAuthenticated && (
                     <Link className="mr-7" to="/admin">
                         {" "}

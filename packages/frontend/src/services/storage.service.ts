@@ -9,7 +9,7 @@ export interface CacheEntry<T> {
 }
 
 export class StorageService {
-    private databaseConnection: Promise<IDBDatabase> = new Promise((resolve) => {
+    private databaseConnection: Promise<IDBDatabase> = new Promise((resolve, reject) => {
         const dbOpenRequest = indexedDB.open(
             POLYRATINGS_INDEXED_DB_NAME,
             POLYRATINGS_INDEXED_DB_VERSION,
@@ -28,6 +28,7 @@ export class StorageService {
         dbOpenRequest.onerror = (): void => {
             // eslint-disable-next-line no-console
             console.error("Polyratings IndexedDb error:", dbOpenRequest.error);
+            reject(dbOpenRequest.error);
         };
 
         dbOpenRequest.onsuccess = (): void => {

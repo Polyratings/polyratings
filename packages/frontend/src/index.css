@@ -5,7 +5,6 @@
 body,
 html {
   @apply bg-gray-100;
-  overflow-x: hidden;
   width: 100%;
 }
 
