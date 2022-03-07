@@ -73,7 +73,7 @@ export class RatingHandler {
             await ctx.env.kvDao.addPendingReview(pendingRating);
             ctx.response.body = ProcessingReviewResponse.new(
                 false,
-                "Review failed sentiment analysis, please contact nobody@example.org for assistance",
+                "Review failed sentiment analysis, please contact dev@polyratings.dev for assistance",
             );
         }
     }
