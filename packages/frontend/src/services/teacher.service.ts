@@ -26,20 +26,12 @@ export class TeacherService {
             });
     }
 
-    public async getRandomBestTeacher(): Promise<Teacher> {
+    public async getBestTeachers(): Promise<Teacher[]> {
         const allTeachers = await this.allTeachers;
         const rankedTeachers = allTeachers
             .filter((t) => t.numEvals > 10)
             .sort((a, b) => b.overallRating - a.overallRating);
-        return getRandomSubarray(rankedTeachers.slice(0, 30), 1)[0];
-    }
-
-    public async getRandomWorstTeachers(): Promise<Teacher[]> {
-        const allTeachers = await this.allTeachers;
-        const rankedTeachers = allTeachers
-            .filter((t) => t.numEvals > 10)
-            .sort((a, b) => a.overallRating - b.overallRating);
-        return getRandomSubarray(rankedTeachers.slice(0, 30), 6);
+        return getRandomSubarray(rankedTeachers.slice(0, 100), 6);
     }
 
     public async getTeacher(id: string): Promise<Teacher> {

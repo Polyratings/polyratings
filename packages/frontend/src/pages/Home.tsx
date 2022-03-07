@@ -11,18 +11,14 @@ import { SearchBar, TeacherCard } from "@/components";
 import { useService } from "@/hooks";
 
 export function Home() {
-    const [bestTeacher, setBestTeacher] = useState<Teacher | null>(null);
-    const [worstTeachers, setWorstTeachers] = useState<Teacher[]>([]);
+    const [highlightedProfessor, setHighlightedProfessor] = useState<Teacher | null>(null);
+    const [bestOfTheBest, setBestOfTheBest] = useState<Teacher[]>([]);
     const teacherService = useService(TeacherService);
 
     useEffect(() => {
         async function retrieveHomeData() {
-            const [bestTeacher, worstTeachers] = await Promise.all([
-                teacherService.getRandomBestTeacher(),
-                teacherService.getRandomWorstTeachers(),
-            ]);
-            setBestTeacher(bestTeacher);
-            setWorstTeachers(worstTeachers);
+            setHighlightedProfessor((await teacherService.getBestTeachers())[0]);
+            setBestOfTheBest(await teacherService.getBestTeachers());
         }
         retrieveHomeData();
     }, []);
@@ -81,7 +77,7 @@ export function Home() {
                         ))}
                     </div>
                     <div className="w-11/12">
-                        <TeacherCard teacher={bestTeacher} />
+                        <TeacherCard teacher={highlightedProfessor} />
                     </div>
                 </div>
             </div>
@@ -97,10 +93,10 @@ export function Home() {
                 className="mt-8 xl:mt-16 lg:block hidden"
             >
                 <h2 className="text-white font-semibold text-8xl xl:text-9xl text-center pt-40">
-                    Worst of the Worst
+                    Best of the Best
                 </h2>
                 <div className="grid grid-cols-2 gap-y-14 m-auto mt-20 gap-x-12 xl:gap-x-24 w-[60rem] xl:w-[65rem]">
-                    {worstTeachers.map((teacher) => (
+                    {bestOfTheBest.map((teacher) => (
                         <TeacherCard key={teacher.id} teacher={teacher} />
                     ))}
                 </div>
