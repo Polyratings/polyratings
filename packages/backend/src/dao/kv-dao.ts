@@ -41,7 +41,9 @@ export class KVDAO {
             throw new PolyratingsError(404, "Professor does not exist!");
         }
 
-        return transformAndValidate(ProfessorDTO, JSON.parse(profString));
+        // Turn off validation in order to change professor details
+        return plainToInstance(ProfessorDTO, JSON.parse(profString));
+        // return transformAndValidate(ProfessorDTO, JSON.parse(profString));
     }
 
     getBulkNamespace(bulkKey: BulkKey): KVNamespace {
