@@ -182,7 +182,11 @@ export function TeacherPage() {
                 </button>
             </div>
 
-            <div className="lg:max-w-5xl mx-auto mt-2 px-2">
+            {/* Mobile divider */}
+            <div className="sm:hidden bg-cal-poly-green h-1 w-full" />
+
+            {/* Desktop Divider */}
+            <div className="hidden sm:block lg:max-w-5xl mx-auto mt-2 px-2">
                 <div className="bg-cal-poly-green h-1 w-full" />
             </div>
             <AnimateHeight duration={500} height={teacherEvaluationShownMobile ? "auto" : 0}>
