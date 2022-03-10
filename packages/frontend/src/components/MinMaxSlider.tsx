@@ -10,14 +10,18 @@ interface MinMaxSliderProps {
     resolution?: number;
 }
 
+// TODO: Remove hacky media query to reflow on 4k screens. Even better just get rid of this entire slider library since it depends on lodash
 const overrideHoverCss = `
 .rc-slider-handle-dragging.rc-slider-handle-dragging.rc-slider-handle-dragging {
     border-color: #1F4715;
     box-shadow: 0 0 0 5px rgb(31, 71, 21, 0.5);
 }
-.rc-slider-handle {
-    transform: translate(-50%, -25%) !important;
-}
+@media (min-width: 2500px) { 
+    .rc-slider-handle {
+        transform: translate(-50%, -25%) !important;
+    }
+  }
+
 `;
 
 export function MinMaxSlider({
