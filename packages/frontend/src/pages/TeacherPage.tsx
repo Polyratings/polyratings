@@ -136,7 +136,7 @@ export function TeacherPage() {
                                 rating={teacherData?.overallRating}
                                 starRatedColor="#BD8B13"
                                 numberOfStars={4}
-                                starDimension="25px"
+                                starDimension="1.5rem"
                                 starSpacing="5px "
                             />
                         )}

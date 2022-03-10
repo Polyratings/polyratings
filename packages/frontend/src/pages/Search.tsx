@@ -10,7 +10,7 @@ import {
     SearchBar,
     SearchState,
     Filters,
-    TEACHER_CARD_HEIGHT,
+    TEACHER_CARD_HEIGHT_REM,
     FilterState,
 } from "@/components";
 import { useService, useQuery, useTailwindBreakpoint } from "@/hooks";
@@ -59,16 +59,6 @@ export function Search({ location }: SearchPageProps) {
         history.replace(location.pathname, currentState);
     };
 
-    const listWidth = useTailwindBreakpoint(
-        {
-            sm: 600,
-            md: 672,
-            lg: 600,
-            "2xl": 672,
-        },
-        window.innerWidth - 20,
-    );
-
     // If we remove the filters from the dom we can use one ref and simplify the process of restoring state when re-visiting route
     const mobileFilterBreakpoint = useTailwindBreakpoint({ xl: false }, true);
 
@@ -88,6 +78,21 @@ export function Search({ location }: SearchPageProps) {
         }
         retrieveSearchData();
     }, [searchState]);
+
+    const rootFontSize = parseFloat(
+        window.getComputedStyle(document.body).getPropertyValue("font-size"),
+    );
+    // TODO: Reflow height when window changes size
+    const virtualScrollListHeight = TEACHER_CARD_HEIGHT_REM * rootFontSize;
+    const listWidth = useTailwindBreakpoint(
+        {
+            sm: 37.5 * rootFontSize,
+            md: 42 * rootFontSize,
+            lg: 37.5 * rootFontSize,
+            "2xl": 42 * rootFontSize,
+        },
+        window.innerWidth - 20,
+    );
 
     return (
         <div className="">
@@ -162,7 +167,7 @@ export function Search({ location }: SearchPageProps) {
                                     rowCount={
                                         filteredTeachers.length < 8 ? 8 : filteredTeachers.length
                                     }
-                                    rowHeight={TEACHER_CARD_HEIGHT}
+                                    rowHeight={virtualScrollListHeight}
                                     scrollTop={scrollTop}
                                     width={listWidth}
                                     // eslint-disable-next-line react/no-unstable-nested-components

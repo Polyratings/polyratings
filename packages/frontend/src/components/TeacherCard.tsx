@@ -9,7 +9,7 @@ interface TeacherCardProps {
     beforeNavigation?: () => void | (() => Promise<void>);
 }
 
-export const TEACHER_CARD_HEIGHT = 160;
+export const TEACHER_CARD_HEIGHT_REM = 10;
 
 export function TeacherCard({ teacher, beforeNavigation = () => {} }: TeacherCardProps) {
     const history = useHistory();

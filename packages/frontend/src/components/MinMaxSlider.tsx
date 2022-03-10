@@ -15,6 +15,9 @@ const overrideHoverCss = `
     border-color: #1F4715;
     box-shadow: 0 0 0 5px rgb(31, 71, 21, 0.5);
 }
+.rc-slider-handle {
+    transform: translate(-50%, -25%) !important;
+}
 `;
 
 export function MinMaxSlider({
@@ -27,7 +30,12 @@ export function MinMaxSlider({
         [min]: min,
         [max]: max,
     };
-    const handleStyles = { borderColor: "#1F4715" };
+    const handleStyles = {
+        borderColor: "#1F4715",
+        width: "0.875rem",
+        height: "0.875rem",
+        transform: "translate(-50%, -25%)",
+    };
     return (
         <div className="w-full h-10">
             <style>{overrideHoverCss}</style>

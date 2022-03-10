@@ -8,6 +8,12 @@ html {
   width: 100%;
 }
 
+@media (min-width: 2500px) { 
+  html {
+    font-size: 40px;
+  }
+}
+
 /* Hide arrows on number inputs */
 /* Chrome, Safari, Edge, Opera */
 input::-webkit-outer-spin-button,

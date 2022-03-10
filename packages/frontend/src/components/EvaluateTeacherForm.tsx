@@ -1,4 +1,4 @@
-import { RefObject, useState } from "react";
+import React, { RefObject, useState } from "react";
 import { useForm, SubmitHandler } from "react-hook-form";
 import { ErrorMessage } from "@hookform/error-message";
 import { toast } from "react-toastify";
@@ -198,7 +198,7 @@ export function EvaluateTeacherForm({
                     <div key={rating.label}>
                         <div className="mt-1 flex justify-between">
                             <h4>{rating.label}</h4>
-                            <div className="flex">
+                            <div className="flex items-center">
                                 <select
                                     {...register(rating.inputName)}
                                     className="text-black rounded md:hidden"
@@ -210,15 +210,15 @@ export function EvaluateTeacherForm({
                                     ))}
                                 </select>
                                 {[0, 1, 2, 3, 4].map((n) => (
-                                    <label key={n} className="mr-3 hidden md:block">
+                                    <React.Fragment key={n}>
                                         <input
                                             type="radio"
-                                            className="mr-1 form-radio"
+                                            className="mr-1 form-radio w-[0.8rem] h-[0.8rem] border-2 border-black rounded-full"
                                             value={n}
                                             {...register(rating.inputName)}
                                         />
-                                        {n}
-                                    </label>
+                                        <label className="mr-3 hidden md:block">{n}</label>
+                                    </React.Fragment>
                                 ))}
                             </div>
                         </div>
