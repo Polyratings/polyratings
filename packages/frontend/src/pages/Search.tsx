@@ -79,8 +79,9 @@ export function Search({ location }: SearchPageProps) {
         retrieveSearchData();
     }, [searchState]);
 
+    // Provide a default value in case of running in a test environment or for some reason font-size is not defined
     const rootFontSize = parseFloat(
-        window.getComputedStyle(document.body).getPropertyValue("font-size"),
+        window.getComputedStyle(document.body).getPropertyValue("font-size") || "16",
     );
     // TODO: Reflow height when window changes size
     const virtualScrollListHeight = TEACHER_CARD_HEIGHT_REM * rootFontSize;
