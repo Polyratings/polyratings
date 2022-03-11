@@ -10,24 +10,24 @@ The frontend was built in react do to the ease of use and do to it currently bei
 
 ## Folder Structure
 
-`/assets` - contains static assets such as images
+**`/assets`** - contains static assets such as images
 
-`/components` - reusable react components. One component per file. Currently nearly all css is located inside the componets so there is no need to have separate folders
+**`/components`** - reusable react components. One component per file. Currently nearly all css is located inside the componets so there is no need to have separate folders
 
-`/hooks` - contain custom hooks that are used by the frontend. Some Notable hooks are:
+**`/hooks`** - contain custom hooks that are used by the frontend. Some Notable hooks are:
 * `useAuth` - returns the user if one or null otherwise
 * `useService` - returns a singleton service given a service class
 * `useTailwindBreakpoints` - allows js code to sync to the tailwind breakpoints making responsive design easier
 
-`/pages` - Page entry points. One file per url route
+**`/pages`** - Page entry points. One file per url route
 
-`/services` - Holds state for the application. `injector.ts` outlines the relationships between between services and is the location to register new ones. The library used to bring this pattern into react is [mindspace-utils](https://github.com/ThomasBurleson/mindspace-utils).
+**`/services`** - Holds state for the application. `injector.ts` outlines the relationships between between services and is the location to register new ones. The library used to bring this pattern into react is [mindspace-utils](https://github.com/ThomasBurleson/mindspace-utils).
 
-`styles` - holds static css files used in components or pages. These are made to be stand alone css files that are not coupled to any particular component
+**`/styles`** - holds static css files used in components or pages. These are made to be stand alone css files that are not coupled to any particular component
 
-`test-utils` - utility functions that are only relevant to be used with testing
+**`/test-utils`** - utility functions that are only relevant to be used with testing
 
-`utils` - utility functions that do not fit into any existing folder
+**`/utils`** - utility functions that do not fit into any existing folder
 
 ## Testing
 Jest is used for testing. Currently there is only unit tests but there is a desire to eventually have full end to end testing with something like Cyprus. If this is something that you would like to work on please take on the existing issue in the git repository.
