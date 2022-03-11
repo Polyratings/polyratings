@@ -38,7 +38,7 @@ npm t
 ```
 
 ## Developing locally
-First do the global setup instructions located [here](../..). If you are not using the default dev backend, configure it in `App.config.ts`.
+First, complete the global setup instructions located [here](../../README.md/#setup). If you are not using the default dev backend, configure it in `App.config.ts`.
 
 Change the remote url to a custom dev domain
 ```ts
