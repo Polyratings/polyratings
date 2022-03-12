@@ -1,8 +1,7 @@
 import { Env } from "@polyratings/backend/bindings";
 import { Context } from "sunder";
-import { AuthResponse, LoginRequest } from "@polyratings/shared";
+import { AuthResponse, LoginRequest, Internal } from "@polyratings/shared";
 import { PolyratingsError } from "@polyratings/backend/utils/errors";
-import { User } from "@polyratings/backend/dtos/User";
 import { AuthenticatedWithBody } from "@polyratings/backend/middlewares/auth-middleware";
 
 export class AuthHandler {
@@ -27,6 +26,6 @@ export class AuthHandler {
         const { username, password } = ctx.data.body;
         const hash = await ctx.env.authStrategy.hashPassword(password);
 
-        await ctx.env.kvDao.putUser(new User(username, hash));
+        await ctx.env.kvDao.putUser(new Internal.User(username, hash));
     }
 }

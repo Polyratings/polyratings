@@ -1,9 +1,14 @@
 /* eslint-disable react/no-unstable-nested-components */
 import DataTable from "react-data-table-component";
 import { Fragment, useEffect, useState } from "react";
-import { Teacher } from "@polyratings/shared";
 import { useAuth, useService } from "@/hooks";
-import { AdminService, ConnectedReview, JoinedRatingReport, ProcessedReview } from "@/services";
+import {
+    AdminService,
+    ConnectedReview,
+    JoinedRatingReport,
+    PendingReview,
+    BackendProfessor,
+} from "@/services";
 
 export function Admin() {
     const authenticated = useAuth();
@@ -117,7 +122,7 @@ function ReportedReviews() {
 
 function PendingProfessors() {
     const adminService = useService(AdminService);
-    const [pendingProfessors, setPendingProfessors] = useState([] as Teacher[]);
+    const [pendingProfessors, setPendingProfessors] = useState([] as BackendProfessor[]);
 
     useEffect(() => {
         async function retrieveData() {
@@ -130,25 +135,25 @@ function PendingProfessors() {
     const columns = [
         {
             name: "Professor",
-            selector: (row: Teacher) => `${row.lastName}, ${row.firstName}`,
+            selector: (row: BackendProfessor) => `${row.lastName}, ${row.firstName}`,
         },
         {
             name: "Department",
-            selector: (row: Teacher) => row.department,
+            selector: (row: BackendProfessor) => row.department,
         },
         {
             name: "Rating Course",
-            selector: (row: Teacher) => Object.keys(row.reviews ?? {})[0],
+            selector: (row: BackendProfessor) => Object.keys(row.reviews ?? {})[0],
         },
         {
             name: "Rating",
             wrap: true,
             grow: 3,
-            selector: (row: Teacher) => Object.values(row.reviews ?? {})[0][0].rating,
+            selector: (row: BackendProfessor) => Object.values(row.reviews ?? {})[0][0].rating,
         },
         {
             name: "Approve",
-            cell: (row: Teacher) => (
+            cell: (row: BackendProfessor) => (
                 <ConfirmationButton
                     action={async () => {
                         const afterApproval = await adminService.approvePendingProfessor(row.id);
@@ -163,7 +168,7 @@ function PendingProfessors() {
         },
         {
             name: "Deny",
-            cell: (row: Teacher) => (
+            cell: (row: BackendProfessor) => (
                 <ConfirmationButton
                     action={async () => {
                         const afterRemoval = await adminService.removePendingProfessor(row.id);
@@ -188,7 +193,7 @@ function PendingProfessors() {
 
 function ProcessedReviews() {
     const adminService = useService(AdminService);
-    const [processedReviews, setProcessedReviews] = useState([] as ProcessedReview[]);
+    const [processedReviews, setProcessedReviews] = useState([] as PendingReview[]);
 
     useEffect(() => {
         async function retrieveData() {
@@ -201,13 +206,13 @@ function ProcessedReviews() {
     const columns = [
         {
             name: "Status",
-            selector: (row: ProcessedReview) => row.status,
+            selector: (row: PendingReview) => row.status,
             grow: 0.5,
         },
         {
             name: "Scores",
             grow: 1.5,
-            cell: (row: ProcessedReview) => (
+            cell: (row: PendingReview) => (
                 <div className="flex flex-col">
                     {Object.entries(row.scores).map(([name, score]) => (
                         <div key={name}>
@@ -221,7 +226,7 @@ function ProcessedReviews() {
             name: "Rating",
             wrap: true,
             grow: 3,
-            selector: (row: ProcessedReview) => row.rating,
+            selector: (row: PendingReview) => row.rating,
         },
     ];
 

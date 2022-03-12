@@ -1,5 +1,6 @@
 export * from "./interfaces";
 export * from "./constants";
-export * from "./dtos";
+export * from "./public-dtos";
 export * from "./decorators";
 export * from "./utils";
+export * as Internal from "./internal-dtos";

@@ -1,7 +1,7 @@
 import { Context, MiddlewareNextFunction } from "sunder";
 import { BaseDTO } from "@polyratings/shared";
 import { instanceToPlain } from "class-transformer";
-import { DtoBypass } from "@polyratings/backend/dtos/DtoBypass";
+import { DtoBypass } from "@polyratings/backend/utils/DtoBypass";
 
 /**
  * The goal of this middleware is to coerce all response bodies to be of a BaseDTO type, which essentially enforces

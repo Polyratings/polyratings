@@ -1,4 +1,4 @@
-import { BulkKey, chunkArray, RatingReport, Review, Teacher } from "@polyratings/shared";
+import { BulkKey, chunkArray, RatingReport, Review, Teacher, Internal } from "@polyratings/shared";
 import { config } from "@/App.config";
 import { AuthService } from "./auth.service";
 import { HttpService } from "./http.service";
@@ -8,10 +8,16 @@ const WORKER_RETRIEVAL_CHUNK_SIZE = 1000;
 const PROFESSOR_KV_DUMP_CACHE_KEY = "PROFESSOR_KV_DUMP";
 const TWO_HOURS = 1000 * 60 * 60 * 2;
 
-type ProfessorKvDumpCacheEntry = CacheEntry<Record<string, Teacher>>;
+type ProfessorKvDumpCacheEntry = CacheEntry<Record<string, BackendProfessor>>;
+export interface JoinedRatingReport extends RatingReport {
+    professor: Teacher;
+    review: Review;
+    courseName: string;
+}
+export type PendingReview = Internal.PendingReviewDTOPlain & { scores: Record<string, number> };
+export type BackendProfessor = Internal.PlainProfessorDTO;
 
-export type ConnectedReview = Review & { professorId: string; professorName: string };
-
+export type ConnectedReview = Internal.ReviewDTO & { professorId: string; professorName: string };
 export class AdminService {
     private professorKvDump: Promise<ProfessorKvDumpCacheEntry> = new Promise(() => {});
 
@@ -23,18 +29,18 @@ export class AdminService {
         authService.isAuthenticatedSubject.subscribe((user) => {
             if (user) {
                 this.professorKvDump = this.storageService
-                    .getItem<Record<string, Teacher>>(PROFESSOR_KV_DUMP_CACHE_KEY)
+                    .getItem<Record<string, BackendProfessor>>(PROFESSOR_KV_DUMP_CACHE_KEY)
                     .then((result) => result ?? this.fetchProfessorKvDump());
             }
         });
     }
 
     private async fetchProfessorKvDump(): Promise<ProfessorKvDumpCacheEntry> {
-        const professors = await this.bulkRead<Teacher>("professors");
+        const professors = await this.bulkRead<BackendProfessor>("professors");
         const professorIdMap = professors.reduce((acc, curr) => {
             acc[curr.id] = curr;
             return acc;
-        }, {} as Record<string, Teacher>);
+        }, {} as Record<string, BackendProfessor>);
 
         const professorKvDump: ProfessorKvDumpCacheEntry = {
             data: professorIdMap,
@@ -93,14 +99,14 @@ export class AdminService {
         return new Date(professorKvDump.cachedAt).toLocaleTimeString("US");
     }
 
-    public async pendingProfessors(): Promise<Teacher[]> {
+    public async pendingProfessors(): Promise<BackendProfessor[]> {
         const pendingProfessorsRes = await this.httpService.fetch(
             `${config.remoteUrl}/admin/professors/pending`,
         );
         return pendingProfessorsRes.json();
     }
 
-    public async approvePendingProfessor(professorId: string): Promise<Teacher[]> {
+    public async approvePendingProfessor(professorId: string): Promise<BackendProfessor[]> {
         await this.httpService.fetch(`${config.remoteUrl}/admin/pending/${professorId}`, {
             method: "POST",
         });
@@ -109,7 +115,7 @@ export class AdminService {
         return pendingProfessors.filter((professor) => professor.id !== professorId);
     }
 
-    public async removePendingProfessor(professorId: string): Promise<Teacher[]> {
+    public async removePendingProfessor(professorId: string): Promise<BackendProfessor[]> {
         await this.httpService.fetch(`${config.remoteUrl}/admin/pending/${professorId}`, {
             method: "DELETE",
         });
@@ -164,7 +170,7 @@ export class AdminService {
         const reports = await this.bulkRead<RatingReport>("reports");
         const allProfessors = await (await this.professorKvDump).data;
         return reports.map((report) => {
-            const professor = { ...allProfessors[report.professorId] };
+            const professor = { ...allProfessors[report.professorId] } as Teacher;
             const [courseName, reviewArr] = Object.entries(professor.reviews ?? {}).find(
                 ([, reviews]) => reviews.find((r) => r.id === report.ratingId),
             ) ?? ["N/A", []];
@@ -197,33 +203,17 @@ export class AdminService {
 
     // TODO: Find a better way to handle normally private types on the frontend and in other places
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    public async getProcessedReviews(): Promise<any[]> {
-        const reviews = await this.bulkRead("rating-queue");
-        return (
-            reviews
-                // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                .map((review: any) => {
-                    const scores = Object.entries(review.sentimentResponse ?? {}).reduce(
-                        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                        (acc, [key, scoresObj]: [string, any]) => {
-                            acc[key] = scoresObj.summaryScore.value;
-                            return acc;
-                        },
-                        {} as Record<string, number>,
-                    );
-                    return { scores, ...review };
-                })
-        );
+    public async getProcessedReviews(): Promise<PendingReview[]> {
+        const reviews = await this.bulkRead<Internal.PendingReviewDTOPlain>("rating-queue");
+        return reviews.map((review) => {
+            const scores = Object.entries(review.sentimentResponse ?? {}).reduce(
+                (acc, [key, scoresObj]) => {
+                    acc[key] = scoresObj.summaryScore.value;
+                    return acc;
+                },
+                {} as Record<string, number>,
+            );
+            return { scores, ...review };
+        });
     }
-}
-
-export interface JoinedRatingReport extends RatingReport {
-    professor: Teacher;
-    review: Review;
-    courseName: string;
-}
-export interface ProcessedReview {
-    rating: string;
-    status: string;
-    scores: Record<string, number>;
 }

@@ -1,11 +1,8 @@
-import {
-    BaseDTO,
-    ExposeFrontend,
-    ReportReviewRequest,
-    RatingReport as RatingReportInterface,
-} from "@polyratings/shared";
 import { plainToInstance, Type } from "class-transformer";
 import { IsEmail, IsString, IsUUID, ValidateIf, ValidateNested } from "class-validator";
+import { BaseDTO, ReportReviewRequest } from "../public-dtos";
+import { RatingReport as RatingReportInterface } from "../interfaces";
+import { ExposeFrontend } from "../decorators";
 
 export class RatingReport extends BaseDTO implements RatingReportInterface {
     @IsUUID()

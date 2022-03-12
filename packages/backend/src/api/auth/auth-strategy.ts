@@ -1,10 +1,8 @@
 /* eslint-disable class-methods-use-this */
-import { UserToken } from "@polyratings/backend/dtos/UserToken";
 import { PolyratingsError } from "@polyratings/backend/utils/errors";
-import { UserToken as UserTokenPlain } from "@polyratings/shared";
+import { UserToken as UserTokenPlain, Internal } from "@polyratings/shared";
 import { plainToInstance } from "class-transformer";
 import * as jwt from "@tsndr/cloudflare-worker-jwt";
-import { User } from "@polyratings/backend/dtos/User";
 
 const HEX_BYTES_PER_CHAR = 2;
 
@@ -43,7 +41,7 @@ export class AuthStrategy {
         return storedHash === computedHashStr;
     }
 
-    async verify(authHeader: string | null): Promise<UserToken> {
+    async verify(authHeader: string | null): Promise<Internal.UserToken> {
         if (!authHeader) {
             throw new PolyratingsError(401, "Bad Credentials");
         }
@@ -57,10 +55,10 @@ export class AuthStrategy {
         // If token is valid payload should be as well
         const payload = jwt.decode(token);
 
-        return plainToInstance(UserToken, payload);
+        return plainToInstance(Internal.UserToken, payload);
     }
 
-    async createToken(user: User) {
+    async createToken(user: Internal.User) {
         const { username } = user;
         const payload: UserTokenPlain = {
             sub: username,
