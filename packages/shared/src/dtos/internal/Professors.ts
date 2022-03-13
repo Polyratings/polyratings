@@ -1,11 +1,11 @@
 import { Allow, IsIn, IsInt, IsNotEmpty, IsUUID, Max, Min } from "class-validator";
 import { plainToInstance, Transform } from "class-transformer";
-import { roundToPrecision } from "../utils";
-import { AddProfessorRequest, BaseDTO } from "../public-dtos";
-import { Teacher } from "../interfaces";
-import { ExposeFrontend } from "../decorators";
+import { roundToPrecision } from "../../utils";
+import { AddProfessorRequest, BaseDTO } from "../public";
+import { Teacher } from "../../interfaces";
+import { ExposeFrontend } from "../../decorators";
 import { ReviewDTO } from "./Reviews";
-import { DEPARTMENT_LIST } from "../constants";
+import { DEPARTMENT_LIST } from "../../constants";
 
 export class TruncatedProfessorDTO extends BaseDTO implements Teacher {
     @IsUUID()

@@ -10,10 +10,10 @@ import {
     MinLength,
 } from "class-validator";
 import { plainToInstance, Type } from "class-transformer";
-import { Default, ExcludeFrontend, ExposeFrontend } from "../decorators";
-import { CourseType, Grade, GradeLevel, Review } from "../interfaces";
-import { DEPARTMENT_LIST } from "../constants";
-import { AddReviewRequest, BaseDTO } from "../public-dtos";
+import { Default, ExcludeFrontend, ExposeFrontend } from "../../decorators";
+import { CourseType, Grade, GradeLevel, Review } from "../../interfaces";
+import { DEPARTMENT_LIST } from "../../constants";
+import { AddReviewRequest, BaseDTO } from "../public";
 
 export class ReviewDTO extends BaseDTO implements Review {
     @IsUUID()
