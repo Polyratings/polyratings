@@ -27,7 +27,7 @@ Navigate back to the "Overview" subtab and on the right side of the page, you'll
 
 This is mostly done because under our own testing, there are multiple times where deploying wrangler environments will not actually set the "bounded" model as specified in the configuration, and it's a pain to go back and manually set that for each worker using the Cloudflare Dashboard.
 
-### URLS/Endpoints
+### URLS and Endpoints
 You'll need to figure out what URLS you want to listen on for your backend. Our current convention is to use `api-ENVIRONMENT.DOMAIN.COM` so for the actual Polyratings site it's `api-prod.polyratings.com`.
 
 Once you've determined the endpoints you want, you'll need to setup some DNS records that allow Cloudflare (and Workers) to redirect requests to the proper handler. To do this, navigate to the "Websites" tab, click on the domain that will be hosting your deployment, select "DNS," and click the "Add record" button to and an "AAAA" type record where "name" is the URL path before `DOMAIN.COM` (i.e. `api-prod`) then the IPv6 address should be "100::" (yes, this technically means to discard the request, but we use this to enable Cloudflare proxying on the URL path, which then triggers the routing rules we will later configure).
@@ -35,7 +35,7 @@ Once you've determined the endpoints you want, you'll need to setup some DNS rec
 ## Cloudflare Wrangler
 The next thing you'll need to do is install [Cloudflare Wrangler](https://developers.cloudflare.com/workers/cli-wrangler/install-update/) and [authenticate](https://developers.cloudflare.com/workers/cli-wrangler/authentication/) yourself. This allows you to perform deployments from the CLI (and make use of the build scripts we have).
 ## Configuring the Workers
-Each of the Wrangler project's ([[#Backend Worker]] or [[#Cron Worker]]) are configured using a `wrangler.toml` file that declares the different environment configurations, deployment types, etc. There are values that are specific to your Cloudflare account and **must** be changed!
+Each of the Wrangler project's ([Backend Worker](#backend-worker) or [Cron Worker](#cron-worker)) are configured using a `wrangler.toml` file that declares the different environment configurations, deployment types, etc. There are values that are specific to your Cloudflare account and **must** be changed!
 
 If you want a better understanding of the syntax and structure of the configuration file, you can find that information [here.](https://developers.cloudflare.com/workers/cli-wrangler/configuration/) The only configurations that are unique for each person/domain/etc. are the following:
 
@@ -44,13 +44,13 @@ If you want a better understanding of the syntax and structure of the configurat
 - `account_id` - Your Cloudflare Account 
 
 **Environment-Specific Declarations:**
-- `route` - The URL that specific environment will listen on. These are the URLS you setup in [[#URLS Endpoints]]].
+- `route` - The URL that specific environment will listen on. These are the URLS you setup in [URLS and Endpoints](#urls-and-endpoints).
 
 ### Backend Worker
-In the Backend package, you'll need to modify the `kv_namespaces` field under each environment, changing the ID of each namespace to match the titles and environments of the namespaces you created in [[#KV]].
+In the Backend package, you'll need to modify the `kv_namespaces` field under each environment, changing the ID of each namespace to match the titles and environments of the namespaces you created in [KV](#kv).
 
 Additionally, you're going to need to configure some [Secrets using Wrangler.](https://developers.cloudflare.com/workers/platform/environment-variables/#adding-secrets-via-wrangler) Specifically, we need to create the following secrets (they can either be the same per environment, or different so long as they are valid):
-- `PERSPECTIVE_API_KEY` - API key received when following [[#Preliminary Setup]]
+- `PERSPECTIVE_API_KEY` - API key received when following [Preliminary Setup](#preliminary-setup)
 - `JWT_SIGNING_KEY` - @mfish33 (if you want to explain how to gen it)
 
 #### Deploying/Publishing
@@ -76,7 +76,7 @@ We currently provide a [daily dump](https://github.com/Polyratings/polyratings-d
 As far as I am aware, there is no easy programmatic/automatic way to create a Cloudflare Pages project, so you'll need to follow the steps below to automatically build and deploy the site from source.
 
 ### Configuration (When Modifying the Backend Package)
-Before we can begin deploying the frontend, we'll need to modify the URLs that it points to. From the root of the Frontend package in `src/App.config.ts`, you'll need to modify the `remoteUrl` of the various `AppConfigurations` to match the base routes you created in [[#URLS Endpoints]]: `https://api-ENV.DOMAIN.COM` 
+Before we can begin deploying the frontend, we'll need to modify the URLs that it points to. From the root of the Frontend package in `src/App.config.ts`, you'll need to modify the `remoteUrl` of the various `AppConfigurations` to match the base routes you created in [URLS and Endpoints](#urls-and-endpoints): `https://api-ENV.DOMAIN.COM` 
 
 ## Deploying
 Navigate to the "Pages" tab from the dashboard to begin and select "Create a Project." You can select "Connect GitHub" and follow the setup process to link your new repository with Cloudflare. You'll be redirected back to Cloudflare and confirm the repository you'll be using for Cloudflare Pages by selecting "Begin setup".
