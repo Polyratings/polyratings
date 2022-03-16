@@ -198,7 +198,7 @@ export function EvaluateTeacherForm({
                     <div key={rating.label}>
                         <div className="mt-1 flex justify-between">
                             <h4>{rating.label}</h4>
-                            <div className="flex items-center">
+                            <div className="flex">
                                 <select
                                     {...register(rating.inputName)}
                                     className="text-black rounded md:hidden"
@@ -210,7 +210,7 @@ export function EvaluateTeacherForm({
                                     ))}
                                 </select>
                                 {[0, 1, 2, 3, 4].map((n) => (
-                                    <React.Fragment key={n}>
+                                    <div key={n} className="hidden md:flex items-center">
                                         <input
                                             type="radio"
                                             className="mr-1 form-radio w-[0.8rem] h-[0.8rem] border-2 border-black rounded-full"
@@ -218,7 +218,7 @@ export function EvaluateTeacherForm({
                                             {...register(rating.inputName)}
                                         />
                                         <label className="mr-3 hidden md:block">{n}</label>
-                                    </React.Fragment>
+                                    </div>
                                 ))}
                             </div>
                         </div>
