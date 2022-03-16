@@ -1,4 +1,4 @@
-Note: This document is prepared under the assumption that you are storing your source code in GitHub and using Cloudflare as your cloud provider. YMMV and under any other configurations we cannot guarantee knowledge or support.
+**Note: This document is prepared under the assumption that you are storing your source code in GitHub and using Cloudflare as your cloud provider. YMMV and under any other configurations we cannot guarantee knowledge or support.**
 # Preliminary Setup
 ## Setting Up Source Code
 First you'll need somewhere to store the Polyratings source. You can either fork the [existing GitHub Repository](https://github.com/Polyratings/polyratings) or copy into your own fresh repo.
