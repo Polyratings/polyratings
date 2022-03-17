@@ -1,7 +1,7 @@
 /* eslint-disable react/no-unstable-nested-components */
 import { useState, useEffect } from "react";
 import { useHistory, useParams } from "react-router-dom";
-import { Review, Teacher } from "@polyratings/shared";
+import { Review, Teacher } from "@polyratings/client";
 import AnimateHeight from "react-animate-height";
 import AnchorLink from "react-anchor-link-smooth-scroll";
 import StarRatings from "react-star-ratings";

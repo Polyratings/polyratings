@@ -3,6 +3,7 @@
     "version": "0.1.0",
     "description": "Cloudflare Workers project for the Polyratings site backend",
     "main": "dist/generated.js",
+    "private": true,
     "scripts": {
         "build:fast": "esbuild --format=esm --define:this=self --bundle src/index.ts --outdir=dist --metafile=stats/metadata.json",
         "build": "tsc && npm run build:fast && npm run generateRouterTypes",

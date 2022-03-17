@@ -1,0 +1,35 @@
+{
+  "name": "@polyratings/client",
+  "version": "0.0.4",
+  "description": "Polyratings client library",
+  "main": "dist/cjs/index.js",
+  "module": "dist/esm/index.js",
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/mfish33/polratings-revamp.git"
+  },
+  "scripts": {
+    "build:esm": "esbuild --format=esm --define:this=global --bundle src/index.ts --outdir=dist/esm --minify --metafile=stats/metadata.json",
+    "build:cjs": "esbuild --format=cjs --define:this=global --bundle src/index.ts --outdir=dist/cjs --minify --metafile=stats/metadata.json",
+    "build": "tsc && npm run build:esm && npm run build:cjs",
+    "stats": "esbuild-visualizer --metadata ./stats/metadata.json --filename ./stats/stats.html",
+    "lint": "eslint --max-warnings=0 .",
+    "fix": "eslint . --fix",
+    "prepublishOnly": " npm run lint && npm run build"
+  },
+  "/":"list all of regular dependencies after dev dependencies since we do not want to publish them and we can just bundle it in the output using esbuild",
+  "devDependencies": {
+    "@polyratings/eslint-config": "*",
+    "esbuild": "^0.14.13",
+    "esbuild-visualizer": "^0.3.1",
+    "eslint": "^8.7.0",
+    "typescript": "^4.4.4",
+
+    "@polyratings/shared": "*",
+    "@polyratings/backend": "*"
+  }
+}

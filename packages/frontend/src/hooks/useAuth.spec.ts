@@ -1,5 +1,5 @@
 import { UndoChanges } from "@mindspace-io/react";
-import { UserToken } from "@polyratings/shared";
+import { UserToken } from "@polyratings/client";
 import { renderHook, RenderResult } from "@testing-library/react-hooks";
 import { waitFor } from "@testing-library/dom";
 import { act } from "react-dom/test-utils";

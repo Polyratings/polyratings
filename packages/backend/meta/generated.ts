@@ -3,7 +3,7 @@
 
 export interface PolyratingsBackendRouting {
 "post:/professors": (body: any) => any;
-"post:/professors/:id/ratings": <T extends string>(id: T, body: any) => any;
+"post:/professors/ratings": (body: any) => any;
 "post:/rating/report": (body: any) => any;
 "post:/login": (body: any) => any;
 "post:/register": (body: any) => any;
@@ -14,7 +14,7 @@ export interface PolyratingsBackendRouting {
 "post:/admin/professor/merge": (body: any) => any;
 "post:/admin/professor/department": (body: any) => any;
 "post:/admin/bulk/:key": <T extends string>(key: T, body: any) => any;
-"put:/admin/reports/:id": <T extends string>(id: T, body: any) => any;
+"post:/admin/reports/:id": <T extends string>(id: T, body: any) => any;
 "delete:/admin/reports/:id": <T extends string>(id: T, body: any) => any;
 "get:/professors": (body: any) => any;
 "get:/professors/:id": <T extends string>(id: T, body: any) => any;

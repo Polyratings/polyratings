@@ -27,7 +27,7 @@ export function registerRoutes(router: Router<Env>) {
     router.get("/professors/:id", ProfessorHandler.getSingleProfessor);
 
     router.post(
-        "/professors/:id/ratings",
+        "/professors/ratings",
         withMiddlewares(withValidatedBody(AddReviewRequest), RatingHandler.addNewRating),
     );
 
@@ -95,7 +95,7 @@ export function registerRoutes(router: Router<Env>) {
         ),
     );
 
-    router.put("/admin/reports/:id", withMiddlewares(withAuth, AdminHandler.actOnReport));
+    router.post("/admin/reports/:id", withMiddlewares(withAuth, AdminHandler.actOnReport));
     router.delete("/admin/reports/:id", withMiddlewares(withAuth, AdminHandler.removeReport));
 
     // no-op catch-all (which also applies generic OPTIONS headers)

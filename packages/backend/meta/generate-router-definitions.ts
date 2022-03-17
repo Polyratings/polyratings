@@ -6,7 +6,7 @@ function generateFunctionSignature(pathParams: string[], hasBody: boolean): stri
     if (pathParams.length) {
         return `<${genericVariables
             .slice(0, pathParams.length)
-            .map((gen) => `${gen} extends string`)
+            .map((generic) => `${generic} extends string`)
             .join(",")}>(${pathParams.map((v, i) => `${v}: ${genericVariables[i]}`)}${
             hasBody ? ", body: any" : ""
         }) => any`;

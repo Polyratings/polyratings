@@ -4,8 +4,8 @@
   "description": "",
   "main": "dist/cjs/index.js",
   "module": "dist/esm/index.js",
+  "private": true,
   "scripts": {
-    "start:dev": "tsc --watch",
     "build:esm": "tsc --module esnext --outdir dist/esm",
     "build:cjs": "tsc --module commonjs --outdir dist/cjs",
     "build": "npm run build:esm && npm run build:cjs",

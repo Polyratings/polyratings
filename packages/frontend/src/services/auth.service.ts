@@ -1,5 +1,5 @@
 import { BehaviorSubject } from "rxjs";
-import { AuthResponse, UserToken } from "@polyratings/shared";
+import { AuthResponse, UserToken } from "@polyratings/client";
 import jwtDecode from "jwt-decode";
 import { config } from "@/App.config";
 import { StorageService } from "./storage.service";

@@ -4,7 +4,7 @@ import {
     ProcessingReviewResponse,
     ReportReviewRequest,
     Teacher,
-} from "@polyratings/shared";
+} from "@polyratings/client";
 import { config } from "@/App.config";
 import { HttpService } from "./http.service";
 import { TeacherService } from ".";
@@ -29,7 +29,7 @@ export class ReviewService {
         if (!addReviewResponse.newReviewId) {
             throw new Error(addReviewResponse.statusMessage);
         }
-        const processingReviewRes = await fetch(
+        const processingReviewRes = await this.httpService.fetch(
             `${config.remoteUrl}/ratings/${addReviewResponse.newReviewId}`,
         );
         const processingResponse = (await processingReviewRes.json()) as ProcessingReviewResponse;

@@ -1,4 +1,4 @@
-import { Review } from "@polyratings/shared";
+import { Review } from "@polyratings/client";
 import { useState } from "react";
 import { SubmitHandler, useForm } from "react-hook-form";
 import { ErrorMessage } from "@hookform/error-message";

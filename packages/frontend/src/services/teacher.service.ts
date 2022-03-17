@@ -1,4 +1,4 @@
-import { AddProfessorRequest, Teacher } from "@polyratings/shared";
+import { AddProfessorRequest, Teacher } from "@polyratings/client";
 import { config } from "@/App.config";
 import { getRandomSubarray, intersectingDbEntities } from "@/utils";
 import { HttpService } from "./http.service";
