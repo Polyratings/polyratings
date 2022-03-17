@@ -1,8 +1,7 @@
 import { Context } from "sunder";
 import { Env } from "@polyratings/backend/bindings";
-import { DtoBypass } from "@polyratings/backend/dtos/DtoBypass";
-import { AddProfessorRequest } from "@polyratings/shared";
-import { ProfessorDTO } from "@polyratings/backend/dtos/Professors";
+import { DtoBypass } from "@polyratings/backend/utils/DtoBypass";
+import { AddProfessorRequest, Internal } from "@polyratings/shared";
 
 export class ProfessorHandler {
     /**
@@ -24,7 +23,7 @@ export class ProfessorHandler {
      */
     static async addNewProfessor(ctx: Context<Env, unknown, AddProfessorRequest>) {
         const { data: addProfessorRequest } = ctx;
-        const professor = ProfessorDTO.fromAddProfessorRequest(addProfessorRequest);
+        const professor = Internal.ProfessorDTO.fromAddProfessorRequest(addProfessorRequest);
 
         const existingPendingProfessors = await ctx.env.kvDao.getAllPendingProfessors();
         const duplicateProfessor = existingPendingProfessors.find(

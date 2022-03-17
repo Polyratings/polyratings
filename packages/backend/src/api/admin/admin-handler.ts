@@ -1,5 +1,4 @@
 import { Env } from "@polyratings/backend/bindings";
-import { DtoBypass } from "@polyratings/backend/dtos/DtoBypass";
 import { AuthenticatedWithBody } from "@polyratings/backend/middlewares/auth-middleware";
 import {
     BulkKey,
@@ -8,6 +7,7 @@ import {
     MergeProfessorRequest,
 } from "@polyratings/shared";
 import { Context } from "sunder";
+import { DtoBypass } from "@polyratings/backend/utils/DtoBypass";
 
 export class AdminHandler {
     // Limitation of sunder path param. Can not resolve both variables

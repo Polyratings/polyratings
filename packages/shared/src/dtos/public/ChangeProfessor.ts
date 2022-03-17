@@ -1,5 +1,5 @@
 import { IsIn, IsUUID } from "class-validator";
-import { DEPARTMENT_LIST } from "../constants";
+import { DEPARTMENT_LIST } from "../../constants";
 import { BaseDTO } from "./BaseDTO";
 
 export class ChangeDepartmentRequest extends BaseDTO {

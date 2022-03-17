@@ -1,16 +1,4 @@
 import {
-    GradeLevel,
-    Grade,
-    CourseType,
-    Review,
-    BaseDTO,
-    AddReviewRequest,
-    DEPARTMENT_LIST,
-    Default,
-    ExcludeFrontend,
-    ExposeFrontend,
-} from "@polyratings/shared";
-import {
     Allow,
     IsDate,
     IsDefined,
@@ -22,10 +10,16 @@ import {
     MinLength,
 } from "class-validator";
 import { plainToInstance, Type } from "class-transformer";
+import { Default, ExcludeFrontend, ExposeFrontend } from "../../decorators";
+import { CourseType, Grade, GradeLevel, Review } from "../../interfaces";
+import { DEPARTMENT_LIST } from "../../constants";
+import { AddReviewRequest, BaseDTO } from "../public";
+import { PerspectiveAttributeNames, PerspectiveAttributeScore } from "./Perspective";
 
 export class ReviewDTO extends BaseDTO implements Review {
     @IsUUID()
     @ExposeFrontend()
+    // @ts-expect-error cloudflare runtime function
     @Default(() => crypto.randomUUID())
     id: string;
 
@@ -91,7 +85,7 @@ export class PendingReviewDTO extends ReviewDTO {
 
     @Allow()
     @ExposeFrontend()
-    sentimentResponse?: object; // TODO: Codify some data shape/structure for this
+    sentimentResponse?: Partial<Record<PerspectiveAttributeNames, PerspectiveAttributeScore>>;
 
     @IsInt()
     @Min(100)
@@ -113,3 +107,5 @@ export class PendingReviewDTO extends ReviewDTO {
         });
     }
 }
+
+export type PendingReviewDTOPlain = Omit<PendingReviewDTO, "fromAddReviewRequest" | "toReviewDTO">;

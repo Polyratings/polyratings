@@ -1,11 +1,11 @@
-import { BulkKey, Teacher } from "@polyratings/shared";
+import { BulkKey } from "@polyratings/shared";
 import { CronEnv, KvName } from "../entry";
 import { Logger } from "../logger";
 
 export function syncKvStore(bulkKey: BulkKey, kvName: KvName) {
     return async (env: CronEnv) => {
         Logger.info(`Getting Prod ${bulkKey}`);
-        const prodData = await env.prodWorker.bulkEntries<Teacher>(bulkKey);
+        const prodData = await env.prodWorker.bulkEntries<unknown>(bulkKey);
 
         const betaKv = new env.KVWrapper(env.getKvId("beta", kvName));
         const devKv = new env.KVWrapper(env.getKvId("dev", kvName));
