@@ -26,9 +26,6 @@ export class ProfessorModule {
     async new(professor: AddProfessorRequest): Promise<void> {
         await this.httpModule.fetch("/professors", {
             method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-            },
             body: JSON.stringify(professor),
         });
     }

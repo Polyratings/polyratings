@@ -1,10 +1,9 @@
 {
   "name": "@polyratings/client",
-  "version": "0.0.4",
+  "version": "0.0.6",
   "description": "Polyratings client library",
   "main": "dist/cjs/index.js",
   "module": "dist/esm/index.js",
-  "types": "dist/index.d.ts",
   "files": [
     "dist"
   ],

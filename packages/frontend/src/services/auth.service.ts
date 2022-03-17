@@ -33,9 +33,6 @@ export class AuthService {
     public async login(username: string, password: string): Promise<UserToken> {
         const loginRes = await this.fetch(`${config.remoteUrl}/login`, {
             method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-            },
             body: JSON.stringify({ username, password }),
         });
 

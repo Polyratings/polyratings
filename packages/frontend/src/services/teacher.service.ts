@@ -91,9 +91,6 @@ export class TeacherService {
     public async addNewTeacher(newTeacher: AddProfessorRequest): Promise<void> {
         await this.httpService.fetch(`${config.remoteUrl}/professors`, {
             method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-            },
             body: JSON.stringify(newTeacher),
         });
     }

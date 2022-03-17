@@ -17,9 +17,6 @@ export class ReviewService {
             `${config.remoteUrl}/professors/${addReviewRequest.professor}/ratings`,
             {
                 method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                },
                 body: JSON.stringify(addReviewRequest),
             },
         );
@@ -45,9 +42,6 @@ export class ReviewService {
     async reportReview(report: ReportReviewRequest) {
         await this.httpService.fetch(`${config.remoteUrl}/rating/report`, {
             method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-            },
             body: JSON.stringify(report),
         });
     }

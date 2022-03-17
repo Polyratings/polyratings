@@ -1,4 +1,4 @@
-import { AuthResponse } from "@polyratings/shared";
+import { AuthResponse, LoginRequest } from "@polyratings/shared";
 import { HttpModule } from ".";
 
 export class AuthModule {
@@ -7,12 +7,9 @@ export class AuthModule {
     /**
      * Logs a user into the client library. If login does not throw it has been successful
      */
-    async login(credentials: Credentials): Promise<void> {
+    async login(credentials: LoginRequest): Promise<void> {
         const loginRes = await this.httpModule.fetch("/login", {
             method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-            },
             body: JSON.stringify(credentials),
         });
 
@@ -24,18 +21,14 @@ export class AuthModule {
     /**
      * Registers a new admin user. Requires an existing logged in user
      */
-    async register(newUser: Credentials): Promise<void> {
+    async register(newUser: LoginRequest): Promise<void> {
         await this.httpModule.fetch("/register", {
             method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-            },
             body: JSON.stringify(newUser),
         });
     }
-}
 
-export interface Credentials {
-    username: string;
-    password: string;
+    setJwt(token: string) {
+        this.httpModule.setAuthToken(token);
+    }
 }

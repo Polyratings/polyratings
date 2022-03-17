@@ -12,7 +12,7 @@ export class RatingModule {
     /**
      * initiates the process of adding a rating. If the rating passes validation you will receive a token to use in the next step
      */
-    async initiateRatingAdd(rating: AddReviewRequest): Promise<AddReviewResponse> {
+    async initiateAdd(rating: AddReviewRequest): Promise<AddReviewResponse> {
         const addReviewRes = await this.httpModule.fetch(
             `/professors/${rating.professor}/ratings`,
             {
@@ -27,7 +27,7 @@ export class RatingModule {
     /**
      * Consumes the rating token received from the first step
      */
-    async finishRatingAdd(newReviewId: string): Promise<ProcessingReviewResponse> {
+    async finishAdd(newReviewId: string): Promise<ProcessingReviewResponse> {
         const processingReviewRes = await this.httpModule.fetch(`/ratings/${newReviewId}`);
         return processingReviewRes.json();
     }
@@ -35,18 +35,18 @@ export class RatingModule {
     /**
      * Adds a rating to polyratings, Errors if first step of validation process fails
      */
-    async addRating(rating: AddReviewRequest): Promise<ProcessingReviewResponse> {
-        const initialResponse = await this.initiateRatingAdd(rating);
+    async add(rating: AddReviewRequest): Promise<ProcessingReviewResponse> {
+        const initialResponse = await this.initiateAdd(rating);
         if (!initialResponse.newReviewId) {
             throw new Error(initialResponse.statusMessage);
         }
-        return this.finishRatingAdd(initialResponse.newReviewId);
+        return this.finishAdd(initialResponse.newReviewId);
     }
 
     /**
      * Reports a desired rating. Reports will be manually reviewed.
      */
-    async reportRating(report: ReportReviewRequest) {
+    async report(report: ReportReviewRequest) {
         await this.httpModule.fetch("rating/report", {
             method: "POST",
             body: JSON.stringify(report),
