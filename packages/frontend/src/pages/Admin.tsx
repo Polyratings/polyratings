@@ -1,6 +1,5 @@
 /* eslint-disable react/no-unstable-nested-components */
-import DataTable from "react-data-table-component";
-import { Fragment, useEffect, useState } from "react";
+import { Fragment, lazy, Suspense, useEffect, useState } from "react";
 import { useAuth, useService } from "@/hooks";
 import {
     AdminService,
@@ -9,6 +8,17 @@ import {
     PendingReview,
     BackendProfessor,
 } from "@/services";
+
+const DataTableLazy = lazy(() => import("react-data-table-component"));
+// TODO: If more lazy loading is needed, refactor into generic lazy load component
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function DataTable({ ...rest }: any) {
+    return (
+        <Suspense fallback={<>Data Table is Loading</>}>
+            <DataTableLazy {...rest} />
+        </Suspense>
+    );
+}
 
 export function Admin() {
     const authenticated = useAuth();
