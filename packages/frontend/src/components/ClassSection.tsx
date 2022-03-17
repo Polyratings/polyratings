@@ -2,7 +2,7 @@ import { Review } from "@polyratings/shared";
 import { useState } from "react";
 import { SubmitHandler, useForm } from "react-hook-form";
 import { ErrorMessage } from "@hookform/error-message";
-import { ClipLoader } from "react-spinners";
+import ClipLoader from "react-spinners/ClipLoader";
 import { toast } from "react-toastify";
 import { Backdrop } from "@/components";
 import { useService } from "@/hooks";

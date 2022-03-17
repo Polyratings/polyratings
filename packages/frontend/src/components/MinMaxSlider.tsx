@@ -1,7 +1,8 @@
-import Slider, { createSliderWithTooltip } from "rc-slider";
+import Slider from "rc-slider";
 import "rc-slider/assets/index.css";
 
-const Range = createSliderWithTooltip(Slider.Range);
+// const Range = createSliderWithTooltip(Slider.Range);
+// const { createSliderWithTooltip } = Slider;
 
 interface MinMaxSliderProps {
     domain: [number, number];
@@ -10,7 +11,7 @@ interface MinMaxSliderProps {
     resolution?: number;
 }
 
-// TODO: Remove hacky media query to reflow on 4k screens. Even better just get rid of this entire slider library since it depends on lodash
+// TODO: Remove hacky media query to reflow on 4k screens
 const overrideHoverCss = `
 .rc-slider-handle-dragging.rc-slider-handle-dragging.rc-slider-handle-dragging {
     border-color: #1F4715;
@@ -38,12 +39,13 @@ export function MinMaxSlider({
         borderColor: "#1F4715",
         width: "0.875rem",
         height: "0.875rem",
-        transform: "translate(-50%, -25%)",
     };
     return (
         <div className="w-full h-10">
             <style>{overrideHoverCss}</style>
-            <Range
+            <Slider
+                range
+                allowCross={false}
                 onChange={(v) => onchange(v as [number, number])}
                 value={value}
                 trackStyle={[{ backgroundColor: "#1F4715" }]}
@@ -53,7 +55,7 @@ export function MinMaxSlider({
                 defaultValue={[min, max]}
                 step={resolution}
                 marks={marks}
-                tipFormatter={(value) => `${value}`}
+                // tipFormatter={(value) => `${value}`}
             />
         </div>
     );

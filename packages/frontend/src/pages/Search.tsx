@@ -1,8 +1,8 @@
 import { useHistory, useParams } from "react-router-dom";
 import { useState, useEffect, useRef, ElementRef } from "react";
 import { Teacher } from "@polyratings/shared";
-import { WindowScroller } from "fish-react-virtualized/dist/commonjs/WindowScroller";
-import { List } from "fish-react-virtualized/dist/commonjs/List";
+import { WindowScroller } from "fish-react-virtualized/dist/es/WindowScroller";
+import { List } from "fish-react-virtualized/dist/es/List";
 import { Location } from "history";
 import { TeacherService, Logger } from "@/services";
 import {
