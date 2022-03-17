@@ -1,4 +1,4 @@
-import { BulkKey, chunkArray, RatingReport, Review, Teacher, Internal } from "@polyratings/shared";
+import { BulkKey, chunkArray, RatingReport, Review, Teacher, Internal } from "@polyratings/client";
 import { config } from "@/App.config";
 import { AuthService } from "./auth.service";
 import { HttpService } from "./http.service";
@@ -185,7 +185,7 @@ export class AdminService {
 
     public async actOnReport(ratingId: string): Promise<JoinedRatingReport[]> {
         await this.httpService.fetch(`${config.remoteUrl}/admin/reports/${ratingId}`, {
-            method: "PUT",
+            method: "POST",
         });
         const reports = await this.getReports();
         // Sometimes the kv store does not update fast enough to be queried immediately

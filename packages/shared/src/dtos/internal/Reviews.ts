@@ -19,7 +19,6 @@ import { PerspectiveAttributeNames, PerspectiveAttributeScore } from "./Perspect
 export class ReviewDTO extends BaseDTO implements Review {
     @IsUUID()
     @ExposeFrontend()
-    // @ts-expect-error cloudflare runtime function
     @Default(() => crypto.randomUUID())
     id: string;
 

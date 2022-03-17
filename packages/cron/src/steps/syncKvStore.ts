@@ -1,11 +1,11 @@
-import { BulkKey } from "@polyratings/shared";
+import { BulkKey } from "@polyratings/client";
 import { CronEnv, KvName } from "../entry";
 import { Logger } from "../logger";
 
 export function syncKvStore(bulkKey: BulkKey, kvName: KvName) {
     return async (env: CronEnv) => {
         Logger.info(`Getting Prod ${bulkKey}`);
-        const prodData = await env.prodWorker.bulkEntries<unknown>(bulkKey);
+        const prodData = await env.prodWorker.admin.bulkKvRecord<unknown>(bulkKey);
 
         const betaKv = new env.KVWrapper(env.getKvId("beta", kvName));
         const devKv = new env.KVWrapper(env.getKvId("dev", kvName));
@@ -18,7 +18,7 @@ export function syncKvStore(bulkKey: BulkKey, kvName: KvName) {
         const devKeys = await devKv.getAllKeys();
         await devKv.deleteValues(devKeys);
 
-        const pairs = prodData.map(([key, value]) => ({
+        const pairs = Object.entries(prodData).map(([key, value]) => ({
             key,
             value: JSON.stringify(value),
         }));

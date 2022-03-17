@@ -1,10 +1,10 @@
 import "reflect-metadata";
 import * as toml from "toml";
 import Toucan from "toucan-js";
+import { Client, PROD_ENV } from "@polyratings/client";
 import { syncKvStore } from "./steps/syncKvStore";
 import { cloudflareKVInit } from "./wrappers/kv-wrapper";
 import { Logger } from "./logger";
-import { PolyratingsWorkerWrapper } from "./wrappers/worker-wrapper";
 // importing across monorepo modules
 // Typically this should be exported except it is a deployment file
 // eslint-disable-next-line import/no-relative-packages
@@ -43,7 +43,7 @@ export async function main(env: Record<string, string | undefined>, sentry?: Tou
 }
 
 export interface CronEnv {
-    prodWorker: PolyratingsWorkerWrapper;
+    prodWorker: Client;
     getKvId: typeof getKvId;
     KVWrapper: ReturnType<typeof cloudflareKVInit>;
 }
@@ -86,8 +86,11 @@ async function createRuntimeEnvironment(
         throw new Error("Could not create cron environment. A required variable was not set");
     }
 
-    const prodWorker = new PolyratingsWorkerWrapper(prodWorkerUrl);
-    await prodWorker.login(polyratingsCIUsername, polyratingsCIPassword);
+    const prodWorker = new Client(PROD_ENV);
+    await prodWorker.auth.login({
+        username: polyratingsCIUsername,
+        password: polyratingsCIPassword,
+    });
 
     const KVWrapper = cloudflareKVInit(cfApiToken, accountId);
 

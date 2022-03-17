@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { AuthResponse, UserToken } from "@polyratings/shared";
+import { AuthResponse, UserToken } from "@polyratings/client";
 import { waitFor } from "@testing-library/dom";
 import { useInjectorHook } from "@mindspace-io/react";
 import { AuthService, FETCH, injectorFactory } from ".";

@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { useHistory } from "react-router-dom";
-import { DEPARTMENT_LIST } from "@polyratings/shared";
+import { DEPARTMENT_LIST } from "@polyratings/client";
 import { TeacherSearchType, TeacherService } from "@/services/teacher.service";
 import { AutoComplete, AutoCompleteOption } from ".";
 import { useService } from "@/hooks";

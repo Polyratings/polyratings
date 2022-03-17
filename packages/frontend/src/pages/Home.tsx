@@ -1,6 +1,6 @@
 /* eslint-disable react/no-array-index-key */
 import { useEffect, useState } from "react";
-import { Teacher } from "@polyratings/shared";
+import { Teacher } from "@polyratings/client";
 import { Link } from "react-router-dom";
 import homeHeader from "@/assets/home-header.webp";
 import homeCurveTransition from "@/assets/home-curve-transition.svg";

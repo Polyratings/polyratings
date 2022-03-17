@@ -1,4 +1,4 @@
-import { Review } from "@polyratings/shared";
+import { Review } from "@polyratings/client";
 import { render, RenderResult } from "@testing-library/react";
 import { ClassSection } from ".";
 // TODO: Add tests to report system as well as refactor for easier tests

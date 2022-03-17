@@ -1,4 +1,4 @@
-import { AddProfessorRequest, Teacher } from "@polyratings/shared";
+import { AddProfessorRequest, Teacher } from "@polyratings/client";
 import { config } from "@/App.config";
 import { getRandomSubarray, intersectingDbEntities } from "@/utils";
 import { HttpService } from "./http.service";
@@ -91,9 +91,6 @@ export class TeacherService {
     public async addNewTeacher(newTeacher: AddProfessorRequest): Promise<void> {
         await this.httpService.fetch(`${config.remoteUrl}/professors`, {
             method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-            },
             body: JSON.stringify(newTeacher),
         });
     }

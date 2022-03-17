@@ -10,13 +10,7 @@ import {
 import { PolyratingsError } from "@polyratings/backend/utils/errors";
 
 export class RatingHandler {
-    static async addNewRating(ctx: Context<Env, { id: string }, AddReviewRequest>) {
-        if (ctx.params.id !== ctx.data.professor) {
-            throw new PolyratingsError(400, {
-                message: "Failed validation on Professor ID",
-            });
-        }
-
+    static async addNewRating(ctx: Context<Env, unknown, AddReviewRequest>) {
         const pendingReview = Internal.PendingReviewDTO.fromAddReviewRequest(ctx.data);
 
         await ctx.env.kvDao.addPendingReview(pendingReview);
