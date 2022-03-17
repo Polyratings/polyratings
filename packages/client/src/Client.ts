@@ -1,4 +1,4 @@
-import { PolyratingsBackendRouting } from "@polyratings/backend";
+import type { PolyratingsBackendRouting } from "@polyratings/backend";
 import {
     AdminModule,
     AuthModule,

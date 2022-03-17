@@ -15,7 +15,7 @@
   "devDependencies": {
     "@polyratings/eslint-config": "*",
     "eslint": "^8.7.0",
-    "typescript": "^4.4.4"
+    "typescript": "^4.5.5"
   },
   "dependencies": {
     "class-transformer": "^0.5.1",
