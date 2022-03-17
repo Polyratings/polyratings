@@ -159,7 +159,6 @@ export class ProfessorDTO extends TruncatedProfessorDTO {
     }
 
     static fromAddProfessorRequest(addProfessorRequest: AddProfessorRequest): ProfessorDTO {
-        // @ts-expect-error cloudflare runtime function
         const newProfessorId = crypto.randomUUID();
 
         const plainReview: PlainNewProfessorReviewDTO = {
