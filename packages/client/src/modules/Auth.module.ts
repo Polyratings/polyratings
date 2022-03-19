@@ -7,7 +7,7 @@ export class AuthModule {
     /**
      * Logs a user into the client library. If login does not throw it has been successful
      */
-    async login(credentials: LoginRequest): Promise<void> {
+    async login(credentials: LoginRequest): Promise<AuthResponse> {
         const loginRes = await this.httpModule.fetch("/login", {
             method: "POST",
             body: JSON.stringify(credentials),
@@ -16,6 +16,12 @@ export class AuthModule {
         const loginBody = (await loginRes.json()) as AuthResponse;
 
         this.httpModule.setAuthToken(loginBody.accessToken);
+
+        return loginBody;
+    }
+
+    signOut() {
+        this.httpModule.setAuthToken("");
     }
 
     /**
@@ -30,5 +36,9 @@ export class AuthModule {
 
     setJwt(token: string) {
         this.httpModule.setAuthToken(token);
+    }
+
+    getJwt(): string {
+        return this.httpModule.getAuthToken();
     }
 }

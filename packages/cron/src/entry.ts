@@ -43,7 +43,7 @@ export async function main(env: Record<string, string | undefined>, sentry?: Tou
 }
 
 export interface CronEnv {
-    prodWorker: Client;
+    authenticatedProductionClient: Client;
     getKvId: typeof getKvId;
     KVWrapper: ReturnType<typeof cloudflareKVInit>;
 }
@@ -86,8 +86,8 @@ async function createRuntimeEnvironment(
         throw new Error("Could not create cron environment. A required variable was not set");
     }
 
-    const prodWorker = new Client(PROD_ENV);
-    await prodWorker.auth.login({
+    const authenticatedProductionClient = new Client(PROD_ENV);
+    await authenticatedProductionClient.auth.login({
         username: polyratingsCIUsername,
         password: polyratingsCIPassword,
     });
@@ -96,7 +96,7 @@ async function createRuntimeEnvironment(
 
     return {
         getKvId,
-        prodWorker,
+        authenticatedProductionClient,
         KVWrapper,
     };
 }

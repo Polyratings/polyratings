@@ -17,8 +17,11 @@ export class Client {
 
     public admin: AdminModule;
 
+    private httpModule: HttpModule;
+
     constructor(env: PolyratingsAPIEnv, errorInterceptor?: ErrorInterceptor) {
         const httpModule = new HttpModule(env.url, errorInterceptor ?? (() => {}));
+        this.httpModule = httpModule;
         this.professors = new ProfessorModule(httpModule);
         this.auth = new AuthModule(httpModule);
         this.ratings = new RatingModule(httpModule);
@@ -52,6 +55,10 @@ export class Client {
             "post:/admin/professor/department": this.admin.changeProfessorDepartment,
         };
         return routes;
+    }
+
+    setErrorInterceptor(errorInterceptor: ErrorInterceptor) {
+        this.httpModule.errorInterceptor = errorInterceptor;
     }
 }
 

@@ -1,6 +1,6 @@
 import { useInjectorHook } from "@mindspace-io/react";
 import { Teacher } from "@polyratings/client";
-import { HttpService, injectorFactory, StorageService, TeacherService } from ".";
+import { injectorFactory, StorageService, TeacherService } from ".";
 import { TEACHER_CACHE_TIME } from "./teacher.service";
 
 const mockAllTeachers: Teacher[] = [

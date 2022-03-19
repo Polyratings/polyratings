@@ -1,20 +1,22 @@
+import { BETA_ENV, DEV_ENV, PolyratingsAPIEnv, PROD_ENV } from "@polyratings/client";
+
 interface AppConfiguration {
-    remoteUrl: string;
+    clientEnv: PolyratingsAPIEnv;
     base: string;
 }
 
 const devConfig: AppConfiguration = {
-    remoteUrl: "https://api-dev.polyratings.dev",
+    clientEnv: DEV_ENV,
     base: "/",
 };
 
 const prodConfig: AppConfiguration = {
-    remoteUrl: "https://api-prod.polyratings.dev",
+    clientEnv: PROD_ENV,
     base: "/",
 };
 
 const betaConfig: AppConfiguration = {
-    remoteUrl: "https://api-beta.polyratings.dev",
+    clientEnv: BETA_ENV,
     base: "/",
 };
 

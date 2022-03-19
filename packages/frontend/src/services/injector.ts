@@ -1,31 +1,35 @@
 import { DependencyInjector, InjectionToken, makeInjector } from "@mindspace-io/react";
+import { Client } from "@polyratings/client";
 import { StorageService } from "./storage.service";
 import { AdminService } from "./admin.service";
 import { AuthService } from "./auth.service";
-import { HttpService } from "./http.service";
 import { Logger } from "./logger.service";
 import { ReviewService } from "./review.service";
 import { TeacherService } from "./teacher.service";
+import { config } from "@/App.config";
 
-export const FETCH = new InjectionToken<typeof fetch>("fetch");
+export const CLIENT = new InjectionToken<Client>("client");
 
 export const injector: DependencyInjector = injectorFactory();
 
 export function injectorFactory() {
     return makeInjector([
-        { provide: FETCH, useFactory: () => window.fetch.bind(window) },
+        { provide: CLIENT, useFactory: () => new Client(config.clientEnv) },
         {
             provide: AuthService,
             useClass: AuthService,
-            deps: [StorageService, FETCH, StorageService],
+            deps: [CLIENT, StorageService],
         },
-        { provide: HttpService, useClass: HttpService, deps: [AuthService, FETCH] },
-        { provide: TeacherService, useClass: TeacherService, deps: [HttpService, StorageService] },
-        { provide: ReviewService, useClass: ReviewService, deps: [HttpService, TeacherService] },
+        {
+            provide: TeacherService,
+            useClass: TeacherService,
+            deps: [CLIENT, StorageService],
+        },
+        { provide: ReviewService, useClass: ReviewService, deps: [CLIENT, TeacherService] },
         {
             provide: AdminService,
             useClass: AdminService,
-            deps: [HttpService, AuthService, StorageService],
+            deps: [CLIENT, AuthService, StorageService],
         },
         { provide: Logger, useClass: Logger },
         { provide: StorageService, useClass: StorageService },

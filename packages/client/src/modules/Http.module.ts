@@ -3,7 +3,7 @@ import { PolyratingsError } from "@polyratings/shared";
 export class HttpModule {
     private token: string;
 
-    constructor(private url: string, private errorInterceptor: ErrorInterceptor) {}
+    constructor(private url: string, public errorInterceptor: ErrorInterceptor) {}
 
     async fetch(route: string, init: RequestInit = {}): Promise<Response> {
         init.headers = init.headers || {};
@@ -11,7 +11,7 @@ export class HttpModule {
             // @ts-expect-error error since can't normally index header object. The way that its going to be used will be fine though
             init.headers.Authorization = `Bearer ${this.token}`;
         }
-        const res = await global.fetch(`${this.url}${route}`, init);
+        const res = await globalThis.fetch(`${this.url}${route}`, init);
         if (res.status >= 300) {
             const errorPayload = (await res.json()) as PolyratingsError;
             const error = new PolyratingsHttpError(errorPayload.message, res.status);
@@ -23,6 +23,10 @@ export class HttpModule {
 
     setAuthToken(jwt: string) {
         this.token = jwt;
+    }
+
+    getAuthToken(): string {
+        return this.token;
     }
 }
 
