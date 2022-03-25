@@ -16,6 +16,8 @@ export class AuthService {
         storageService.getItem<string>(USER_TOKEN_CACHE_KEY).then((jwtCacheEntry) => {
             if (jwtCacheEntry) {
                 this.client.auth.setJwt(jwtCacheEntry.data);
+                const user = jwtDecode(jwtCacheEntry.data) as UserToken;
+                this.isAuthenticatedSubject.next(user);
             }
         });
     }
