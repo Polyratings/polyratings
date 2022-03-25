@@ -1,10 +1,7 @@
-import { BulkKey, chunkArray, RatingReport, Review, Teacher, Internal } from "@polyratings/client";
-import { config } from "@/App.config";
+import { RatingReport, Review, Teacher, Internal, Client } from "@polyratings/client";
 import { AuthService } from "./auth.service";
-import { HttpService } from "./http.service";
 import { CacheEntry, StorageService } from ".";
 
-const WORKER_RETRIEVAL_CHUNK_SIZE = 1000;
 const PROFESSOR_KV_DUMP_CACHE_KEY = "PROFESSOR_KV_DUMP";
 const TWO_HOURS = 1000 * 60 * 60 * 2;
 
@@ -22,7 +19,7 @@ export class AdminService {
     private professorKvDump: Promise<ProfessorKvDumpCacheEntry> = new Promise(() => {});
 
     constructor(
-        private httpService: HttpService,
+        private client: Client,
         authService: AuthService,
         private storageService: StorageService,
     ) {
@@ -36,11 +33,7 @@ export class AdminService {
     }
 
     private async fetchProfessorKvDump(): Promise<ProfessorKvDumpCacheEntry> {
-        const professors = await this.bulkRead<BackendProfessor>("professors");
-        const professorIdMap = professors.reduce((acc, curr) => {
-            acc[curr.id] = curr;
-            return acc;
-        }, {} as Record<string, BackendProfessor>);
+        const professorIdMap = await this.client.admin.bulkKvRecord<BackendProfessor>("professors");
 
         const professorKvDump: ProfessorKvDumpCacheEntry = {
             data: professorIdMap,
@@ -50,27 +43,6 @@ export class AdminService {
 
         this.storageService.setItem(PROFESSOR_KV_DUMP_CACHE_KEY, professorKvDump.data, TWO_HOURS);
         return professorKvDump;
-    }
-
-    private async bulkRead<T>(bulkKey: BulkKey): Promise<T[]> {
-        const keyRequest = await this.httpService.fetch(
-            `${config.remoteUrl}/admin/bulk/${bulkKey}`,
-        );
-        const allKeys = (await keyRequest.json()) as string[];
-        const chunkedKeys = chunkArray(allKeys, WORKER_RETRIEVAL_CHUNK_SIZE);
-        const results = await Promise.all(
-            chunkedKeys.map((chunk) =>
-                this.httpService.fetch(`${config.remoteUrl}/admin/bulk/${bulkKey}`, {
-                    method: "POST",
-                    body: JSON.stringify({
-                        keys: chunk,
-                    }),
-                }),
-            ),
-        );
-
-        const bodies2d = await Promise.all(results.map((res) => res.json()));
-        return bodies2d.flat() as T[];
     }
 
     public async recentReviews(): Promise<ConnectedReview[]> {
@@ -100,37 +72,26 @@ export class AdminService {
     }
 
     public async pendingProfessors(): Promise<BackendProfessor[]> {
-        const pendingProfessorsRes = await this.httpService.fetch(
-            `${config.remoteUrl}/admin/professors/pending`,
-        );
-        return pendingProfessorsRes.json();
+        return this.client.admin.pendingProfessors();
     }
 
     public async approvePendingProfessor(professorId: string): Promise<BackendProfessor[]> {
-        await this.httpService.fetch(`${config.remoteUrl}/admin/pending/${professorId}`, {
-            method: "POST",
-        });
+        await this.client.admin.approvePendingProfessor(professorId);
         const pendingProfessors = await this.pendingProfessors();
         // Sometimes the kv store does not update fast enough to be queried immediately
         return pendingProfessors.filter((professor) => professor.id !== professorId);
     }
 
     public async removePendingProfessor(professorId: string): Promise<BackendProfessor[]> {
-        await this.httpService.fetch(`${config.remoteUrl}/admin/pending/${professorId}`, {
-            method: "DELETE",
-        });
+        await this.client.admin.removePendingProfessor(professorId);
         const pendingProfessors = await this.pendingProfessors();
         // Sometimes the kv store does not update fast enough to be queried immediately
         return pendingProfessors.filter((professor) => professor.id !== professorId);
     }
 
     public async removeReview(professorId: string, reviewId: string): Promise<ConnectedReview[]> {
-        await this.httpService.fetch(
-            `${config.remoteUrl}/admin/rating/${professorId}/${reviewId}`,
-            {
-                method: "DELETE",
-            },
-        );
+        await this.client.admin.removeRating(professorId, reviewId);
+
         // Remove review from local cache
         const professorKvDump = (await this.professorKvDump).data;
         const targetProfessor = professorKvDump[professorId];
@@ -167,7 +128,9 @@ export class AdminService {
             gradeLevel: "N/A" as never,
         };
 
-        const reports = await this.bulkRead<RatingReport>("reports");
+        const reportsRecord = await this.client.admin.bulkKvRecord<RatingReport>("reports");
+        const reports = Object.values(reportsRecord);
+
         const allProfessors = await (await this.professorKvDump).data;
         return reports.map((report) => {
             const professor = { ...allProfessors[report.professorId] } as Teacher;
@@ -184,18 +147,14 @@ export class AdminService {
     }
 
     public async actOnReport(ratingId: string): Promise<JoinedRatingReport[]> {
-        await this.httpService.fetch(`${config.remoteUrl}/admin/reports/${ratingId}`, {
-            method: "POST",
-        });
+        await this.client.admin.approveReport(ratingId);
         const reports = await this.getReports();
         // Sometimes the kv store does not update fast enough to be queried immediately
         return reports.filter((report) => report.ratingId !== ratingId);
     }
 
     public async removeReport(ratingId: string): Promise<JoinedRatingReport[]> {
-        await this.httpService.fetch(`${config.remoteUrl}/admin/reports/${ratingId}`, {
-            method: "DELETE",
-        });
+        await this.client.admin.removeReport(ratingId);
         const reports = await this.getReports();
         // Sometimes the kv store does not update fast enough to be queried immediately
         return reports.filter((report) => report.ratingId !== ratingId);
@@ -204,7 +163,11 @@ export class AdminService {
     // TODO: Find a better way to handle normally private types on the frontend and in other places
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     public async getProcessedReviews(): Promise<PendingReview[]> {
-        const reviews = await this.bulkRead<Internal.PendingReviewDTOPlain>("rating-queue");
+        const reviewsRecord = await this.client.admin.bulkKvRecord<Internal.PendingReviewDTOPlain>(
+            "rating-queue",
+        );
+        const reviews = await Object.values(reviewsRecord);
+
         return reviews.map((review) => {
             const scores = Object.entries(review.sentimentResponse ?? {}).reduce(
                 (acc, [key, scoresObj]) => {

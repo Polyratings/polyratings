@@ -1,8 +1,6 @@
-import { AddProfessorRequest, Teacher } from "@polyratings/client";
-import { config } from "@/App.config";
+import { AddProfessorRequest, Client, Teacher } from "@polyratings/client";
 import { getRandomSubarray, intersectingDbEntities } from "@/utils";
-import { HttpService } from "./http.service";
-import { StorageService } from ".";
+import { StorageService } from "./storage.service";
 
 export const TEACHER_CACHE_TIME = 1000 * 60 * 10;
 const ALL_TEACHER_CACHE_KEY = "ALL_TEACHERS";
@@ -12,17 +10,20 @@ export type TeacherSearchType = "name" | "department" | "class";
 export class TeacherService {
     private allTeachers: Promise<Teacher[]>;
 
-    constructor(private httpService: HttpService, private storageService: StorageService) {
+    constructor(private client: Client, private storageService: StorageService) {
         this.allTeachers = storageService
             .getItem<Teacher[]>(ALL_TEACHER_CACHE_KEY)
             .then(async (result) => {
                 if (result) {
                     return result.data;
                 }
-                const res = await this.httpService.fetch(`${config.remoteUrl}/professors`);
-                const data = await res.json();
-                await storageService.setItem(ALL_TEACHER_CACHE_KEY, data, TEACHER_CACHE_TIME);
-                return data;
+                const allProfessors = await client.professors.all();
+                await storageService.setItem(
+                    ALL_TEACHER_CACHE_KEY,
+                    allProfessors,
+                    TEACHER_CACHE_TIME,
+                );
+                return allProfessors;
             });
     }
 
@@ -40,17 +41,15 @@ export class TeacherService {
             return localTeacherCacheEntry.data;
         }
 
-        const res = await this.httpService.fetch(`${config.remoteUrl}/professors/${id}`);
-
-        const teacher: Teacher = await res.json();
+        const professor = await this.client.professors.get(id);
         // Make sure reviews are in dated order
-        Object.values(teacher.reviews ?? []).forEach((reviewArr) =>
+        Object.values(professor.reviews ?? []).forEach((reviewArr) =>
             reviewArr.sort(
                 (a, b) => Date.parse(b.postDate.toString()) - Date.parse(a.postDate.toString()),
             ),
         );
-        this.addTeacherToCache(teacher);
-        return teacher;
+        this.addTeacherToCache(professor);
+        return professor;
     }
 
     public async searchForTeacher(type: TeacherSearchType, value: string): Promise<Teacher[]> {
@@ -88,11 +87,8 @@ export class TeacherService {
         return this.allTeachers;
     }
 
-    public async addNewTeacher(newTeacher: AddProfessorRequest): Promise<void> {
-        await this.httpService.fetch(`${config.remoteUrl}/professors`, {
-            method: "POST",
-            body: JSON.stringify(newTeacher),
-        });
+    public async addNewTeacher(newProfessor: AddProfessorRequest): Promise<void> {
+        await this.client.professors.new(newProfessor);
     }
 
     private addTeacherToCache(teacher: Teacher) {

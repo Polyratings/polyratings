@@ -5,7 +5,9 @@ import { Logger } from "../logger";
 export function syncKvStore(bulkKey: BulkKey, kvName: KvName) {
     return async (env: CronEnv) => {
         Logger.info(`Getting Prod ${bulkKey}`);
-        const prodData = await env.prodWorker.admin.bulkKvRecord<unknown>(bulkKey);
+        const prodData = await env.authenticatedProductionClient.admin.bulkKvRecord<unknown>(
+            bulkKey,
+        );
 
         const betaKv = new env.KVWrapper(env.getKvId("beta", kvName));
         const devKv = new env.KVWrapper(env.getKvId("dev", kvName));

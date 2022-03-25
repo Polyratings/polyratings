@@ -1,6 +1,6 @@
 import { useInjectorHook } from "@mindspace-io/react";
 import { Teacher } from "@polyratings/client";
-import { HttpService, injectorFactory, StorageService, TeacherService } from ".";
+import { injectorFactory, StorageService, TeacherService } from ".";
 import { TEACHER_CACHE_TIME } from "./teacher.service";
 
 const mockAllTeachers: Teacher[] = [
@@ -69,12 +69,6 @@ async function createTeacherService(clearStorage: boolean): Promise<TeacherServi
 
     // Create a new injector each test to fully reset state
     const injector = injectorFactory();
-    injector.addProviders([
-        {
-            provide: HttpService,
-            useValue: { fetch: mockFetch },
-        },
-    ]);
 
     if (clearStorage) {
         const [storageService] = useInjectorHook(StorageService, injector) as unknown as [
@@ -88,7 +82,17 @@ async function createTeacherService(clearStorage: boolean): Promise<TeacherServi
 }
 
 let teacherService: TeacherService;
+const { fetch } = globalThis;
 describe("Teacher Service", () => {
+    beforeAll(() => {
+        // @ts-expect-error I know that mockFetch implements a subset of fetch that works for all cases
+        globalThis.fetch = mockFetch;
+    });
+
+    afterAll(() => {
+        globalThis.fetch = fetch;
+    });
+
     beforeEach(async () => {
         teacherService = await createTeacherService(true);
     });
