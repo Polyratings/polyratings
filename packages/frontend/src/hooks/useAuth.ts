@@ -1,11 +1,9 @@
 import { AuthService } from "@/services";
-import { useService, useObservable } from ".";
+import { useBasicBehaviorSubject } from "./useBasicBehaviorSubject";
+import { useService } from "./useService";
 
 export function useAuth() {
     const authService = useService(AuthService);
-    const isAuthenticated = useObservable(
-        authService.isAuthenticatedSubject,
-        authService.getUser(),
-    );
+    const isAuthenticated = useBasicBehaviorSubject(authService.user$);
     return isAuthenticated;
 }

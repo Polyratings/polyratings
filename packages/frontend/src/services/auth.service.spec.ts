@@ -52,9 +52,7 @@ describe("Auth Service", () => {
 
     it("emit's events correctly", async () => {
         const authStates: (UserToken | null)[] = [];
-        const subscription = authService.isAuthenticatedSubject.subscribe((authState) =>
-            authStates.push(authState),
-        );
+        const subscription = authService.user$.subscribe((authState) => authStates.push(authState));
         const user = await authService.login("mfish33", "test123");
         authService.signOut();
         await waitFor(() => {

@@ -1,14 +1,14 @@
 import { renderHook, RenderResult } from "@testing-library/react-hooks";
 import { act } from "react-dom/test-utils";
-import { Subject } from "rxjs";
-import { useObservable } from "./useObservable";
+import { BasicBehaviorSubject } from "@/utils";
+import { useBasicBehaviorSubject } from "./useBasicBehaviorSubject";
 
-let subject: Subject<number>;
+let subject: BasicBehaviorSubject<number>;
 let result: RenderResult<number>;
 describe("UseObservable", () => {
     beforeEach(() => {
-        subject = new Subject();
-        ({ result } = renderHook(() => useObservable(subject, 0)));
+        subject = new BasicBehaviorSubject(0);
+        ({ result } = renderHook(() => useBasicBehaviorSubject(subject)));
     });
 
     it("defaults to a value", () => {

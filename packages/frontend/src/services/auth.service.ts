@@ -1,6 +1,6 @@
-import { BehaviorSubject } from "rxjs";
 import { Client, PolyratingsHttpError, UserToken } from "@polyratings/client";
 import jwtDecode from "jwt-decode";
+import { BasicBehaviorSubject } from "@/utils";
 import { StorageService } from "./storage.service";
 
 export const USER_TOKEN_CACHE_KEY = "user";
@@ -9,7 +9,7 @@ export const USER_TOKEN_CACHE_KEY = "user";
 const USER_TOKEN_EXPIRY_TIME = 1000 * 60 * 60 * 2;
 
 export class AuthService {
-    public isAuthenticatedSubject = new BehaviorSubject<null | UserToken>(null);
+    public user$ = new BasicBehaviorSubject<null | UserToken>(null);
 
     constructor(private client: Client, private storageService: StorageService) {
         this.client.setErrorInterceptor(this.httpErrorInterceptor);
@@ -17,7 +17,7 @@ export class AuthService {
             if (jwtCacheEntry) {
                 this.client.auth.setJwt(jwtCacheEntry.data);
                 const user = jwtDecode(jwtCacheEntry.data) as UserToken;
-                this.isAuthenticatedSubject.next(user);
+                this.user$.next(user);
             }
         });
     }
@@ -48,12 +48,12 @@ export class AuthService {
         );
 
         const user = jwtDecode(loginResponse.accessToken) as UserToken;
-        this.isAuthenticatedSubject.next(user);
+        this.user$.next(user);
         return user;
     }
 
     public signOut() {
-        this.isAuthenticatedSubject.next(null);
+        this.user$.next(null);
         this.storageService.removeItem(USER_TOKEN_CACHE_KEY);
         this.client.auth.signOut();
     }

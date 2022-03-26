@@ -23,7 +23,7 @@ export class AdminService {
         authService: AuthService,
         private storageService: StorageService,
     ) {
-        authService.isAuthenticatedSubject.subscribe((user) => {
+        authService.user$.subscribe((user) => {
             if (user) {
                 this.professorKvDump = this.storageService
                     .getItem<Record<string, BackendProfessor>>(PROFESSOR_KV_DUMP_CACHE_KEY)
