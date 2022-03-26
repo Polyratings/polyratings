@@ -1,4 +1,4 @@
-import type { PolyratingsBackendRouting } from "@polyratings/backend";
+import { PolyratingsAPIEnv, PolyratingsBackendRouting } from "./generated";
 import {
     AdminModule,
     AuthModule,
@@ -61,19 +61,3 @@ export class Client {
         this.httpModule.errorInterceptor = errorInterceptor;
     }
 }
-
-export interface PolyratingsAPIEnv {
-    url: string;
-}
-
-export const PROD_ENV: PolyratingsAPIEnv = {
-    url: "https://api-prod.polyratings.dev",
-};
-
-export const BETA_ENV: PolyratingsAPIEnv = {
-    url: "https://api-beta.polyratings.dev",
-};
-
-export const DEV_ENV: PolyratingsAPIEnv = {
-    url: "https://api-dev.polyratings.dev",
-};

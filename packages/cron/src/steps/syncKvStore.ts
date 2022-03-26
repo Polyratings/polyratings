@@ -1,4 +1,4 @@
-import { BulkKey } from "@polyratings/client";
+import { BulkKey, cloudflareNamespaceInformation } from "@polyratings/client";
 import { CronEnv, KvName } from "../entry";
 import { Logger } from "../logger";
 
@@ -9,8 +9,8 @@ export function syncKvStore(bulkKey: BulkKey, kvName: KvName) {
             bulkKey,
         );
 
-        const betaKv = new env.KVWrapper(env.getKvId("beta", kvName));
-        const devKv = new env.KVWrapper(env.getKvId("dev", kvName));
+        const betaKv = new env.KVWrapper(cloudflareNamespaceInformation[kvName].beta);
+        const devKv = new env.KVWrapper(cloudflareNamespaceInformation[kvName].beta);
 
         Logger.info(`Removing ${bulkKey} from beta`);
         const betaKeys = await betaKv.getAllKeys();

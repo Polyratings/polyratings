@@ -1,6 +1,6 @@
 {
   "name": "@polyratings/client",
-  "version": "0.0.6",
+  "version": "0.0.7",
   "description": "Polyratings client library",
   "main": "dist/cjs/index.js",
   "module": "dist/esm/index.js",
@@ -14,20 +14,18 @@
   "scripts": {
     "build:esm": "tsc --module esnext --outdir dist/esm",
     "build:cjs": "tsc --module commonjs --outdir dist/cjs",
-    "build": "npm run build:esm && npm run build:cjs",
+    "build": "node generateBackendTypes && npm run build:esm && npm run build:cjs",
     "lint": "eslint --max-warnings=0 .",
     "fix": "eslint . --fix",
     "prepublishOnly": " npm run lint && npm run build"
   },
-  "/":"Put polyratings backend in dev dependency since it is not published",
   "devDependencies": {
     "@polyratings/eslint-config": "*",
     "eslint": "^8.7.0",
-    "typescript": "^4.5.5",
-
-    "@polyratings/backend": "*"
+    "toml": "^3.0.0",
+    "typescript": "^4.5.5"
   },
   "dependencies": {
-    "@polyratings/shared": "*"
+    "@polyratings/shared": "0.0.2"
   }
 }

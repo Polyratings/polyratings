@@ -34,8 +34,6 @@
   },
   "dependencies": {
     "@polyratings/client": "*",
-    "reflect-metadata": "^0.1.13",
-    "toml":"^3.0.0",
     "toucan-js": "^2.5.0"
   }
 }
