@@ -1,3 +1,4 @@
+import "reflect-metadata";
 import Toucan from "toucan-js";
 import {
     Client,
@@ -9,6 +10,7 @@ import { syncKvStore } from "./steps/syncKvStore";
 import { cloudflareKVInit } from "./wrappers/kv-wrapper";
 import { Logger } from "./logger";
 import { clearKvStore } from "./steps/clearKvStore";
+import { generateAllProfessorEntry } from "./steps/generateAllProfessorEntry";
 
 export type KvName = keyof typeof cloudflareNamespaceInformation;
 
@@ -23,7 +25,11 @@ export async function main(env: Record<string, string | undefined>, sentry?: Tou
     }
 
     const tasks = [
-        { name: "syncProfessors", task: syncKvStore("professors", "POLYRATINGS_TEACHERS") },
+        { name: "generateAllProfessorEntry", task: generateAllProfessorEntry },
+        {
+            name: "syncProfessors",
+            task: syncKvStore("professors", "POLYRATINGS_TEACHERS", new Set(["all"])),
+        },
         {
             name: "syncProfessors",
             task: syncKvStore("professor-queue", "POLYRATINGS_TEACHER_APPROVAL_QUEUE"),
