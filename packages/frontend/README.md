@@ -42,8 +42,17 @@ First, complete the global setup instructions located [here](../../README.md/#se
 
 Change the remote url to a custom dev domain
 ```ts
+// From
 const devConfig: AppConfiguration = {
-    remoteUrl: "https://api-dev.polyratings.dev",
+    clientEnv: DEV_ENV,
+    base: "/",
+};
+
+// To
+const devConfig: AppConfiguration = {
+    clientEnv: {
+        url: "https://YOUR-DOMAIN-HERE"
+    },
     base: "/",
 };
 ```
