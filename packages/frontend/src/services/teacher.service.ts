@@ -18,6 +18,18 @@ export class TeacherService {
                     return result.data;
                 }
                 const allProfessors = await client.professors.all();
+                // Sort professors alphabetically to get a more pleasing search results
+                allProfessors.sort((a, b) => {
+                    const aName = `${a.lastName}, ${a.firstName}`;
+                    const bName = `${b.lastName}, ${b.firstName}`;
+                    if (aName < bName) {
+                        return -1;
+                    }
+                    if (aName > bName) {
+                        return 1;
+                    }
+                    return 0;
+                });
                 await storageService.setItem(
                     ALL_TEACHER_CACHE_KEY,
                     allProfessors,
