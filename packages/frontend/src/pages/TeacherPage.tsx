@@ -221,7 +221,7 @@ export function TeacherPage() {
             {/* Mobile class scroll needs room to see all reviews */}
             <div className="block md:hidden h-16 w-full" />
             <ClassScroll
-                outerClassName="flex items-center md:hidden h-14 fixed bg-cal-poly-green w-full bottom-0 overflow-x-auto scrollbar-hidden"
+                outerClassName="flex items-center xl:hidden h-14 fixed bg-cal-poly-green w-full bottom-0 overflow-x-auto scrollbar-hidden"
                 innerClassName="text-md font-semibold h-8 bg-cal-poly-gold text-white ml-4 rounded-xl py-1 px-2 whitespace-nowrap"
             />
         </div>
