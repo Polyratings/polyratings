@@ -1,21 +1,28 @@
 {
   "name": "@polyratings/shared",
-  "version": "1.0.0",
-  "description": "",
+  "version": "0.0.2",
+  "description": "Polyratings shared types",
   "main": "dist/cjs/index.js",
   "module": "dist/esm/index.js",
+  "files": [
+    "dist"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/mfish33/polratings-revamp.git"
+  },
   "scripts": {
-    "start:dev": "tsc --watch",
     "build:esm": "tsc --module esnext --outdir dist/esm",
     "build:cjs": "tsc --module commonjs --outdir dist/cjs",
     "build": "npm run build:esm && npm run build:cjs",
     "lint": "eslint --max-warnings=0 .",
-    "fix": "eslint . --fix"
+    "fix": "eslint . --fix",
+    "prepublishOnly": " npm run lint && npm run build"
   },
   "devDependencies": {
     "@polyratings/eslint-config": "*",
     "eslint": "^8.7.0",
-    "typescript": "^4.4.4"
+    "typescript": "^4.5.5"
   },
   "dependencies": {
     "class-transformer": "^0.5.1",

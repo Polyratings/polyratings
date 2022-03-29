@@ -1,5 +1,5 @@
 import { IsArray } from "class-validator";
-import { Default } from "../decorators";
+import { Default } from "../../decorators";
 import { BaseDTO } from "./BaseDTO";
 
 export const bulkKeys = [

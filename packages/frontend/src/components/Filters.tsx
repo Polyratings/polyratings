@@ -1,6 +1,6 @@
 import { useLocation } from "react-router-dom";
 import { useState, useEffect, forwardRef, useImperativeHandle } from "react";
-import { Teacher } from "@polyratings/shared";
+import { Teacher } from "@polyratings/client";
 import { MinMaxSlider } from "@/components";
 
 type SortingOptions =

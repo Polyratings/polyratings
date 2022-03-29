@@ -6,7 +6,7 @@ export function NewTeacher() {
     return (
         <div>
             <div
-                className="h-screenWoNav justify-center items-center hidden sm:flex"
+                className="h-screenWoNav min-h-[55rem] justify-center items-center hidden sm:flex"
                 style={{
                     backgroundImage: `url(${loginBackground})`,
                     backgroundRepeat: "no-repeat",

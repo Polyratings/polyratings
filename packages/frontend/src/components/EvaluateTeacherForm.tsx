@@ -14,7 +14,7 @@ import {
     GradeLevelOptions,
     CourseTypeOptions,
     DEPARTMENT_LIST,
-} from "@polyratings/shared";
+} from "@polyratings/client";
 import { ReviewService } from "@/services";
 import { useService } from "@/hooks";
 

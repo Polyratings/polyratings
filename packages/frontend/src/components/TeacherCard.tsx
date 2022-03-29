@@ -1,4 +1,4 @@
-import { Teacher } from "@polyratings/shared";
+import { Teacher } from "@polyratings/client";
 import { Link, useHistory } from "react-router-dom";
 import star from "@/assets/star.svg";
 import { useService } from "@/hooks";

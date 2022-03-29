@@ -1,10 +1,3 @@
-export * from "./AddReview";
-export * from "./BaseDTO";
-export * from "./LoginRequest";
-export * from "./AuthResponse";
-export * from "./ProcessingReview";
-export * from "./AddProfessor";
-export * from "./Bulk";
-export * from "./ReportReview";
-export * from "./MergeProfessor";
-export * from "./ChangeProfessor";
+// Namespace internal dto's to try and avoid confusion
+export * as Internal from "./internal";
+export * from "./public";

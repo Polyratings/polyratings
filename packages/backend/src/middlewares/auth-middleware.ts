@@ -1,8 +1,8 @@
 import { Context, MiddlewareNextFunction } from "sunder";
 import { Env } from "@polyratings/backend/bindings";
-import { UserToken } from "@polyratings/backend/dtos/UserToken";
+import { Internal } from "@polyratings/shared";
 
-export type AuthenticatedWithBody<T> = { user: UserToken; body: T };
+export type AuthenticatedWithBody<T> = { user: Internal.UserToken; body: T };
 
 export async function withAuth<T>(
     ctx: Context<Env, unknown, AuthenticatedWithBody<T>>,
