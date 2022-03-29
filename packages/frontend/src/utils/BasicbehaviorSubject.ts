@@ -6,6 +6,7 @@ export class BasicBehaviorSubject<T> {
     constructor(private currentValue: T) {}
 
     next(value: T) {
+        this.currentValue = value;
         Object.values(this.subscriptions).forEach((sub) => sub(value));
     }
 
