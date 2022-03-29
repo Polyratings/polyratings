@@ -12,7 +12,7 @@ export class AuthService {
     public user$ = new BasicBehaviorSubject<null | UserToken>(null);
 
     constructor(private client: Client, private storageService: StorageService) {
-        this.client.setErrorInterceptor(this.httpErrorInterceptor);
+        this.client.setErrorInterceptor((e) => this.httpErrorInterceptor(e));
         storageService.getItem<string>(USER_TOKEN_CACHE_KEY).then((jwtCacheEntry) => {
             if (jwtCacheEntry) {
                 this.client.auth.setJwt(jwtCacheEntry.data);

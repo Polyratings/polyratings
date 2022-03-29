@@ -14,7 +14,7 @@ export function Login() {
         try {
             await authService.login(calPolyUsername, password);
         } catch (e) {
-            setErrorText(e as string);
+            setErrorText((e as Error).message);
         }
     };
 
