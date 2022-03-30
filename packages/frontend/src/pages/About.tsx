@@ -1,13 +1,14 @@
 export function About() {
     const cardStyle = "bg-white px-4 py-2 shadow-md border-cal-poly-gold border-2 rounded-md mb-10";
-    const paragraphStyle = "py-[2px]";
+    const paragraphStyle = "py-[.125rem]";
     const subTitleStyle = "text-cal-poly-green font-medium text-center text-3xl mb-2";
+    const linkStyle = "hover:underline text-cal-poly-green font-semibold";
     return (
         <div className="container m-auto px-2 md:px-12 max-w-7xl">
             <h1 className="text-4xl text-cal-poly-green mb-7 mt-12 font-semibold pl-1 md:pl-0">
                 About Polyratings
             </h1>
-            <div className="w-full h-[2px] bg-cal-poly-green mb-7" />
+            <div className="w-full h-[.125rem] bg-cal-poly-green mb-7" />
 
             <div className={cardStyle}>
                 <p className={paragraphStyle}>
@@ -104,10 +105,18 @@ export function About() {
             <h2 className={subTitleStyle}>Polyratings 2.0</h2>
             <div className={cardStyle}>
                 <p className={paragraphStyle}>
-                    In the spring of 2001, J. Paul Reed approached Lanning about updating the
-                    Polyratings rating engine. Reed had previously worked with Polyratings on such
-                    projects as POWERatings, but found the 1.0 Polyratings system difficult to
-                    integrate other projects with.
+                    In the spring of 2001,{" "}
+                    <a
+                        href="https://www.linkedin.com/in/preed/"
+                        target="_blank"
+                        rel="noreferrer"
+                        className={linkStyle}
+                    >
+                        J. Paul Reed
+                    </a>{" "}
+                    approached Lanning about updating the Polyratings rating engine. Reed had
+                    previously worked with Polyratings on such projects as POWERatings, but found
+                    the 1.0 Polyratings system difficult to integrate other projects with.
                 </p>
                 <p className={paragraphStyle}>
                     Reed proposed a number of new features for the Polyratings backend, including a
@@ -148,9 +157,35 @@ export function About() {
                     20,000, that is a huge achievement for the site. This being said, when class
                     registration came around every quarter there was always talk about the
                     Polyratings scores for professors. However, with this talk also came much
-                    negativity towards the site. With this realization Connor Krier, Cody Sears, and
-                    Anil Thattayathu started their senior project to figure where this negativity
-                    stemmed from and what they can do to fix it.
+                    negativity towards the site. With this realization{" "}
+                    <a
+                        href="https://www.linkedin.com/in/connor-krier-0802a98b/"
+                        target="_blank"
+                        rel="noreferrer"
+                        className={linkStyle}
+                    >
+                        Connor Krier
+                    </a>
+                    ,{" "}
+                    <a
+                        href="https://www.linkedin.com/in/cody-sears-8b8154a8/"
+                        target="_blank"
+                        rel="noreferrer"
+                        className={linkStyle}
+                    >
+                        Cody Sears
+                    </a>
+                    , and{" "}
+                    <a
+                        href="https://www.linkedin.com/in/anil-thattayathu-8b618b65/"
+                        target="_blank"
+                        rel="noreferrer"
+                        className={linkStyle}
+                    >
+                        Anil Thattayathu
+                    </a>{" "}
+                    started their senior project to figure where this negativity stemmed from and
+                    what they can do to fix it.
                 </p>
                 <p className={paragraphStyle}>
                     The problem that they found was that everyone needed Polyratings for help with

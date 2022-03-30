@@ -2,7 +2,7 @@ import { Router, Switch, Route } from "react-router-dom";
 import { ToastContainer } from "react-toastify";
 import { createBrowserHistory } from "history";
 import * as Sentry from "@sentry/react";
-import { Home, TeacherPage, Login, NewTeacher, About, SearchWrapper, Admin } from "./pages";
+import { Home, TeacherPage, Login, NewTeacher, About, SearchWrapper, Admin, FAQ } from "./pages";
 import { Navbar } from "./components";
 import "react-toastify/dist/ReactToastify.css";
 import { config } from "./App.config";
@@ -29,6 +29,7 @@ function App() {
                     <SentryRoute path="/new-teacher" component={NewTeacher} />
                     <SentryRoute path="/about" component={About} />
                     <SentryRoute path="/admin" component={Admin} />
+                    <SentryRoute path="/faq" component={FAQ} />
                     <SentryRoute path="/" component={Home} />
                 </Switch>
             </Router>
