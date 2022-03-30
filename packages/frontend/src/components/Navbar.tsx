@@ -63,13 +63,16 @@ export function Navbar() {
                     </Link>
                     <Link className="my-1" to="/new-teacher" onClick={triggerMobileNav}>
                         {" "}
-                        Add a Teacher
+                        Add a Professor
                     </Link>
                     <Link className="my-1" to="/search" onClick={triggerMobileNav}>
                         Professor List
                     </Link>
                     <Link className="my-1" to="/about" onClick={triggerMobileNav}>
                         About
+                    </Link>
+                    <Link className="my-1" to="/faq" onClick={triggerMobileNav}>
+                        FAQ
                     </Link>
                     {/* <Link className="mr-7" to="contact">Contact</Link> */}
                     {isAuthenticated && (
@@ -88,14 +91,14 @@ export function Navbar() {
 
             <div className="text-white hidden md:flex items-center text-lg font-semibold">
                 {showInputBar && (
-                    <div className="text-black mr-7">
+                    <div className="text-black mr-7 hidden lg:block">
                         <SearchBar showOnlyInput={false} />
                     </div>
                 )}
 
                 <Link className="mr-7" to="/new-teacher">
                     {" "}
-                    Add a Teacher
+                    Add a Professor
                 </Link>
                 <Link className="mr-7" to="/search">
                     {" "}
@@ -104,6 +107,10 @@ export function Navbar() {
                 <Link className="mr-7" to="/about">
                     {" "}
                     About
+                </Link>
+                <Link className="mr-7" to="/faq">
+                    {" "}
+                    FAQ
                 </Link>
                 <a href="https://discord.gg/jD4mfMugYN" target="_blank" rel="noreferrer">
                     <img
