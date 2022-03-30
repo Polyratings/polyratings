@@ -9,6 +9,10 @@ export async function generateAllProfessorEntry(env: CronEnv) {
         await env.authenticatedProductionClient.admin.bulkKvRecord<Internal.PlainProfessorDTO>(
             "professors",
         );
+
+    // Remove all professor key since it will be regenerated
+    delete prodProfessorsPlain.all;
+
     const prodTruncatedProfessors = plainToInstance(
         Internal.TruncatedProfessorDTO,
         Object.values(prodProfessorsPlain),
