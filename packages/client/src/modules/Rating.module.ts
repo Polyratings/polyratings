@@ -13,13 +13,10 @@ export class RatingModule {
      * initiates the process of adding a rating. If the rating passes validation you will receive a token to use in the next step
      */
     async initiateAdd(rating: AddReviewRequest): Promise<AddReviewResponse> {
-        const addReviewRes = await this.httpModule.fetch(
-            `/professors/ratings`,
-            {
-                method: "POST",
-                body: JSON.stringify(rating),
-            },
-        );
+        const addReviewRes = await this.httpModule.fetch("/professors/ratings", {
+            method: "POST",
+            body: JSON.stringify(rating),
+        });
 
         return addReviewRes.json();
     }
