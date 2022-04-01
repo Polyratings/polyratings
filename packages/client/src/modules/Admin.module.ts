@@ -61,7 +61,7 @@ export class AdminModule {
      * Approves a pending professor and adds it to the polyratings database.
      */
     async approvePendingProfessor(professorId: string): Promise<void> {
-        await this.httpModule.fetch(`$/admin/pending/${professorId}`, {
+        await this.httpModule.fetch(`/admin/pending/${professorId}`, {
             method: "POST",
         });
     }
