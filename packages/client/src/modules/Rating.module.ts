@@ -14,7 +14,7 @@ export class RatingModule {
      */
     async initiateAdd(rating: AddReviewRequest): Promise<AddReviewResponse> {
         const addReviewRes = await this.httpModule.fetch(
-            `/professors/${rating.professor}/ratings`,
+            `/professors/ratings`,
             {
                 method: "POST",
                 body: JSON.stringify(rating),
