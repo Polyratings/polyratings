@@ -14,7 +14,7 @@ If you are not interested in developing the backend or cron packages you can ski
 
 In order to set up for development you have one of two options:
 
-1. Following the instructions [here](./docs/deployGuide.md) to deploy polyratings to your personal cloudflare account. This will then allow you to do test deployments of your changes in an isolated environment.
+1. Following the instructions [here](./docs/deployment.md) to deploy polyratings to your personal cloudflare account. This will then allow you to do test deployments of your changes in an isolated environment.
 2. Reaching out to `user@domain.com` to receive credentials to the cloudflare account in order to be able to publish to the official dev environment. This option should only be taken if you are interested in working on polyratings in the long term and have demonstrated an interest through multiple previous code contributions.
 
 ## Setup
