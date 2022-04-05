@@ -1,6 +1,6 @@
 /* eslint-disable react/no-array-index-key */
 import { useEffect, useState } from "react";
-import { Teacher } from "@polyratings/shared";
+import { Teacher } from "@polyratings/client";
 import { Link } from "react-router-dom";
 import homeHeader from "@/assets/home-header.webp";
 import homeCurveTransition from "@/assets/home-curve-transition.svg";
@@ -32,7 +32,7 @@ export function Home() {
                     backgroundPosition: "center",
                     backgroundSize: "cover",
                 }}
-                className="relative h-screenWoNav lg:h-screen3/5"
+                className="relative h-screenWoNav lg:h-screen3/5 min-h-[30rem] "
             >
                 <div className="flex flex-col w-full h-2/3 lg:h-80 justify-center justify-items-center">
                     <h1 className="text-5xl md:text-9xl text-white text-center font-semibold drop-shadow-lg">

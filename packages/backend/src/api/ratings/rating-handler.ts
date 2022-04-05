@@ -5,20 +5,13 @@ import {
     AddReviewResponse,
     ProcessingReviewResponse,
     ReportReviewRequest,
+    Internal,
 } from "@polyratings/shared";
 import { PolyratingsError } from "@polyratings/backend/utils/errors";
-import { PendingReviewDTO } from "@polyratings/backend/dtos/Reviews";
-import { RatingReport } from "@polyratings/backend/dtos/RatingReport";
 
 export class RatingHandler {
-    static async addNewRating(ctx: Context<Env, { id: string }, AddReviewRequest>) {
-        if (ctx.params.id !== ctx.data.professor) {
-            throw new PolyratingsError(400, {
-                message: "Failed validation on Professor ID",
-            });
-        }
-
-        const pendingReview = PendingReviewDTO.fromAddReviewRequest(ctx.data);
+    static async addNewRating(ctx: Context<Env, unknown, AddReviewRequest>) {
+        const pendingReview = Internal.PendingReviewDTO.fromAddReviewRequest(ctx.data);
 
         await ctx.env.kvDao.addPendingReview(pendingReview);
 
@@ -79,7 +72,7 @@ export class RatingHandler {
     }
 
     static async reportRating(ctx: Context<Env, unknown, ReportReviewRequest>) {
-        const report = RatingReport.fromReportReviewRequest(ctx.data);
+        const report = Internal.RatingReport.fromReportReviewRequest(ctx.data);
         await ctx.env.kvDao.putReport(report);
     }
 }

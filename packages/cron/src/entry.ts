@@ -1,15 +1,18 @@
 import "reflect-metadata";
-import * as toml from "toml";
 import Toucan from "toucan-js";
+import {
+    Client,
+    cloudflareAccountId,
+    cloudflareNamespaceInformation,
+    PROD_ENV,
+} from "@polyratings/client";
 import { syncKvStore } from "./steps/syncKvStore";
 import { cloudflareKVInit } from "./wrappers/kv-wrapper";
 import { Logger } from "./logger";
-import { PolyratingsWorkerWrapper } from "./wrappers/worker-wrapper";
-// importing across monorepo modules
-// Typically this should be exported except it is a deployment file
-// eslint-disable-next-line import/no-relative-packages
-import backendDeployToml from "../../backend/wrangler.toml";
 import { clearKvStore } from "./steps/clearKvStore";
+import { generateAllProfessorEntry } from "./steps/generateAllProfessorEntry";
+
+export type KvName = keyof typeof cloudflareNamespaceInformation;
 
 export async function main(env: Record<string, string | undefined>, sentry?: Toucan) {
     let runtimeEnv: CronEnv;
@@ -22,7 +25,11 @@ export async function main(env: Record<string, string | undefined>, sentry?: Tou
     }
 
     const tasks = [
-        { name: "syncProfessors", task: syncKvStore("professors", "POLYRATINGS_TEACHERS") },
+        { name: "generateAllProfessorEntry", task: generateAllProfessorEntry },
+        {
+            name: "syncProfessors",
+            task: syncKvStore("professors", "POLYRATINGS_TEACHERS", new Set(["all"])),
+        },
         {
             name: "syncProfessors",
             task: syncKvStore("professor-queue", "POLYRATINGS_TEACHER_APPROVAL_QUEUE"),
@@ -43,57 +50,32 @@ export async function main(env: Record<string, string | undefined>, sentry?: Tou
 }
 
 export interface CronEnv {
-    prodWorker: PolyratingsWorkerWrapper;
-    getKvId: typeof getKvId;
+    authenticatedProductionClient: Client;
     KVWrapper: ReturnType<typeof cloudflareKVInit>;
-}
-
-const parsedToml = toml.parse(backendDeployToml);
-export type EnvironmentKey = "prod" | "beta" | "dev";
-export type KvName =
-    | "POLYRATINGS_TEACHERS"
-    | "PROCESSING_QUEUE"
-    | "POLYRATINGS_TEACHER_APPROVAL_QUEUE"
-    | "POLYRATINGS_USERS"
-    | "POLYRATINGS_REPORTS";
-function getKvId(environmentKey: EnvironmentKey, kvName: KvName): string {
-    const id = parsedToml.env[environmentKey].kv_namespaces.find(
-        (namespace: Record<string, unknown>) => namespace.binding === kvName,
-    )?.id;
-
-    if (!id) {
-        throw new Error(`Could not find KV id for ${kvName} in ${environmentKey} environment`);
-    }
-    return id;
 }
 
 async function createRuntimeEnvironment(
     globalEnv: Record<string, string | undefined>,
 ): Promise<CronEnv> {
-    const prodWorkerUrl = `https://${parsedToml.env.prod.route.slice(0, -1)}`;
-    // Have to check for this key specifically since it is used before the undefined check
-    if (!prodWorkerUrl) {
-        throw new Error("Could not read prod worker url from toml");
-    }
-
-    const accountId = parsedToml.account_id;
     const polyratingsCIUsername = globalEnv.POLYRATINGS_CI_USERNAME;
     const polyratingsCIPassword = globalEnv.POLYRATINGS_CI_PASSWORD;
     const cfApiToken = globalEnv.CF_API_TOKEN;
 
     // Make sure all keys are defined
-    if (!accountId || !polyratingsCIUsername || !polyratingsCIPassword || !cfApiToken) {
+    if (!polyratingsCIUsername || !polyratingsCIPassword || !cfApiToken) {
         throw new Error("Could not create cron environment. A required variable was not set");
     }
 
-    const prodWorker = new PolyratingsWorkerWrapper(prodWorkerUrl);
-    await prodWorker.login(polyratingsCIUsername, polyratingsCIPassword);
+    const authenticatedProductionClient = new Client(PROD_ENV);
+    await authenticatedProductionClient.auth.login({
+        username: polyratingsCIUsername,
+        password: polyratingsCIPassword,
+    });
 
-    const KVWrapper = cloudflareKVInit(cfApiToken, accountId);
+    const KVWrapper = cloudflareKVInit(cfApiToken, cloudflareAccountId);
 
     return {
-        getKvId,
-        prodWorker,
+        authenticatedProductionClient,
         KVWrapper,
     };
 }

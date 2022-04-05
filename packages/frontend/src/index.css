@@ -8,11 +8,18 @@ html {
   width: 100%;
 }
 
-@media (min-width: 2500px) { 
+@media (min-width: 2000px) { 
+  html {
+    font-size: 25px;
+  }
+}
+
+@media (min-width: 3000px) { 
   html {
     font-size: 40px;
   }
 }
+
 
 /* Hide arrows on number inputs */
 /* Chrome, Safari, Edge, Opera */

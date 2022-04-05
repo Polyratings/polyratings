@@ -1,15 +1,31 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-import { AuthResponse, UserToken } from "@polyratings/shared";
+import { UserToken } from "@polyratings/client";
 import { waitFor } from "@testing-library/dom";
 import { useInjectorHook } from "@mindspace-io/react";
-import { AuthService, FETCH, injectorFactory } from ".";
+import { AuthService, CLIENT, injectorFactory } from ".";
 
 // JWT token with email = mfish33@calpoly.edu
 const mockToken =
     // eslint-disable-next-line max-len
     "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJtZmlzaDMzIiwidXNlcm5hbWUiOiJtZmlzaDMzIiwibmJmIjoxNjQzOTEzODQ0LCJleHAiOjE2NDM5MTc0NDQsImlhdCI6MTY0MzkxMDI0NH0.UBCBPWlVjHAXpmVD-6n72GeAj-wEBc4_DM-7BqCG-8o";
 
-let fetchFunction: (target: string, options: RequestInit) => Response;
+const clientMock = {
+    setErrorInterceptor() {},
+    auth: {
+        token: null as string | null,
+        async login() {
+            this.token = mockToken;
+            return {
+                accessToken: mockToken,
+            };
+        },
+        async signOut() {
+            this.token = null;
+        },
+        getJwt() {
+            return this.token;
+        },
+    },
+};
 let authService: AuthService;
 describe("Auth Service", () => {
     beforeEach(() => {
@@ -17,8 +33,8 @@ describe("Auth Service", () => {
         const injector = injectorFactory();
         injector.addProviders([
             {
-                provide: FETCH,
-                useValue: async (target: any, init: any) => fetchFunction(target, init),
+                provide: CLIENT,
+                useValue: clientMock,
             },
         ]);
         [authService] = useInjectorHook(AuthService, injector);
@@ -26,54 +42,17 @@ describe("Auth Service", () => {
 
     it("Returns null for a user when none is present", () => {
         expect(authService.getUser()).toBeNull();
-        expect(authService.getJwt()).toBeNull();
-    });
-
-    it("Attempts to login with correct credentials", async () => {
-        const username = "mfish33";
-        const password = "test123";
-        fetchFunction = (target, options) => {
-            expect(target.endsWith("login")).toBeTruthy();
-            const body = JSON.parse(options.body as string);
-            expect(body.username).toBe(username);
-            expect(body.password).toBe(password);
-
-            const res: AuthResponse = {
-                accessToken: mockToken,
-            };
-            return new Response(JSON.stringify(res));
-        };
-        const user = await authService.login(username, password);
-        expect(user.username).toBe("mfish33");
-
-        expect(authService.getJwt()).toBe(mockToken);
-        expect(authService.getUser()?.username).toBe("mfish33");
     });
 
     it("Removes user information after sign out", async () => {
-        fetchFunction = () => {
-            const res: AuthResponse = {
-                accessToken: mockToken,
-            };
-            return new Response(JSON.stringify(res));
-        };
         await authService.login("mfish33", "test123");
         authService.signOut();
         expect(authService.getUser()).toBeNull();
-        expect(authService.getJwt()).toBeNull();
     });
 
     it("emit's events correctly", async () => {
         const authStates: (UserToken | null)[] = [];
-        const subscription = authService.isAuthenticatedSubject.subscribe((authState) =>
-            authStates.push(authState),
-        );
-        fetchFunction = () => {
-            const res: AuthResponse = {
-                accessToken: mockToken,
-            };
-            return new Response(JSON.stringify(res));
-        };
+        const subscription = authService.user$.subscribe((authState) => authStates.push(authState));
         const user = await authService.login("mfish33", "test123");
         authService.signOut();
         await waitFor(() => {

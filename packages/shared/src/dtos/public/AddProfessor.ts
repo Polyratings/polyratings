@@ -1,6 +1,6 @@
 import { Type } from "class-transformer";
 import { Equals, IsIn, IsNotEmpty, ValidateNested } from "class-validator";
-import { DEPARTMENT_LIST } from "../constants";
+import { DEPARTMENT_LIST } from "../../constants";
 import { NewReviewBase } from "./AddReview";
 
 export class AddProfessorRequest {

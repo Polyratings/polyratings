@@ -1,5 +1,5 @@
 import { cleanup, RenderResult, waitFor } from "@testing-library/react";
-import { Teacher } from "@polyratings/shared";
+import { Teacher } from "@polyratings/client";
 import userEvent from "@testing-library/user-event";
 import { MemoryHistory } from "history";
 import { injector, TeacherService } from "@/services";

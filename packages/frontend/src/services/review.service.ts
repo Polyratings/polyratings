@@ -1,38 +1,11 @@
-import {
-    AddReviewRequest,
-    AddReviewResponse,
-    ProcessingReviewResponse,
-    ReportReviewRequest,
-    Teacher,
-} from "@polyratings/shared";
-import { config } from "@/App.config";
-import { HttpService } from "./http.service";
+import { AddReviewRequest, Client, ReportReviewRequest, Teacher } from "@polyratings/client";
 import { TeacherService } from ".";
 
 export class ReviewService {
-    constructor(private httpService: HttpService, private teacherService: TeacherService) {}
+    constructor(private client: Client, private teacherService: TeacherService) {}
 
     async uploadReview(addReviewRequest: AddReviewRequest): Promise<Teacher> {
-        const addReviewRes = await this.httpService.fetch(
-            `${config.remoteUrl}/professors/${addReviewRequest.professor}/ratings`,
-            {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                },
-                body: JSON.stringify(addReviewRequest),
-            },
-        );
-
-        const addReviewResponse = (await addReviewRes.json()) as AddReviewResponse;
-
-        if (!addReviewResponse.newReviewId) {
-            throw new Error(addReviewResponse.statusMessage);
-        }
-        const processingReviewRes = await fetch(
-            `${config.remoteUrl}/ratings/${addReviewResponse.newReviewId}`,
-        );
-        const processingResponse = (await processingReviewRes.json()) as ProcessingReviewResponse;
+        const processingResponse = await this.client.ratings.add(addReviewRequest);
 
         if (!processingResponse.updatedProfessor) {
             throw new Error(processingResponse.message);
@@ -43,12 +16,6 @@ export class ReviewService {
     }
 
     async reportReview(report: ReportReviewRequest) {
-        await this.httpService.fetch(`${config.remoteUrl}/rating/report`, {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-            },
-            body: JSON.stringify(report),
-        });
+        await this.client.ratings.report(report);
     }
 }

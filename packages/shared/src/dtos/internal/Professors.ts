@@ -1,15 +1,11 @@
 import { Allow, IsIn, IsInt, IsNotEmpty, IsUUID, Max, Min } from "class-validator";
 import { plainToInstance, Transform } from "class-transformer";
-import {
-    BaseDTO,
-    DEPARTMENT_LIST,
-    Teacher,
-    ExposeFrontend,
-    AddProfessorRequest,
-} from "@polyratings/shared";
-import { roundToPrecision } from "@polyratings/backend/utils/math";
-import { PolyratingsError } from "@polyratings/backend/utils/errors";
+import { roundToPrecision } from "../../utils";
+import { AddProfessorRequest, BaseDTO } from "../public";
+import { Teacher } from "../../interfaces";
+import { ExposeFrontend } from "../../decorators";
 import { ReviewDTO } from "./Reviews";
+import { DEPARTMENT_LIST } from "../../constants";
 
 export class TruncatedProfessorDTO extends BaseDTO implements Teacher {
     @IsUUID()
@@ -108,7 +104,7 @@ export class ProfessorDTO extends TruncatedProfessorDTO {
         );
 
         if (!targetCourse) {
-            throw new PolyratingsError(404, "Review Does not exist");
+            throw new Error("Review Does not exist");
         }
 
         const [courseName, reviews] = targetCourse;
@@ -194,8 +190,8 @@ export class ProfessorDTO extends TruncatedProfessorDTO {
 }
 
 // Not Pretty but will at least cause compile time errors
-type PlainProfessorDTO = Omit<
+export type PlainProfessorDTO = Omit<
     ProfessorDTO,
     "addReview" | "removeReview" | "toTruncatedProfessorDTO"
 >;
-type PlainNewProfessorReviewDTO = Omit<ReviewDTO, "postDate" | "id">;
+export type PlainNewProfessorReviewDTO = Omit<ReviewDTO, "postDate" | "id">;
