@@ -23,7 +23,7 @@ function App() {
                 <ToastContainer />
                 <Navbar />
                 <Switch>
-                    <SentryRoute path="/teacher/:id" component={TeacherPage} />
+                    <SentryRoute path="/professor/:id" component={TeacherPage} />
                     <SentryRoute path="/search/:searchType?" component={SearchWrapper} />
                     <SentryRoute path="/login" component={Login} />
                     <SentryRoute path="/new-teacher" component={NewTeacher} />
