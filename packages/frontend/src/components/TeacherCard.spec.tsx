@@ -51,7 +51,7 @@ describe("<TeacherCard />", () => {
     it("Redirects on click", async () => {
         const el = documentBody.getByText(mockTeacher.firstName, { exact: false });
         userEvent.click(el);
-        await waitFor(() => expect(history.location.pathname).toBe(`/teacher/${mockTeacher.id}`));
+        await waitFor(() => expect(history.location.pathname).toBe(`/professor/${mockTeacher.id}`));
     });
 
     it("Runs custom handler on click", async () => {
