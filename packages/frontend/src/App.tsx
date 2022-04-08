@@ -1,4 +1,4 @@
-import { Router, Switch, Route } from "react-router-dom";
+import { Router, Switch, Route, Redirect } from "react-router-dom";
 import { ToastContainer } from "react-toastify";
 import { createBrowserHistory } from "history";
 import * as Sentry from "@sentry/react";
@@ -24,6 +24,7 @@ function App() {
                 <Navbar />
                 <Switch>
                     <SentryRoute path="/professor/:id" component={TeacherPage} />
+                    <Redirect from="/teacher/:id" to="/professor/:id" />
                     <SentryRoute path="/search/:searchType?" component={SearchWrapper} />
                     <SentryRoute path="/login" component={Login} />
                     <SentryRoute path="/new-teacher" component={NewTeacher} />
