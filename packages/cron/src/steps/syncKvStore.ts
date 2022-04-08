@@ -13,19 +13,17 @@ export function syncKvStore(bulkKey: BulkKey, kvName: KvName, excludeKeys?: Set<
         const devKv = new env.KVWrapper(cloudflareNamespaceInformation[kvName].beta);
 
         Logger.info(`Removing ${bulkKey} from beta`);
-        const betaKeys = await betaKv.getAllKeys();
+        const betaKeys = (await betaKv.getAllKeys()).filter((key) => !excludeKeys?.has(key));
         await betaKv.deleteValues(betaKeys);
 
         Logger.info(`Removing ${bulkKey} from dev`);
-        const devKeys = await devKv.getAllKeys();
+        const devKeys = (await devKv.getAllKeys()).filter((key) => !excludeKeys?.has(key));
         await devKv.deleteValues(devKeys);
 
-        const pairs = Object.entries(prodData)
-            .filter(([key]) => !excludeKeys?.has(key))
-            .map(([key, value]) => ({
-                key,
-                value: JSON.stringify(value),
-            }));
+        const pairs = Object.entries(prodData).map(([key, value]) => ({
+            key,
+            value: JSON.stringify(value),
+        }));
 
         Logger.info(`Putting ${bulkKey} in beta`);
         await betaKv.putValues(pairs);

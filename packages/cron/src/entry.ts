@@ -26,6 +26,7 @@ export async function main(env: Record<string, string | undefined>, sentry?: Tou
 
     const tasks = [
         { name: "generateAllProfessorEntry", task: generateAllProfessorEntry },
+        // We purposely ignore the `all` professor key to avoid issues around eventual consistency
         {
             name: "syncProfessors",
             task: syncKvStore("professors", "POLYRATINGS_TEACHERS", new Set(["all"])),
