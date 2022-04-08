@@ -3,7 +3,7 @@ import { CloudflareEnv } from "@polyratings/backend/index";
 import { PerspectiveDAO } from "@polyratings/backend/dao/perspective-dao";
 import { AuthStrategy } from "@polyratings/backend/api/auth/auth-strategy";
 import Toucan from "toucan-js";
-import { DiscordNotificationDAO } from '@polyratings/backend/dao/discord-notification-dao';
+import { DiscordNotificationDAO } from "@polyratings/backend/dao/discord-notification-dao";
 
 export class Env {
     kvDao: KVDAO;
