@@ -37,7 +37,11 @@ export class ProfessorHandler {
             await ctx.env.kvDao.putPendingProfessor(duplicateProfessor);
         } else {
             await ctx.env.kvDao.putPendingProfessor(professor);
-            await ctx.env.notificationDAO.notifyPendingProfessor(professor);
+            await ctx.env.notificationDAO.sendWebhook(
+                "Pending Professor Notification",
+                `Professor ${professor.firstName} ${professor.lastName} ` +
+                    `with id: ${professor.id} is waiting for approval!`,
+            );
         }
 
         ctx.response.status = 202;

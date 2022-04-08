@@ -75,6 +75,11 @@ export class RatingHandler {
         const reportReviewRequest = ctx.data;
         const report = Internal.RatingReport.fromReportReviewRequest(reportReviewRequest);
         await ctx.env.kvDao.putReport(report);
-        await ctx.env.notificationDAO.notifyReportedReview(reportReviewRequest);
+        await ctx.env.notificationDAO.sendWebhook(
+            "Received A Report",
+            `Rating ID: ${report.ratingId}\n` +
+                `Professor ID: ${report.professorId}\n` +
+                `Reason: ${reportReviewRequest.reason}`,
+        );
     }
 }
