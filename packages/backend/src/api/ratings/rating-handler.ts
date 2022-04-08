@@ -72,8 +72,9 @@ export class RatingHandler {
     }
 
     static async reportRating(ctx: Context<Env, unknown, ReportReviewRequest>) {
-        const report = Internal.RatingReport.fromReportReviewRequest(ctx.data);
+        const reportReviewRequest = ctx.data;
+        const report = Internal.RatingReport.fromReportReviewRequest(reportReviewRequest);
         await ctx.env.kvDao.putReport(report);
-        await ctx.env.notificationDAO.notifyReportedReview(report);
+        await ctx.env.notificationDAO.notifyReportedReview(reportReviewRequest);
     }
 }
