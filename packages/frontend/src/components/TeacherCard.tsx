@@ -25,12 +25,12 @@ export function TeacherCard({ teacher, beforeNavigation = () => {} }: TeacherCar
         // Load teacher into the local teacher card for next page to load immediately
         if (teacher) {
             await teacherService.getTeacher(teacher.id);
-            history.push(`/teacher/${teacher.id}`);
+            history.push(`/professor/${teacher.id}`);
         }
     };
 
     return (
-        <Link to={`/teacher/${teacher?.id}`}>
+        <Link to={`/professor/${teacher?.id}`}>
             <div onClick={onClick}>
                 <div
                     // eslint-disable-next-line max-len

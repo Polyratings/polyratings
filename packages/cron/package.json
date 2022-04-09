@@ -16,7 +16,6 @@
     "build:local": "esbuild --format=cjs --bundle src/local.ts --outdir=dist --platform=node --loader:.toml=text",
     "build": "tsc && npm run build:fast",
     "deploy:prod": "wrangler publish --env prod",
-    "deploy:beta": "wrangler publish --env prod",
     "lint": "eslint --max-warnings=0 .",
     "fix": "eslint . --fix"
   },

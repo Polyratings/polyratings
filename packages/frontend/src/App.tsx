@@ -1,4 +1,4 @@
-import { Router, Switch, Route } from "react-router-dom";
+import { Router, Switch, Route, Redirect } from "react-router-dom";
 import { ToastContainer } from "react-toastify";
 import { createBrowserHistory } from "history";
 import * as Sentry from "@sentry/react";
@@ -10,11 +10,14 @@ import { config } from "./App.config";
 const history = createBrowserHistory({ basename: config.base });
 const SentryRoute = Sentry.withSentryRouting(Route);
 
-Sentry.init({
-    dsn: "https://150f4ee898954b91aac4834cace32008@o1154721.ingest.sentry.io/6234908",
-    // 20% of transactions get sent to Sentry
-    tracesSampleRate: 0.2,
-});
+// Do not init while developing in order to have less clutter in logs
+if (process.env.NODE_ENV !== "development") {
+    Sentry.init({
+        dsn: "https://c9fe8d8e92a04bb585b15499bff924c5@o1195960.ingest.sentry.io/6319109",
+        // 20% of transactions get sent to Sentry
+        tracesSampleRate: 0.2,
+    });
+}
 
 function App() {
     return (
@@ -23,7 +26,8 @@ function App() {
                 <ToastContainer />
                 <Navbar />
                 <Switch>
-                    <SentryRoute path="/teacher/:id" component={TeacherPage} />
+                    <SentryRoute path="/professor/:id" component={TeacherPage} />
+                    <Redirect from="/teacher/:id" to="/professor/:id" />
                     <SentryRoute path="/search/:searchType?" component={SearchWrapper} />
                     <SentryRoute path="/login" component={Login} />
                     <SentryRoute path="/new-teacher" component={NewTeacher} />

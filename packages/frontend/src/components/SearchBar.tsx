@@ -91,7 +91,7 @@ export function SearchBar({
                         if (value.metadata) {
                             // Ensure teacher in the cache before loading
                             await teacherService.getTeacher(value.metadata.id);
-                            history.push(`/teacher/${value.metadata.id}`);
+                            history.push(`/professor/${value.metadata.id}`);
                         } else {
                             // Use timeout to let current value update and then trigger and then form submission
                             setTimeout(() => formRef.current?.requestSubmit());
