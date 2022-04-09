@@ -9,7 +9,7 @@ const backend = polyratingsBackend();
 export default {
     async fetch(request: Request, env: CloudflareEnv, ctx: CloudflareEventFunctions) {
         const sentry = new Toucan({
-            dsn: "https://a15ed5c8b61d4e43b4f103b938130722@o1154721.ingest.sentry.io/6234603",
+            dsn: "https://a7c07e573f624b40b98f061b54877d9d@o1195960.ingest.sentry.io/6319110",
             context: ctx,
             allowedHeaders: ["user-agent"],
             allowedSearchParams: /(.*)/,
