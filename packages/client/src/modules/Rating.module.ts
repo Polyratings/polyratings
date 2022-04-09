@@ -44,7 +44,7 @@ export class RatingModule {
      * Reports a desired rating. Reports will be manually reviewed.
      */
     async report(report: ReportReviewRequest) {
-        await this.httpModule.fetch("rating/report", {
+        await this.httpModule.fetch("/rating/report", {
             method: "POST",
             body: JSON.stringify(report),
         });
