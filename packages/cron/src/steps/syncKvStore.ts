@@ -10,7 +10,7 @@ export function syncKvStore(bulkKey: BulkKey, kvName: KvName, excludeKeys?: Set<
         );
 
         const betaKv = new env.KVWrapper(cloudflareNamespaceInformation[kvName].beta);
-        const devKv = new env.KVWrapper(cloudflareNamespaceInformation[kvName].beta);
+        const devKv = new env.KVWrapper(cloudflareNamespaceInformation[kvName].dev);
 
         Logger.info(`Removing ${bulkKey} from beta`);
         const betaKeys = (await betaKv.getAllKeys()).filter((key) => !excludeKeys?.has(key));
