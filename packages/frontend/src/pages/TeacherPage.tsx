@@ -56,15 +56,7 @@ export function TeacherPage() {
             .filter(([department]) => department !== teacherData.department)
             .flatMap(([, classReviews]) => classReviews);
 
-        const sortedByDate = [...primaryClasses, ...otherClasses].map((classReview) => {
-            // Be carful the array is sorted in place. This is fine here but if moved could cause issues.
-            classReview.reviews.sort(
-                (a, b) => Date.parse(b.postDate.toString()) - Date.parse(a.postDate.toString()),
-            );
-            return classReview;
-        });
-
-        SetTeacherReviews(sortedByDate);
+        SetTeacherReviews([...primaryClasses, ...otherClasses]);
     }, [teacherData]);
 
     const history = useHistory();

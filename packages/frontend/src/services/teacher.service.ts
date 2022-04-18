@@ -54,6 +54,12 @@ export class TeacherService {
         }
 
         const professor = await this.client.professors.get(id);
+        // Make sure reviews are in dated order
+        Object.values(professor.reviews ?? []).forEach((reviewArr) =>
+            reviewArr.sort(
+                (a, b) => Date.parse(b.postDate.toString()) - Date.parse(a.postDate.toString()),
+            ),
+        );
         this.addTeacherToCache(professor);
         return professor;
     }
