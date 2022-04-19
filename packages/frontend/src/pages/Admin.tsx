@@ -266,6 +266,12 @@ function RecentReviews() {
         {
             name: "Professor",
             selector: (row: ConnectedReview) => row.professorName,
+            grow: 0.5,
+        },
+        {
+            name: "Date",
+            selector: (row: ConnectedReview) => new Date(row.postDate).toLocaleDateString(),
+            grow: 0.5,
         },
         {
             name: "Rating",
