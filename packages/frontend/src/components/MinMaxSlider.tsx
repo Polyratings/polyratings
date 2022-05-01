@@ -1,8 +1,6 @@
-import Slider from "rc-slider";
+import Slider, { SliderProps } from "rc-slider";
 import "rc-slider/assets/index.css";
-
-// const Range = createSliderWithTooltip(Slider.Range);
-// const { createSliderWithTooltip } = Slider;
+import { cloneElement } from "react";
 
 interface MinMaxSliderProps {
     domain: [number, number];
@@ -55,8 +53,33 @@ export function MinMaxSlider({
                 defaultValue={[min, max]}
                 step={resolution}
                 marks={marks}
-                // tipFormatter={(value) => `${value}`}
+                handleRender={handleRender}
             />
         </div>
     );
 }
+
+const handleRender: SliderProps["handleRender"] = (node, props) => {
+    const { value, dragging } = props;
+    const popup = (
+        <div
+            className={`absolute flex flex-col items-center	bottom-[0.6rem] left-[0.3rem] transform -translate-x-1/2 ${
+                dragging ? "opacity-1" : "opacity-0"
+            }`}
+        >
+            <div className=" bg-gray-900 text-white p-1 text-sm rounded min-w-[1.5rem] text-center">
+                {value}
+            </div>
+            <div className="w-3 overflow-hidden inline-block">
+                <div className=" h-2 w-2 bg-gray-900 -rotate-45 transform origin-top-left" />
+            </div>
+        </div>
+    );
+    const modifiedHandle = cloneElement(node, {
+        ...node.props,
+        // @ts-expect-error Clone element does not like me explicity setting class name and children
+        className: `${node.props.className ?? ""} relative`,
+        children: [popup],
+    });
+    return <div className="my-test-name">{modifiedHandle}</div>;
+};
