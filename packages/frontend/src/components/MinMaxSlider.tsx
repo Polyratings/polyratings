@@ -63,6 +63,8 @@ const handleRender: SliderProps["handleRender"] = (node, props) => {
     const { value, dragging } = props;
     const popup = (
         <div
+            // Have to set key since it is force inserted as a child to an element
+            key="custom-slider-popup-key"
             className={`absolute flex flex-col items-center	bottom-[0.6rem] left-[0.3rem] transform -translate-x-1/2 ${
                 dragging ? "opacity-1" : "opacity-0"
             }`}

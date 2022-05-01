@@ -13,7 +13,8 @@ describe("<TwoPosSlider />", () => {
             <MinMaxSlider onchange={setCurrentPos} domain={[0, 10]} value={currentSliderPos} />,
         );
         expect(currentSliderPos).toEqual([0, 10]);
-        expect(documentBody.getByText(`${0}`)).toBeInTheDocument();
-        expect(documentBody.getByText(`${10}`)).toBeInTheDocument();
+        // Can not use getByText since it the popup will also have that value
+        expect(documentBody.getAllByText(`${0}`).length > 0);
+        expect(documentBody.getAllByText(`${10}`).length > 0);
     });
 });
