@@ -59,8 +59,8 @@ export function MinMaxSlider({
     );
 }
 
-const handleRender: SliderProps["handleRender"] = (node, props) => {
-    const { value, dragging } = props;
+const handleRender: SliderProps["handleRender"] = (handle, sliderProps) => {
+    const { value, dragging } = sliderProps;
     const popup = (
         <div
             // Have to set key since it is force inserted as a child to an element
@@ -77,11 +77,11 @@ const handleRender: SliderProps["handleRender"] = (node, props) => {
             </div>
         </div>
     );
-    const modifiedHandle = cloneElement(node, {
-        ...node.props,
+    const modifiedHandle = cloneElement(handle, {
+        ...handle.props,
         // @ts-expect-error Clone element does not like me explicity setting class name and children
-        className: `${node.props.className ?? ""} relative`,
+        className: `${handle.props.className ?? ""} relative`,
         children: [popup],
     });
-    return <div className="my-test-name">{modifiedHandle}</div>;
+    return <div>{modifiedHandle}</div>;
 };
