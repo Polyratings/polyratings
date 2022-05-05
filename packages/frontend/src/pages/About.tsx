@@ -20,10 +20,10 @@ export function About() {
                 </p>
 
                 <p className={paragraphStyle}>
-                    Polyratings.com recognizes that the power of the Internet lies in the students
-                    who populate it. If you can imagine a room full of people helping you make
-                    decisions on who to take for a class or where the best place to live, then you
-                    can imagine a place like Polyratings.
+                    Polyratings recognizes that the power of the Internet lies in the students who
+                    populate it. If you can imagine a room full of people helping you make decisions
+                    on who to take for a class or where the best place to live, then you can imagine
+                    a place like Polyratings.
                 </p>
 
                 <p className={paragraphStyle}>
@@ -200,6 +200,39 @@ export function About() {
                     to date and make it responsive. That&apos;s right! In a day an age where we
                     access the internet over our phones, Polyratings is still here to help you know
                     what your in for.
+                </p>
+            </div>
+
+            <h2 className={subTitleStyle} id="polyratings-4">
+                Polyratings 4.0
+            </h2>
+            <div className={cardStyle}>
+                <p className={paragraphStyle}>
+                    In the Fall of 2021, Polyratings was in a read-only state for almost two years.
+                    After two different failed student Polyratings replacement projects, many
+                    students were frustrated with the options available to find relevant information
+                    about professors. Two particular students who liked the old poly ratings felt
+                    like they could do better than the previous offerings.
+                </p>
+
+                <p className={paragraphStyle}>
+                    With this in mind, the students analyzed the shortcomings of the previous
+                    attempts to replace Polyratings and set out with a set of core design
+                    principles. The new website had to be a one-to-one recreation of the old
+                    Polyratings and contain all the previous ratings. The improvements to the
+                    website must come in user experience and openness. Everything in Polyratings 4.0
+                    has been built from the ground up to provide the best user experience across
+                    desktop and mobile devices. In addition, all of the code and rating&apos;s data
+                    are fully{" "}
+                    <a
+                        href="https://github.com/Polyratings/polyratings"
+                        target="_blank"
+                        rel="noreferrer"
+                        className={linkStyle}
+                    >
+                        Open Source
+                    </a>
+                    . These actions will ensure that Polyratings will never go read-only again!
                 </p>
             </div>
         </div>
