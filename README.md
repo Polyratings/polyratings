@@ -2,7 +2,7 @@
 Lerna monorepo to contain all polyratings related code
 
 ## Packages
-* [frontend](./packages/frontend/) - Frontend react app deployed at https://polyratings.com
+* [frontend](./packages/frontend/) - Frontend react app deployed at https://polyratings.org
 * [backend](./packages/backend/) - Backend typescript app deployed on Cloudflare Workers
 * [shared](./packages/shared/) - Common data types related to sharing data between packages
 * [client](./packages/client/) - Client package that wraps interaction to the backend as well as re-exports the shared package
