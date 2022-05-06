@@ -18,7 +18,7 @@
         "fish-react-virtualized": "^9.22.3",
         "form-request-submit-polyfill": "^2.0.0",
         "jwt-decode": "^3.1.2",
-        "rc-slider": "^10.0.0-alpha.5",
+        "rc-slider": "^10.0.0",
         "react": "^17.0.0",
         "react-anchor-link-smooth-scroll": "^1.0.12",
         "react-animate-height": "^2.0.23",
