@@ -146,7 +146,7 @@ export function EvaluateTeacherForm({
             )}
             {teacher && (
                 <h2 className="text-2xl font-bold hidden sm:block mb-4">
-                    Evaluate {teacher.lastName},{teacher.firstName}
+                    Evaluate {teacher.lastName}, {teacher.firstName}
                 </h2>
             )}
 
