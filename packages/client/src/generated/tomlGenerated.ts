@@ -5,13 +5,13 @@ export interface PolyratingsAPIEnv {
     url: string;
 }
 export const DEV_ENV: PolyratingsAPIEnv = {
-    url: "https://api-dev.polyratings.dev",
+    url: "https://api-dev.polyratings.org",
 };
 export const BETA_ENV: PolyratingsAPIEnv = {
-    url: "https://api-beta.polyratings.dev",
+    url: "https://api-beta.polyratings.org",
 };
 export const PROD_ENV: PolyratingsAPIEnv = {
-    url: "https://api-prod.polyratings.dev",
+    url: "https://api-prod.polyratings.org",
 };
 
 export const cloudflareNamespaceInformation = {
