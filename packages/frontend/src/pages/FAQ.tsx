@@ -22,11 +22,11 @@ export function FAQ() {
                     assumption to make, ever took a professor&apos;s class.
                 </p>
                 <p className={paragraphStyle}>
-                    Polyratings.com does everything in its power to review questionable postings
-                    brought to our attention, but a function of Polyratings&apos; privacy guarantee
-                    is lack of authentication and login. This means that a professor could post
-                    positive ratings about themselves to their pages, or negative ratings about
-                    other professors (both of which have happened in the past).
+                    Polyratings does everything in its power to review questionable postings brought
+                    to our attention, but a function of Polyratings&apos; privacy guarantee is lack
+                    of authentication and login. This means that a professor could post positive
+                    ratings about themselves to their pages, or negative ratings about other
+                    professors (both of which have happened in the past).
                 </p>
                 <p className={paragraphStyle}>
                     We have been looking into ways of curbing this practice, but for now,
@@ -49,8 +49,7 @@ export function FAQ() {
                 <p className={paragraphStyle}>
                     We do not judge comments based upon the words they contain or the way they
                     express their opinion, but if a comment is reported as innapropriate, we look to
-                    see what value it adds to both Polyratings.com and to Cal Poly students in
-                    general.
+                    see what value it adds to both Polyratings and to Cal Poly students in general.
                 </p>
                 <p className={paragraphStyle}>
                     Calling a professor names is not only immature, but does not add value.
@@ -151,15 +150,15 @@ export function FAQ() {
                     we&apos;d like to clarify our position on these types of emails.
                 </p>
                 <p className={paragraphStyle}>
-                    In a nutshell, you can&apos;t sue Polyratings.com. You may think a comment about
-                    you is defamatory and libelous, and it may very well be.
+                    In a nutshell, you can&apos;t sue Polyratings. You may think a comment about you
+                    is defamatory and libelous, and it may very well be.
                 </p>
                 <p className={paragraphStyle}>
                     <b>But</b>, we didn&apos;t write the comment. The comment is not ours; it&apos;s
                     the property of the student who wrote it and while you&apos;re welcome to sue
                     the author (assuming you can find out who they are), you really can&apos;t sue
-                    Polyratings.com, because we haven&apos;t broken any laws (and you wouldn&apos;t
-                    get any money out of us poor college students anyway).
+                    Polyratings, because we haven&apos;t broken any laws (and you wouldn&apos;t get
+                    any money out of us poor college students anyway).
                 </p>
                 <p className={paragraphStyle}>
                     The Communications Decency Act of 1996 protects Internet service providers
@@ -188,10 +187,10 @@ export function FAQ() {
                 </p>
                 <p className={paragraphStyle}>
                     So please... if you find inappropriate content in reference to you on
-                    Polyratings.com, please notify us. But don&apos;t write a scathing email
-                    threatening to sue us. For one, it makes your credibility go way down because
-                    you&apos;re threatening something you can&apos;t deliver on and secondly, it
-                    also doesn&apos;t really endear us to help you, even though over 98% of the time
+                    Polyratings, please notify us. But don&apos;t write a scathing email threatening
+                    to sue us. For one, it makes your credibility go way down because you&apos;re
+                    threatening something you can&apos;t deliver on and secondly, it also
+                    doesn&apos;t really endear us to help you, even though over 98% of the time
                     we&apos;re notified of inappropriate content, we side with the reporter of the
                     content and not the author.
                 </p>

@@ -86,9 +86,9 @@ export function TeacherPage() {
         retrieveTeacherData();
     }, []);
 
-    const NaEvalZero = (val: unknown) => {
+    const NaEvalZero = (val: number | undefined) => {
         if (teacherData?.numEvals) {
-            return val;
+            return val?.toFixed(2);
         }
         return "N/A";
     };

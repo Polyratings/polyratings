@@ -1,5 +1,5 @@
 # Polyratings Frontend
-Frontend for the polyratings website hosted at http://polyratings.com
+Frontend for the polyratings website hosted at http://polyratings.org
 
 ## Overview
 The frontend was built in react do to the ease of use and do to it currently being taught at Cal Poly. The future hope is to have the website be open source and allow dedicated polyratings users to add new features and improve the user experience of the website.

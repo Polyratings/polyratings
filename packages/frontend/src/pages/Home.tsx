@@ -1,7 +1,7 @@
 /* eslint-disable react/no-array-index-key */
 import { useEffect, useState } from "react";
 import { Teacher } from "@polyratings/client";
-import { Link } from "react-router-dom";
+import { HashLink } from "react-router-hash-link";
 import homeHeader from "@/assets/home-header.webp";
 import homeCurveTransition from "@/assets/home-curve-transition.svg";
 import star from "@/assets/star.svg";
@@ -57,9 +57,12 @@ export function Home() {
                         that you should not be rolling the dice when you register for a class. This
                         version of Polyratings is a ground up rebuild of the entire website. Read
                         more about it{" "}
-                        <Link to="/about" className="pointer underline text-blue-600">
+                        <HashLink
+                            to="/about#polyratings-4"
+                            className="pointer underline text-blue-600"
+                        >
                             here.
-                        </Link>
+                        </HashLink>
                     </p>
                 </div>
 

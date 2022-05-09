@@ -28,7 +28,7 @@ Navigate back to the "Overview" subtab and on the right side of the page, you'll
 This is mostly done because under our own testing, there are multiple times where deploying wrangler environments will not actually set the "bounded" model as specified in the configuration, and it's a pain to go back and manually set that for each worker using the Cloudflare Dashboard.
 
 ### URLS and Endpoints
-You'll need to figure out what URLS you want to listen on for your backend. Our current convention is to use `api-ENVIRONMENT.DOMAIN.COM` so for the actual Polyratings site it's `api-prod.polyratings.com`.
+You'll need to figure out what URLS you want to listen on for your backend. Our current convention is to use `api-ENVIRONMENT.DOMAIN.COM` so for the actual Polyratings site it's `api-prod.polyratings.org`.
 
 Once you've determined the endpoints you want, you'll need to setup some DNS records that allow Cloudflare (and Workers) to redirect requests to the proper handler. To do this, navigate to the "Websites" tab, click on the domain that will be hosting your deployment, select "DNS," and click the "Add record" button to and an "AAAA" type record where "name" is the URL path before `DOMAIN.COM` (i.e. `api-prod`) then the IPv6 address should be "100::" (yes, this technically means to discard the request, but we use this to enable Cloudflare proxying on the URL path, which then triggers the routing rules we will later configure).
 
