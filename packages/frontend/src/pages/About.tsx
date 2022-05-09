@@ -209,10 +209,10 @@ export function About() {
             <div className={cardStyle}>
                 <p className={paragraphStyle}>
                     In the Fall of 2021, Polyratings was in a read-only state for almost two years.
-                    After two different failed student Polyratings replacement projects, many
-                    students were frustrated with the options available to find relevant information
-                    about professors. Two particular students who liked the old poly ratings felt
-                    like they could do better than the previous offerings.
+                    After some unsuccessful student replacement projects, many students were
+                    frustrated with the lack options available to find relevant information about
+                    professors. Two students—with the guidance of the original Polyratings
+                    maintainer—decided to restore Polyratings for the Cal Poly Community.
                 </p>
 
                 <p className={paragraphStyle}>
@@ -220,10 +220,10 @@ export function About() {
                     attempts to replace Polyratings and set out with a set of core design
                     principles. The new website had to be a one-to-one recreation of the old
                     Polyratings and contain all the previous ratings. The improvements to the
-                    website must come in user experience and openness. Everything in Polyratings 4.0
-                    has been built from the ground up to provide the best user experience across
-                    desktop and mobile devices. In addition, all of the code and rating&apos;s data
-                    are fully{" "}
+                    website were designed with user experience and openness in the forefront.
+                    Everything in Polyratings 4.0 has been built from the ground up to provide the
+                    best user experience across desktop and mobile devices. In addition, all of the
+                    code and rating&apos;s data are fully{" "}
                     <a
                         href="https://github.com/Polyratings/polyratings"
                         target="_blank"
@@ -232,7 +232,8 @@ export function About() {
                     >
                         Open Source
                     </a>
-                    . These actions will ensure that Polyratings will never go read-only again!
+                    . We take these actions to ensure that Polyratings will never go read-only
+                    again!
                 </p>
             </div>
         </div>
