@@ -19,7 +19,7 @@ export class RatingHandler {
         ctx.response.body = AddReviewResponse.new(
             true,
             // TODO: Replace with runtime url
-            `Queued new rating, please call GET https://sunder.polyratings.dev/ratings/${pendingReview.id} to begin processing.`,
+            `Queued new rating, please call GET https://api-prod.polyratings.org/ratings/${pendingReview.id} to begin processing.`,
             pendingReview.id,
         );
     }
@@ -66,7 +66,7 @@ export class RatingHandler {
             await ctx.env.kvDao.addPendingReview(pendingRating);
             ctx.response.body = ProcessingReviewResponse.new(
                 false,
-                "Review failed sentiment analysis, please contact dev@polyratings.dev for assistance",
+                "Review failed sentiment analysis, please contact dev@polyratings.org for assistance",
             );
         }
     }

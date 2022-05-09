@@ -1,5 +1,5 @@
 type = "javascript"
-zone_id = "a7bc6d72d8d7927ad1a49d855cfad6c6" # polyratings.dev
+zone_id = "77aee487ef61695643244214cd4ba896" # polyratings.org
 account_id = "4b59b59a6058dce1832781075d4fde9d"
 usage = "bundled"
 workers_dev = false
@@ -19,7 +19,7 @@ globs = ["**/*.js"]
 
 [env.dev]
 name = 'polyratings-dev-backend'
-route = 'api-dev.polyratings.dev/*'
+route = 'api-dev.polyratings.org/*'
 usage = "bundled"
 kv_namespaces = [
     { binding = "POLYRATINGS_TEACHERS", id = "20700dd12582422b9f91a0a1695ace88"},
@@ -31,7 +31,7 @@ kv_namespaces = [
 
 [env.beta]
 name = 'polyratings-beta-backend'
-route = 'api-beta.polyratings.dev/*'
+route = 'api-beta.polyratings.org/*'
 usage = "bundled"
 kv_namespaces = [
     { binding = "POLYRATINGS_TEACHERS", id = "3a5904587fe943679bf97e59d95b7632"},
@@ -43,7 +43,7 @@ kv_namespaces = [
 
 [env.prod]
 name = "polyratings-prod-backend"
-route = "api-prod.polyratings.dev/*"
+route = "api-prod.polyratings.org/*"
 usage = "bundled"
 kv_namespaces = [
     { binding = "POLYRATINGS_TEACHERS", id = "c6bf2730306a4e65bb8aa7412ae6f250"},
