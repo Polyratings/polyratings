@@ -134,6 +134,43 @@ export function EvaluateTeacherForm({
         },
     ];
 
+    const departmentGroups = Object.keys(teacher?.reviews || {})?.reduce((acc, curr) => {
+        const [department] = curr.split(" ");
+        if (acc[department]) {
+            acc[department].push(curr);
+        } else {
+            acc[department] = [curr];
+        }
+        return acc;
+    }, {} as Record<string, string[]>);
+
+    const sortedCourses = Object.values(departmentGroups)
+        .map((group) =>
+            group.sort((courseA, courseB) => {
+                const numberA = parseFloat(courseA.split(" ")[1]);
+                const numberB = parseFloat(courseB.split(" ")[1]);
+                return numberA - numberB;
+            }),
+        )
+        .sort((groupA, groupB) => {
+            const [departmentA] = groupA[0].split(" ");
+            const [departmentB] = groupB[0].split(" ");
+            if (departmentA === teacher?.department) {
+                return -1;
+            }
+            if (departmentB === teacher?.department) {
+                return 1;
+            }
+            if (departmentA < departmentB) {
+                return -1;
+            }
+            if (departmentA > departmentB) {
+                return 1;
+            }
+            return 0;
+        })
+        .flat();
+
     return (
         <form className="relative w-full" onSubmit={handleSubmit(onSubmit)} ref={innerRef}>
             {teacher && (
@@ -146,7 +183,7 @@ export function EvaluateTeacherForm({
             )}
             {teacher && (
                 <h2 className="text-2xl font-bold hidden sm:block mb-4">
-                    Evaluate {teacher.lastName},{teacher.firstName}
+                    Evaluate {teacher.lastName}, {teacher.firstName}
                 </h2>
             )}
 
@@ -154,7 +191,7 @@ export function EvaluateTeacherForm({
             <div className="flex flex-col sm:flex-row sm:justify-between">
                 {teacher && (
                     <select className="h-7 rounded w-40 text-black" {...register("knownClass")}>
-                        {Object.keys(teacher.reviews || {})?.map((c) => (
+                        {sortedCourses.map((c) => (
                             <option value={c} key={c}>
                                 {c}
                             </option>
