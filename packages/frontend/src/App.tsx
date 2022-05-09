@@ -1,13 +1,11 @@
-import { Router, Switch, Route, Redirect } from "react-router-dom";
+import { Switch, Route, Redirect, BrowserRouter } from "react-router-dom";
 import { ToastContainer } from "react-toastify";
-import { createBrowserHistory } from "history";
 import * as Sentry from "@sentry/react";
 import { Home, TeacherPage, Login, NewTeacher, About, SearchWrapper, Admin, FAQ } from "./pages";
 import { Navbar } from "./components";
 import "react-toastify/dist/ReactToastify.css";
 import { config } from "./App.config";
 
-const history = createBrowserHistory({ basename: config.base });
 const SentryRoute = Sentry.withSentryRouting(Route);
 
 // Do not init while developing in order to have less clutter in logs
@@ -22,7 +20,7 @@ if (process.env.NODE_ENV !== "development") {
 function App() {
     return (
         <Sentry.ErrorBoundary showDialog>
-            <Router history={history}>
+            <BrowserRouter basename={config.base}>
                 <ToastContainer />
                 <Navbar />
                 <Switch>
@@ -36,7 +34,7 @@ function App() {
                     <SentryRoute path="/faq" component={FAQ} />
                     <SentryRoute path="/" component={Home} />
                 </Switch>
-            </Router>
+            </BrowserRouter>
         </Sentry.ErrorBoundary>
     );
 }

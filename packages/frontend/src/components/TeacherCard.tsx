@@ -44,7 +44,7 @@ export function TeacherCard({ teacher, beforeNavigation = () => {} }: TeacherCar
                         <div>{teacher?.department}</div>
                         <div className="flex items-center justify-end">
                             <img className="pr-1 h-4" src={star} alt="" />
-                            <div>{teacher?.overallRating}</div>
+                            <div>{teacher?.overallRating.toFixed(2)}</div>
                         </div>
                         <div>{teacher?.numEvals} evals</div>
                     </div>
