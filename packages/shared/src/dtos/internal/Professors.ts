@@ -44,7 +44,7 @@ export class TruncatedProfessorDTO extends BaseDTO implements Teacher {
     @ExposeFrontend()
     studentDifficulties: number;
 
-    // @IsValidCourse({ each: true })
+    // Do not validate courses as they can contain courses from departments that are no longer valid
     @Allow()
     @ExposeFrontend()
     courses: string[];
