@@ -49,8 +49,14 @@ function ReviewCard({ review, professorId }: ReviewCard) {
             </div>
 
             <div className="flex md:hidden flex-col flex-shrink-0 m-auto text-center text-sm">
-                <div>Year: {review.gradeLevel}</div>
                 <div>Grade Received: {review.grade}</div>
+                <div>
+                    Posted:{" "}
+                    {new Date(review.postDate).toLocaleString("en-US", {
+                        year: "numeric",
+                        month: "short",
+                    })}
+                </div>
                 <div className="absolute right-5 top-2">
                     <ReportButton professorId={professorId} ratingId={review.id} />
                 </div>
