@@ -276,8 +276,13 @@ const FilterRenderFunction: React.ForwardRefRenderFunction<FilterHandle, FilterP
                 <h3>Department:</h3>
                 <div className="grid grid-cols-2 gap-x-2">
                     {departmentFilters.map(({ name, state }, i) => (
-                        <label key={name} className="mt-1 flex items-center">
+                        <label
+                            key={name}
+                            htmlFor={`department-filter-${name}`}
+                            className="mt-1 flex items-center"
+                        >
                             <input
+                                id={`department-filter-${name}`}
                                 type="checkbox"
                                 checked={state}
                                 className="h-5 w-5"

@@ -152,36 +152,46 @@ function ReportForm({ closeForm, professorId, ratingId }: ReportFormProps) {
 
     return (
         <form className="relative text-left" onSubmit={handleSubmit(onSubmit)}>
-            <div
+            <button
                 className="absolute right-0 top-0 p-3 font-bold cursor-pointer"
                 onClick={closeForm}
+                type="button"
+                title="Close Form"
             >
                 X
-            </div>
+            </button>
             <h2 className="text-3xl font-semibold mb-4">Report Rating</h2>
-            <label className="font-semibold">Email (Optional)</label>
-            <input
-                {...register("email", {
-                    required: false,
-                    pattern: {
-                        value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
-                        message: "invalid email address",
-                    },
-                })}
-                placeholder="name@example.com"
-                className="h-10 border-gray-300 border w-full rounded pl-2 mb-4"
-            />
-            <label className="font-semibold">Reason For Reporting</label>
-            <textarea
-                {...register("reason", {
-                    required: {
-                        value: true,
-                        message: "Leaving a reason will help the team make an informed decision",
-                    },
-                })}
-                placeholder="This Review was offensive and contained inappropriate language."
-                className="border-gray-300 border w-full h-40 rounded pl-2"
-            />
+            <label htmlFor="report-reason" className="font-semibold">
+                Email (Optional)
+                <input
+                    id="report-email"
+                    {...register("email", {
+                        required: false,
+                        pattern: {
+                            value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
+                            message: "invalid email address",
+                        },
+                    })}
+                    placeholder="name@example.com"
+                    className="h-10 border-gray-300 border w-full rounded pl-2 mb-4"
+                />
+            </label>
+            <label htmlFor="report-reason" className="font-semibold">
+                Reason For Reporting
+                <textarea
+                    id="report-reason"
+                    {...register("reason", {
+                        required: {
+                            value: true,
+                            message:
+                                "Leaving a reason will help the team make an informed decision",
+                        },
+                    })}
+                    placeholder="This Review was offensive and contained inappropriate language."
+                    className="border-gray-300 border w-full h-40 rounded pl-2"
+                />
+            </label>
+
             <ErrorMessage errors={errors} name="reason" as="div" className="text-red-500 text-sm" />
             <button
                 className="bg-cal-poly-green text-white rounded-lg p-2 shadow w-24 m-auto mt-1"

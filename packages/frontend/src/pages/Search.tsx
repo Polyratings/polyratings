@@ -123,7 +123,9 @@ export function Search({ location }: SearchPageProps) {
                             className={`bg-gray-300 w-[calc(100vw-2rem)] h-screen fixed top-0 z-10 transition-all left-0 transform 
               ${mobileFiltersOpened ? "-translate-x-0" : "-translate-x-full"}`}
                         >
-                            <div
+                            <button
+                                type="button"
+                                aria-expanded={mobileFiltersOpened}
                                 onClick={() => setMobileFiltersOpened(!mobileFiltersOpened)}
                                 data-testid="mobile-filters"
                                 className={`bg-gray-400 w-8 h-12 absolute -right-8 transition-all 
@@ -147,7 +149,7 @@ export function Search({ location }: SearchPageProps) {
                                         d="M13 5l7 7-7 7M5 5l7 7-7 7"
                                     />
                                 </svg>
-                            </div>
+                            </button>
 
                             <Filters
                                 ref={ref}

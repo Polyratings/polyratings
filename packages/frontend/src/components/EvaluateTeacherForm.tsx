@@ -174,12 +174,14 @@ export function EvaluateTeacherForm({
     return (
         <form className="relative w-full" onSubmit={handleSubmit(onSubmit)} ref={innerRef}>
             {teacher && (
-                <div
+                <button
                     className="absolute right-0 top-0 p-3 font-bold cursor-pointer hidden sm:block"
                     onClick={closeForm}
+                    type="button"
+                    title="Close Form"
                 >
                     X
-                </div>
+                </button>
             )}
             {teacher && (
                 <h2 className="text-2xl font-bold hidden sm:block mb-4">
@@ -252,9 +254,15 @@ export function EvaluateTeacherForm({
                                             type="radio"
                                             className="mr-1 form-radio w-[0.8rem] h-[0.8rem] border-2 border-black rounded-full"
                                             value={n}
+                                            id={`${rating.label}-radio-${n}`}
                                             {...register(rating.inputName)}
                                         />
-                                        <label className="mr-3 hidden md:block">{n}</label>
+                                        <label
+                                            htmlFor={`${rating.label}-radio-${n}`}
+                                            className="mr-3 hidden md:block"
+                                        >
+                                            {n}
+                                        </label>
                                     </div>
                                 ))}
                             </div>

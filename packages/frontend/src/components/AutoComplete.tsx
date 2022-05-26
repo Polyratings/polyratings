@@ -1,3 +1,4 @@
+/* eslint-disable jsx-a11y/no-noninteractive-element-interactions */
 import { useState } from "react";
 import { useTailwindBreakpoint } from "@/hooks";
 
@@ -97,6 +98,9 @@ export function AutoComplete<T>({
         return filteredSuggestions.length ? (
             <ul className="suggestions w-full bg-white border list-none mt-0 pl-0 z-50 relative">
                 {filteredSuggestions.map((suggestion, index) => (
+                    // TODO: Find if this is ok to ignore since there are keydown listeners where the user will have focus
+                    // eslint-disable-next-line jsx-a11y/no-noninteractive-element-interactions
+                    // eslint-disable-next-line jsx-a11y/click-events-have-key-events
                     <li
                         className={`z-50 cursor-pointer ${
                             activeSuggestionIndex === index ? "bg-gray-300" : ""
