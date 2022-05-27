@@ -1,4 +1,4 @@
-import React, { RefObject, useRef, useState } from "react";
+import React, { RefObject, useEffect, useRef, useState } from "react";
 import { useForm, SubmitHandler } from "react-hook-form";
 import { ErrorMessage } from "@hookform/error-message";
 import { toast } from "react-toastify";
@@ -55,6 +55,13 @@ export function EvaluateTeacherForm({
             knownClass: Object.keys(teacher?.reviews || {})[0],
         },
     });
+
+    const formHeaderRef = useRef<HTMLHeadingElement | null>(null);
+    useEffect(() => {
+        // This will only be called when in a modal
+        // Focuses header in modal for accessability
+        formHeaderRef.current?.focus();
+    }, []);
 
     const knownClassValue = watch("knownClass");
     const reviewService = useService(ReviewService);
@@ -184,7 +191,13 @@ export function EvaluateTeacherForm({
                 </button>
             )}
             {teacher && (
-                <h2 className="text-2xl font-bold hidden sm:block mb-4">
+                <h2
+                    className="text-2xl font-bold hidden sm:block mb-4"
+                    // Set tab index when when in a modal
+                    // eslint-disable-next-line jsx-a11y/no-noninteractive-tabindex
+                    tabIndex={0}
+                    ref={formHeaderRef}
+                >
                     Evaluate {teacher.lastName}, {teacher.firstName}
                 </h2>
             )}

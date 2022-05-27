@@ -131,20 +131,12 @@ function ReportForm({ closeForm, professorId, ratingId }: ReportFormProps) {
     const [loading, setLoading] = useState(false);
     const reviewService = useService(ReviewService);
     const logger = useService(Logger);
-
-    const { ref: emailHookFormRef, ...emailRest } = register("email", {
-        required: false,
-        pattern: {
-            value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
-            message: "invalid email address",
-        },
-    });
-
-    const emailRef = useRef<HTMLInputElement | null>(null);
+    const reportHeadingRef = useRef<HTMLHeadingElement | null>(null);
 
     useEffect(() => {
-        emailRef.current?.focus();
-    }, []);
+        // Used to focus for screen readers
+        reportHeadingRef.current?.focus();
+    }, [reportHeadingRef]);
 
     const onSubmit: SubmitHandler<ReportFormInputs> = async (formResult) => {
         setLoading(true);
@@ -175,16 +167,22 @@ function ReportForm({ closeForm, professorId, ratingId }: ReportFormProps) {
             >
                 X
             </button>
-            <h2 className="text-3xl font-semibold mb-4">Report Rating</h2>
+            {/* Needed for modal popup accessability */}
+            {/* eslint-disable-next-line jsx-a11y/no-noninteractive-tabindex */}
+            <h2 className="text-3xl font-semibold mb-4" tabIndex={0} ref={reportHeadingRef}>
+                Report Rating
+            </h2>
             <label htmlFor="report-reason" className="font-semibold">
                 Email (Optional)
                 <input
                     id="report-email"
-                    {...emailRest}
-                    ref={(el) => {
-                        emailHookFormRef(el);
-                        emailRef.current = el;
-                    }}
+                    {...register("email", {
+                        required: false,
+                        pattern: {
+                            value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
+                            message: "invalid email address",
+                        },
+                    })}
                     placeholder="name@example.com"
                     className="h-10 border-gray-300 border w-full rounded pl-2 mb-4"
                 />
