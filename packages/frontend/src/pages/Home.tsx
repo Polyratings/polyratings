@@ -58,13 +58,12 @@ export function Home() {
                     <p className="xl:w-2/3 lg:w-4/5 lg:text-2xl text-xl mt-8 font-medium">
                         A good teacher can make or break a class. Here at Polyratings we believe
                         that you should not be rolling the dice when you register for a class. This
-                        version of Polyratings is a ground up rebuild of the entire website. Read
-                        more about it{" "}
+                        version of Polyratings is a ground up rebuild of the entire website.{" "}
                         <HashLink
                             to="/about#polyratings-4"
                             className="pointer underline text-blue-600"
                         >
-                            here.
+                            Read more about it here.
                         </HashLink>
                     </p>
                 </div>
