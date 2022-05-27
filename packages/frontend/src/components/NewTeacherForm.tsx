@@ -92,37 +92,49 @@ export function NewTeacherForm() {
         <div className="p-5 bg-gray-300 opacity-100 rounded relative" style={{ width: "40rem" }}>
             <form onSubmit={handleSubmit(() => {})} ref={teacherFormRef}>
                 <h2 className="text-2xl font-bold">Teacher</h2>
-                <div className="flex mt-2">
-                    <h4>Department</h4>
-                    <select className="h-7 rounded ml-2" {...register("teacherDepartment")}>
-                        {DEPARTMENT_LIST.map((d) => (
-                            <option key={d} value={d}>
-                                {d}
-                            </option>
-                        ))}
-                    </select>
+                <div className="mt-2">
+                    <label htmlFor="professor-department">
+                        Department{" "}
+                        <select
+                            id="professor-department"
+                            className="h-7 rounded ml-2"
+                            {...register("teacherDepartment")}
+                        >
+                            {DEPARTMENT_LIST.map((d) => (
+                                <option key={d} value={d}>
+                                    {d}
+                                </option>
+                            ))}
+                        </select>
+                    </label>
                 </div>
-                <div className="flex mt-2">
-                    <h4>First Name</h4>
-                    <input
-                        type="text"
-                        className="rounded h-7 w-44 ml-4 pl-2"
-                        placeholder="First Name"
-                        {...register("teacherFirstName", {
-                            required: { value: true, message: "Teacher First Name Required" },
-                        })}
-                    />
+                <div className="mt-2">
+                    <label htmlFor="professor-first-name">
+                        First Name{" "}
+                        <input
+                            id="professor-first-name"
+                            type="text"
+                            className="rounded h-7 w-44 ml-4 pl-2"
+                            placeholder="First Name"
+                            {...register("teacherFirstName", {
+                                required: { value: true, message: "Teacher First Name Required" },
+                            })}
+                        />
+                    </label>
                 </div>
-                <div className="flex mt-1">
-                    <h4>Last Name</h4>
-                    <input
-                        type="text"
-                        className="rounded h-7 w-44 ml-4 pl-2"
-                        placeholder="Last Name"
-                        {...register("teacherLastName", {
-                            required: { value: true, message: "Teacher Last Name Required" },
-                        })}
-                    />
+                <div className="mt-2">
+                    <label htmlFor="professor-last-name">
+                        Last Name{" "}
+                        <input
+                            id="professor-last-name"
+                            type="text"
+                            className="rounded h-7 w-44 ml-4 pl-2"
+                            placeholder="Last Name"
+                            {...register("teacherLastName", {
+                                required: { value: true, message: "Teacher Last Name Required" },
+                            })}
+                        />
+                    </label>
                 </div>
                 <ErrorMessage
                     errors={errors}

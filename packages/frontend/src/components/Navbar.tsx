@@ -36,6 +36,9 @@ export function Navbar() {
                 isAuthenticated ? "bg-red-800" : "bg-cal-poly-green"
             } h-12 flex justify-between px-5 items-center`}
         >
+            <a className="absolute w-[1px] h-[1px] z-[-1]" href="#main">
+                Skip to main content
+            </a>
             <Link to="/" onClick={() => setMobileNav(false)}>
                 <img src={Logo} alt="Polyratings logo" className="h-8" />
             </Link>

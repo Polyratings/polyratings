@@ -1,5 +1,5 @@
 import { Review } from "@polyratings/client";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { SubmitHandler, useForm } from "react-hook-form";
 import { ErrorMessage } from "@hookform/error-message";
 import ClipLoader from "react-spinners/ClipLoader";
@@ -132,6 +132,20 @@ function ReportForm({ closeForm, professorId, ratingId }: ReportFormProps) {
     const reviewService = useService(ReviewService);
     const logger = useService(Logger);
 
+    const { ref: emailHookFormRef, ...emailRest } = register("email", {
+        required: false,
+        pattern: {
+            value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
+            message: "invalid email address",
+        },
+    });
+
+    const emailRef = useRef<HTMLInputElement | null>(null);
+
+    useEffect(() => {
+        emailRef.current?.focus();
+    }, []);
+
     const onSubmit: SubmitHandler<ReportFormInputs> = async (formResult) => {
         setLoading(true);
         try {
@@ -166,13 +180,11 @@ function ReportForm({ closeForm, professorId, ratingId }: ReportFormProps) {
                 Email (Optional)
                 <input
                     id="report-email"
-                    {...register("email", {
-                        required: false,
-                        pattern: {
-                            value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
-                            message: "invalid email address",
-                        },
-                    })}
+                    {...emailRest}
+                    ref={(el) => {
+                        emailHookFormRef(el);
+                        emailRef.current = el;
+                    }}
                     placeholder="name@example.com"
                     className="h-10 border-gray-300 border w-full rounded pl-2 mb-4"
                 />

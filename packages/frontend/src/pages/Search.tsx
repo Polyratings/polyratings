@@ -96,7 +96,7 @@ export function Search({ location }: SearchPageProps) {
     );
 
     return (
-        <div className="">
+        <div id="main">
             <SearchBar
                 initialState={searchState}
                 onChange={setSearchState}
