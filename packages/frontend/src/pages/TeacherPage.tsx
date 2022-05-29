@@ -124,6 +124,7 @@ export function TeacherPage() {
                 isOpen={teacherEvaluationShownDesktop}
                 onRequestClose={() => setTeacherEvaluationShownDesktop(false)}
                 style={REACT_MODAL_STYLES}
+                shouldCloseOnOverlayClick={false}
             >
                 <div
                     className="bg-gray-300 opacity-100 rounded shadow p-5"
