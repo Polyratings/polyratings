@@ -1,12 +1,13 @@
 import { Review } from "@polyratings/client";
-import { useEffect, useRef, useState } from "react";
+import { useState } from "react";
 import { SubmitHandler, useForm } from "react-hook-form";
 import { ErrorMessage } from "@hookform/error-message";
 import ClipLoader from "react-spinners/ClipLoader";
 import { toast } from "react-toastify";
-import { Backdrop } from "@/components";
+import Modal from "react-modal";
 import { useService } from "@/hooks";
 import { Logger, ReviewService } from "@/services";
+import { REACT_MODAL_STYLES } from "@/constants";
 
 export interface ClassSectionProps {
     reviews: Review[];
@@ -79,21 +80,7 @@ interface ReportButtonProps {
 function ReportButton({ professorId, ratingId }: ReportButtonProps) {
     const [formShown, setFormShown] = useState(false);
     return (
-        <div>
-            {formShown && (
-                <Backdrop>
-                    <div
-                        className="bg-gray-300 opacity-100 rounded shadow p-5"
-                        style={{ width: "35rem" }}
-                    >
-                        <ReportForm
-                            professorId={professorId}
-                            ratingId={ratingId}
-                            closeForm={() => setFormShown(false)}
-                        />
-                    </div>
-                </Backdrop>
-            )}
+        <>
             <button type="button" title="Report Rating" onClick={() => setFormShown(true)}>
                 <svg
                     xmlns="http://www.w3.org/2000/svg"
@@ -108,7 +95,23 @@ function ReportButton({ professorId, ratingId }: ReportButtonProps) {
                     />
                 </svg>
             </button>
-        </div>
+            <Modal
+                isOpen={formShown}
+                onRequestClose={() => setFormShown(false)}
+                style={REACT_MODAL_STYLES}
+            >
+                <div
+                    className="bg-gray-300 opacity-100 rounded shadow p-5"
+                    style={{ width: "35rem" }}
+                >
+                    <ReportForm
+                        professorId={professorId}
+                        ratingId={ratingId}
+                        closeForm={() => setFormShown(false)}
+                    />
+                </div>
+            </Modal>
+        </>
     );
 }
 
@@ -131,12 +134,6 @@ function ReportForm({ closeForm, professorId, ratingId }: ReportFormProps) {
     const [loading, setLoading] = useState(false);
     const reviewService = useService(ReviewService);
     const logger = useService(Logger);
-    const reportHeadingRef = useRef<HTMLHeadingElement | null>(null);
-
-    useEffect(() => {
-        // Used to focus for screen readers
-        reportHeadingRef.current?.focus();
-    }, [reportHeadingRef]);
 
     const onSubmit: SubmitHandler<ReportFormInputs> = async (formResult) => {
         setLoading(true);
@@ -167,11 +164,7 @@ function ReportForm({ closeForm, professorId, ratingId }: ReportFormProps) {
             >
                 X
             </button>
-            {/* Needed for modal popup accessability */}
-            {/* eslint-disable-next-line jsx-a11y/no-noninteractive-tabindex */}
-            <h2 className="text-3xl font-semibold mb-4" tabIndex={0} ref={reportHeadingRef}>
-                Report Rating
-            </h2>
+            <h2 className="text-3xl font-semibold mb-4">Report Rating</h2>
             <label htmlFor="report-reason" className="font-semibold">
                 Email (Optional)
                 <input

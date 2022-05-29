@@ -1,4 +1,4 @@
-import React, { RefObject, useEffect, useRef, useState } from "react";
+import { RefObject, useState } from "react";
 import { useForm, SubmitHandler } from "react-hook-form";
 import { ErrorMessage } from "@hookform/error-message";
 import { toast } from "react-toastify";
@@ -55,13 +55,6 @@ export function EvaluateTeacherForm({
             knownClass: Object.keys(teacher?.reviews || {})[0],
         },
     });
-
-    const formHeaderRef = useRef<HTMLHeadingElement | null>(null);
-    useEffect(() => {
-        // This will only be called when in a modal
-        // Focuses header in modal for accessability
-        formHeaderRef.current?.focus();
-    }, []);
 
     const knownClassValue = watch("knownClass");
     const reviewService = useService(ReviewService);
@@ -191,13 +184,7 @@ export function EvaluateTeacherForm({
                 </button>
             )}
             {teacher && (
-                <h2
-                    className="text-2xl font-bold hidden sm:block mb-4"
-                    // Set tab index when when in a modal
-                    // eslint-disable-next-line jsx-a11y/no-noninteractive-tabindex
-                    tabIndex={0}
-                    ref={formHeaderRef}
-                >
+                <h2 className="text-2xl font-bold hidden sm:block mb-4">
                     Evaluate {teacher.lastName}, {teacher.firstName}
                 </h2>
             )}
@@ -205,39 +192,62 @@ export function EvaluateTeacherForm({
             <h4>Class</h4>
             <div className="flex flex-col sm:flex-row sm:justify-between">
                 {teacher && (
-                    <select className="h-7 rounded w-40 text-black" {...register("knownClass")}>
-                        {sortedCourses.map((c) => (
-                            <option value={c} key={c}>
-                                {c}
-                            </option>
-                        ))}
-                        <option value="">Other</option>
-                    </select>
+                    <>
+                        {/* Think this is needed since the label will be hidden */}
+                        {/* eslint-disable-next-line jsx-a11y/label-has-associated-control */}
+                        <label htmlFor="known-class-select" className="hidden">
+                            Course Select
+                        </label>
+                        <select
+                            className="h-7 rounded w-40 text-black"
+                            id="known-class-select"
+                            {...register("knownClass")}
+                        >
+                            {sortedCourses.map((c) => (
+                                <option value={c} key={c}>
+                                    {c}
+                                </option>
+                            ))}
+                            <option value="">Other</option>
+                        </select>
+                    </>
                 )}
 
-                <div
-                    className="text-black pt-1 sm:pt-0"
-                    style={{ display: knownClassValue ? "none" : "block" }}
-                >
-                    <select className="h-7 rounded" {...register("unknownClassDepartment")}>
-                        {DEPARTMENT_LIST.map((d) => (
-                            <option key={d} value={d}>
-                                {d}
-                            </option>
-                        ))}
-                    </select>
-                    <input
-                        className="h-7 w-16 ml-2 rounded appearance-none"
-                        type="number"
-                        placeholder="class #"
-                        {...register("unknownClassNumber", {
-                            required: {
-                                value: !knownClassValue,
-                                message: "Class Number is required",
-                            },
-                        })}
-                    />
-                </div>
+                {!knownClassValue && (
+                    <div className="text-black pt-1 sm:pt-0">
+                        {/* eslint-disable-next-line jsx-a11y/label-has-associated-control */}
+                        <label htmlFor="department-select" className="hidden">
+                            Department
+                        </label>
+                        <select
+                            id="department-select"
+                            className="h-7 rounded"
+                            {...register("unknownClassDepartment")}
+                        >
+                            {DEPARTMENT_LIST.map((d) => (
+                                <option key={d} value={d}>
+                                    {d}
+                                </option>
+                            ))}
+                        </select>
+                        {/* eslint-disable-next-line jsx-a11y/label-has-associated-control */}
+                        <label htmlFor="course-number-select" className="hidden">
+                            Course Number
+                        </label>
+                        <input
+                            id="course-number-select"
+                            className="h-7 w-16 ml-2 rounded appearance-none"
+                            type="number"
+                            placeholder="class #"
+                            {...register("unknownClassNumber", {
+                                required: {
+                                    value: !knownClassValue,
+                                    message: "Class Number is required",
+                                },
+                            })}
+                        />
+                    </div>
+                )}
             </div>
             <ErrorMessage
                 errors={errors}
@@ -248,8 +258,9 @@ export function EvaluateTeacherForm({
             <div className="mt-2">
                 {numericalRatings.map((rating) => (
                     <div key={rating.label}>
-                        <div className="mt-1 flex justify-between">
-                            <h4>{rating.label}</h4>
+                        <fieldset className="mt-1 flex justify-between">
+                            <legend className="hidden">{rating.label}</legend>
+                            <h3>{rating.label}</h3>
                             <div className="flex">
                                 <select
                                     {...register(rating.inputName)}
@@ -279,7 +290,7 @@ export function EvaluateTeacherForm({
                                     </div>
                                 ))}
                             </div>
-                        </div>
+                        </fieldset>
                         <ErrorMessage
                             errors={errors}
                             name={rating.inputName}
@@ -292,11 +303,15 @@ export function EvaluateTeacherForm({
             <div className="mt-2">
                 {classInformation.map((dropdown) => (
                     <div key={dropdown.label}>
-                        <div className="mt-1 flex justify-between">
-                            <h4>{dropdown.label}</h4>
+                        <label
+                            htmlFor={`${dropdown.label}-select`}
+                            className="mt-1 flex justify-between"
+                        >
+                            <div>{dropdown.label}</div>
                             <select
                                 {...register(dropdown.inputName)}
                                 className="w-40 text-black rounded"
+                                id={`${dropdown.label}-select`}
                             >
                                 {dropdown.options.map((option) => (
                                     <option value={option} key={option}>
@@ -304,21 +319,26 @@ export function EvaluateTeacherForm({
                                     </option>
                                 ))}
                             </select>
-                        </div>
+                        </label>
                     </div>
                 ))}
             </div>
-            <h4 className="mt-4">Review:</h4>
-            <textarea
-                {...register("reviewText", {
-                    required: { value: true, message: "Writing a review is required" },
-                    minLength: {
-                        value: 20,
-                        message: "Review text must be at least 20 characters long",
-                    },
-                })}
-                className="w-full h-64 rounded text-black p-2"
-            />
+            {/* Spacer for label since it is inline */}
+            <div className="mt-4" />
+            <label htmlFor="rating-writeup">
+                Review:
+                <textarea
+                    id="rating-writeup"
+                    {...register("reviewText", {
+                        required: { value: true, message: "Writing a review is required" },
+                        minLength: {
+                            value: 20,
+                            message: "Review text must be at least 20 characters long",
+                        },
+                    })}
+                    className="w-full h-64 rounded text-black p-2"
+                />
+            </label>
             <ErrorMessage
                 errors={errors}
                 name="reviewText"

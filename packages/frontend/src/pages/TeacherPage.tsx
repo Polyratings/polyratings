@@ -5,9 +5,11 @@ import { Review, Teacher } from "@polyratings/client";
 import AnimateHeight from "react-animate-height";
 import AnchorLink from "react-anchor-link-smooth-scroll";
 import StarRatings from "react-star-ratings";
+import Modal from "react-modal";
 import { TeacherService, Logger } from "@/services";
-import { Backdrop, ClassSection, EvaluateTeacherForm } from "@/components";
+import { ClassSection, EvaluateTeacherForm } from "@/components";
 import { useService } from "@/hooks";
+import { REACT_MODAL_STYLES } from "@/constants";
 
 interface ClassReviews {
     taughtClass: string;
@@ -118,20 +120,22 @@ export function TeacherPage() {
 
     return (
         <div>
-            {teacherEvaluationShownDesktop && (
-                <Backdrop>
-                    <div
-                        className="bg-gray-300 opacity-100 rounded shadow p-5"
-                        style={{ width: "40rem" }}
-                    >
-                        <EvaluateTeacherForm
-                            teacher={teacherData}
-                            setTeacher={setTeacherData}
-                            closeForm={() => setTeacherEvaluationShownDesktop(false)}
-                        />
-                    </div>
-                </Backdrop>
-            )}
+            <Modal
+                isOpen={teacherEvaluationShownDesktop}
+                onRequestClose={() => setTeacherEvaluationShownDesktop(false)}
+                style={REACT_MODAL_STYLES}
+            >
+                <div
+                    className="bg-gray-300 opacity-100 rounded shadow p-5"
+                    style={{ width: "40rem" }}
+                >
+                    <EvaluateTeacherForm
+                        teacher={teacherData}
+                        setTeacher={setTeacherData}
+                        closeForm={() => setTeacherEvaluationShownDesktop(false)}
+                    />
+                </div>
+            </Modal>
 
             <div className="lg:max-w-5xl w-full mx-auto hidden sm:flex justify-between py-2 px-2">
                 <div>
@@ -170,7 +174,6 @@ export function TeacherPage() {
                     <p>Presents Material Clearly: {NaEvalZero(teacherData?.materialClear)}</p>
                 </div>
             </div>
-
             <div className="sm:hidden container py-2 text-center">
                 <h2 className="text-4xl text-cal-poly-green">
                     {teacherData?.lastName}, {teacherData?.firstName}
@@ -189,10 +192,8 @@ export function TeacherPage() {
                     {teacherEvaluationShownMobile ? "Close Evaluation" : "Evaluate Teacher"}
                 </button>
             </div>
-
             {/* Mobile divider */}
             <div className="sm:hidden bg-cal-poly-green h-1 w-full" />
-
             {/* Desktop Divider */}
             <div className="hidden sm:block lg:max-w-5xl mx-auto mt-2 px-2">
                 <div className="bg-cal-poly-green h-1 w-full" />
@@ -206,7 +207,6 @@ export function TeacherPage() {
                     />
                 </div>
             </AnimateHeight>
-
             {teacherData &&
                 teacherReviews &&
                 teacherReviews.map(({ taughtClass, reviews }) => (

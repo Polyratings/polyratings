@@ -63,7 +63,7 @@ export function Home() {
                             to="/about#polyratings-4"
                             className="pointer underline text-blue-600"
                         >
-                            Read more about it here.
+                            Read more about the rebuild here.
                         </HashLink>
                     </p>
                 </div>
