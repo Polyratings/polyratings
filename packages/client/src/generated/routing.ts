@@ -13,6 +13,7 @@ export interface PolyratingsBackendRouting {
 "delete:/admin/professor/:id": <T extends string>(id: T, body: any) => any;
 "post:/admin/professor/merge": (body: any) => any;
 "post:/admin/professor/department": (body: any) => any;
+"post:/admin/professor/name": (body: any) => any;
 "post:/admin/bulk/:key": <T extends string>(key: T, body: any) => any;
 "post:/admin/reports/:id": <T extends string>(id: T, body: any) => any;
 "delete:/admin/reports/:id": <T extends string>(id: T, body: any) => any;
