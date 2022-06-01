@@ -79,7 +79,7 @@ export class AdminHandler {
         const professor = await ctx.env.kvDao.getProfessor(professorId);
         professor.firstName = firstName;
         professor.lastName = lastName;
-        await ctx.env.kvDao.putProfessor(professor);
+        await ctx.env.kvDao.putProfessor(professor, true);
     }
 
     static async getBulkKeys(ctx: Context<Env, { key: string }, AuthenticatedWithBody<unknown>>) {

@@ -92,11 +92,11 @@ export class KVDAO {
         return values.filter((v) => v !== null).map((v) => JSON.parse(v!));
     }
 
-    async putProfessor(professor: Internal.ProfessorDTO) {
+    async putProfessor(professor: Internal.ProfessorDTO, skipNameCollisionDetection = false) {
         await validateOrReject(professor, DEFAULT_VALIDATOR_OPTIONS);
 
         // Need to check if key exists in order to not throw an error when calling `getProfessor`
-        if (await this.polyratingsNamespace.get(professor.id)) {
+        if (!skipNameCollisionDetection && (await this.polyratingsNamespace.get(professor.id))) {
             const existingProfessor = await this.getProfessor(professor.id);
             if (
                 existingProfessor.firstName !== professor.firstName ||
