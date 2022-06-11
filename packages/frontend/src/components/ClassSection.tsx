@@ -4,9 +4,10 @@ import { SubmitHandler, useForm } from "react-hook-form";
 import { ErrorMessage } from "@hookform/error-message";
 import ClipLoader from "react-spinners/ClipLoader";
 import { toast } from "react-toastify";
-import { Backdrop } from "@/components";
+import Modal from "react-modal";
 import { useService } from "@/hooks";
 import { Logger, ReviewService } from "@/services";
+import { REACT_MODAL_STYLES } from "@/constants";
 
 export interface ClassSectionProps {
     reviews: Review[];
@@ -79,35 +80,39 @@ interface ReportButtonProps {
 function ReportButton({ professorId, ratingId }: ReportButtonProps) {
     const [formShown, setFormShown] = useState(false);
     return (
-        <div>
-            {formShown && (
-                <Backdrop>
-                    <div
-                        className="bg-gray-300 opacity-100 rounded shadow p-5"
-                        style={{ width: "35rem" }}
-                    >
-                        <ReportForm
-                            professorId={professorId}
-                            ratingId={ratingId}
-                            closeForm={() => setFormShown(false)}
-                        />
-                    </div>
-                </Backdrop>
-            )}
-            <svg
-                xmlns="http://www.w3.org/2000/svg"
-                className="h-6 w-6 m-auto mt-1 text-gray-500 hover:text-red-500 transition-all cursor-pointer"
-                viewBox="0 0 20 20"
-                fill="currentColor"
-                onClick={() => setFormShown(true)}
+        <>
+            <button type="button" title="Report Rating" onClick={() => setFormShown(true)}>
+                <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    className="h-6 w-6 m-auto mt-1 text-gray-500 hover:text-red-500 transition-all cursor-pointer"
+                    viewBox="0 0 20 20"
+                    fill="currentColor"
+                >
+                    <path
+                        fillRule="evenodd"
+                        d="M3 6a3 3 0 013-3h10a1 1 0 01.8 1.6L14.25 8l2.55 3.4A1 1 0 0116 13H6a1 1 0 00-1 1v3a1 1 0 11-2 0V6z"
+                        clipRule="evenodd"
+                    />
+                </svg>
+            </button>
+            <Modal
+                isOpen={formShown}
+                onRequestClose={() => setFormShown(false)}
+                style={REACT_MODAL_STYLES}
+                shouldCloseOnOverlayClick={false}
             >
-                <path
-                    fillRule="evenodd"
-                    d="M3 6a3 3 0 013-3h10a1 1 0 01.8 1.6L14.25 8l2.55 3.4A1 1 0 0116 13H6a1 1 0 00-1 1v3a1 1 0 11-2 0V6z"
-                    clipRule="evenodd"
-                />
-            </svg>
-        </div>
+                <div
+                    className="bg-gray-300 opacity-100 rounded shadow p-5"
+                    style={{ width: "35rem" }}
+                >
+                    <ReportForm
+                        professorId={professorId}
+                        ratingId={ratingId}
+                        closeForm={() => setFormShown(false)}
+                    />
+                </div>
+            </Modal>
+        </>
     );
 }
 
@@ -152,36 +157,46 @@ function ReportForm({ closeForm, professorId, ratingId }: ReportFormProps) {
 
     return (
         <form className="relative text-left" onSubmit={handleSubmit(onSubmit)}>
-            <div
+            <button
                 className="absolute right-0 top-0 p-3 font-bold cursor-pointer"
                 onClick={closeForm}
+                type="button"
+                title="Close Form"
             >
                 X
-            </div>
+            </button>
             <h2 className="text-3xl font-semibold mb-4">Report Rating</h2>
-            <label className="font-semibold">Email (Optional)</label>
-            <input
-                {...register("email", {
-                    required: false,
-                    pattern: {
-                        value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
-                        message: "invalid email address",
-                    },
-                })}
-                placeholder="name@example.com"
-                className="h-10 border-gray-300 border w-full rounded pl-2 mb-4"
-            />
-            <label className="font-semibold">Reason For Reporting</label>
-            <textarea
-                {...register("reason", {
-                    required: {
-                        value: true,
-                        message: "Leaving a reason will help the team make an informed decision",
-                    },
-                })}
-                placeholder="This Review was offensive and contained inappropriate language."
-                className="border-gray-300 border w-full h-40 rounded pl-2"
-            />
+            <label htmlFor="report-reason" className="font-semibold">
+                Email (Optional)
+                <input
+                    id="report-email"
+                    {...register("email", {
+                        required: false,
+                        pattern: {
+                            value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
+                            message: "invalid email address",
+                        },
+                    })}
+                    placeholder="name@example.com"
+                    className="h-10 border-gray-300 border w-full rounded pl-2 mb-4"
+                />
+            </label>
+            <label htmlFor="report-reason" className="font-semibold">
+                Reason For Reporting
+                <textarea
+                    id="report-reason"
+                    {...register("reason", {
+                        required: {
+                            value: true,
+                            message:
+                                "Leaving a reason will help the team make an informed decision",
+                        },
+                    })}
+                    placeholder="This Review was offensive and contained inappropriate language."
+                    className="border-gray-300 border w-full h-40 rounded pl-2"
+                />
+            </label>
+
             <ErrorMessage errors={errors} name="reason" as="div" className="text-red-500 text-sm" />
             <button
                 className="bg-cal-poly-green text-white rounded-lg p-2 shadow w-24 m-auto mt-1"

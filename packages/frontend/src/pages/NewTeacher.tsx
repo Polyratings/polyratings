@@ -14,7 +14,7 @@ export function NewTeacher() {
                     backgroundSize: "cover",
                 }}
             >
-                <div className="shadow">
+                <div className="shadow" id="main">
                     <NewTeacherForm />
                 </div>
             </div>

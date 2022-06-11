@@ -5,7 +5,10 @@ export function About() {
     const linkStyle = "hover:underline text-cal-poly-green font-semibold";
     return (
         <div className="container m-auto px-2 md:px-12 max-w-7xl">
-            <h1 className="text-4xl text-cal-poly-green mb-7 mt-12 font-semibold pl-1 md:pl-0">
+            <h1
+                id="main"
+                className="text-4xl text-cal-poly-green mb-7 mt-12 font-semibold pl-1 md:pl-0"
+            >
                 About Polyratings
             </h1>
             <div className="w-full h-[.125rem] bg-cal-poly-green mb-7" />

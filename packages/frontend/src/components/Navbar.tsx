@@ -36,20 +36,25 @@ export function Navbar() {
                 isAuthenticated ? "bg-red-800" : "bg-cal-poly-green"
             } h-12 flex justify-between px-5 items-center`}
         >
+            <a className="absolute w-[1px] h-[1px] z-[-1]" href="#main">
+                Skip to main content
+            </a>
             <Link to="/" onClick={() => setMobileNav(false)}>
                 <img src={Logo} alt="Polyratings logo" className="h-8" />
             </Link>
 
-            <div
+            <button
                 onClick={triggerMobileNav}
                 className={`hamburger hamburger--slider block md:hidden  ${
                     mobileNavOpen ? "is-active hamburgerTurn" : ""
                 }`}
+                type="button"
+                aria-expanded={mobileNavOpen}
             >
                 <div className="hamburger-box">
                     <div className="hamburger-inner bg-white" />
                 </div>
-            </div>
+            </button>
 
             {/* Mobile hamburger dropdown */}
             <AnimateHeight
@@ -76,15 +81,16 @@ export function Navbar() {
                     </Link>
                     {/* <Link className="mr-7" to="contact">Contact</Link> */}
                     {isAuthenticated && (
-                        <div
+                        <button
                             className="my-1"
                             onClick={() => {
                                 authService.signOut();
                                 triggerMobileNav();
                             }}
+                            type="button"
                         >
                             Sign Out
-                        </div>
+                        </button>
                     )}
                 </div>
             </AnimateHeight>
@@ -137,12 +143,13 @@ export function Navbar() {
                     </Link>
                 )}
                 {isAuthenticated && (
-                    <div
+                    <button
                         onClick={() => authService.signOut()}
                         className="rounded-full border-white pl-3 pr-3 border-2 pt-px pb-px cursor-pointer"
+                        type="button"
                     >
                         SIGN OUT
-                    </div>
+                    </button>
                 )}
             </div>
         </div>
