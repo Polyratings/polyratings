@@ -1,7 +1,6 @@
 /* eslint-disable react/no-array-index-key */
 import { useEffect, useState } from "react";
 import { Teacher } from "@polyratings/client";
-import { HashLink } from "react-router-hash-link";
 import homeHeader from "@/assets/home-header.webp";
 import homeCurveTransition from "@/assets/home-curve-transition.svg";
 import star from "@/assets/star.svg";
@@ -51,18 +50,14 @@ export function Home() {
             </div>
             <div className="justify-center pl-5 lg:flex hidden z-10 relative">
                 <div className="w-1/2 transform xl:-translate-y-8 translate-y-2">
-                    <h2 className="xl:text-8xl lg:text-7xl font-semibold">WE’RE BACK!</h2>
+                    <h2 className="xl:text-8xl lg:text-7xl font-semibold">Class of 2022</h2>
                     <p className="xl:w-2/3 lg:w-4/5 lg:text-2xl text-xl mt-8 font-medium">
-                        A good teacher can make or break a class. Here at Polyratings we believe
-                        that you should not be rolling the dice when you register for a class. This
-                        version of Polyratings is a ground up rebuild of the entire website. Read
-                        more about it{" "}
-                        <HashLink
-                            to="/about#polyratings-4"
-                            className="pointer underline text-blue-600"
-                        >
-                            here.
-                        </HashLink>
+                        Congratulations on all the hard work you&apos;ve put in the last 4 years. It
+                        certainly hasn&apos;t been the smooth college experience we hoped for when
+                        we started years ago, but we&apos;ve made it.
+                    </p>
+                    <p className="xl:w-2/3 lg:w-4/5 lg:text-2xl text-xl mt-8 font-medium">
+                        Good luck in your future endeavors, and have a fantastic summer!
                     </p>
                 </div>
 
