@@ -1,6 +1,7 @@
 import {
     BulkKey,
     ChangeDepartmentRequest,
+    ChangeNameRequest,
     chunkArray,
     Internal,
     MergeProfessorRequest,
@@ -127,6 +128,16 @@ export class AdminModule {
     ): Promise<void> {
         await this.httpModule.fetch("/admin/professor/department", {
             body: JSON.stringify(departmentChangeRequest),
+            method: "POST",
+        });
+    }
+
+    /**
+     * Changes a professors Name.
+     */
+    async changeProfessorName(nameChangeRequest: ChangeNameRequest): Promise<void> {
+        await this.httpModule.fetch("/admin/professor/name", {
+            body: JSON.stringify(nameChangeRequest),
             method: "POST",
         });
     }

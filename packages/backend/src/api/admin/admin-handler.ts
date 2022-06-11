@@ -4,6 +4,7 @@ import {
     BulkKey,
     BulkValueRequest,
     ChangeDepartmentRequest,
+    ChangeNameRequest,
     MergeProfessorRequest,
 } from "@polyratings/shared";
 import { Context } from "sunder";
@@ -68,6 +69,17 @@ export class AdminHandler {
         const professor = await ctx.env.kvDao.getProfessor(professorId);
         professor.department = department;
         await ctx.env.kvDao.putProfessor(professor);
+    }
+
+    /**
+     * Changes a professors name
+     */
+    static async changeName(ctx: Context<Env, unknown, AuthenticatedWithBody<ChangeNameRequest>>) {
+        const { professorId, firstName, lastName } = ctx.data.body;
+        const professor = await ctx.env.kvDao.getProfessor(professorId);
+        professor.firstName = firstName;
+        professor.lastName = lastName;
+        await ctx.env.kvDao.putProfessor(professor, true);
     }
 
     static async getBulkKeys(ctx: Context<Env, { key: string }, AuthenticatedWithBody<unknown>>) {

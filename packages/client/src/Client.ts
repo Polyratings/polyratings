@@ -53,6 +53,7 @@ export class Client {
             "delete:/admin/professor/:id": this.admin.deleteProfessor,
             "post:/admin/professor/merge": this.admin.mergeProfessor,
             "post:/admin/professor/department": this.admin.changeProfessorDepartment,
+            "post:/admin/professor/name": this.admin.changeProfessorName,
         };
         return routes;
     }
