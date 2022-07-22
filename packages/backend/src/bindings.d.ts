@@ -1,7 +1,7 @@
 import { KVDAO } from "@polyratings/backend/dao/kv-dao";
 import { CloudflareEnv } from "@polyratings/backend/index";
 import { PerspectiveDAO } from "@polyratings/backend/dao/perspective-dao";
-import { AuthStrategy } from "@polyratings/backend/api/auth/auth-strategy";
+import { AuthStrategy } from "@polyratings/backend/dao/auth-strategy";
 import Toucan from "toucan-js";
 import { DiscordNotificationDAO } from "@polyratings/backend/dao/discord-notification-dao";
 import { KvWrapper } from "./dao/kv-wrapper";
