@@ -13,7 +13,6 @@
     "dependencies": {
         "@hookform/error-message": "^2.0.0",
         "@mindspace-io/react": "^1.7.0",
-        "@polyratings/client": "*",
         "@sentry/react": "^6.18.0",
         "fish-react-virtualized": "^9.22.3",
         "form-request-submit-polyfill": "^2.0.0",

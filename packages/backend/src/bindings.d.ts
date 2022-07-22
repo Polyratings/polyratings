@@ -4,6 +4,7 @@ import { PerspectiveDAO } from "@polyratings/backend/dao/perspective-dao";
 import { AuthStrategy } from "@polyratings/backend/api/auth/auth-strategy";
 import Toucan from "toucan-js";
 import { DiscordNotificationDAO } from "@polyratings/backend/dao/discord-notification-dao";
+import { KvWrapper } from "./dao/kv-wrapper";
 
 export class Env {
     kvDao: KVDAO;
@@ -16,11 +17,11 @@ export class Env {
 
     constructor(env: CloudflareEnv, public sentry: Toucan) {
         this.kvDao = new KVDAO(
-            env.POLYRATINGS_TEACHERS,
-            env.POLYRATINGS_USERS,
-            env.PROCESSING_QUEUE,
-            env.POLYRATINGS_TEACHER_APPROVAL_QUEUE,
-            env.POLYRATINGS_REPORTS,
+            new KvWrapper(env.POLYRATINGS_TEACHERS),
+            new KvWrapper(env.POLYRATINGS_USERS),
+            new KvWrapper(env.PROCESSING_QUEUE),
+            new KvWrapper(env.POLYRATINGS_TEACHER_APPROVAL_QUEUE),
+            new KvWrapper(env.POLYRATINGS_REPORTS),
         );
         this.perspectiveDao = new PerspectiveDAO(env.PERSPECTIVE_API_KEY);
         this.authStrategy = new AuthStrategy(env.JWT_SIGNING_KEY);
