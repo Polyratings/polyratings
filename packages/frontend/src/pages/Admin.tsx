@@ -1,13 +1,9 @@
 /* eslint-disable react/no-unstable-nested-components */
-import { Fragment, lazy, Suspense, useEffect, useState } from "react";
-import { useAuth, useService } from "@/hooks";
-import {
-    AdminService,
-    ConnectedReview,
-    JoinedRatingReport,
-    PendingReview,
-    BackendProfessor,
-} from "@/services";
+import { Fragment, lazy, Suspense, useState } from "react";
+import { Professor, RatingReport } from "@backend/types/schema";
+import { useAuth } from "@/hooks";
+import { trpc } from "@/trpc";
+import { useDbValues } from "@/hooks/useDbValues";
 
 const DataTableLazy = lazy(() => import("react-data-table-component"));
 // TODO: If more lazy loading is needed, refactor into generic lazy load component
@@ -29,7 +25,7 @@ export function Admin() {
                 <PendingProfessors />
                 <ReportedReviews />
                 <ProcessedReviews />
-                <RecentReviews />
+                {/* <RecentReviews /> */}
             </div>
         </div>
     ) : (
@@ -38,39 +34,39 @@ export function Admin() {
 }
 
 function ReportedReviews() {
-    const adminService = useService(AdminService);
-    const [reportedRatings, setReportedRatings] = useState([] as JoinedRatingReport[]);
-
-    useEffect(() => {
-        async function retrieveData() {
-            const reports = await adminService.getReports();
-            setReportedRatings(reports);
-        }
-        retrieveData();
-    }, []);
+    const ratingReports = useDbValues("reports");
+    const professors = ratingReports?.map(
+        (rating) => trpc.useQuery(["getProfessor", rating.professorId]).data,
+    );
+    const { mutate: removeReport } = trpc.useMutation("removeReport");
+    const { mutate: actOnReport } = trpc.useMutation("actOnReport");
 
     const columns = [
         {
             name: "Professor",
             grow: 0.5,
-            selector: (row: JoinedRatingReport) =>
-                `${row.professor.lastName}, ${row.professor.firstName}`,
+            selector: (row: RatingReport) => {
+                const professor = professors?.find(
+                    (professor) => professor?.id === row.professorId,
+                );
+                return `${professor?.lastName}, ${professor?.firstName}`;
+            },
         },
         {
             name: "Department",
             grow: 0.5,
-            selector: (row: JoinedRatingReport) => row.professor.department,
-        },
-        {
-            name: "Rating Course",
-            grow: 0.5,
-            selector: (row: JoinedRatingReport) => row.courseName,
+            selector: (row: RatingReport) => {
+                const professor = professors?.find(
+                    (professor) => professor?.id === row.professorId,
+                );
+                return professor?.department;
+            },
         },
         {
             name: "Reason",
             wrap: true,
             grow: 1.5,
-            cell: (row: JoinedRatingReport) => (
+            cell: (row: RatingReport) => (
                 <div className="flex flex-col w-full">
                     {row.reports.map((report, idx) => (
                         // Need to use index to help out with making each key unique
@@ -88,16 +84,20 @@ function ReportedReviews() {
             name: "Rating",
             wrap: true,
             grow: 3,
-            selector: (row: JoinedRatingReport) => row.review.rating,
+            selector: (row: RatingReport) => {
+                const professor = professors?.find(
+                    (professor) => professor?.id === row.professorId,
+                );
+                return Object.values(professor?.reviews ?? {})
+                    .flat()
+                    .find((rating) => rating.id === row.ratingId)?.rating;
+            },
         },
         {
             name: "Keep Rating",
-            cell: (row: JoinedRatingReport) => (
+            cell: (row: RatingReport) => (
                 <ConfirmationButton
-                    action={async () => {
-                        const reports = await adminService.removeReport(row.ratingId);
-                        setReportedRatings(reports);
-                    }}
+                    action={() => removeReport(row.ratingId)}
                     buttonClassName="p-2 bg-green-500 text-white rounded"
                     buttonText="K"
                 />
@@ -107,12 +107,9 @@ function ReportedReviews() {
         },
         {
             name: "Remove Rating",
-            cell: (row: JoinedRatingReport) => (
+            cell: (row: RatingReport) => (
                 <ConfirmationButton
-                    action={async () => {
-                        const reports = await adminService.actOnReport(row.ratingId);
-                        setReportedRatings(reports);
-                    }}
+                    action={() => actOnReport(row.ratingId)}
                     buttonClassName="p-2 bg-red-500 text-white rounded"
                     buttonText="R"
                 />
@@ -125,50 +122,47 @@ function ReportedReviews() {
     return (
         <div className="mt-4">
             <h2 className="ml-1">Reported Ratings:</h2>
-            <DataTable columns={columns} data={reportedRatings} pagination />
+            <DataTable columns={columns} data={ratingReports} pagination />
         </div>
     );
 }
 
 function PendingProfessors() {
-    const adminService = useService(AdminService);
-    const [pendingProfessors, setPendingProfessors] = useState([] as BackendProfessor[]);
-
-    useEffect(() => {
-        async function retrieveData() {
-            const professors = await adminService.pendingProfessors();
-            setPendingProfessors(professors);
-        }
-        retrieveData();
-    }, []);
+    const pendingProfessors = useDbValues("professor-queue");
+    const trpcContext = trpc.useContext();
+    const { mutate: approvePendingProfessor } = trpc.useMutation("approvePendingTeacher", {
+        // TODO: Fix invalidation
+        onSuccess: () => trpcContext.invalidateQueries("getBulkKeys"),
+    });
+    const { mutate: rejectPendingProfessor } = trpc.useMutation("rejectPendingProfessor", {
+        // TODO: Fix invalidation
+        onSuccess: () => trpcContext.invalidateQueries("getBulkKeys"),
+    });
 
     const columns = [
         {
             name: "Professor",
-            selector: (row: BackendProfessor) => `${row.lastName}, ${row.firstName}`,
+            selector: (row: Professor) => `${row.lastName}, ${row.firstName}`,
         },
         {
             name: "Department",
-            selector: (row: BackendProfessor) => row.department,
+            selector: (row: Professor) => row.department,
         },
         {
             name: "Rating Course",
-            selector: (row: BackendProfessor) => Object.keys(row.reviews ?? {})[0],
+            selector: (row: Professor) => Object.keys(row.reviews ?? {})[0],
         },
         {
             name: "Rating",
             wrap: true,
             grow: 3,
-            selector: (row: BackendProfessor) => Object.values(row.reviews ?? {})[0][0].rating,
+            selector: (row: Professor) => Object.values(row.reviews ?? {})[0][0].rating,
         },
         {
             name: "Approve",
-            cell: (row: BackendProfessor) => (
+            cell: (row: Professor) => (
                 <ConfirmationButton
-                    action={async () => {
-                        const afterApproval = await adminService.approvePendingProfessor(row.id);
-                        setPendingProfessors(afterApproval);
-                    }}
+                    action={async () => approvePendingProfessor(row.id)}
                     buttonClassName="p-2 bg-green-500 text-white rounded"
                     buttonText="✓"
                 />
@@ -178,12 +172,9 @@ function PendingProfessors() {
         },
         {
             name: "Deny",
-            cell: (row: BackendProfessor) => (
+            cell: (row: Professor) => (
                 <ConfirmationButton
-                    action={async () => {
-                        const afterRemoval = await adminService.removePendingProfessor(row.id);
-                        setPendingProfessors(afterRemoval);
-                    }}
+                    action={async () => rejectPendingProfessor(row.id)}
                     buttonClassName="p-2 bg-red-500 text-white rounded"
                     buttonText="X"
                 />
@@ -202,16 +193,8 @@ function PendingProfessors() {
 }
 
 function ProcessedReviews() {
-    const adminService = useService(AdminService);
-    const [processedReviews, setProcessedReviews] = useState([] as PendingReview[]);
-
-    useEffect(() => {
-        async function retrieveData() {
-            const reviews = await adminService.getProcessedReviews();
-            setProcessedReviews(reviews);
-        }
-        retrieveData();
-    }, []);
+    const processedReviews = useDbValues("rating-queue");
+    type PendingReview = NonNullable<typeof processedReviews>[0];
 
     const columns = [
         {
@@ -224,11 +207,13 @@ function ProcessedReviews() {
             grow: 1.5,
             cell: (row: PendingReview) => (
                 <div className="flex flex-col">
-                    {Object.entries(row.scores).map(([name, score]) => (
-                        <div key={name}>
-                            {name}: {score}
-                        </div>
-                    ))}
+                    {Object.entries(row.sentimentResponse?.summaryScore ?? {}).map(
+                        ([name, score]) => (
+                            <div key={name}>
+                                {name}: {score}
+                            </div>
+                        ),
+                    )}
                 </div>
             ),
         },
@@ -248,65 +233,66 @@ function ProcessedReviews() {
     );
 }
 
-function RecentReviews() {
-    const adminService = useService(AdminService);
-    const [recentReviews, setRecentReviews] = useState([] as ConnectedReview[]);
-    const [retrievalTime, setRetrievalTime] = useState("");
+// TODO: Re-Enable in a reasonable way
+// function RecentReviews() {
+//     const adminService = useService(AdminService);
+//     const [recentReviews, setRecentReviews] = useState([] as ConnectedReview[]);
+//     const [retrievalTime, setRetrievalTime] = useState("");
 
-    useEffect(() => {
-        async function retrieveData() {
-            const reviews = await adminService.recentReviews();
-            setRecentReviews(reviews);
-            const lastRetrieved = await adminService.professorKvDumpUpdatedAt();
-            setRetrievalTime(lastRetrieved);
-        }
-        retrieveData();
-    }, []);
-    const columns = [
-        {
-            name: "Professor",
-            selector: (row: ConnectedReview) => row.professorName,
-            grow: 0.5,
-        },
-        {
-            name: "Date",
-            selector: (row: ConnectedReview) => new Date(row.postDate).toLocaleDateString(),
-            grow: 0.5,
-        },
-        {
-            name: "Rating",
-            wrap: true,
-            grow: 3,
-            selector: (row: ConnectedReview) => row.rating,
-        },
-        {
-            name: "Remove",
-            cell: (row: ConnectedReview) => (
-                <ConfirmationButton
-                    action={async () => {
-                        const reviewsLeft = await adminService.removeReview(
-                            row.professorId,
-                            row.id,
-                        );
-                        setRecentReviews(reviewsLeft);
-                    }}
-                    buttonClassName="p-2 bg-red-500 text-white rounded"
-                    buttonText="X"
-                />
-            ),
-            center: true,
-            grow: 0,
-        },
-    ];
+//     useEffect(() => {
+//         async function retrieveData() {
+//             const reviews = await adminService.recentReviews();
+//             setRecentReviews(reviews);
+//             const lastRetrieved = await adminService.professorKvDumpUpdatedAt();
+//             setRetrievalTime(lastRetrieved);
+//         }
+//         retrieveData();
+//     }, []);
+//     const columns = [
+//         {
+//             name: "Professor",
+//             selector: (row: ConnectedReview) => row.professorName,
+//             grow: 0.5,
+//         },
+//         {
+//             name: "Date",
+//             selector: (row: ConnectedReview) => new Date(row.postDate).toLocaleDateString(),
+//             grow: 0.5,
+//         },
+//         {
+//             name: "Rating",
+//             wrap: true,
+//             grow: 3,
+//             selector: (row: ConnectedReview) => row.rating,
+//         },
+//         {
+//             name: "Remove",
+//             cell: (row: ConnectedReview) => (
+//                 <ConfirmationButton
+//                     action={async () => {
+//                         const reviewsLeft = await adminService.removeReview(
+//                             row.professorId,
+//                             row.id,
+//                         );
+//                         setRecentReviews(reviewsLeft);
+//                     }}
+//                     buttonClassName="p-2 bg-red-500 text-white rounded"
+//                     buttonText="X"
+//                 />
+//             ),
+//             center: true,
+//             grow: 0,
+//         },
+//     ];
 
-    return (
-        <div className="mt-4">
-            <h2 className="ml-1">Recent Reviews:</h2>
-            <p className="text-sm ml-1">Data last retrieved at: {retrievalTime}</p>
-            <DataTable columns={columns} data={recentReviews} pagination />
-        </div>
-    );
-}
+//     return (
+//         <div className="mt-4">
+//             <h2 className="ml-1">Recent Reviews:</h2>
+//             <p className="text-sm ml-1">Data last retrieved at: {retrievalTime}</p>
+//             <DataTable columns={columns} data={recentReviews} pagination />
+//         </div>
+//     );
+// }
 
 interface ConfirmationButtonProps {
     action: () => void | Promise<void>;

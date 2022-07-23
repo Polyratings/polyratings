@@ -1,11 +1,9 @@
-import { Teacher } from "@polyratings/client";
 import { Link, useHistory } from "react-router-dom";
 import star from "@/assets/star.svg";
-import { useService } from "@/hooks";
-import { TeacherService } from "@/services";
+import { inferQueryOutput } from "@/trpc";
 
 interface TeacherCardProps {
-    teacher: Teacher | null;
+    teacher: inferQueryOutput<"allProfessors">[0] | null;
     beforeNavigation?: () => void | (() => Promise<void>);
 }
 
@@ -13,7 +11,6 @@ export const TEACHER_CARD_HEIGHT_REM = 10;
 
 export function TeacherCard({ teacher, beforeNavigation = () => {} }: TeacherCardProps) {
     const history = useHistory();
-    const teacherService = useService(TeacherService);
 
     const onClick = async (e: React.MouseEvent) => {
         // Stop navigation from the parent <Link /> element
@@ -24,7 +21,6 @@ export function TeacherCard({ teacher, beforeNavigation = () => {} }: TeacherCar
 
         // Load teacher into the local teacher card for next page to load immediately
         if (teacher) {
-            await teacherService.getTeacher(teacher.id);
             history.push(`/professor/${teacher.id}`);
         }
     };

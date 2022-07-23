@@ -1,27 +1,25 @@
-import { Review } from "@polyratings/client";
 import { useState } from "react";
 import { SubmitHandler, useForm } from "react-hook-form";
 import { ErrorMessage } from "@hookform/error-message";
-import ClipLoader from "react-spinners/ClipLoader";
 import { toast } from "react-toastify";
+import { ValueOf } from "type-fest";
 import { Backdrop } from "@/components";
-import { useService } from "@/hooks";
-import { Logger, ReviewService } from "@/services";
+import { inferQueryOutput, trpc } from "@/trpc";
 
 export interface ClassSectionProps {
-    reviews: Review[];
+    ratings: ValueOf<inferQueryOutput<"getProfessor">["reviews"]>;
     professorId: string;
-    taughtClass: string;
+    course: string;
 }
 
-export function ClassSection({ reviews, taughtClass, professorId }: ClassSectionProps) {
+export function ClassSection({ ratings, course, professorId }: ClassSectionProps) {
     return (
-        <div className="pt-4 relative" id={taughtClass}>
-            <h2 className="text-center text-4xl text-cal-poly-green">{taughtClass}</h2>
+        <div className="pt-4 relative" id={course}>
+            <h2 className="text-center text-4xl text-cal-poly-green">{course}</h2>
             <div className="container md:max-w-5xl flex flex-col m-auto px-2">
-                {reviews.map((review, i) => (
+                {ratings.map((rating, i) => (
                     // eslint-disable-next-line react/no-array-index-key
-                    <ReviewCard key={i} review={review} professorId={professorId} />
+                    <ReviewCard key={i} rating={rating} professorId={professorId} />
                 ))}
             </div>
         </div>
@@ -30,35 +28,35 @@ export function ClassSection({ reviews, taughtClass, professorId }: ClassSection
 
 interface ReviewCard {
     professorId: string;
-    review: Review;
+    rating: ValueOf<inferQueryOutput<"getProfessor">["reviews"]>[0];
 }
-function ReviewCard({ review, professorId }: ReviewCard) {
+function ReviewCard({ rating, professorId }: ReviewCard) {
     return (
         <div className="bg-white w-full rounded-3xl py-2 px-4 my-2 border-cal-poly-gold border-4 flex flex-col md:flex-row relative">
             <div className="hidden md:flex flex-col w-32 flex-shrink-0 m-auto mr-4 text-center text-sm">
-                <div>{review.gradeLevel}</div>
-                <div>{review.grade}</div>
-                <div>{review.courseType}</div>
+                <div>{rating.gradeLevel}</div>
+                <div>{rating.grade}</div>
+                <div>{rating.courseType}</div>
                 <div>
-                    {new Date(review.postDate).toLocaleString("en-US", {
+                    {new Date(rating.postDate).toLocaleString("en-US", {
                         year: "numeric",
                         month: "short",
                     })}
                 </div>
-                <ReportButton professorId={professorId} ratingId={review.id} />
+                <ReportButton professorId={professorId} ratingId={rating.id} />
             </div>
 
             <div className="flex md:hidden flex-col flex-shrink-0 m-auto text-center text-sm">
-                <div>Grade Received: {review.grade}</div>
+                <div>Grade Received: {rating.grade}</div>
                 <div>
                     Posted:{" "}
-                    {new Date(review.postDate).toLocaleString("en-US", {
+                    {new Date(rating.postDate).toLocaleString("en-US", {
                         year: "numeric",
                         month: "short",
                     })}
                 </div>
                 <div className="absolute right-5 top-2">
-                    <ReportButton professorId={professorId} ratingId={review.id} />
+                    <ReportButton professorId={professorId} ratingId={rating.id} />
                 </div>
             </div>
 
@@ -67,7 +65,7 @@ function ReviewCard({ review, professorId }: ReviewCard) {
             {/* Mobile divider */}
             <div className="flex md:hidden bg-cal-poly-green w-4/5 h-1 m-auto my-2" />
 
-            <div className="flex-grow">{review.rating}</div>
+            <div className="flex-grow">{rating.rating}</div>
         </div>
     );
 }
@@ -127,25 +125,17 @@ function ReportForm({ closeForm, professorId, ratingId }: ReportFormProps) {
         formState: { errors },
     } = useForm<ReportFormInputs>();
 
-    const [loading, setLoading] = useState(false);
-    const reviewService = useService(ReviewService);
-    const logger = useService(Logger);
+    const reportMutation = trpc.useMutation("reportRating");
 
     const onSubmit: SubmitHandler<ReportFormInputs> = async (formResult) => {
-        setLoading(true);
-        try {
-            reviewService.reportReview({
-                professorId,
-                ratingId,
-                email: formResult.email,
-                reason: formResult.reason,
-            });
-        } catch (e) {
-            // Silently log error and tell the user that there report was successful
-            // While dishonest it will lead to a better experience in the case there is an error
-            logger.error(e);
-        }
-        setLoading(false);
+        // Silently log error and tell the user that there report was successful
+        // While dishonest it will lead to a better experience in the case there is an error
+        reportMutation.mutate({
+            professorId,
+            ratingId,
+            email: formResult.email,
+            reason: formResult.reason,
+        });
         closeForm();
         toast.success("Thank you for the report. The team will review it soon");
     };
@@ -185,15 +175,10 @@ function ReportForm({ closeForm, professorId, ratingId }: ReportFormProps) {
             <ErrorMessage errors={errors} name="reason" as="div" className="text-red-500 text-sm" />
             <button
                 className="bg-cal-poly-green text-white rounded-lg p-2 shadow w-24 m-auto mt-1"
-                style={{ display: loading ? "none" : "block" }}
                 type="submit"
             >
                 Submit
             </button>
-            {/* Exact size for no layer shift */}
-            <div className="flex justify-center">
-                <ClipLoader color="#1F4715" loading={loading} size={34} />
-            </div>
         </form>
     );
 }

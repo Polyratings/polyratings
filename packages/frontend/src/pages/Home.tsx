@@ -1,26 +1,17 @@
 /* eslint-disable react/no-array-index-key */
-import { useEffect, useState } from "react";
-import { Teacher } from "@polyratings/client";
+import { getRandomSubarray } from "@/utils";
 import homeHeader from "@/assets/home-header.webp";
 import homeCurveTransition from "@/assets/home-curve-transition.svg";
 import star from "@/assets/star.svg";
 import worstOfWorstBackground from "@/assets/worst-of-worst-background.webp";
-import { TeacherService } from "@/services";
 import { SearchBar, TeacherCard } from "@/components";
-import { useService } from "@/hooks";
+import { inferQueryOutput, trpc } from "@/trpc";
 
 export function Home() {
-    const [highlightedProfessor, setHighlightedProfessor] = useState<Teacher | null>(null);
-    const [bestOfTheBest, setBestOfTheBest] = useState<Teacher[]>([]);
-    const teacherService = useService(TeacherService);
+    const { data: allProfessors } = trpc.useQuery(["allProfessors"]);
 
-    useEffect(() => {
-        async function retrieveHomeData() {
-            setHighlightedProfessor((await teacherService.getBestTeachers())[0]);
-            setBestOfTheBest(await teacherService.getBestTeachers());
-        }
-        retrieveHomeData();
-    }, []);
+    const highlightedProfessor = getBestProfessors(allProfessors ?? [])?.[0];
+    const bestOfTheBest = allProfessors ? getBestProfessors(allProfessors) : [];
 
     return (
         <div>
@@ -101,4 +92,11 @@ export function Home() {
             </div>
         </div>
     );
+}
+
+function getBestProfessors(allProfessors: inferQueryOutput<"allProfessors">) {
+    const rankedTeachers = allProfessors
+        .filter((t) => t.numEvals > 10)
+        .sort((a, b) => b.overallRating - a.overallRating);
+    return getRandomSubarray(rankedTeachers.slice(0, 100), 6);
 }

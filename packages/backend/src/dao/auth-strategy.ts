@@ -1,8 +1,6 @@
 /* eslint-disable class-methods-use-this */
-import { PolyratingsError } from "@polyratings/backend/utils/errors";
-import { UserToken as UserTokenPlain, Internal } from "@polyratings/shared";
-import { plainToInstance } from "class-transformer";
 import * as jwt from "@tsndr/cloudflare-worker-jwt";
+import { User } from "@backend/types/schema";
 
 const HEX_BYTES_PER_CHAR = 2;
 
@@ -41,26 +39,26 @@ export class AuthStrategy {
         return storedHash === computedHashStr;
     }
 
-    async verify(authHeader: string | null): Promise<Internal.UserToken> {
+    async verify(authHeader: string | null): Promise<UserToken | undefined> {
         if (!authHeader) {
-            throw new PolyratingsError(401, "Bad Credentials");
+            return undefined;
         }
 
         const token = authHeader.replace("Bearer ", "");
         const isValid = await jwt.verify(token, this.jwtSigningKey);
         if (!isValid) {
-            throw new PolyratingsError(401, `Invalid JWT ${token}`);
+            return undefined;
         }
 
         // If token is valid payload should be as well
         const payload = jwt.decode(token);
 
-        return plainToInstance(Internal.UserToken, payload);
+        return payload as UserToken;
     }
 
-    async createToken(user: Internal.User) {
+    async createToken(user: User) {
         const { username } = user;
-        const payload: UserTokenPlain = {
+        const payload: UserToken = {
             sub: username,
             username,
             exp: Math.floor(Date.now() / 1000) + 2 * (60 * 60), // Expires: Now + 2h
@@ -75,3 +73,9 @@ export class AuthStrategy {
         return Array.from(byteArray, (byte) => `0${(byte & 0xff).toString(16)}`.slice(-2)).join("");
     }
 }
+
+export type UserToken = {
+    sub: string;
+    username: string;
+    exp: number;
+};
