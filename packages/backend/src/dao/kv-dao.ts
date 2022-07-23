@@ -1,5 +1,5 @@
-import { PolyratingsError } from "@polyratings/backend/utils/errors";
-import { BulkKey } from "@polyratings/backend/utils/const";
+import { PolyratingsError } from "@backend/utils/errors";
+import { BulkKey } from "@backend/utils/const";
 import { z } from "zod";
 import { TRPCError } from "@trpc/server";
 import {
@@ -13,13 +13,13 @@ import {
     truncatedProfessorValidator,
     User,
     userValidator,
-} from "@polyratings/backend/types/schema";
+} from "@backend/types/schema";
 import {
     addRating,
     pendingRatingToRating,
     professorToTruncatedProfessor,
     removeRating,
-} from "@polyratings/backend/types/schemaHelpers";
+} from "@backend/types/schemaHelpers";
 import { KvWrapper } from "./kv-wrapper";
 
 const KV_REQUESTS_PER_TRIGGER = 1000;

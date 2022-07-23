@@ -5,13 +5,12 @@ import {
     GRADES,
     GRADE_LEVELS,
     PENDING_RATING_STATUSES,
-} from "@polyratings/backend/utils/const";
+} from "@backend/utils/const";
 
 export const ratingBaseValidator = z.object({
     grade: z.enum(GRADES),
     gradeLevel: z.enum(GRADE_LEVELS),
     courseType: z.enum(COURSE_TYPES),
-    postDate: z.string(),
     overallRating: z.number().min(0).max(4),
     presentsMaterialClearly: z.number().min(0).max(4),
     recognizesStudentDifficulties: z.number().min(0).max(4),
@@ -23,6 +22,7 @@ export const ratingValidator = ratingBaseValidator.merge(
     z.object({
         id: z.string().uuid(),
         professor: z.string().uuid(),
+        postDate: z.string(),
     }),
 );
 export type Rating = z.infer<typeof ratingValidator>;

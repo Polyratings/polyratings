@@ -1,14 +1,13 @@
-import { t } from "@polyratings/backend/trpc";
+import { t } from "@backend/trpc";
 import { z } from "zod";
 import { TRPCError } from "@trpc/server";
 import {
     PendingRating,
     ratingBaseValidator,
     RatingReport,
-    ratingReportValidator,
     reportValidator,
-} from "@polyratings/backend/types/schema";
-import { DEPARTMENT_LIST } from "@polyratings/backend/utils/const";
+} from "@backend/types/schema";
+import { DEPARTMENT_LIST } from "@backend/utils/const";
 
 export const ratingsRouter = t.router({
     addNewRating: t.procedure
@@ -26,6 +25,7 @@ export const ratingsRouter = t.router({
             const pendingRating: PendingRating = {
                 id: crypto.randomUUID(),
                 ...input,
+                postDate: new Date().toString(),
                 status: "Queued",
                 error: null,
                 sentimentResponse: null,
@@ -80,7 +80,11 @@ export const ratingsRouter = t.router({
             });
         }),
     reportRating: t.procedure
-        .input(ratingReportValidator.merge(reportValidator))
+        .input(
+            reportValidator.merge(
+                z.object({ ratingId: z.string().uuid(), professorId: z.string().uuid() }),
+            ),
+        )
         .mutation(async ({ ctx, input }) => {
             const ratingReport: RatingReport = {
                 ratingId: input.ratingId,

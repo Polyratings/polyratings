@@ -1,4 +1,4 @@
-import { PendingRating, PerspectiveAttributeScore } from "@polyratings/backend/types/schema";
+import { PendingRating, PerspectiveAttributeScore } from "@backend/types/schema";
 
 const ANALYZE_COMMENT_URL = "https://commentanalyzer.googleapis.com/v1alpha1/comments:analyze";
 

@@ -1,7 +1,7 @@
-import { t, protectedProcedure } from "@polyratings/backend/trpc";
+import { t, protectedProcedure } from "@backend/trpc";
 import { z } from "zod";
-import { addRating } from "@polyratings/backend/types/schemaHelpers";
-import { bulkKeys, DEPARTMENT_LIST } from "@polyratings/backend/utils/const";
+import { addRating } from "@backend/types/schemaHelpers";
+import { bulkKeys, DEPARTMENT_LIST } from "@backend/utils/const";
 
 export const adminRouter = t.router({
     removeRating: protectedProcedure

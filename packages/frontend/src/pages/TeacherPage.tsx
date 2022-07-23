@@ -1,90 +1,68 @@
 /* eslint-disable react/no-unstable-nested-components */
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useHistory, useParams } from "react-router-dom";
-import { Review, Teacher } from "@polyratings/client";
 import AnimateHeight from "react-animate-height";
 import AnchorLink from "react-anchor-link-smooth-scroll";
 import StarRatings from "react-star-ratings";
-import { TeacherService, Logger } from "@/services";
+import { ValueOf } from "type-fest";
 import { Backdrop, ClassSection, EvaluateTeacherForm } from "@/components";
-import { useService } from "@/hooks";
+import { inferQueryOutput, trpc } from "@/trpc";
 
 interface ClassReviews {
-    taughtClass: string;
-    reviews: Review[];
+    course: string;
+    reviews: ValueOf<inferQueryOutput<"getProfessor">["reviews"]>;
 }
 
 export function TeacherPage() {
     const { id } = useParams<{ id: string }>();
 
-    const [teacherData, setTeacherData] = useState<Teacher | null>(null);
+    const { data: teacherData, error: fetchError } = trpc.useQuery(["getProfessor", id]);
 
     // Put classes for teachers primary department first. This is to cut down on review spamming
     // of other departments. It is possible for a teacher to teach outside of the department but
     // it is ok if those reviews come after the primary department
-    const [teacherReviews, SetTeacherReviews] = useState<ClassReviews[] | null>(null);
-    useEffect(() => {
-        if (!teacherData) {
-            return;
-        }
-        // Sort Into Departments
-        const teacherByDepartments = Object.entries(teacherData?.reviews || {}).reduce(
-            (acc, [taughtClass, reviews]) => {
-                const obj: ClassReviews = { taughtClass, reviews };
-                const [department] = taughtClass.split(" ");
-                if (acc[department]) {
-                    acc[department].push(obj);
-                } else {
-                    acc[department] = [obj];
-                }
-                return acc;
-            },
-            {} as { [department: string]: ClassReviews[] },
-        );
 
-        // Sort departments by class number
-        Object.values(teacherByDepartments).forEach((deparment) =>
-            deparment.sort((a, b) => {
-                const [, aNumber] = a.taughtClass.split(" ");
-                const [, bNumber] = b.taughtClass.split(" ");
-                return parseInt(aNumber, 10) - parseInt(bNumber, 10);
-            }),
-        );
+    // Sort Into Departments
+    const teacherByDepartments = Object.entries(teacherData?.reviews || {}).reduce(
+        (acc, [course, reviews]) => {
+            const obj: ClassReviews = { course, reviews };
+            const [department] = course.split(" ");
+            if (acc[department]) {
+                acc[department].push(obj);
+            } else {
+                acc[department] = [obj];
+            }
+            return acc;
+        },
+        {} as { [department: string]: ClassReviews[] },
+    );
 
-        const primaryClasses = teacherByDepartments[teacherData.department] ?? [];
-        const otherClasses = Object.entries(teacherByDepartments)
-            .filter(([department]) => department !== teacherData.department)
-            .flatMap(([, classReviews]) => classReviews);
+    // Sort departments by class number
+    Object.values(teacherByDepartments).forEach((deparment) =>
+        deparment.sort((a, b) => {
+            const [, aNumber] = a.course.split(" ");
+            const [, bNumber] = b.course.split(" ");
+            return parseInt(aNumber, 10) - parseInt(bNumber, 10);
+        }),
+    );
 
-        const sortedByDate = [...primaryClasses, ...otherClasses].map((classReview) => {
-            // Be carful the array is sorted in place. This is fine here but if moved could cause issues.
-            classReview.reviews.sort(
-                (a, b) => Date.parse(b.postDate.toString()) - Date.parse(a.postDate.toString()),
-            );
-            return classReview;
-        });
+    const primaryClasses = teacherByDepartments[teacherData?.department ?? ""] ?? [];
+    const otherClasses = Object.entries(teacherByDepartments)
+        .filter(([department]) => department !== teacherData?.department)
+        .flatMap(([, classReviews]) => classReviews);
 
-        SetTeacherReviews(sortedByDate);
-    }, [teacherData]);
+    const teacherReviews = [...primaryClasses, ...otherClasses].map((classReview) => {
+        // Be carful the array is sorted in place. This is fine here but if moved could cause issues.
+        classReview.reviews.sort((a, b) => Date.parse(b.postDate) - Date.parse(a.postDate));
+        return classReview;
+    });
 
     const history = useHistory();
-    const teacherService = useService(TeacherService);
+    if (fetchError) {
+        history.push("/");
+    }
     const [teacherEvaluationShownDesktop, setTeacherEvaluationShownDesktop] = useState(false);
     const [teacherEvaluationShownMobile, setTeacherEvaluationShownMobile] = useState(false);
-
-    useEffect(() => {
-        async function retrieveTeacherData() {
-            try {
-                const result = await teacherService.getTeacher(id);
-                setTeacherData(result);
-            } catch (e) {
-                const logger = useService(Logger);
-                logger.error(`Failed to load teacher with id: ${id}`, e);
-                history.push("/");
-            }
-        }
-        retrieveTeacherData();
-    }, [id]);
 
     const NaEvalZero = (val: number | undefined) => {
         if (teacherData?.numEvals) {
@@ -103,13 +81,9 @@ export function TeacherPage() {
         return (
             <div className={outerClassName}>
                 {teacherReviews &&
-                    teacherReviews.map(({ taughtClass }) => (
-                        <AnchorLink
-                            key={taughtClass}
-                            href={`#${taughtClass}`}
-                            className={innerClassName}
-                        >
-                            {taughtClass}
+                    teacherReviews.map(({ course }) => (
+                        <AnchorLink key={course} href={`#${course}`} className={innerClassName}>
+                            {course}
                         </AnchorLink>
                     ))}
             </div>
@@ -126,7 +100,6 @@ export function TeacherPage() {
                     >
                         <EvaluateTeacherForm
                             teacher={teacherData}
-                            setTeacher={setTeacherData}
                             closeForm={() => setTeacherEvaluationShownDesktop(false)}
                         />
                     </div>
@@ -201,7 +174,6 @@ export function TeacherPage() {
                 <div className="bg-cal-poly-green text-white p-5">
                     <EvaluateTeacherForm
                         teacher={teacherData}
-                        setTeacher={setTeacherData}
                         closeForm={() => setTeacherEvaluationShownMobile(false)}
                     />
                 </div>
@@ -209,11 +181,11 @@ export function TeacherPage() {
 
             {teacherData &&
                 teacherReviews &&
-                teacherReviews.map(({ taughtClass, reviews }) => (
+                teacherReviews.map(({ course, reviews }) => (
                     <ClassSection
-                        key={taughtClass}
-                        reviews={reviews}
-                        taughtClass={taughtClass}
+                        key={course}
+                        ratings={reviews}
+                        course={course}
                         professorId={teacherData.id}
                     />
                 ))}

@@ -1,8 +1,8 @@
-import { t } from "@polyratings/backend/trpc";
+import { t } from "@backend/trpc";
 import { z } from "zod";
-import { Professor, Rating, ratingBaseValidator } from "@polyratings/backend/types/schema";
-import { addRating } from "@polyratings/backend/types/schemaHelpers";
-import { DEPARTMENT_LIST } from "@polyratings/backend/utils/const";
+import { Professor, Rating, ratingBaseValidator } from "@backend/types/schema";
+import { addRating } from "@backend/types/schemaHelpers";
+import { DEPARTMENT_LIST } from "@backend/utils/const";
 
 export const professorRouter = t.router({
     allProfessors: t.procedure.query(({ ctx }) => ctx.env.kvDao.getAllProfessors()),

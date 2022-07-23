@@ -1,12 +1,13 @@
 import { useEffect, useRef, useState } from "react";
 import { useHistory } from "react-router-dom";
-import { DEPARTMENT_LIST } from "@polyratings/client";
-import { TeacherSearchType, TeacherService } from "@/services/teacher.service";
+import { DEPARTMENT_LIST } from "@backend/utils/const";
+// import { TeacherSearchType, TeacherService } from "@/services/teacher.service";
 import { AutoComplete, AutoCompleteOption } from ".";
-import { useService } from "@/hooks";
+import { trpc } from "@/trpc";
+import { ProfessorSearchType, professorSearch } from "@/utils/ProfessorSearch";
 
 export interface SearchState {
-    type: TeacherSearchType;
+    type: ProfessorSearchType;
     searchValue: string;
 }
 
@@ -23,9 +24,9 @@ export function SearchBar({
     disableAutoComplete = false,
 }: SearchBarProps) {
     const [searchValue, setSearchValue] = useState(initialState?.searchValue ?? "");
-    const [searchType, setSearchType] = useState<TeacherSearchType>(initialState?.type ?? "name");
-    const teacherService = useService(TeacherService);
+    const [searchType, setSearchType] = useState<ProfessorSearchType>(initialState?.type ?? "name");
     const formRef = useRef<HTMLFormElement>(null);
+    const { data: allProfessors } = trpc.useQuery(["allProfessors"]);
 
     useEffect(() => {
         if (onChange) {
@@ -46,19 +47,16 @@ export function SearchBar({
         // eslint-disable-next-line default-case
         switch (searchType) {
             case "name":
-                return teacherService.searchForTeacher(searchType, value).then((result) =>
-                    result.map((t) => ({
-                        display: `${t.lastName}, ${t.firstName}`,
-                        metadata: { id: t.id },
-                    })),
-                );
+                return professorSearch(allProfessors ?? [], searchType, value).map((t) => ({
+                    display: `${t.lastName}, ${t.firstName}`,
+                    metadata: { id: t.id },
+                }));
             case "department":
                 return DEPARTMENT_LIST.filter((dep) => dep.includes(value.toUpperCase())).map(
                     (dep) => ({ display: dep, metadata: undefined }),
                 );
             case "class": {
-                const allTeachers = await teacherService.getAllTeachers();
-                const allCourses = new Set(allTeachers.flatMap((t) => t.courses));
+                const allCourses = new Set(allProfessors?.flatMap((t) => t.courses));
                 return [...allCourses]
                     .filter((course) => course.includes(value.toUpperCase()))
                     .map((course) => ({ display: course, metadata: undefined }));
@@ -77,7 +75,7 @@ export function SearchBar({
                 {showOnlyInput && (
                     <select
                         value={searchType}
-                        onChange={(e) => setSearchType(e.target.value as TeacherSearchType)}
+                        onChange={(e) => setSearchType(e.target.value as ProfessorSearchType)}
                         className="hidden md:block rounded w-40 mr-4 bg-gray-100 font-medium border-2 border-black"
                     >
                         <option value="name">Professor</option>
@@ -89,8 +87,6 @@ export function SearchBar({
                 <AutoComplete
                     onResult={async (value) => {
                         if (value.metadata) {
-                            // Ensure teacher in the cache before loading
-                            await teacherService.getTeacher(value.metadata.id);
                             history.push(`/professor/${value.metadata.id}`);
                         } else {
                             // Use timeout to let current value update and then trigger and then form submission

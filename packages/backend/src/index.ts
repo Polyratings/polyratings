@@ -1,9 +1,22 @@
 import "reflect-metadata";
 import { CloudflareEventFunctions } from "sunder/application";
-import { CloudflareEnv, Env } from "@polyratings/backend/bindings.d";
+import { CloudflareEnv, Env } from "@backend/env";
 import Toucan from "toucan-js";
 import { fetchRequestHandler } from "@trpc/server/adapters/fetch";
-import { appRouter } from "./routers/app";
+import { t } from "./trpc";
+import { professorRouter } from "./routers/professor";
+import { ratingsRouter } from "./routers/rating";
+import { adminRouter } from "./routers/admin";
+import { authRouter } from "./routers/auth";
+
+export const appRouter = t.mergeRouters(professorRouter, ratingsRouter, adminRouter, authRouter);
+export type AppRouter = typeof appRouter;
+
+const CORS_HEADERS = {
+    "Access-Control-Allow-Origin": "*",
+    "Access-Control-Allow-Methods": "*",
+    "Access-Control-Allow-Headers": "*",
+};
 
 export default {
     async fetch(
@@ -11,6 +24,10 @@ export default {
         coudflareEnv: CloudflareEnv,
         cloudflareCtx: CloudflareEventFunctions,
     ) {
+        if (request.method === "OPTIONS") {
+            return new Response(null, { headers: CORS_HEADERS });
+        }
+
         const sentry = new Toucan({
             dsn: "https://a7c07e573f624b40b98f061b54877d9d@o1195960.ingest.sentry.io/6319110",
             context: cloudflareCtx,
@@ -30,12 +47,10 @@ export default {
             },
             responseMeta: () => ({
                 headers: {
-                    "Access-Control-Allow-Origin": "*",
-                    "Access-Control-Allow-Methods": "*",
-                    "Access-Control-Allow-Headers": "*",
                     "Access-Control-Max-Age": "1728000",
                     "Content-Encoding": "gzip",
                     Vary: "Accept-Encoding",
+                    ...CORS_HEADERS,
                 },
             }),
         });

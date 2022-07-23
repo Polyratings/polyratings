@@ -1,22 +1,18 @@
-import React, { RefObject, useState } from "react";
 import { useForm, SubmitHandler } from "react-hook-form";
 import { ErrorMessage } from "@hookform/error-message";
 import { toast } from "react-toastify";
 import ClipLoader from "react-spinners/ClipLoader";
 import {
-    CourseType,
-    Grade,
     GradeLevel,
-    Teacher,
-    AddReviewRequest,
-    NewReviewBase,
-    GradeOptions,
-    GradeLevelOptions,
-    CourseTypeOptions,
+    Grade,
+    CourseType,
+    GRADE_LEVELS,
+    GRADES,
     DEPARTMENT_LIST,
-} from "@polyratings/client";
-import { ReviewService } from "@/services";
-import { useService } from "@/hooks";
+    COURSE_TYPES,
+    Department,
+} from "@backend/utils/const";
+import { inferQueryOutput, trpc } from "@/trpc";
 
 interface EvaluateTeacherFormInputs {
     knownClass: string | undefined;
@@ -31,20 +27,13 @@ interface EvaluateTeacherFormInputs {
     reasonForTaking: CourseType;
 }
 
+type Teacher = inferQueryOutput<"getProfessor">;
+
 interface EvaluateTeacherFormProps {
     teacher?: Teacher | null;
-    setTeacher?: (teacher: Teacher) => void;
     closeForm?: () => void;
-    overrideSubmitHandler?: (review: NewReviewBase) => void | Promise<void>;
-    innerRef?: RefObject<HTMLFormElement>;
 }
-export function EvaluateTeacherForm({
-    teacher,
-    setTeacher,
-    closeForm,
-    overrideSubmitHandler,
-    innerRef,
-}: EvaluateTeacherFormProps) {
+export function EvaluateTeacherForm({ teacher, closeForm }: EvaluateTeacherFormProps) {
     const {
         register,
         handleSubmit,
@@ -57,12 +46,20 @@ export function EvaluateTeacherForm({
     });
 
     const knownClassValue = watch("knownClass");
-    const reviewService = useService(ReviewService);
-    const [networkErrorText, setNetworkErrorText] = useState("");
-    const [loading, setLoading] = useState(false);
+    const trpcContext = trpc.useContext();
+    const {
+        mutate: uploadNewRating,
+        isLoading,
+        error,
+    } = trpc.useMutation("addNewRating", {
+        onSuccess: () => {
+            toast.success("Thank you for your review");
+            // TODO: Figure out how to invalidate individual professor
+            trpcContext.invalidateQueries("getProfessor");
+        },
+    });
 
     const onSubmit: SubmitHandler<EvaluateTeacherFormInputs> = async (formResult) => {
-        setLoading(true);
         const courseNum =
             formResult.knownClass && formResult.knownClass !== "other"
                 ? parseInt(formResult.knownClass.split(" ")[1], 10)
@@ -72,38 +69,18 @@ export function EvaluateTeacherForm({
                 ? formResult.knownClass.split(" ")[0]
                 : formResult.unknownClassDepartment;
 
-        const reviewBase: NewReviewBase = {
-            gradeLevel: formResult.year,
+        uploadNewRating({
+            professor: teacher?.id ?? "",
+            courseNum,
+            department: department as Department,
+            overallRating: Number(formResult.overallRating),
+            presentsMaterialClearly: Number(formResult.presentsMaterialClearly),
+            recognizesStudentDifficulties: Number(formResult.recognizesStudentDifficulties),
             grade: formResult.grade,
             courseType: formResult.reasonForTaking,
-            courseNum,
-            department,
-            overallRating: parseFloat(formResult.overallRating),
-            presentsMaterialClearly: parseFloat(formResult.presentsMaterialClearly),
-            recognizesStudentDifficulties: parseFloat(formResult.recognizesStudentDifficulties),
             rating: formResult.reviewText,
-        };
-
-        if (overrideSubmitHandler) {
-            overrideSubmitHandler(reviewBase);
-        } else {
-            try {
-                // The non-null assertion is safe since the override is for when there is no teacher
-                // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-                const body: AddReviewRequest = { professor: teacher!.id, ...reviewBase };
-                const updatedProfessor = await reviewService.uploadReview(body);
-                if (setTeacher) {
-                    setTeacher(updatedProfessor);
-                }
-                toast.success("Thank you for your review");
-                if (closeForm) {
-                    closeForm();
-                }
-            } catch (e) {
-                setNetworkErrorText((e as Error).toString());
-            }
-        }
-        setLoading(false);
+            gradeLevel: formResult.year,
+        });
     };
 
     const numericalRatings: { label: string; inputName: keyof EvaluateTeacherFormInputs }[] = [
@@ -120,17 +97,17 @@ export function EvaluateTeacherForm({
         {
             label: "Year",
             inputName: "year",
-            options: GradeLevelOptions,
+            options: GRADE_LEVELS,
         },
         {
             label: "Grade Achieved",
             inputName: "grade",
-            options: GradeOptions,
+            options: GRADES,
         },
         {
             label: "Reason For Taking",
             inputName: "reasonForTaking",
-            options: CourseTypeOptions,
+            options: COURSE_TYPES,
         },
     ];
 
@@ -172,7 +149,7 @@ export function EvaluateTeacherForm({
         .flat();
 
     return (
-        <form className="relative w-full" onSubmit={handleSubmit(onSubmit)} ref={innerRef}>
+        <form className="relative w-full" onSubmit={handleSubmit(onSubmit)}>
             {teacher && (
                 <div
                     className="absolute right-0 top-0 p-3 font-bold cursor-pointer hidden sm:block"
@@ -309,17 +286,17 @@ export function EvaluateTeacherForm({
                     <div>
                         <button
                             className="bg-cal-poly-gold sm:bg-cal-poly-green text-white rounded-lg p-2 shadow w-24"
-                            style={{ display: loading ? "none" : "block" }}
+                            style={{ display: isLoading ? "none" : "block" }}
                             type="submit"
                         >
                             Submit
                         </button>
                         {/* Exact size for no layer shift */}
-                        <ClipLoader color="#1F4715" loading={loading} size={34} />
+                        <ClipLoader color="#1F4715" loading={isLoading} size={34} />
                     </div>
                 )}
             </div>
-            <div className="text-red-500 text-sm">{networkErrorText}</div>
+            <div className="text-red-500 text-sm">{error}</div>
         </form>
     );
 }

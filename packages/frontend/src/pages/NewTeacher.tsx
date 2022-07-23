@@ -1,5 +1,5 @@
 import loginBackground from "@/assets/home-header.webp";
-import { NewTeacherForm } from "@/components";
+// import { NewTeacherForm } from "@/components";
 
 export function NewTeacher() {
     // Redirect to homepage if in authenticated state
@@ -14,12 +14,10 @@ export function NewTeacher() {
                     backgroundSize: "cover",
                 }}
             >
-                <div className="shadow">
-                    <NewTeacherForm />
-                </div>
+                <div className="shadow">{/* <NewTeacherForm /> */}</div>
             </div>
             <div className="sm:hidden flex justify-center bg-gray-300 min-h-screenWoNav">
-                <NewTeacherForm />
+                {/* <NewTeacherForm /> */}
             </div>
         </div>
     );

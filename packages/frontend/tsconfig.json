@@ -17,7 +17,8 @@
         "jsx": "react-jsx",
         "baseUrl": ".",
         "paths": {
-            "@/*": ["src/*"]
+            "@/*": ["src/*"],
+            "@backend/*": ["../backend/src/*"]
         }
     },
     "include": ["./src", "jest.env.js"]

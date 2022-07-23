@@ -4,5 +4,5 @@ export * from "./NewTeacher";
 export * from "./Search";
 export * from "./TeacherPage";
 export * from "./About";
-export * from "./Admin";
+// export * from "./Admin";
 export * from "./FAQ";

@@ -1,25 +1,28 @@
-import { useState } from "react";
+import { z } from "zod";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useHistory } from "react-router-dom";
 import loginBackground from "@/assets/home-header.webp";
-import { useService, useProtectedRoute } from "@/hooks";
-import { AuthService } from "@/services";
+import { trpc } from "@/trpc";
+
+const loginValidator = z.object({
+    username: z.string().min(1),
+    password: z.string().min(1),
+});
+type LoginSchema = z.infer<typeof loginValidator>;
 
 export function Login() {
-    const [calPolyUsername, setCalPolyUsername] = useState("");
-    const [password, setPassword] = useState("");
-    const [errorText, setErrorText] = useState("");
-    const authService = useService(AuthService);
+    const { register, handleSubmit } = useForm<LoginSchema>({
+        resolver: zodResolver(loginValidator),
+    });
+    const { mutate: login, error, data: jwt } = trpc.useMutation("login");
 
-    const logUserIn = async (event: React.FormEvent<HTMLFormElement>) => {
-        event.preventDefault();
-        try {
-            await authService.login(calPolyUsername, password);
-        } catch (e) {
-            setErrorText((e as Error).message);
-        }
-    };
+    const history = useHistory();
 
-    // Redirect to homepage if in authenticated state
-    useProtectedRoute(false, "/", (user) => `Welcome ${user.username}`);
+    if (jwt) {
+        window.localStorage.setItem("AUTH_TOKEN", jwt);
+        history.push("/admin");
+    }
 
     return (
         <div
@@ -34,15 +37,14 @@ export function Login() {
             <div className="p-5 transform md:-translate-y-1/4" style={{ width: "500px" }}>
                 <div className="bg-white shadow-lg rounded p-10">
                     <h2 className="text-3xl font-bold mb-6">Sign In</h2>
-                    <form onSubmit={(e) => logUserIn(e)}>
+                    <form onSubmit={handleSubmit((data) => login(data))}>
                         <h3 className="font-semibold">Username</h3>
                         <div className="h-10 mb-8 flex">
                             <input
                                 type="text"
                                 placeholder="Username"
                                 className="border-gray-300 border w-full rounded-l h-full pl-2"
-                                value={calPolyUsername}
-                                onChange={(e) => setCalPolyUsername(e.target.value)}
+                                {...register("username")}
                             />
                         </div>
                         <h3 className="font-semibold">Password</h3>
@@ -51,10 +53,9 @@ export function Login() {
                                 type="password"
                                 placeholder="Password"
                                 className="h-10 border-gray-300 border w-full rounded pl-2"
-                                value={password}
-                                onChange={(e) => setPassword(e.target.value)}
+                                {...register("password")}
                             />
-                            <p className="text-red-600">{errorText}</p>
+                            <p className="text-red-600">{error}</p>
                         </div>
                         <button
                             className="w-full h-11 rounded bg-cal-poly-green text-white"

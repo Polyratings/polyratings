@@ -1,10 +1,16 @@
 import { Switch, Route, Redirect, BrowserRouter } from "react-router-dom";
 import { ToastContainer } from "react-toastify";
 import * as Sentry from "@sentry/react";
-import { Home, TeacherPage, Login, NewTeacher, About, SearchWrapper, Admin, FAQ } from "./pages";
-import { Navbar } from "./components";
+import { QueryClient, QueryClientProvider } from "react-query";
+import { persistQueryClient } from "react-query/persistQueryClient-experimental";
+
+import { useState } from "react";
+import { Home, TeacherPage, Login, NewTeacher, About, SearchWrapper, FAQ } from "./pages";
+// import { Navbar } from "./components";
 import "react-toastify/dist/ReactToastify.css";
 import { config } from "./App.config";
+import { trpc } from "./trpc";
+import { createIDBPersister } from "./utils/idbPersister";
 
 const SentryRoute = Sentry.withSentryRouting(Route);
 
@@ -18,23 +24,51 @@ if (process.env.NODE_ENV !== "development") {
 }
 
 function App() {
+    const [queryClient] = useState(() => {
+        const queryClient = new QueryClient({
+            defaultOptions: { queries: { staleTime: Infinity, cacheTime: 600000 } },
+        });
+        persistQueryClient({
+            queryClient,
+            persistor: createIDBPersister(),
+        });
+        return queryClient;
+    });
+    const [trpcClient] = useState(() =>
+        trpc.createClient({
+            url: config.clientEnv.url,
+
+            // optional
+            headers() {
+                const jwt = window.localStorage.getItem("AUTH_TOKEN");
+                return {
+                    authorization: jwt ? `Bearer ${jwt}` : "",
+                };
+            },
+        }),
+    );
+
     return (
         <Sentry.ErrorBoundary showDialog>
-            <BrowserRouter basename={config.base}>
-                <ToastContainer />
-                <Navbar />
-                <Switch>
-                    <SentryRoute path="/professor/:id" component={TeacherPage} />
-                    <Redirect from="/teacher/:id" to="/professor/:id" />
-                    <SentryRoute path="/search/:searchType?" component={SearchWrapper} />
-                    <SentryRoute path="/login" component={Login} />
-                    <SentryRoute path="/new-teacher" component={NewTeacher} />
-                    <SentryRoute path="/about" component={About} />
-                    <SentryRoute path="/admin" component={Admin} />
-                    <SentryRoute path="/faq" component={FAQ} />
-                    <SentryRoute path="/" component={Home} />
-                </Switch>
-            </BrowserRouter>
+            <trpc.Provider client={trpcClient} queryClient={queryClient}>
+                <QueryClientProvider client={queryClient}>
+                    <BrowserRouter basename={config.base}>
+                        <ToastContainer />
+                        {/* <Navbar /> */}
+                        <Switch>
+                            <SentryRoute path="/professor/:id" component={TeacherPage} />
+                            <Redirect from="/teacher/:id" to="/professor/:id" />
+                            <SentryRoute path="/search/:searchType?" component={SearchWrapper} />
+                            <SentryRoute path="/login" component={Login} />
+                            <SentryRoute path="/new-teacher" component={NewTeacher} />
+                            <SentryRoute path="/about" component={About} />
+                            {/* <SentryRoute path="/admin" component={Admin} /> */}
+                            <SentryRoute path="/faq" component={FAQ} />
+                            <SentryRoute path="/" component={Home} />
+                        </Switch>
+                    </BrowserRouter>
+                </QueryClientProvider>
+            </trpc.Provider>
         </Sentry.ErrorBoundary>
     );
 }

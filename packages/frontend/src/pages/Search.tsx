@@ -1,10 +1,8 @@
 import { useHistory, useParams } from "react-router-dom";
-import { useState, useEffect, useRef, ElementRef } from "react";
-import { Teacher } from "@polyratings/client";
+import { useState, useRef, ElementRef } from "react";
 import { WindowScroller } from "fish-react-virtualized/dist/commonjs/WindowScroller";
 import { List } from "fish-react-virtualized/dist/commonjs/List";
 import { Location } from "history";
-import { TeacherService, Logger } from "@/services";
 import {
     TeacherCard,
     SearchBar,
@@ -13,8 +11,9 @@ import {
     TEACHER_CARD_HEIGHT_REM,
     FilterState,
 } from "@/components";
-import { useService, useQuery, useTailwindBreakpoint } from "@/hooks";
-import { TeacherSearchType } from "@/services/teacher.service";
+import { useQuery, useTailwindBreakpoint } from "@/hooks";
+import { professorSearch, ProfessorSearchType } from "@/utils/ProfessorSearch";
+import { inferQueryOutput, trpc } from "@/trpc";
 
 export interface SearchPageState {
     searchTerm: SearchState;
@@ -24,21 +23,26 @@ export interface SearchPageProps {
     location: Location;
 }
 
+type Teacher = inferQueryOutput<"allProfessors">[0];
+
 export function Search({ location }: SearchPageProps) {
     const previousState = location.state as SearchPageState | undefined;
     const query = useQuery();
 
     const navigatedSearchTerm = query.get("term");
-    const { searchType } = useParams<{ searchType: TeacherSearchType | undefined }>();
-
-    const teacherService = useService(TeacherService);
+    const { searchType } = useParams<{ searchType: ProfessorSearchType | undefined }>();
 
     const loadedSearchTerm = previousState?.searchTerm ?? {
         type: searchType || "name",
         searchValue: navigatedSearchTerm ?? "",
     };
     const [searchState, setSearchState] = useState<SearchState>(loadedSearchTerm);
-    const [searchResults, setSearchResults] = useState<Teacher[]>([]);
+    const { data: allProfessors } = trpc.useQuery(["allProfessors"]);
+    const searchResults = professorSearch(
+        allProfessors ?? [],
+        searchState.type,
+        searchState.searchValue,
+    );
     const [mobileFiltersOpened, setMobileFiltersOpened] = useState(false);
 
     const [filteredTeachers, setFilteredTeachers] = useState<Teacher[]>([]);
@@ -61,23 +65,6 @@ export function Search({ location }: SearchPageProps) {
 
     // If we remove the filters from the dom we can use one ref and simplify the process of restoring state when re-visiting route
     const mobileFilterBreakpoint = useTailwindBreakpoint({ xl: false }, true);
-
-    useEffect(() => {
-        async function retrieveSearchData() {
-            try {
-                const result: Teacher[] = await teacherService.searchForTeacher(
-                    searchState.type,
-                    searchState.searchValue,
-                );
-                setSearchResults(result);
-            } catch (e) {
-                const logger = useService(Logger);
-                logger.error(`Failed to search for teacher with term: ${searchState}`, e);
-                history.push("/");
-            }
-        }
-        retrieveSearchData();
-    }, [searchState]);
 
     // Provide a default value in case of running in a test environment or for some reason font-size is not defined
     const rootFontSize = parseFloat(

@@ -1,21 +1,29 @@
-import { BETA_ENV, DEV_ENV, PolyratingsAPIEnv, PROD_ENV } from "@polyratings/client";
+export const DEV_ENV = {
+    url: "https://api-dev.polyratings.org",
+};
+export const BETA_ENV = {
+    url: "https://api-beta.polyratings.org",
+};
+export const PROD_ENV = {
+    url: "https://api-prod.polyratings.org",
+};
 
-interface AppConfiguration {
-    clientEnv: PolyratingsAPIEnv;
-    base: string;
-}
+// interface AppConfiguration {
+//     clientEnv: PolyratingsAPIEnv;
+//     base: string;
+// }
 
-const devConfig: AppConfiguration = {
+const devConfig = {
     clientEnv: DEV_ENV,
     base: "/",
 };
 
-const prodConfig: AppConfiguration = {
+const prodConfig = {
     clientEnv: PROD_ENV,
     base: "/",
 };
 
-const betaConfig: AppConfiguration = {
+const betaConfig = {
     clientEnv: BETA_ENV,
     base: "/",
 };

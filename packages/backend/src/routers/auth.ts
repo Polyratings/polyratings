@@ -1,5 +1,5 @@
 import { TRPCError } from "@trpc/server";
-import { t, protectedProcedure } from "@polyratings/backend/trpc";
+import { t, protectedProcedure } from "@backend/trpc";
 import { z } from "zod";
 
 export const authRouter = t.router({
