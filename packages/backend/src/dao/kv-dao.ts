@@ -1,5 +1,5 @@
 import { PolyratingsError } from "@backend/utils/errors";
-import { BulkKey } from "@backend/utils/const";
+import { BulkKey, BulkKeyMap } from "@backend/utils/const";
 import { z } from "zod";
 import { TRPCError } from "@trpc/server";
 import {
@@ -95,7 +95,7 @@ export class KVDAO {
         return keys;
     }
 
-    async getBulkValues(bulkKey: BulkKey, keys: string[]) {
+    async getBulkValues<T extends BulkKey>(bulkKey: T, keys: string[]): Promise<BulkKeyMap[T]> {
         if (keys.length > KV_REQUESTS_PER_TRIGGER) {
             throw new PolyratingsError(
                 400,
@@ -103,7 +103,7 @@ export class KVDAO {
             );
         }
         const namespace = this.getBulkNamespace(bulkKey);
-        return Promise.all(keys.map((key) => namespace.getUnsafe(key)));
+        return Promise.all(keys.map((key) => namespace.getUnsafe(key))) as never;
     }
 
     async putProfessor(professor: Professor, skipNameCollisionDetection = false) {

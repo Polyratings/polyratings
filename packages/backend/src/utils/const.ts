@@ -1,3 +1,5 @@
+import { PendingRating, Professor, RatingReport, User } from "@backend/types/schema";
+
 export const DEFAULT_VALIDATOR_OPTIONS = {
     skipMissingProperties: false,
     forbidNonWhitelisted: true,
@@ -164,3 +166,11 @@ export const bulkKeys = [
 ] as const;
 
 export type BulkKey = typeof bulkKeys[number];
+
+export type BulkKeyMap = {
+    professors: Professor[];
+    "rating-queue": PendingRating[];
+    "professor-queue": Professor[];
+    reports: RatingReport[];
+    users: User[];
+};

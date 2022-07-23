@@ -5,12 +5,13 @@ import { QueryClient, QueryClientProvider } from "react-query";
 import { persistQueryClient } from "react-query/persistQueryClient-experimental";
 
 import { useState } from "react";
-import { Home, TeacherPage, Login, NewTeacher, About, SearchWrapper, FAQ } from "./pages";
-// import { Navbar } from "./components";
+import { Home, TeacherPage, Login, NewTeacher, About, SearchWrapper, Admin, FAQ } from "./pages";
+import { Navbar } from "./components";
 import "react-toastify/dist/ReactToastify.css";
 import { config } from "./App.config";
 import { trpc } from "./trpc";
 import { createIDBPersister } from "./utils/idbPersister";
+import { JWT_KEY } from "./hooks";
 
 const SentryRoute = Sentry.withSentryRouting(Route);
 
@@ -40,7 +41,7 @@ function App() {
 
             // optional
             headers() {
-                const jwt = window.localStorage.getItem("AUTH_TOKEN");
+                const jwt = window.localStorage.getItem(JWT_KEY);
                 return {
                     authorization: jwt ? `Bearer ${jwt}` : "",
                 };
@@ -52,9 +53,9 @@ function App() {
         <Sentry.ErrorBoundary showDialog>
             <trpc.Provider client={trpcClient} queryClient={queryClient}>
                 <QueryClientProvider client={queryClient}>
-                    <BrowserRouter basename={config.base}>
+                    <BrowserRouter>
                         <ToastContainer />
-                        {/* <Navbar /> */}
+                        <Navbar />
                         <Switch>
                             <SentryRoute path="/professor/:id" component={TeacherPage} />
                             <Redirect from="/teacher/:id" to="/professor/:id" />
@@ -62,7 +63,7 @@ function App() {
                             <SentryRoute path="/login" component={Login} />
                             <SentryRoute path="/new-teacher" component={NewTeacher} />
                             <SentryRoute path="/about" component={About} />
-                            {/* <SentryRoute path="/admin" component={Admin} /> */}
+                            <SentryRoute path="/admin" component={Admin} />
                             <SentryRoute path="/faq" component={FAQ} />
                             <SentryRoute path="/" component={Home} />
                         </Switch>

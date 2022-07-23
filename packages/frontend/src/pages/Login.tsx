@@ -4,6 +4,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useHistory } from "react-router-dom";
 import loginBackground from "@/assets/home-header.webp";
 import { trpc } from "@/trpc";
+import { useAuth } from "@/hooks";
 
 const loginValidator = z.object({
     username: z.string().min(1),
@@ -16,11 +17,12 @@ export function Login() {
         resolver: zodResolver(loginValidator),
     });
     const { mutate: login, error, data: jwt } = trpc.useMutation("login");
+    const [, setJwt] = useAuth();
 
     const history = useHistory();
 
     if (jwt) {
-        window.localStorage.setItem("AUTH_TOKEN", jwt);
+        setJwt(jwt);
         history.push("/admin");
     }
 
@@ -55,7 +57,7 @@ export function Login() {
                                 className="h-10 border-gray-300 border w-full rounded pl-2"
                                 {...register("password")}
                             />
-                            <p className="text-red-600">{error}</p>
+                            <p className="text-red-600">{error?.message}</p>
                         </div>
                         <button
                             className="w-full h-11 rounded bg-cal-poly-green text-white"

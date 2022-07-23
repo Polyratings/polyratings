@@ -1,5 +1,5 @@
 import { useHistory, useParams } from "react-router-dom";
-import { useState, useRef, ElementRef } from "react";
+import { useState, useRef, ElementRef, useEffect } from "react";
 import { WindowScroller } from "fish-react-virtualized/dist/commonjs/WindowScroller";
 import { List } from "fish-react-virtualized/dist/commonjs/List";
 import { Location } from "history";
@@ -45,6 +45,10 @@ export function Search({ location }: SearchPageProps) {
     );
     const [mobileFiltersOpened, setMobileFiltersOpened] = useState(false);
 
+    const [nonFilteredProfessors, setNonFilteredProfessors] = useState<Teacher[]>([]);
+    useEffect(() => {
+        setNonFilteredProfessors(allProfessors ?? []);
+    }, [allProfessors]);
     const [filteredTeachers, setFilteredTeachers] = useState<Teacher[]>([]);
     const ref = useRef<ElementRef<typeof Filters>>(null);
 
@@ -138,7 +142,7 @@ export function Search({ location }: SearchPageProps) {
 
                             <Filters
                                 ref={ref}
-                                teachers={searchResults}
+                                teachers={nonFilteredProfessors}
                                 onUpdate={setFilteredTeachers}
                                 className="pl-12 pt-6 w-4/5"
                             />
