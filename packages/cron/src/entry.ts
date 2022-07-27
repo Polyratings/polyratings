@@ -1,11 +1,11 @@
-import "reflect-metadata";
 import Toucan from "toucan-js";
 import {
-    Client,
     cloudflareAccountId,
     cloudflareNamespaceInformation,
     PROD_ENV,
-} from "@polyratings/client";
+} from "@backend/generated/tomlGenerated";
+import type { AppRouter } from "@backend/index";
+import { createTRPCClient, httpLink } from "@trpc/client";
 import { syncKvStore } from "./steps/syncKvStore";
 import { cloudflareKVInit } from "./wrappers/kv-wrapper";
 import { Logger } from "./logger";
@@ -50,14 +50,9 @@ export async function main(env: Record<string, string | undefined>, sentry?: Tou
     }
 }
 
-export interface CronEnv {
-    authenticatedProductionClient: Client;
-    KVWrapper: ReturnType<typeof cloudflareKVInit>;
-}
+export type CronEnv = Awaited<ReturnType<typeof createRuntimeEnvironment>>;
 
-async function createRuntimeEnvironment(
-    globalEnv: Record<string, string | undefined>,
-): Promise<CronEnv> {
+async function createRuntimeEnvironment(globalEnv: Record<string, string | undefined>) {
     const polyratingsCIUsername = globalEnv.POLYRATINGS_CI_USERNAME;
     const polyratingsCIPassword = globalEnv.POLYRATINGS_CI_PASSWORD;
     const cfApiToken = globalEnv.CF_API_TOKEN;
@@ -67,8 +62,10 @@ async function createRuntimeEnvironment(
         throw new Error("Could not create cron environment. A required variable was not set");
     }
 
-    const authenticatedProductionClient = new Client(PROD_ENV);
-    await authenticatedProductionClient.auth.login({
+    const authenticatedProductionClient = createTRPCClient<AppRouter>({
+        links: [httpLink({ url: PROD_ENV.url })],
+    });
+    await authenticatedProductionClient.mutation("login", {
         username: polyratingsCIUsername,
         password: polyratingsCIPassword,
     });

@@ -9,6 +9,9 @@ export const professorRouter = t.router({
     getProfessor: t.procedure
         .input(z.string().uuid())
         .query(({ input, ctx }) => ctx.env.kvDao.getProfessor(input)),
+    getProfessors: t.procedure
+        .input(z.array(z.string().uuid()))
+        .query(({ input, ctx }) => Promise.all(input.map((id) => ctx.env.kvDao.getProfessor(id)))),
     addNewProfessor: t.procedure
         .input(
             z.object({

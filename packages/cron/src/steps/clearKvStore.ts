@@ -1,4 +1,4 @@
-import { cloudflareNamespaceInformation } from "@polyratings/client";
+import { cloudflareNamespaceInformation } from "@backend/generated/tomlGenerated";
 import { CronEnv, KvName } from "../entry";
 import { Logger } from "../logger";
 

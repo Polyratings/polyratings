@@ -1,4 +1,3 @@
-import "reflect-metadata";
 import { CloudflareEventFunctions } from "sunder/application";
 import { CloudflareEnv, Env } from "@backend/env";
 import Toucan from "toucan-js";
@@ -39,6 +38,9 @@ export default {
             endpoint: "",
             req: request,
             router: appRouter,
+            batching: {
+                enabled: false,
+            },
             createContext: async ({ req }) => {
                 const env = new Env(coudflareEnv, sentry);
                 const authHeader = req.headers.get("Authorization");

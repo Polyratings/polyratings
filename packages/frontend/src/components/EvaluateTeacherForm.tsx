@@ -47,15 +47,23 @@ export function EvaluateTeacherForm({ teacher, closeForm }: EvaluateTeacherFormP
 
     const knownClassValue = watch("knownClass");
     const trpcContext = trpc.useContext();
+    const { mutateAsync: finalizeRatingUpload, error: finalizeError } =
+        trpc.useMutation("processRating");
     const {
         mutate: uploadNewRating,
         isLoading,
-        error,
+        error: startError,
     } = trpc.useMutation("addNewRating", {
-        onSuccess: () => {
-            toast.success("Thank you for your review");
-            // TODO: Figure out how to invalidate individual professor
-            trpcContext.invalidateQueries("getProfessor");
+        onSuccess: async (id) => {
+            try {
+                await finalizeRatingUpload(id);
+                toast.success("Thank you for your review");
+                // TODO: Figure out how to invalidate individual professor
+                trpcContext.invalidateQueries("getProfessor");
+                closeForm?.();
+            } catch {
+                // No need to catch error since it is displayed in the ui
+            }
         },
     });
 
@@ -296,7 +304,7 @@ export function EvaluateTeacherForm({ teacher, closeForm }: EvaluateTeacherFormP
                     </div>
                 )}
             </div>
-            <div className="text-red-500 text-sm">{error}</div>
+            <div className="text-red-500 text-sm">{startError ?? finalizeError}</div>
         </form>
     );
 }

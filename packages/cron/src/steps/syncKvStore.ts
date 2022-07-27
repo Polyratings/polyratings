@@ -1,13 +1,13 @@
-import { BulkKey, cloudflareNamespaceInformation } from "@polyratings/client";
+import { BulkKey } from "@backend/utils/const";
+import { cloudflareNamespaceInformation } from "@backend/generated/tomlGenerated";
+import { bulkRecord } from "src/utils/bulkRecord";
 import { CronEnv, KvName } from "../entry";
 import { Logger } from "../logger";
 
 export function syncKvStore(bulkKey: BulkKey, kvName: KvName, excludeKeys?: Set<string>) {
     return async (env: CronEnv) => {
         Logger.info(`Getting Prod ${bulkKey}`);
-        const prodData = await env.authenticatedProductionClient.admin.bulkKvRecord<unknown>(
-            bulkKey,
-        );
+        const prodData = await bulkRecord(env.authenticatedProductionClient, bulkKey);
 
         const betaKv = new env.KVWrapper(cloudflareNamespaceInformation[kvName].beta);
         const devKv = new env.KVWrapper(cloudflareNamespaceInformation[kvName].dev);

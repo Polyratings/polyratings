@@ -1,10 +1,9 @@
 import { Switch, Route, Redirect, BrowserRouter } from "react-router-dom";
 import { ToastContainer } from "react-toastify";
-import * as Sentry from "@sentry/react";
 import { QueryClient, QueryClientProvider } from "react-query";
 import { persistQueryClient } from "react-query/persistQueryClient-experimental";
-
 import { useState } from "react";
+import { httpLink } from "@trpc/client";
 import { Home, TeacherPage, Login, NewTeacher, About, SearchWrapper, Admin, FAQ } from "./pages";
 import { Navbar } from "./components";
 import "react-toastify/dist/ReactToastify.css";
@@ -13,15 +12,28 @@ import { trpc } from "./trpc";
 import { createIDBPersister } from "./utils/idbPersister";
 import { JWT_KEY } from "./hooks";
 
-const SentryRoute = Sentry.withSentryRouting(Route);
-
-// Do not init while developing in order to have less clutter in logs
-if (process.env.NODE_ENV !== "development") {
-    Sentry.init({
-        dsn: "https://c9fe8d8e92a04bb585b15499bff924c5@o1195960.ingest.sentry.io/6319109",
-        // 20% of transactions get sent to Sentry
-        tracesSampleRate: 0.2,
-    });
+// Lazy load error logger to save bundle size
+if (process.env.NODE_ENV === "production") {
+    const captureError = async (error: unknown) => {
+        try {
+            // eslint-disable-next-line no-console
+            console.error(error); // Log error to console for clarification
+            const Sentry = await import("@sentry/browser");
+            Sentry.init({
+                dsn: "https://c9fe8d8e92a04bb585b15499bff924c5@o1195960.ingest.sentry.io/6319109",
+                // 20% of transactions get sent to Sentry
+                tracesSampleRate: 0.2,
+            });
+            Sentry.captureException(error);
+        } catch (e) {
+            // all fails, reset window.onerror to prevent infinite loop on window.onerror
+            // eslint-disable-next-line no-console
+            console.error("Logging to Sentry failed", e);
+            window.onerror = null;
+        }
+    };
+    window.onerror = (message, url, line, column, error) => captureError(error);
+    window.onunhandledrejection = (event) => captureError(event.reason);
 }
 
 function App() {
@@ -37,9 +49,11 @@ function App() {
     });
     const [trpcClient] = useState(() =>
         trpc.createClient({
-            url: config.clientEnv.url,
-
-            // optional
+            links: [
+                httpLink({
+                    url: config.clientEnv.url,
+                }),
+            ],
             headers() {
                 const jwt = window.localStorage.getItem(JWT_KEY);
                 return {
@@ -50,27 +64,25 @@ function App() {
     );
 
     return (
-        <Sentry.ErrorBoundary showDialog>
-            <trpc.Provider client={trpcClient} queryClient={queryClient}>
-                <QueryClientProvider client={queryClient}>
-                    <BrowserRouter>
-                        <ToastContainer />
-                        <Navbar />
-                        <Switch>
-                            <SentryRoute path="/professor/:id" component={TeacherPage} />
-                            <Redirect from="/teacher/:id" to="/professor/:id" />
-                            <SentryRoute path="/search/:searchType?" component={SearchWrapper} />
-                            <SentryRoute path="/login" component={Login} />
-                            <SentryRoute path="/new-teacher" component={NewTeacher} />
-                            <SentryRoute path="/about" component={About} />
-                            <SentryRoute path="/admin" component={Admin} />
-                            <SentryRoute path="/faq" component={FAQ} />
-                            <SentryRoute path="/" component={Home} />
-                        </Switch>
-                    </BrowserRouter>
-                </QueryClientProvider>
-            </trpc.Provider>
-        </Sentry.ErrorBoundary>
+        <trpc.Provider client={trpcClient} queryClient={queryClient}>
+            <QueryClientProvider client={queryClient}>
+                <BrowserRouter>
+                    <ToastContainer />
+                    <Navbar />
+                    <Switch>
+                        <Route path="/professor/:id" component={TeacherPage} />
+                        <Redirect from="/teacher/:id" to="/professor/:id" />
+                        <Route path="/search/:searchType?" component={SearchWrapper} />
+                        <Route path="/login" component={Login} />
+                        <Route path="/new-teacher" component={NewTeacher} />
+                        <Route path="/about" component={About} />
+                        <Route path="/admin" component={Admin} />
+                        <Route path="/faq" component={FAQ} />
+                        <Route path="/" component={Home} />
+                    </Switch>
+                </BrowserRouter>
+            </QueryClientProvider>
+        </trpc.Provider>
     );
 }
 export default App;

@@ -92,6 +92,8 @@ export class KVDAO {
             });
         } while (cursor);
 
+        console.log(bulkKey, keys.length);
+
         return keys;
     }
 

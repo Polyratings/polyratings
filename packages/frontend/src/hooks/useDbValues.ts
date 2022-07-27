@@ -1,28 +1,31 @@
 import { BulkKey, BulkKeyMap } from "@backend/utils/const";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { trpc } from "@/trpc";
 
 const WORKER_RETRIEVAL_CHUNK_SIZE = 1000;
 
-export function useDbValues<T extends BulkKey>(bulkKey: T) {
+export function useDbValues<T extends BulkKey>(bulkKey: T, enabled = true) {
     const [dbValues, setDbValues] = useState<BulkKeyMap[T]>();
-    const { data: keys } = trpc.useQuery(["getBulkKeys", bulkKey]);
+    const { data: keys } = trpc.useQuery(["getBulkKeys", bulkKey], { enabled });
+    console.log(bulkKey, enabled, keys);
     const trpcContext = trpc.useContext();
-    useEffect(() => {
-        if (!keys) {
-            return;
-        }
+
+    if (keys && !dbValues) {
         const getValues = async () => {
             const chunkedKeys = chunkArray(keys, WORKER_RETRIEVAL_CHUNK_SIZE);
             const results = await Promise.all(
                 chunkedKeys.map((chunk) =>
-                    trpcContext.client.query("getBulkValues", { keys: chunk, bulkKey }),
+                    trpcContext.client.mutation(
+                        "getBulkValues",
+                        { keys: chunk, bulkKey },
+                        { context: { skipBatch: true } },
+                    ),
                 ),
             );
             setDbValues(results.flat() as never);
         };
         getValues();
-    }, [keys]);
+    }
 
     return dbValues;
 }

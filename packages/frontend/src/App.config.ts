@@ -1,29 +1,21 @@
-export const DEV_ENV = {
-    url: "https://api-dev.polyratings.org",
-};
-export const BETA_ENV = {
-    url: "https://api-beta.polyratings.org",
-};
-export const PROD_ENV = {
-    url: "https://api-prod.polyratings.org",
-};
+import { BETA_ENV, DEV_ENV, PolyratingsAPIEnv, PROD_ENV } from "@backend/generated/tomlGenerated";
 
-// interface AppConfiguration {
-//     clientEnv: PolyratingsAPIEnv;
-//     base: string;
-// }
+interface AppConfiguration {
+    clientEnv: PolyratingsAPIEnv;
+    base: string;
+}
 
-const devConfig = {
+const devConfig: AppConfiguration = {
     clientEnv: DEV_ENV,
     base: "/",
 };
 
-const prodConfig = {
+const prodConfig: AppConfiguration = {
     clientEnv: PROD_ENV,
     base: "/",
 };
 
-const betaConfig = {
+const betaConfig: AppConfiguration = {
     clientEnv: BETA_ENV,
     base: "/",
 };

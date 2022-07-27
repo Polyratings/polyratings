@@ -33,52 +33,50 @@ export const ratingsRouter = t.router({
 
             await ctx.env.kvDao.addPendingReview(pendingRating);
 
-            return `Queued new rating, please call GET https://api-prod.polyratings.org/ratings/${pendingRating.id} to begin processing.`;
+            return pendingRating.id;
         }),
-    processRating: t.procedure
-        .input(z.object({ id: z.string() }))
-        .mutation(async ({ ctx, input }) => {
-            const pendingRating = await ctx.env.kvDao.getPendingReview(input.id);
+    processRating: t.procedure.input(z.string().uuid()).mutation(async ({ ctx, input }) => {
+        const pendingRating = await ctx.env.kvDao.getPendingReview(input);
 
-            if (pendingRating.status !== "Queued") {
-                throw new TRPCError({
-                    code: "CONFLICT",
-                    message: "Cannot perform operation on pending rating in terminal state!",
-                });
+        if (pendingRating.status !== "Queued") {
+            throw new TRPCError({
+                code: "CONFLICT",
+                message: "Cannot perform operation on pending rating in terminal state!",
+            });
+        }
+
+        const attributeScores = await ctx.env.perspectiveDao.analyzeReview(pendingRating);
+        pendingRating.sentimentResponse = attributeScores;
+
+        const passedAnalysis = [
+            attributeScores.SEVERE_TOXICITY?.summaryScore.value,
+            attributeScores.IDENTITY_ATTACK?.summaryScore?.value,
+            attributeScores.THREAT?.summaryScore?.value,
+            attributeScores.SEXUALLY_EXPLICIT?.summaryScore?.value,
+        ].reduce((acc, num) => {
+            if (num === undefined) {
+                throw new Error("Not all of perspective summery scores were received");
             }
+            return num < 0.8 && acc;
+        }, true);
 
-            const attributeScores = await ctx.env.perspectiveDao.analyzeReview(pendingRating);
-            pendingRating.sentimentResponse = attributeScores;
-
-            const passedAnalysis = [
-                attributeScores.SEVERE_TOXICITY?.summaryScore.value,
-                attributeScores.IDENTITY_ATTACK?.summaryScore?.value,
-                attributeScores.THREAT?.summaryScore?.value,
-                attributeScores.SEXUALLY_EXPLICIT?.summaryScore?.value,
-            ].reduce((acc, num) => {
-                if (num === undefined) {
-                    throw new Error("Not all of perspective summery scores were received");
-                }
-                return num < 0.8 && acc;
-            }, true);
-
-            if (passedAnalysis) {
-                pendingRating.status = "Successful";
-                await ctx.env.kvDao.addReview(pendingRating);
-                // Update review in processing queue
-                await ctx.env.kvDao.addPendingReview(pendingRating);
-
-                return "Review has successfully been processed, it should be on the site within the next minute.";
-            }
-            pendingRating.status = "Failed";
+        if (passedAnalysis) {
+            pendingRating.status = "Successful";
+            await ctx.env.kvDao.addReview(pendingRating);
             // Update review in processing queue
             await ctx.env.kvDao.addPendingReview(pendingRating);
-            throw new TRPCError({
-                code: "PRECONDITION_FAILED",
-                message:
-                    "Review failed sentiment analysis, please contact dev@polyratings.org for assistance",
-            });
-        }),
+
+            return "Review has successfully been processed, it should be on the site within the next minute.";
+        }
+        pendingRating.status = "Failed";
+        // Update review in processing queue
+        await ctx.env.kvDao.addPendingReview(pendingRating);
+        throw new TRPCError({
+            code: "PRECONDITION_FAILED",
+            message:
+                "Review failed sentiment analysis, please contact dev@polyratings.org for assistance",
+        });
+    }),
     reportRating: t.procedure
         .input(
             reportValidator.merge(

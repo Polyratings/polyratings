@@ -1,4 +1,3 @@
-require("reflect-metadata");
 require("isomorphic-fetch");
 require("@testing-library/react");
 require("@testing-library/jest-dom");

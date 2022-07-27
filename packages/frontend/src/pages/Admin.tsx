@@ -25,7 +25,7 @@ export function Admin() {
                 <PendingProfessors />
                 <ReportedReviews />
                 <ProcessedReviews />
-                {/* <RecentReviews /> */}
+                <RecentReviews />
             </div>
         </div>
     ) : (
@@ -35,8 +35,11 @@ export function Admin() {
 
 function ReportedReviews() {
     const ratingReports = useDbValues("reports");
-    const professors = ratingReports?.map(
-        (rating) => trpc.useQuery(["getProfessor", rating.professorId]).data,
+    const { data: professors } = trpc.useQuery(
+        ["getProfessors", ratingReports?.map((report) => report.professorId) ?? []],
+        {
+            enabled: !!ratingReports,
+        },
     );
     const { mutate: removeReport } = trpc.useMutation("removeReport");
     const { mutate: actOnReport } = trpc.useMutation("actOnReport");
@@ -207,13 +210,11 @@ function ProcessedReviews() {
             grow: 1.5,
             cell: (row: PendingReview) => (
                 <div className="flex flex-col">
-                    {Object.entries(row.sentimentResponse?.summaryScore ?? {}).map(
-                        ([name, score]) => (
-                            <div key={name}>
-                                {name}: {score}
-                            </div>
-                        ),
-                    )}
+                    {Object.entries(row.sentimentResponse ?? {}).map(([name, score]) => (
+                        <div key={name}>
+                            {name}: {score.summaryScore.value}
+                        </div>
+                    ))}
                 </div>
             ),
         },
@@ -234,65 +235,61 @@ function ProcessedReviews() {
 }
 
 // TODO: Re-Enable in a reasonable way
-// function RecentReviews() {
-//     const adminService = useService(AdminService);
-//     const [recentReviews, setRecentReviews] = useState([] as ConnectedReview[]);
-//     const [retrievalTime, setRetrievalTime] = useState("");
+function RecentReviews() {
+    const [loadData, setLoadData] = useState(false);
+    const professors = useDbValues("professors", loadData);
+    const ratings =
+        professors
+            ?.flatMap((professor) =>
+                Object.values(professor.reviews ?? [])
+                    .flat()
+                    .map((review) => ({
+                        professorId: professor.id,
+                        professorName: `${professor.lastName}, ${professor.firstName}`,
+                        ...review,
+                    })),
+            )
+            .sort(
+                (reviewA, reviewB) => Date.parse(reviewB.postDate) - Date.parse(reviewA.postDate),
+            ) ?? [];
 
-//     useEffect(() => {
-//         async function retrieveData() {
-//             const reviews = await adminService.recentReviews();
-//             setRecentReviews(reviews);
-//             const lastRetrieved = await adminService.professorKvDumpUpdatedAt();
-//             setRetrievalTime(lastRetrieved);
-//         }
-//         retrieveData();
-//     }, []);
-//     const columns = [
-//         {
-//             name: "Professor",
-//             selector: (row: ConnectedReview) => row.professorName,
-//             grow: 0.5,
-//         },
-//         {
-//             name: "Date",
-//             selector: (row: ConnectedReview) => new Date(row.postDate).toLocaleDateString(),
-//             grow: 0.5,
-//         },
-//         {
-//             name: "Rating",
-//             wrap: true,
-//             grow: 3,
-//             selector: (row: ConnectedReview) => row.rating,
-//         },
-//         {
-//             name: "Remove",
-//             cell: (row: ConnectedReview) => (
-//                 <ConfirmationButton
-//                     action={async () => {
-//                         const reviewsLeft = await adminService.removeReview(
-//                             row.professorId,
-//                             row.id,
-//                         );
-//                         setRecentReviews(reviewsLeft);
-//                     }}
-//                     buttonClassName="p-2 bg-red-500 text-white rounded"
-//                     buttonText="X"
-//                 />
-//             ),
-//             center: true,
-//             grow: 0,
-//         },
-//     ];
+    type ConnectedRating = typeof ratings[0];
+    const columns = [
+        {
+            name: "Professor",
+            selector: (row: ConnectedRating) => row.professorName,
+            grow: 0.5,
+        },
+        {
+            name: "Date",
+            selector: (row: ConnectedRating) => new Date(row.postDate).toLocaleDateString(),
+            grow: 0.5,
+        },
+        {
+            name: "Rating",
+            wrap: true,
+            grow: 3,
+            selector: (row: ConnectedRating) => row.rating,
+        },
+    ];
 
-//     return (
-//         <div className="mt-4">
-//             <h2 className="ml-1">Recent Reviews:</h2>
-//             <p className="text-sm ml-1">Data last retrieved at: {retrievalTime}</p>
-//             <DataTable columns={columns} data={recentReviews} pagination />
-//         </div>
-//     );
-// }
+    return (
+        <div className="mt-4">
+            <h2 className="ml-1">Recent Reviews:</h2>
+            <p className="text-sm ml-1">
+                Press the button to load recent ratings{" "}
+                <button
+                    className="bg-cal-poly-green text-white shadow p-2 rounded"
+                    type="button"
+                    onClick={() => setLoadData(true)}
+                >
+                    Press Me
+                </button>
+            </p>
+            <DataTable columns={columns} data={ratings} pagination />
+        </div>
+    );
+}
 
 interface ConfirmationButtonProps {
     action: () => void | Promise<void>;
