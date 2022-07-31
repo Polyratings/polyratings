@@ -1,18 +1,28 @@
 name: Continuous Integration and Deployment
 
-on: [push]
+on: [push, pull_request]
 
 jobs:
-  Integration_And_Deployment:
+  Integration:
     runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        node-version: [lts/*, latest]
+
     steps:
       - name: checkout
         uses: actions/checkout@master
 
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v3
+        with:
+          node-version: ${{ matrix.node-version }}
+
       - name: Install Top Level Dependencies
         run: |
           npm ci
-      
+
       - name: Install Dependencies
         run: |
           npm run bootstrap
@@ -28,6 +38,16 @@ jobs:
       - name: Test Packages
         run: |
           npm run test
+
+  Deployment:
+    needs: [Integration]
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/master' || github.ref == 'refs/heads/beta'
+    steps:
+      - name: Use latest LTS Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: "lts/*"
 
       - name: Deploy Prod
         if: github.ref == 'refs/heads/master'
