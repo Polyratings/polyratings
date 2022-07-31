@@ -7,7 +7,6 @@ const WORKER_RETRIEVAL_CHUNK_SIZE = 1000;
 export function useDbValues<T extends BulkKey>(bulkKey: T, enabled = true) {
     const [dbValues, setDbValues] = useState<BulkKeyMap[T]>();
     const { data: keys } = trpc.useQuery(["getBulkKeys", bulkKey], { enabled });
-    console.log(bulkKey, enabled, keys);
     const trpcContext = trpc.useContext();
 
     if (keys && !dbValues) {

@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { useHistory } from "react-router-dom";
 import { DEPARTMENT_LIST } from "@backend/utils/const";
 // import { TeacherSearchType, TeacherService } from "@/services/teacher.service";
-import { AutoComplete, AutoCompleteOption } from ".";
+import { AutoComplete } from ".";
 import { trpc } from "@/trpc";
 import { ProfessorSearchType, professorSearch } from "@/utils/ProfessorSearch";
 
@@ -41,30 +41,27 @@ export function SearchBar({
         history.push(`/search/${searchType}?term=${encodeURIComponent(searchValue)}`);
     };
 
-    const autoCompleteFilter = async (
-        value: string,
-    ): Promise<AutoCompleteOption<{ id: string } | undefined>[]> => {
+    const autoCompleteFilter = (value: string) => {
         // eslint-disable-next-line default-case
         switch (searchType) {
             case "name":
                 return professorSearch(allProfessors ?? [], searchType, value).map((t) => ({
-                    display: `${t.lastName}, ${t.firstName}`,
-                    metadata: { id: t.id },
+                    label: `${t.lastName}, ${t.firstName}`,
+                    value: t.id,
                 }));
             case "department":
                 return DEPARTMENT_LIST.filter((dep) => dep.includes(value.toUpperCase())).map(
-                    (dep) => ({ display: dep, metadata: undefined }),
+                    (dep) => ({ label: dep, value: undefined }),
                 );
             case "class": {
                 const allCourses = new Set(allProfessors?.flatMap((t) => t.courses));
                 return [...allCourses]
                     .filter((course) => course.includes(value.toUpperCase()))
-                    .map((course) => ({ display: course, metadata: undefined }));
+                    .map((course) => ({ label: course, value: undefined }));
             }
         }
         throw new Error("Not all autocomplete cases handled");
     };
-
     return (
         <form
             className="flex flex-col md:flex-row justify-center items-center py-6"
@@ -85,18 +82,11 @@ export function SearchBar({
                 )}
 
                 <AutoComplete
-                    onResult={async (value) => {
-                        if (value.metadata) {
-                            history.push(`/professor/${value.metadata.id}`);
-                        } else {
-                            // Use timeout to let current value update and then trigger and then form submission
-                            setTimeout(() => formRef.current?.requestSubmit());
-                        }
-                    }}
-                    onChange={setSearchValue}
+                    onChange={(v) => setSearchValue(v.inputValue)}
                     placeholder={`Enter a ${searchType}`}
-                    filterFn={autoCompleteFilter}
-                    maxDropDownSize={5}
+                    items={allProfessors ?? []}
+                    filterFn={(_, inputValue) => autoCompleteFilter(inputValue)}
+                    label="Professor Auto-complete"
                     value={searchValue}
                     className="w-72 h-8 font-normal text-lg"
                     disableDropdown={disableAutoComplete}

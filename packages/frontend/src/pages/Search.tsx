@@ -1,8 +1,7 @@
 import { useHistory, useParams } from "react-router-dom";
 import { useState, useRef, ElementRef, useEffect } from "react";
-import { WindowScroller } from "fish-react-virtualized/dist/commonjs/WindowScroller";
-import { List } from "fish-react-virtualized/dist/commonjs/List";
 import { Location } from "history";
+import { useWindowVirtualizer } from "@tanstack/react-virtual";
 import {
     TeacherCard,
     SearchBar,
@@ -47,7 +46,7 @@ export function Search({ location }: SearchPageProps) {
 
     const [nonFilteredProfessors, setNonFilteredProfessors] = useState<Teacher[]>([]);
     useEffect(() => {
-        setNonFilteredProfessors(allProfessors ?? []);
+        setNonFilteredProfessors(searchResults ?? []);
     }, [allProfessors]);
     const [filteredTeachers, setFilteredTeachers] = useState<Teacher[]>([]);
     const ref = useRef<ElementRef<typeof Filters>>(null);
@@ -76,15 +75,12 @@ export function Search({ location }: SearchPageProps) {
     );
     // TODO: Reflow height when window changes size
     const virtualScrollListHeight = TEACHER_CARD_HEIGHT_REM * rootFontSize;
-    const listWidth = useTailwindBreakpoint(
-        {
-            sm: 37.5 * rootFontSize,
-            md: 42 * rootFontSize,
-            lg: 37.5 * rootFontSize,
-            "2xl": 42 * rootFontSize,
-        },
-        window.innerWidth - 20,
-    );
+
+    const rowVirtualizer = useWindowVirtualizer({
+        count: filteredTeachers.length,
+        estimateSize: () => virtualScrollListHeight,
+        overscan: 5,
+    });
 
     return (
         <div className="">
@@ -102,7 +98,7 @@ export function Search({ location }: SearchPageProps) {
                     {!mobileFilterBreakpoint && (
                         <Filters
                             ref={ref}
-                            teachers={searchResults}
+                            teachers={nonFilteredProfessors}
                             onUpdate={setFilteredTeachers}
                             className="absolute left-0 top-0 pl-12 hidden xl:block"
                         />
@@ -148,34 +144,32 @@ export function Search({ location }: SearchPageProps) {
                             />
                         </div>
                     )}
-                    <div className="flex justify-center">
-                        <WindowScroller>
-                            {({ height, isScrolling, onChildScroll, scrollTop }) => (
-                                <List
-                                    autoHeight
-                                    height={height}
-                                    isScrolling={isScrolling}
-                                    onScroll={onChildScroll}
-                                    rowCount={
-                                        filteredTeachers.length < 8 ? 8 : filteredTeachers.length
-                                    }
-                                    rowHeight={virtualScrollListHeight}
-                                    scrollTop={scrollTop}
-                                    width={listWidth}
-                                    // eslint-disable-next-line react/no-unstable-nested-components
-                                    rowRenderer={({ style, key, index }) => (
-                                        <div key={key} className="my-4" style={style}>
-                                            {filteredTeachers[index] && (
-                                                <TeacherCard
-                                                    teacher={filteredTeachers[index]}
-                                                    beforeNavigation={saveState}
-                                                />
-                                            )}
-                                        </div>
+                    <div
+                        className="relative sm:w-[37.5rem] md:w-[42rem] lg:w-[37.5rem] 2xl:w-[42rem] m-auto"
+                        style={{
+                            height: `${rowVirtualizer.getTotalSize()}px`,
+                        }}
+                    >
+                        {rowVirtualizer.getVirtualItems().map((virtualRow, index) => {
+                            const professor = filteredTeachers[index];
+                            return (
+                                <div
+                                    key={professor.id}
+                                    className="absolute top-0 left-0 w-full my-4 px-4"
+                                    style={{
+                                        height: `${virtualRow.size}px`,
+                                        transform: `translateY(${virtualRow.start}px)`,
+                                    }}
+                                >
+                                    {filteredTeachers[index] && (
+                                        <TeacherCard
+                                            teacher={filteredTeachers[index]}
+                                            beforeNavigation={saveState}
+                                        />
                                     )}
-                                />
-                            )}
-                        </WindowScroller>
+                                </div>
+                            );
+                        })}
                     </div>
                 </div>
             )}
