@@ -11,13 +11,14 @@ jobs:
         node-version: [lts/*, latest]
 
     steps:
-      - name: checkout
-        uses: actions/checkout@master
+      - name: Checkout Code
+        uses: actions/checkout@v3
 
       - name: Use Node.js ${{ matrix.node-version }}
         uses: actions/setup-node@v3
         with:
           node-version: ${{ matrix.node-version }}
+          cache: "npm"
 
       - name: Install Top Level Dependencies
         run: |
@@ -44,10 +45,14 @@ jobs:
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/master' || github.ref == 'refs/heads/beta'
     steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
       - name: Use latest LTS Node.js
         uses: actions/setup-node@v3
         with:
           node-version: "lts/*"
+          cache: "npm"
 
       - name: Deploy Prod
         if: github.ref == 'refs/heads/master'
