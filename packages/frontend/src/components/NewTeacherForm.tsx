@@ -126,13 +126,13 @@ export function NewTeacherForm() {
                 </div>
                 <ErrorMessage
                     errors={errors}
-                    name="teacherName"
+                    name="teacherFirstName"
                     as="div"
                     className="text-red-500 text-sm"
                 />
                 <ErrorMessage
                     errors={errors}
-                    name="teacherName"
+                    name="teacherLastName"
                     as="div"
                     className="text-red-500 text-sm"
                 />
