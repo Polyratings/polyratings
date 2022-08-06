@@ -1,7 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { useHistory } from "react-router-dom";
 import { DEPARTMENT_LIST } from "@backend/utils/const";
-// import { TeacherSearchType, TeacherService } from "@/services/teacher.service";
 import { AutoComplete } from ".";
 import { trpc } from "@/trpc";
 import { ProfessorSearchType, professorSearch } from "@/utils/ProfessorSearch";

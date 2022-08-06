@@ -1,7 +1,8 @@
 import { useLocation } from "react-router-dom";
-import { useState, useEffect, forwardRef, useImperativeHandle } from "react";
+import { useState, forwardRef, useImperativeHandle, useEffect } from "react";
+import { DEPARTMENT_LIST } from "@backend/utils/const";
 import { MinMaxSlider } from "@/components";
-import { inferQueryOutput } from "@/trpc";
+import { inferQueryOutput, trpc } from "@/trpc";
 
 type SortingOptions =
     | "relevant"
@@ -37,11 +38,19 @@ const FilterRenderFunction: React.ForwardRefRenderFunction<FilterHandle, FilterP
     { teachers, onUpdate, className },
     ref,
 ) => {
+    // Get all Professors to calculate states
+    const { data: allProfessors } = trpc.useQuery(["allProfessors"]);
+
+    const getEvaluationDomain = (): [number, number] => [
+        Math.min(...(allProfessors?.map((professor) => professor.numEvals) ?? [1])),
+        Math.max(...(allProfessors?.map((professor) => professor.numEvals) ?? [2])),
+    ];
     const location = useLocation();
     const previousState = location.state as FilterState | undefined;
     // Component State
     const [departmentFilters, setDepartmentFilters] = useState<{ name: string; state: boolean }[]>(
-        previousState?.departmentFilters ?? [],
+        previousState?.departmentFilters ??
+            DEPARTMENT_LIST.map((department) => ({ name: department, state: false })),
     );
     const [avgRatingFilter, setAvgRatingFilter] = useState<[number, number]>(
         previousState?.avgRatingFilter ?? [0, 4],
@@ -53,21 +62,10 @@ const FilterRenderFunction: React.ForwardRefRenderFunction<FilterHandle, FilterP
         previousState?.materialClearFilter ?? [0, 4],
     );
     const [numberOfEvaluationsFilter, setNumberOfEvaluationsFilter] = useState<[number, number]>(
-        previousState?.numberOfEvaluationsFilter ?? [1, 2],
+        previousState?.numberOfEvaluationsFilter ?? getEvaluationDomain(),
     );
     const [reverseFilter, setReverseFilter] = useState(previousState?.reverseFilter ?? false);
     const [sortBy, setSortBy] = useState<SortingOptions>(previousState?.sortBy ?? "relevant");
-
-    // Internal duplicate of result
-    const [preDepartmentFilters, setPreDepartmentFilters] = useState<Teacher[]>([]);
-    // On change duplicate result to the outside world
-    useEffect(() => {
-        const depFilters = departmentFilters.filter(({ state }) => state).map(({ name }) => name);
-        const teachersToEmit = preDepartmentFilters.filter(
-            (teacher) => depFilters.length === 0 || depFilters.includes(teacher.department),
-        );
-        onUpdate(teachersToEmit);
-    }, [preDepartmentFilters, departmentFilters]);
 
     const getState: () => FilterState = () => ({
         departmentFilters,
@@ -82,33 +80,6 @@ const FilterRenderFunction: React.ForwardRefRenderFunction<FilterHandle, FilterP
     useImperativeHandle(ref, () => ({
         getState,
     }));
-
-    const getEvaluationDomain: (data: Teacher[]) => [number, number] = (data: Teacher[]) => [
-        data.reduce((acc, curr) => (curr.numEvals < acc ? curr.numEvals : acc), Infinity),
-        data.reduce((acc, curr) => (curr.numEvals > acc ? curr.numEvals : acc), -Infinity),
-    ];
-
-    const generateDepartmentFilters = (list: Teacher[]) => {
-        const departments = [...new Set(list.map((t) => t.department))];
-        const previousSelectedMap = departmentFilters.reduce(
-            (acc: { [name: string]: boolean }, { name, state }) => {
-                acc[name] = state;
-                return acc;
-            },
-            {},
-        );
-        const initialDepartmentList = departments
-            .filter((dep) => !!dep)
-            .sort()
-            .map((dep) => ({ name: dep, state: !!previousSelectedMap[dep] }));
-        setDepartmentFilters(initialDepartmentList);
-    };
-
-    useEffect(() => {
-        generateDepartmentFilters(teachers);
-        const initialEvaluationRange = getEvaluationDomain(teachers);
-        setNumberOfEvaluationsFilter(initialEvaluationRange);
-    }, [teachers]);
 
     const teacherFilterFunctions: ((teacher: Teacher) => boolean)[] = [
         (teacher) =>
@@ -148,12 +119,9 @@ const FilterRenderFunction: React.ForwardRefRenderFunction<FilterHandle, FilterP
         presentsMaterialClearly: (a, b) => b.materialClear - a.materialClear,
     };
 
-    // Use keyof to hopefully stop spelling errors in the future
-    const departmentFilterKey: keyof FilterState = "departmentFilters";
-    const filterCalculationDependencies = Object.entries(getState())
-        .filter(([k]) => k !== departmentFilterKey)
-        .map(([, v]) => v);
+    const filterCalculationDependencies = Object.entries(getState()).map(([, v]) => v);
 
+    // Filter logic and emit to parent element
     useEffect(() => {
         const filteredResult = teachers.filter((teacher) => {
             // eslint-disable-next-line no-restricted-syntax
@@ -174,8 +142,21 @@ const FilterRenderFunction: React.ForwardRefRenderFunction<FilterHandle, FilterP
             filteredResult.reverse();
         }
 
-        setPreDepartmentFilters(filteredResult);
-        generateDepartmentFilters(filteredResult);
+        const selectedDepartments = departmentFilters.filter(
+            (departmentFilter) => departmentFilter.state,
+        );
+
+        if (selectedDepartments.length) {
+            const departmentSet = new Set(
+                selectedDepartments.map((departmentFilter) => departmentFilter.name),
+            );
+            const postDepartmentFilter = filteredResult.filter((professor) =>
+                departmentSet.has(professor.department),
+            );
+            onUpdate(postDepartmentFilter);
+        } else {
+            onUpdate(filteredResult);
+        }
     }, Object.values(filterCalculationDependencies));
 
     return (
@@ -268,7 +249,7 @@ const FilterRenderFunction: React.ForwardRefRenderFunction<FilterHandle, FilterP
                     <MinMaxSlider
                         value={numberOfEvaluationsFilter}
                         onchange={setNumberOfEvaluationsFilter}
-                        domain={getEvaluationDomain(teachers)}
+                        domain={getEvaluationDomain()}
                         resolution={1}
                     />
                 </div>

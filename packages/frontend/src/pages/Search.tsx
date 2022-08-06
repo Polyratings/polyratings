@@ -1,5 +1,5 @@
 import { useHistory, useParams } from "react-router-dom";
-import { useState, useRef, ElementRef, useEffect } from "react";
+import { useState, useRef, ElementRef } from "react";
 import { Location } from "history";
 import { useWindowVirtualizer } from "@tanstack/react-virtual";
 import {
@@ -44,10 +44,6 @@ export function Search({ location }: SearchPageProps) {
     );
     const [mobileFiltersOpened, setMobileFiltersOpened] = useState(false);
 
-    const [nonFilteredProfessors, setNonFilteredProfessors] = useState<Teacher[]>([]);
-    useEffect(() => {
-        setNonFilteredProfessors(searchResults ?? []);
-    }, [allProfessors]);
     const [filteredTeachers, setFilteredTeachers] = useState<Teacher[]>([]);
     const ref = useRef<ElementRef<typeof Filters>>(null);
 
@@ -98,7 +94,7 @@ export function Search({ location }: SearchPageProps) {
                     {!mobileFilterBreakpoint && (
                         <Filters
                             ref={ref}
-                            teachers={nonFilteredProfessors}
+                            teachers={searchResults}
                             onUpdate={setFilteredTeachers}
                             className="absolute left-0 top-0 pl-12 hidden xl:block"
                         />
@@ -138,7 +134,7 @@ export function Search({ location }: SearchPageProps) {
 
                             <Filters
                                 ref={ref}
-                                teachers={nonFilteredProfessors}
+                                teachers={searchResults}
                                 onUpdate={setFilteredTeachers}
                                 className="pl-12 pt-6 w-4/5"
                             />
