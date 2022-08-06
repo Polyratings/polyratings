@@ -1,8 +1,9 @@
 import { useLocation } from "react-router-dom";
-import { useState, forwardRef, useImperativeHandle, useEffect } from "react";
+import { useEffect } from "react";
 import { DEPARTMENT_LIST } from "@backend/utils/const";
 import { MinMaxSlider } from "@/components";
 import { inferQueryOutput, trpc } from "@/trpc";
+import { useHistoryState } from "@/hooks/useHistoryState";
 
 type SortingOptions =
     | "relevant"
@@ -34,10 +35,7 @@ export interface FilterState {
 }
 
 // eslint-disable-next-line react/function-component-definition
-const FilterRenderFunction: React.ForwardRefRenderFunction<FilterHandle, FilterProps> = (
-    { teachers, onUpdate, className },
-    ref,
-) => {
+export function Filters({ teachers, onUpdate, className }: FilterProps) {
     // Get all Professors to calculate states
     const { data: allProfessors } = trpc.useQuery(["allProfessors"]);
 
@@ -48,38 +46,39 @@ const FilterRenderFunction: React.ForwardRefRenderFunction<FilterHandle, FilterP
     const location = useLocation();
     const previousState = location.state as FilterState | undefined;
     // Component State
-    const [departmentFilters, setDepartmentFilters] = useState<{ name: string; state: boolean }[]>(
+    const [departmentFilters, setDepartmentFilters] = useHistoryState<
+        { name: string; state: boolean }[]
+    >(
         previousState?.departmentFilters ??
             DEPARTMENT_LIST.map((department) => ({ name: department, state: false })),
+        "departmentFilters",
     );
-    const [avgRatingFilter, setAvgRatingFilter] = useState<[number, number]>(
+    const [avgRatingFilter, setAvgRatingFilter] = useHistoryState<[number, number]>(
         previousState?.avgRatingFilter ?? [0, 4],
+        "avgRatingFilter",
     );
-    const [studentDifficultyFilter, setStudentDifficultyFilter] = useState<[number, number]>(
+    const [studentDifficultyFilter, setStudentDifficultyFilter] = useHistoryState<[number, number]>(
         previousState?.studentDifficultyFilter ?? [0, 4],
+        "studentDifficultyFilter",
     );
-    const [materialClearFilter, setMaterialClearFilter] = useState<[number, number]>(
+    const [materialClearFilter, setMaterialClearFilter] = useHistoryState<[number, number]>(
         previousState?.materialClearFilter ?? [0, 4],
+        "materialClearFilter",
     );
-    const [numberOfEvaluationsFilter, setNumberOfEvaluationsFilter] = useState<[number, number]>(
+    const [numberOfEvaluationsFilter, setNumberOfEvaluationsFilter] = useHistoryState<
+        [number, number]
+    >(
         previousState?.numberOfEvaluationsFilter ?? getEvaluationDomain(),
+        "numberOfEvaluationsFilter",
     );
-    const [reverseFilter, setReverseFilter] = useState(previousState?.reverseFilter ?? false);
-    const [sortBy, setSortBy] = useState<SortingOptions>(previousState?.sortBy ?? "relevant");
-
-    const getState: () => FilterState = () => ({
-        departmentFilters,
-        avgRatingFilter,
-        studentDifficultyFilter,
-        materialClearFilter,
-        sortBy,
-        numberOfEvaluationsFilter,
-        reverseFilter,
-    });
-
-    useImperativeHandle(ref, () => ({
-        getState,
-    }));
+    const [reverseFilter, setReverseFilter] = useHistoryState(
+        previousState?.reverseFilter ?? false,
+        "reverseFilter",
+    );
+    const [sortBy, setSortBy] = useHistoryState<SortingOptions>(
+        previousState?.sortBy ?? "relevant",
+        "sortBy",
+    );
 
     const teacherFilterFunctions: ((teacher: Teacher) => boolean)[] = [
         (teacher) =>
@@ -119,8 +118,6 @@ const FilterRenderFunction: React.ForwardRefRenderFunction<FilterHandle, FilterP
         presentsMaterialClearly: (a, b) => b.materialClear - a.materialClear,
     };
 
-    const filterCalculationDependencies = Object.entries(getState()).map(([, v]) => v);
-
     // Filter logic and emit to parent element
     useEffect(() => {
         const filteredResult = teachers.filter((teacher) => {
@@ -157,7 +154,15 @@ const FilterRenderFunction: React.ForwardRefRenderFunction<FilterHandle, FilterP
         } else {
             onUpdate(filteredResult);
         }
-    }, Object.values(filterCalculationDependencies));
+    }, [
+        departmentFilters,
+        avgRatingFilter,
+        studentDifficultyFilter,
+        materialClearFilter,
+        sortBy,
+        numberOfEvaluationsFilter,
+        reverseFilter,
+    ]);
 
     return (
         <div className={className ?? ""}>
@@ -277,6 +282,4 @@ const FilterRenderFunction: React.ForwardRefRenderFunction<FilterHandle, FilterP
             </div>
         </div>
     );
-};
-
-export const Filters = forwardRef(FilterRenderFunction);
+}

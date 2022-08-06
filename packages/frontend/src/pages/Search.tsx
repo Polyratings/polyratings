@@ -1,5 +1,5 @@
-import { useHistory, useParams } from "react-router-dom";
-import { useState, useRef, ElementRef } from "react";
+import { useParams } from "react-router-dom";
+import { useState } from "react";
 import { Location } from "history";
 import { useWindowVirtualizer } from "@tanstack/react-virtual";
 import {
@@ -8,15 +8,11 @@ import {
     SearchState,
     Filters,
     TEACHER_CARD_HEIGHT_REM,
-    FilterState,
 } from "@/components";
 import { useQuery, useTailwindBreakpoint } from "@/hooks";
 import { professorSearch, ProfessorSearchType } from "@/utils/ProfessorSearch";
 import { inferQueryOutput, trpc } from "@/trpc";
-
-export interface SearchPageState {
-    searchTerm: SearchState;
-}
+import { useHistoryState } from "@/hooks/useHistoryState";
 
 export interface SearchPageProps {
     location: Location;
@@ -24,18 +20,20 @@ export interface SearchPageProps {
 
 type Teacher = inferQueryOutput<"allProfessors">[0];
 
-export function Search({ location }: SearchPageProps) {
-    const previousState = location.state as SearchPageState | undefined;
+export function Search() {
     const query = useQuery();
 
     const navigatedSearchTerm = query.get("term");
     const { searchType } = useParams<{ searchType: ProfessorSearchType | undefined }>();
 
-    const loadedSearchTerm = previousState?.searchTerm ?? {
+    const loadedSearchTerm = {
         type: searchType || "name",
         searchValue: navigatedSearchTerm ?? "",
     };
-    const [searchState, setSearchState] = useState<SearchState>(loadedSearchTerm);
+    const [searchState, setSearchState] = useHistoryState<SearchState>(
+        loadedSearchTerm,
+        "searchState",
+    );
     const { data: allProfessors } = trpc.useQuery(["allProfessors"]);
     const searchResults = professorSearch(
         allProfessors ?? [],
@@ -45,22 +43,6 @@ export function Search({ location }: SearchPageProps) {
     const [mobileFiltersOpened, setMobileFiltersOpened] = useState(false);
 
     const [filteredTeachers, setFilteredTeachers] = useState<Teacher[]>([]);
-    const ref = useRef<ElementRef<typeof Filters>>(null);
-
-    const history = useHistory();
-    // This saves the current state of the filters by replacing the current route
-    // with one with the state object to recreate if it gets popped off the history stack
-    const saveState = () => {
-        if (!ref.current) {
-            return;
-        }
-        const currentState: SearchPageState & FilterState = {
-            searchTerm: searchState,
-            // the ref will have to be defined at this state
-            ...ref.current.getState(),
-        };
-        history.replace(location.pathname, currentState);
-    };
 
     // If we remove the filters from the dom we can use one ref and simplify the process of restoring state when re-visiting route
     const mobileFilterBreakpoint = useTailwindBreakpoint({ xl: false }, true);
@@ -93,7 +75,6 @@ export function Search({ location }: SearchPageProps) {
                 <div className="relative">
                     {!mobileFilterBreakpoint && (
                         <Filters
-                            ref={ref}
                             teachers={searchResults}
                             onUpdate={setFilteredTeachers}
                             className="absolute left-0 top-0 pl-12 hidden xl:block"
@@ -133,7 +114,6 @@ export function Search({ location }: SearchPageProps) {
                             </div>
 
                             <Filters
-                                ref={ref}
                                 teachers={searchResults}
                                 onUpdate={setFilteredTeachers}
                                 className="pl-12 pt-6 w-4/5"
@@ -158,10 +138,7 @@ export function Search({ location }: SearchPageProps) {
                                     }}
                                 >
                                     {filteredTeachers[index] && (
-                                        <TeacherCard
-                                            teacher={filteredTeachers[index]}
-                                            beforeNavigation={saveState}
-                                        />
+                                        <TeacherCard teacher={filteredTeachers[index]} />
                                     )}
                                 </div>
                             );
@@ -182,5 +159,5 @@ export function SearchWrapper({ location }: SearchPageProps) {
     if (!location.state && location.key && prevKey !== location.key) {
         setPrevKey(location.key || `${Date.now()}`);
     }
-    return <Search location={location} key={prevKey} />;
+    return <Search key={prevKey} />;
 }
