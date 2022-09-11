@@ -4,10 +4,10 @@ import { QueryClient, QueryClientProvider } from "react-query";
 import { persistQueryClient } from "react-query/persistQueryClient-experimental";
 import { useState } from "react";
 import { httpLink } from "@trpc/client";
+import { DEV_ENV } from "@backend/generated/tomlGenerated";
 import { Home, TeacherPage, Login, NewTeacher, About, SearchWrapper, Admin, FAQ } from "./pages";
 import { Navbar } from "./components";
 import "react-toastify/dist/ReactToastify.css";
-import { config } from "./App.config";
 import { trpc } from "./trpc";
 import { createIDBPersister } from "./utils/idbPersister";
 import { JWT_KEY } from "./hooks";
@@ -51,7 +51,8 @@ function App() {
         trpc.createClient({
             links: [
                 httpLink({
-                    url: config.clientEnv.url,
+                    // TODO: Change Back to config
+                    url: DEV_ENV.url,
                 }),
             ],
             headers() {

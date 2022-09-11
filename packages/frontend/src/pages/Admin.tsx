@@ -3,7 +3,7 @@ import { Fragment, lazy, Suspense, useState } from "react";
 import { Professor, RatingReport } from "@backend/types/schema";
 import { useAuth } from "@/hooks";
 import { trpc } from "@/trpc";
-import { useDbValues } from "@/hooks/useDbValues";
+import { bulkInvalidationKey, useDbValues } from "@/hooks/useDbValues";
 
 const DataTableLazy = lazy(() => import("react-data-table-component"));
 // TODO: If more lazy loading is needed, refactor into generic lazy load component
@@ -132,12 +132,12 @@ function PendingProfessors() {
     const { data: pendingProfessors } = useDbValues("professor-queue");
     const trpcContext = trpc.useContext();
     const { mutate: approvePendingProfessor } = trpc.useMutation("approvePendingTeacher", {
-        // TODO: Fix invalidation
-        onSuccess: () => trpcContext.invalidateQueries("getBulkKeys"),
+        onSuccess: () =>
+            trpcContext.queryClient.invalidateQueries(bulkInvalidationKey("professor-queue")),
     });
     const { mutate: rejectPendingProfessor } = trpc.useMutation("rejectPendingProfessor", {
-        // TODO: Fix invalidation
-        onSuccess: () => trpcContext.invalidateQueries("getBulkKeys"),
+        onSuccess: () =>
+            trpcContext.queryClient.invalidateQueries(bulkInvalidationKey("professor-queue")),
     });
 
     const columns = [

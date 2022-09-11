@@ -23,6 +23,10 @@ export function useDbValues<T extends BulkKey>(bulkKey: T) {
     });
 }
 
+export function bulkInvalidationKey(bulkKey: BulkKey) {
+    return `bulk-values-${bulkKey}`;
+}
+
 export function chunkArray<T>(arr: T[], size: number): T[][] {
     const arrShallowClone = [...arr];
     const chunked = [];

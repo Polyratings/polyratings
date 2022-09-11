@@ -41,10 +41,7 @@ export function NewTeacherForm() {
         setValue,
         watch,
     } = useForm<NewProfessorFormInputs>({
-        resolver: (values, ctx, op) => {
-            console.log(values);
-            return zodResolver(newProfessorFormParser)(values, ctx, op);
-        },
+        resolver: zodResolver(newProfessorFormParser),
         defaultValues: {
             sameDepartment: true,
         },
@@ -64,35 +61,22 @@ export function NewTeacherForm() {
     } = trpc.useMutation("addNewProfessor");
     const history = useHistory();
 
-    const onSubmit = async ({
-        professorFirstName,
-        professorLastName,
-        professorDepartment,
-        overallRating,
-        presentsMaterialClearly,
-        recognizesStudentDifficulties,
-        grade,
-        courseDepartment,
-        courseNum,
-        courseType,
-        gradeLevel,
-        ratingText,
-    }: NewProfessorFormInputs) => {
+    const onSubmit = async (data: NewProfessorFormInputs) => {
         try {
             await addNewProfessorMutation({
-                firstName: professorFirstName,
-                lastName: professorLastName,
+                firstName: data.professorFirstName,
+                lastName: data.professorLastName,
                 department: professorDepartment,
                 rating: {
-                    overallRating,
-                    presentsMaterialClearly,
-                    recognizesStudentDifficulties,
-                    grade,
-                    department: courseDepartment,
-                    courseNum,
-                    courseType,
-                    gradeLevel,
-                    rating: ratingText,
+                    overallRating: data.overallRating,
+                    presentsMaterialClearly: data.presentsMaterialClearly,
+                    recognizesStudentDifficulties: data.recognizesStudentDifficulties,
+                    grade: data.grade,
+                    department: data.courseDepartment,
+                    courseNum: data.courseNum,
+                    courseType: data.courseType,
+                    gradeLevel: data.gradeLevel,
+                    rating: data.ratingText,
                 },
             });
             toast.success(
