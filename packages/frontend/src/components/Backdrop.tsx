@@ -15,7 +15,7 @@ export function Backdrop({ children }: { children: ReactNode }) {
     }, []);
 
     return (
-        <div className="bg-black bg-opacity-80 flex justify-center items-center fixed left-0 top-0 w-screen h-screen z-50">
+        <div className="bg-gray-800 bg-opacity-80 flex justify-center items-center fixed left-0 top-0 w-screen h-screen z-50">
             {children}
         </div>
     );

@@ -95,11 +95,11 @@ export function TeacherPage() {
             {teacherEvaluationShownDesktop && (
                 <Backdrop>
                     <div
-                        className="bg-gray-300 opacity-100 rounded shadow p-5"
+                        className="bg-white opacity-100 rounded shadow p-5"
                         style={{ width: "40rem" }}
                     >
                         <EvaluateTeacherForm
-                            teacher={teacherData}
+                            professor={teacherData}
                             closeForm={() => setTeacherEvaluationShownDesktop(false)}
                         />
                     </div>
@@ -173,7 +173,7 @@ export function TeacherPage() {
             <AnimateHeight duration={500} height={teacherEvaluationShownMobile ? "auto" : 0}>
                 <div className="bg-cal-poly-green text-white p-5">
                     <EvaluateTeacherForm
-                        teacher={teacherData}
+                        professor={teacherData}
                         closeForm={() => setTeacherEvaluationShownMobile(false)}
                     />
                 </div>

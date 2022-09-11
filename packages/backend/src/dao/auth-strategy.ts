@@ -53,7 +53,7 @@ export class AuthStrategy {
         // If token is valid payload should be as well
         const payload = jwt.decode(token);
 
-        return payload as UserToken;
+        return payload.payload as UserToken;
     }
 
     async createToken(user: User) {

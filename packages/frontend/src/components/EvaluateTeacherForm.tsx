@@ -1,51 +1,83 @@
 import { useForm, SubmitHandler } from "react-hook-form";
-import { ErrorMessage } from "@hookform/error-message";
 import { toast } from "react-toastify";
 import ClipLoader from "react-spinners/ClipLoader";
 import {
-    GradeLevel,
-    Grade,
-    CourseType,
     GRADE_LEVELS,
     GRADES,
     DEPARTMENT_LIST,
     COURSE_TYPES,
     Department,
 } from "@backend/utils/const";
+import { z } from "zod";
+import { zodResolver } from "@hookform/resolvers/zod";
 import { inferQueryOutput, trpc } from "@/trpc";
+import { Select, TextArea } from "./forms";
+import { TextInput } from "./forms/TextInput";
 
-interface EvaluateTeacherFormInputs {
-    knownClass: string | undefined;
-    overallRating: string;
-    recognizesStudentDifficulties: string;
-    presentsMaterialClearly: string;
-    reviewText: string;
-    unknownClassDepartment: string;
-    unknownClassNumber: string;
-    year: GradeLevel;
-    grade: Grade;
-    reasonForTaking: CourseType;
-}
+export const CLASS_INFORMATION = [
+    {
+        label: "Year",
+        inputName: "gradeLevel",
+        options: GRADE_LEVELS,
+    },
+    {
+        label: "Grade Achieved",
+        inputName: "grade",
+        options: GRADES,
+    },
+    {
+        label: "Reason For Taking",
+        inputName: "courseType",
+        options: COURSE_TYPES,
+    },
+] as const;
+
+export const NUMERICAL_RATINGS = [
+    { label: "Overall Rating", inputName: "overallRating" },
+    { label: "Recognizes Student Difficulties", inputName: "recognizesStudentDifficulties" },
+    { label: "Presents Material Clearly", inputName: "presentsMaterialClearly" },
+] as const;
+
+const evaluateProfessorFormParser = z.object({
+    knownCourse: z.string(),
+    overallRating: z.string().transform(Number),
+    recognizesStudentDifficulties: z.string().transform(Number),
+    presentsMaterialClearly: z.string().transform(Number),
+    ratingText: z.string().min(20, { message: "Review text must be at least 20 characters long" }),
+    unknownCourseDepartment: z.enum(DEPARTMENT_LIST).optional(),
+    unknownCourseNumber: z
+        .number()
+        .min(100, { message: "Invalid" })
+        .max(599, { message: "Invalid" })
+        .optional(),
+    gradeLevel: z.enum(GRADE_LEVELS),
+    grade: z.enum(GRADES),
+    courseType: z.enum(COURSE_TYPES),
+});
+
+type EvaluateTeacherFormInputs = z.infer<typeof evaluateProfessorFormParser>;
 
 type Teacher = inferQueryOutput<"getProfessor">;
 
 interface EvaluateTeacherFormProps {
-    teacher?: Teacher | null;
+    professor?: Teacher | null;
     closeForm?: () => void;
 }
-export function EvaluateTeacherForm({ teacher, closeForm }: EvaluateTeacherFormProps) {
+export function EvaluateTeacherForm({ professor, closeForm }: EvaluateTeacherFormProps) {
     const {
         register,
         handleSubmit,
         watch,
+        setError,
         formState: { errors },
     } = useForm<EvaluateTeacherFormInputs>({
+        resolver: zodResolver(evaluateProfessorFormParser),
         defaultValues: {
-            knownClass: Object.keys(teacher?.reviews || {})[0],
+            knownCourse: Object.keys(professor?.reviews || {})[0],
         },
     });
 
-    const knownClassValue = watch("knownClass");
+    const knownCourseValue = watch("knownCourse");
     const trpcContext = trpc.useContext();
     const { mutateAsync: finalizeRatingUpload, error: finalizeError } =
         trpc.useMutation("processRating");
@@ -68,58 +100,41 @@ export function EvaluateTeacherForm({ teacher, closeForm }: EvaluateTeacherFormP
     });
 
     const onSubmit: SubmitHandler<EvaluateTeacherFormInputs> = async (formResult) => {
-        const courseNum =
-            formResult.knownClass && formResult.knownClass !== "other"
-                ? parseInt(formResult.knownClass.split(" ")[1], 10)
-                : parseInt(formResult.unknownClassNumber, 10);
-        const department =
-            formResult.knownClass && formResult.knownClass !== "other"
-                ? formResult.knownClass.split(" ")[0]
-                : formResult.unknownClassDepartment;
+        const courseNum = formResult.knownCourse
+            ? parseInt(formResult.knownCourse.split(" ")[1], 10)
+            : formResult.unknownCourseNumber;
+
+        const department = formResult.knownCourse
+            ? (formResult.knownCourse.split(" ")[0] as Department)
+            : formResult.unknownCourseDepartment;
+
+        if (!courseNum) {
+            setError("unknownCourseNumber", { type: "Custom", message: "Required" });
+        }
+
+        if (!department) {
+            setError("unknownCourseDepartment", { type: "Custom", message: "Required" });
+        }
+
+        if (!department || !courseNum) {
+            return;
+        }
 
         uploadNewRating({
-            professor: teacher?.id ?? "",
+            professor: professor?.id ?? "",
             courseNum,
-            department: department as Department,
-            overallRating: Number(formResult.overallRating),
-            presentsMaterialClearly: Number(formResult.presentsMaterialClearly),
-            recognizesStudentDifficulties: Number(formResult.recognizesStudentDifficulties),
+            department,
+            overallRating: formResult.overallRating,
+            presentsMaterialClearly: formResult.presentsMaterialClearly,
+            recognizesStudentDifficulties: formResult.recognizesStudentDifficulties,
             grade: formResult.grade,
-            courseType: formResult.reasonForTaking,
-            rating: formResult.reviewText,
-            gradeLevel: formResult.year,
+            courseType: formResult.courseType,
+            rating: formResult.ratingText,
+            gradeLevel: formResult.gradeLevel,
         });
     };
 
-    const numericalRatings: { label: string; inputName: keyof EvaluateTeacherFormInputs }[] = [
-        { label: "Overall Rating", inputName: "overallRating" },
-        { label: "Recognizes Student Difficulties", inputName: "recognizesStudentDifficulties" },
-        { label: "Presents Material Clearly", inputName: "presentsMaterialClearly" },
-    ];
-
-    const classInformation: {
-        label: string;
-        inputName: keyof EvaluateTeacherFormInputs;
-        options: Readonly<string[]>;
-    }[] = [
-        {
-            label: "Year",
-            inputName: "year",
-            options: GRADE_LEVELS,
-        },
-        {
-            label: "Grade Achieved",
-            inputName: "grade",
-            options: GRADES,
-        },
-        {
-            label: "Reason For Taking",
-            inputName: "reasonForTaking",
-            options: COURSE_TYPES,
-        },
-    ];
-
-    const departmentGroups = Object.keys(teacher?.reviews || {})?.reduce((acc, curr) => {
+    const departmentGroups = Object.keys(professor?.reviews || {})?.reduce((acc, curr) => {
         const [department] = curr.split(" ");
         if (acc[department]) {
             acc[department].push(curr);
@@ -140,10 +155,10 @@ export function EvaluateTeacherForm({ teacher, closeForm }: EvaluateTeacherFormP
         .sort((groupA, groupB) => {
             const [departmentA] = groupA[0].split(" ");
             const [departmentB] = groupB[0].split(" ");
-            if (departmentA === teacher?.department) {
+            if (departmentA === professor?.department) {
                 return -1;
             }
-            if (departmentB === teacher?.department) {
+            if (departmentB === professor?.department) {
                 return 1;
             }
             if (departmentA < departmentB) {
@@ -158,142 +173,92 @@ export function EvaluateTeacherForm({ teacher, closeForm }: EvaluateTeacherFormP
 
     return (
         <form className="relative w-full" onSubmit={handleSubmit(onSubmit)}>
-            {teacher && (
-                <div
-                    className="absolute right-0 top-0 p-3 font-bold cursor-pointer hidden sm:block"
-                    onClick={closeForm}
-                >
-                    X
-                </div>
-            )}
-            {teacher && (
-                <h2 className="text-2xl font-bold hidden sm:block mb-4">
-                    Evaluate {teacher.lastName}, {teacher.firstName}
-                </h2>
-            )}
-
-            <h4>Class</h4>
-            <div className="flex flex-col sm:flex-row sm:justify-between">
-                {teacher && (
-                    <select className="h-7 rounded w-40 text-black" {...register("knownClass")}>
-                        {sortedCourses.map((c) => (
-                            <option value={c} key={c}>
-                                {c}
-                            </option>
-                        ))}
-                        <option value="">Other</option>
-                    </select>
-                )}
-
-                <div
-                    className="text-black pt-1 sm:pt-0"
-                    style={{ display: knownClassValue ? "none" : "block" }}
-                >
-                    <select className="h-7 rounded" {...register("unknownClassDepartment")}>
-                        {DEPARTMENT_LIST.map((d) => (
-                            <option key={d} value={d}>
-                                {d}
-                            </option>
-                        ))}
-                    </select>
-                    <input
-                        className="h-7 w-16 ml-2 rounded appearance-none"
-                        type="number"
-                        placeholder="class #"
-                        {...register("unknownClassNumber", {
-                            required: {
-                                value: !knownClassValue,
-                                message: "Class Number is required",
-                            },
-                        })}
-                    />
-                </div>
+            <div
+                className="absolute right-0 top-0 p-3 font-bold cursor-pointer hidden sm:block"
+                onClick={closeForm}
+            >
+                X
             </div>
-            <ErrorMessage
-                errors={errors}
-                name="unknownClassNumber"
-                as="div"
-                className="text-red-500 text-sm"
-            />
-            <div className="mt-2">
-                {numericalRatings.map((rating) => (
-                    <div key={rating.label}>
-                        <div className="mt-1 flex justify-between">
-                            <h4>{rating.label}</h4>
-                            <div className="flex">
-                                <select
-                                    {...register(rating.inputName)}
-                                    className="text-black rounded md:hidden"
-                                >
-                                    {[4, 3, 2, 1, 0].map((n) => (
-                                        <option key={n} value={n}>
-                                            {n}
-                                        </option>
-                                    ))}
-                                </select>
-                                {[0, 1, 2, 3, 4].map((n) => (
-                                    <div key={n} className="hidden md:flex items-center">
-                                        <input
-                                            type="radio"
-                                            className="mr-1 form-radio w-[0.8rem] h-[0.8rem] border-2 border-black rounded-full"
-                                            value={n}
-                                            {...register(rating.inputName)}
-                                        />
-                                        <label className="mr-3 hidden md:block">{n}</label>
-                                    </div>
-                                ))}
-                            </div>
-                        </div>
-                        <ErrorMessage
-                            errors={errors}
-                            name={rating.inputName}
-                            as="div"
-                            className="text-red-500 text-sm"
+
+            <h2 className="text-2xl font-bold hidden sm:block mb-4">
+                Evaluate {professor?.lastName}, {professor?.firstName}
+            </h2>
+
+            <div className="flex justify-between flex-wrap">
+                <Select
+                    label="Course"
+                    options={[
+                        ...sortedCourses.map((course) => ({ value: course, label: course })),
+                        { label: "Other", value: "" },
+                    ]}
+                    {...register("knownCourse")}
+                    error={errors.knownCourse?.message}
+                />
+
+                {!knownCourseValue && (
+                    <>
+                        <Select
+                            options={DEPARTMENT_LIST.map((d) => ({ label: d, value: d }))}
+                            label="Department"
+                            {...register("unknownCourseDepartment")}
+                            error={errors.unknownCourseDepartment?.message}
                         />
-                    </div>
-                ))}
+                        <TextInput
+                            label="Course Num"
+                            type="number"
+                            placeholder="class #"
+                            {...register("unknownCourseNumber", {
+                                required: {
+                                    value: !knownCourseValue,
+                                    message: "Class Number is required",
+                                },
+                            })}
+                            error={errors.unknownCourseDepartment?.message}
+                        />
+                    </>
+                )}
             </div>
-            <div className="mt-2">
-                {classInformation.map((dropdown) => (
-                    <div key={dropdown.label}>
-                        <div className="mt-1 flex justify-between">
-                            <h4>{dropdown.label}</h4>
-                            <select
-                                {...register(dropdown.inputName)}
-                                className="w-40 text-black rounded"
-                            >
-                                {dropdown.options.map((option) => (
-                                    <option value={option} key={option}>
-                                        {option}
-                                    </option>
-                                ))}
-                            </select>
-                        </div>
-                    </div>
-                ))}
+            <div className="flex sm:block justify-between">
+                <div className="mt-2 flex flex-col sm:flex-row gap-2 justify-between flex-wrap">
+                    {NUMERICAL_RATINGS.map((rating) => (
+                        <Select
+                            key={rating.label}
+                            label={rating.label}
+                            {...register(rating.inputName)}
+                            options={[4, 3, 2, 1, 0].map((n) => ({
+                                label: `${n}`,
+                                value: `${n}`,
+                            }))}
+                            error={errors[rating.inputName]?.message}
+                        />
+                    ))}
+                </div>
+                <div className="mt-2 flex flex-col sm:flex-row gap-2 justify-between flex-wrap">
+                    {CLASS_INFORMATION.map((dropdown) => (
+                        <Select
+                            key={dropdown.label}
+                            {...register(dropdown.inputName)}
+                            options={dropdown.options.map((option) => ({
+                                label: option,
+                                value: option,
+                            }))}
+                            label={dropdown.label}
+                            error={errors[dropdown.inputName]?.message}
+                        />
+                    ))}
+                </div>
             </div>
-            <h4 className="mt-4">Review:</h4>
-            <textarea
-                {...register("reviewText", {
-                    required: { value: true, message: "Writing a review is required" },
-                    minLength: {
-                        value: 20,
-                        message: "Review text must be at least 20 characters long",
-                    },
-                })}
-                className="w-full h-64 rounded text-black p-2"
-            />
-            <ErrorMessage
-                errors={errors}
-                name="reviewText"
-                as="div"
-                className="text-red-500 text-sm"
+            <TextArea
+                {...register("ratingText")}
+                wrapperClassName="mt-4"
+                label="Rating"
+                error={errors.ratingText?.message}
             />
             <div className="flex justify-center mt-2">
-                {teacher && (
+                {professor && (
                     <div>
                         <button
-                            className="bg-cal-poly-gold sm:bg-cal-poly-green text-white rounded-lg p-2 shadow w-24"
+                            className="bg-cal-poly-gold sm:bg-cal-poly-green text-white rounded-lg p-2 shadow w-24 mt-2"
                             style={{ display: isLoading ? "none" : "block" }}
                             type="submit"
                         >
