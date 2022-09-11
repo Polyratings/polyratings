@@ -62,7 +62,7 @@ export function Navbar() {
                     <Link className="my-1" to="/">
                         Home
                     </Link>
-                    <Link className="my-1" to="/new-teacher">
+                    <Link className="my-1" to="/new-professor">
                         {" "}
                         Add a Professor
                     </Link>
@@ -91,7 +91,7 @@ export function Navbar() {
                     </div>
                 )}
 
-                <Link className="mr-7" to="/new-teacher">
+                <Link className="mr-7" to="/new-professor">
                     {" "}
                     Add a Professor
                 </Link>

@@ -74,7 +74,7 @@ function App() {
                         <Redirect from="/teacher/:id" to="/professor/:id" />
                         <Route path="/search/:searchType?" component={SearchWrapper} />
                         <Route path="/login" component={Login} />
-                        <Route path="/new-teacher" component={NewTeacher} />
+                        <Route path="/new-professor" component={NewTeacher} />
                         <Route path="/about" component={About} />
                         <Route path="/admin" component={Admin} />
                         <Route path="/faq" component={FAQ} />

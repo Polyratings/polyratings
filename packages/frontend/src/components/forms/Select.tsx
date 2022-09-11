@@ -33,7 +33,9 @@ export const Select = forwardRef<HTMLSelectElement, SelectProps>(
                     {...rest}
                 >
                     {options.map(({ label, value }) => (
-                        <option value={value}>{label}</option>
+                        <option key={label} value={value}>
+                            {label}
+                        </option>
                     ))}
                 </select>
                 <svg

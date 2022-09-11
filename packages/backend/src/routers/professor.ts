@@ -1,6 +1,6 @@
 import { t } from "@backend/trpc";
 import { z } from "zod";
-import { Professor, Rating, ratingBaseValidator } from "@backend/types/schema";
+import { Professor, ratingBaseValidator } from "@backend/types/schema";
 import { addRating } from "@backend/types/schemaHelpers";
 import { DEPARTMENT_LIST } from "@backend/utils/const";
 
@@ -27,8 +27,9 @@ export const professorRouter = t.router({
             }),
         )
         .mutation(async ({ ctx, input }) => {
+            const professorId = crypto.randomUUID();
             const professor: Professor = {
-                id: crypto.randomUUID(),
+                id: professorId,
                 firstName: input.firstName,
                 lastName: input.lastName,
                 department: input.department,
@@ -40,6 +41,7 @@ export const professorRouter = t.router({
                 reviews: {
                     [`${input.rating.department} ${input.rating.courseNum}`]: [
                         {
+                            professor: professorId,
                             id: crypto.randomUUID(),
                             overallRating: input.rating.overallRating,
                             presentsMaterialClearly: input.rating.presentsMaterialClearly,
@@ -49,9 +51,10 @@ export const professorRouter = t.router({
                             gradeLevel: input.rating.gradeLevel,
                             courseType: input.rating.courseType,
                             rating: input.rating.rating,
+                            postDate: `${new Date()}`,
                         },
                     ],
-                } as Record<string, Rating[]>,
+                },
             };
 
             const existingPendingProfessors = await ctx.env.kvDao.getAllPendingProfessors();

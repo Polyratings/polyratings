@@ -25,6 +25,7 @@ export const TextInput = forwardRef<HTMLInputElement, TextInputProps>(
                 id={name}
                 ref={ref}
                 type={type}
+                name={name}
                 {...rest}
             />
             {error && <p className="text-sm text-red-500">{error}</p>}

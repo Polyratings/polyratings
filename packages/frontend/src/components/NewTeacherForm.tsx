@@ -22,7 +22,10 @@ const newProfessorFormParser = z.object({
     presentsMaterialClearly: z.string().transform(Number),
     ratingText: z.string().min(20, { message: "Review text must be at least 20 characters long" }),
     courseDepartment: z.enum(DEPARTMENT_LIST),
-    courseNum: z.number().min(100, { message: "Invalid" }).max(599, { message: "Invalid" }),
+    courseNum: z.preprocess(
+        (val) => parseInt(z.string().parse(val), 10),
+        z.number().min(100, { message: "Invalid" }).max(599, { message: "Invalid" }),
+    ),
     gradeLevel: z.enum(GRADE_LEVELS),
     grade: z.enum(GRADES),
     courseType: z.enum(COURSE_TYPES),
@@ -35,9 +38,13 @@ export function NewTeacherForm() {
         register,
         handleSubmit,
         formState: { errors },
+        setValue,
         watch,
     } = useForm<NewProfessorFormInputs>({
-        resolver: zodResolver(newProfessorFormParser),
+        resolver: (values, ctx, op) => {
+            console.log(values);
+            return zodResolver(newProfessorFormParser)(values, ctx, op);
+        },
         defaultValues: {
             sameDepartment: true,
         },
@@ -45,6 +52,10 @@ export function NewTeacherForm() {
 
     const professorDepartment = watch("professorDepartment");
     const sameAsProfessorDepartment = watch("sameDepartment");
+
+    if (sameAsProfessorDepartment) {
+        setValue("courseDepartment", professorDepartment);
+    }
 
     const {
         mutateAsync: addNewProfessorMutation,
@@ -123,76 +134,76 @@ export function NewTeacherForm() {
                         error={errors.professorDepartment?.message}
                     />
                 </div>
+
+                <h2 className="text-2xl font-bold my-2">Rating</h2>
+
+                <div className="flex justify-between flex-wrap">
+                    <Checkbox label="Same Department" {...register("sameDepartment")} />
+                    <Select
+                        options={DEPARTMENT_LIST.map((d) => ({ label: d, value: d }))}
+                        label="Department"
+                        {...register("courseDepartment")}
+                        disabled={sameAsProfessorDepartment}
+                        error={errors.courseDepartment?.message}
+                    />
+                    <TextInput
+                        label="Course Num"
+                        type="number"
+                        placeholder="class #"
+                        {...register("courseNum")}
+                        error={errors.courseNum?.message}
+                    />
+                </div>
+                <div className="flex sm:block justify-between">
+                    <div className="mt-2 flex flex-col sm:flex-row gap-3 sm:gap-2 justify-between flex-wrap">
+                        {NUMERICAL_RATINGS.map((rating) => (
+                            <Select
+                                key={rating.label}
+                                label={rating.label}
+                                {...register(rating.inputName)}
+                                options={[4, 3, 2, 1, 0].map((n) => ({
+                                    label: `${n}`,
+                                    value: `${n}`,
+                                }))}
+                                error={errors[rating.inputName]?.message}
+                            />
+                        ))}
+                    </div>
+                    <div className="mt-2 flex flex-col sm:flex-row gap-3 sm:gap-2 justify-between flex-wrap">
+                        {CLASS_INFORMATION.map((dropdown) => (
+                            <Select
+                                key={dropdown.label}
+                                {...register(dropdown.inputName)}
+                                options={dropdown.options.map((option) => ({
+                                    label: option,
+                                    value: option,
+                                }))}
+                                label={dropdown.label}
+                                error={errors[dropdown.inputName]?.message}
+                            />
+                        ))}
+                    </div>
+                </div>
+                <TextArea
+                    {...register("ratingText")}
+                    error={errors.ratingText?.message}
+                    wrapperClassName="mt-4"
+                    label="Rating"
+                />
+
+                <div className="flex justify-center mt-2">
+                    <button
+                        className="bg-cal-poly-green text-white rounded-lg p-2 shadow w-24"
+                        type="submit"
+                        style={{ display: isLoading ? "none" : "block" }}
+                    >
+                        Submit
+                    </button>
+                    {/* Exact size for no layer shift when replacing button */}
+                    <ClipLoader color="#1F4715" loading={isLoading} size={34} />
+                </div>
+                <div className="text-red-500 text-sm">{networkError?.message}</div>
             </form>
-            <h2 className="text-2xl font-bold my-2">Rating</h2>
-
-            <div className="flex justify-between flex-wrap">
-                <Checkbox label="Same Department" {...register("sameDepartment")} />
-                <Select
-                    options={DEPARTMENT_LIST.map((d) => ({ label: d, value: d }))}
-                    label="Department"
-                    {...register("courseDepartment")}
-                    disabled={sameAsProfessorDepartment}
-                    {...(sameAsProfessorDepartment ? { value: professorDepartment } : {})}
-                    error={errors.courseDepartment?.message}
-                />
-                <TextInput
-                    label="Course Num"
-                    type="number"
-                    placeholder="class #"
-                    {...register("courseNum")}
-                    error={errors.courseNum?.message}
-                />
-            </div>
-            <div className="flex sm:block justify-between">
-                <div className="mt-2 flex flex-col sm:flex-row gap-3 sm:gap-2 justify-between flex-wrap">
-                    {NUMERICAL_RATINGS.map((rating) => (
-                        <Select
-                            key={rating.label}
-                            label={rating.label}
-                            {...register(rating.inputName)}
-                            options={[4, 3, 2, 1, 0].map((n) => ({
-                                label: `${n}`,
-                                value: `${n}`,
-                            }))}
-                            error={errors[rating.inputName]?.message}
-                        />
-                    ))}
-                </div>
-                <div className="mt-2 flex flex-col sm:flex-row gap-3 sm:gap-2 justify-between flex-wrap">
-                    {CLASS_INFORMATION.map((dropdown) => (
-                        <Select
-                            key={dropdown.label}
-                            {...register(dropdown.inputName)}
-                            options={dropdown.options.map((option) => ({
-                                label: option,
-                                value: option,
-                            }))}
-                            label={dropdown.label}
-                            error={errors[dropdown.inputName]?.message}
-                        />
-                    ))}
-                </div>
-            </div>
-            <TextArea
-                {...register("ratingText")}
-                error={errors.ratingText?.message}
-                wrapperClassName="mt-4"
-                label="Rating"
-            />
-
-            <div className="flex justify-center mt-2">
-                <button
-                    className="bg-cal-poly-green text-white rounded-lg p-2 shadow w-24"
-                    type="submit"
-                    style={{ display: isLoading ? "none" : "block" }}
-                >
-                    Submit
-                </button>
-                {/* Exact size for no layer shift when replacing button */}
-                <ClipLoader color="#1F4715" loading={isLoading} size={34} />
-            </div>
-            <div className="text-red-500 text-sm">{networkError?.message}</div>
         </div>
     );
 }

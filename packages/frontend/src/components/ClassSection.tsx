@@ -1,10 +1,11 @@
 import { useState } from "react";
 import { SubmitHandler, useForm } from "react-hook-form";
-import { ErrorMessage } from "@hookform/error-message";
 import { toast } from "react-toastify";
 import { ValueOf } from "type-fest";
+import { z } from "zod";
 import { Backdrop } from "@/components";
 import { inferQueryOutput, trpc } from "@/trpc";
+import { TextArea, TextInput } from "./forms";
 
 export interface ClassSectionProps {
     ratings: ValueOf<inferQueryOutput<"getProfessor">["reviews"]>;
@@ -80,10 +81,7 @@ function ReportButton({ professorId, ratingId }: ReportButtonProps) {
         <div>
             {formShown && (
                 <Backdrop>
-                    <div
-                        className="bg-gray-300 opacity-100 rounded shadow p-5"
-                        style={{ width: "35rem" }}
-                    >
+                    <div className="bg-white rounded shadow p-5 w-[35rem]">
                         <ReportForm
                             professorId={professorId}
                             ratingId={ratingId}
@@ -114,10 +112,16 @@ interface ReportFormProps {
     professorId: string;
     ratingId: string;
 }
-interface ReportFormInputs {
-    email: string;
-    reason: string;
-}
+
+const reportFormParser = z.object({
+    email: z.string().email().optional(),
+    reason: z
+        .string()
+        .min(1, { message: "Leaving a reason will help the team make an informed decision" }),
+});
+
+type ReportFormInputs = z.infer<typeof reportFormParser>;
+
 function ReportForm({ closeForm, professorId, ratingId }: ReportFormProps) {
     const {
         register,
@@ -133,7 +137,7 @@ function ReportForm({ closeForm, professorId, ratingId }: ReportFormProps) {
         reportMutation.mutate({
             professorId,
             ratingId,
-            email: formResult.email,
+            email: formResult.email ?? "",
             reason: formResult.reason,
         });
         closeForm();
@@ -149,36 +153,28 @@ function ReportForm({ closeForm, professorId, ratingId }: ReportFormProps) {
                 X
             </div>
             <h2 className="text-3xl font-semibold mb-4">Report Rating</h2>
-            <label className="font-semibold">Email (Optional)</label>
-            <input
-                {...register("email", {
-                    required: false,
-                    pattern: {
-                        value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
-                        message: "invalid email address",
-                    },
-                })}
+            <TextInput
+                wrapperClassName="!w-full"
+                label="Email (Optional)"
                 placeholder="name@example.com"
-                className="h-10 border-gray-300 border w-full rounded pl-2 mb-4"
+                error={errors.email?.message}
+                {...register("email")}
             />
-            <label className="font-semibold">Reason For Reporting</label>
-            <textarea
-                {...register("reason", {
-                    required: {
-                        value: true,
-                        message: "Leaving a reason will help the team make an informed decision",
-                    },
-                })}
+            <TextArea
+                label="Reason For Reporting"
                 placeholder="This Review was offensive and contained inappropriate language."
-                className="border-gray-300 border w-full h-40 rounded pl-2"
+                wrapperClassName="mt-2"
+                className="!h-40"
+                {...register("reason")}
             />
-            <ErrorMessage errors={errors} name="reason" as="div" className="text-red-500 text-sm" />
-            <button
-                className="bg-cal-poly-green text-white rounded-lg p-2 shadow w-24 m-auto mt-1"
-                type="submit"
-            >
-                Submit
-            </button>
+            <div className="flex justify-center">
+                <button
+                    className="bg-cal-poly-green text-white rounded-lg p-2 shadow w-24 mt-4"
+                    type="submit"
+                >
+                    Submit
+                </button>
+            </div>
         </form>
     );
 }

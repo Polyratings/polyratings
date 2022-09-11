@@ -34,13 +34,11 @@ export function Admin() {
 }
 
 function ReportedReviews() {
-    const ratingReports = useDbValues("reports");
-    const { data: professors } = trpc.useQuery(
-        ["getProfessors", ratingReports?.map((report) => report.professorId) ?? []],
-        {
-            enabled: !!ratingReports,
-        },
-    );
+    const { data: ratingReports } = useDbValues("reports");
+    const { data: professors } = trpc.useQuery([
+        "getProfessors",
+        ratingReports?.map((report) => report.professorId) ?? [],
+    ]);
     const { mutate: removeReport } = trpc.useMutation("removeReport");
     const { mutate: actOnReport } = trpc.useMutation("actOnReport");
 
@@ -125,13 +123,13 @@ function ReportedReviews() {
     return (
         <div className="mt-4">
             <h2 className="ml-1">Reported Ratings:</h2>
-            <DataTable columns={columns} data={ratingReports} pagination />
+            <DataTable columns={columns} data={ratingReports ?? []} pagination />
         </div>
     );
 }
 
 function PendingProfessors() {
-    const pendingProfessors = useDbValues("professor-queue");
+    const { data: pendingProfessors } = useDbValues("professor-queue");
     const trpcContext = trpc.useContext();
     const { mutate: approvePendingProfessor } = trpc.useMutation("approvePendingTeacher", {
         // TODO: Fix invalidation
@@ -190,13 +188,13 @@ function PendingProfessors() {
     return (
         <div className="mt-4">
             <h2 className="ml-1">Pending Professors:</h2>
-            <DataTable columns={columns} data={pendingProfessors} pagination />
+            <DataTable columns={columns} data={pendingProfessors ?? []} pagination />
         </div>
     );
 }
 
 function ProcessedReviews() {
-    const processedReviews = useDbValues("rating-queue");
+    const { data: processedReviews } = useDbValues("rating-queue");
     type PendingReview = NonNullable<typeof processedReviews>[0];
 
     const columns = [
@@ -229,15 +227,14 @@ function ProcessedReviews() {
     return (
         <div className="mt-4">
             <h2 className="ml-1">Processed Reviews:</h2>
-            <DataTable columns={columns} data={processedReviews} pagination />
+            <DataTable columns={columns} data={processedReviews ?? []} pagination />
         </div>
     );
 }
 
 // TODO: Re-Enable in a reasonable way
 function RecentReviews() {
-    const [loadData, setLoadData] = useState(false);
-    const professors = useDbValues("professors", loadData);
+    const { data: professors } = useDbValues("professors");
     const ratings =
         professors
             ?.flatMap((professor) =>
@@ -276,16 +273,6 @@ function RecentReviews() {
     return (
         <div className="mt-4">
             <h2 className="ml-1">Recent Reviews:</h2>
-            <p className="text-sm ml-1">
-                Press the button to load recent ratings{" "}
-                <button
-                    className="bg-cal-poly-green text-white shadow p-2 rounded"
-                    type="button"
-                    onClick={() => setLoadData(true)}
-                >
-                    Press Me
-                </button>
-            </p>
             <DataTable columns={columns} data={ratings} pagination />
         </div>
     );

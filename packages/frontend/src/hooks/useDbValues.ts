@@ -1,32 +1,26 @@
 import { BulkKey, BulkKeyMap } from "@backend/utils/const";
-import { useState } from "react";
+import { useQuery } from "react-query";
 import { trpc } from "@/trpc";
 
-const WORKER_RETRIEVAL_CHUNK_SIZE = 1000;
+const WORKER_RETRIEVAL_CHUNK_SIZE = 100;
 
-export function useDbValues<T extends BulkKey>(bulkKey: T, enabled = true) {
-    const [dbValues, setDbValues] = useState<BulkKeyMap[T]>();
-    const { data: keys } = trpc.useQuery(["getBulkKeys", bulkKey], { enabled });
+export function useDbValues<T extends BulkKey>(bulkKey: T) {
     const trpcContext = trpc.useContext();
 
-    if (keys && !dbValues) {
-        const getValues = async () => {
-            const chunkedKeys = chunkArray(keys, WORKER_RETRIEVAL_CHUNK_SIZE);
-            const results = await Promise.all(
-                chunkedKeys.map((chunk) =>
-                    trpcContext.client.mutation(
-                        "getBulkValues",
-                        { keys: chunk, bulkKey },
-                        { context: { skipBatch: true } },
-                    ),
+    return useQuery(`bulk-values-${bulkKey}`, async () => {
+        const keys = await trpcContext.client.query("getBulkKeys", bulkKey);
+        const chunkedKeys = chunkArray(keys, WORKER_RETRIEVAL_CHUNK_SIZE);
+        const chunkedValues = await Promise.all(
+            chunkedKeys.map((chunk) =>
+                trpcContext.client.mutation(
+                    "getBulkValues",
+                    { keys: chunk, bulkKey },
+                    { context: { skipBatch: true } },
                 ),
-            );
-            setDbValues(results.flat() as never);
-        };
-        getValues();
-    }
-
-    return dbValues;
+            ),
+        );
+        return chunkedValues.flat() as BulkKeyMap[T];
+    });
 }
 
 export function chunkArray<T>(arr: T[], size: number): T[][] {
