@@ -8,8 +8,6 @@ export interface SelectProps extends SelectHTMLAttributes<unknown> {
     wrapperClassName?: string;
 }
 
-// TODO: Not opening on enter
-
 export const Select = forwardRef<HTMLSelectElement, SelectProps>(
     ({ options, name, label, error, wrapperClassName = "", ...rest }, ref) => (
         <div

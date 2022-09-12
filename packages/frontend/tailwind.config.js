@@ -53,9 +53,5 @@ module.exports = {
             },
         },
     },
-    plugins: [
-        require("tailwind-scrollbar-hide"),
-        // TODO: Enable tailwind forms to have uniform styling
-        // require('@tailwindcss/forms')
-    ],
+    plugins: [require("tailwind-scrollbar-hide")],
 };

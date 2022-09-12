@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useHistory } from "react-router-dom";
 import { DEPARTMENT_LIST } from "@backend/utils/const";
-import { AutoComplete } from ".";
+import { AutoComplete } from "./AutoComplete";
 import { trpc } from "@/trpc";
 import { ProfessorSearchType, professorSearch } from "@/utils/ProfessorSearch";
 
@@ -38,6 +38,20 @@ export function SearchBar({
     const onFormSubmit = (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
         history.push(`/search/${searchType}?term=${encodeURIComponent(searchValue)}`);
+    };
+
+    const onAutoCompleteChange = ({
+        inputValue,
+        selection,
+    }: {
+        inputValue: string;
+        // Using unknown since it should be a string but the generic is not being inferred
+        selection?: unknown;
+    }) => {
+        setSearchValue(inputValue);
+        if (selection) {
+            history.push(`/professor/${selection}`);
+        }
     };
 
     const autoCompleteFilter = (value: string) => {
@@ -81,7 +95,7 @@ export function SearchBar({
                 )}
 
                 <AutoComplete
-                    onChange={(v) => setSearchValue(v.inputValue)}
+                    onChange={(change) => onAutoCompleteChange(change)}
                     placeholder={`Enter a ${searchType}`}
                     items={allProfessors ?? []}
                     filterFn={(_, inputValue) => autoCompleteFilter(inputValue)}

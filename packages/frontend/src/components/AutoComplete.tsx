@@ -8,7 +8,7 @@ export interface AutoCompleteOption<U> {
     value: U;
 }
 
-interface AutoCompleteProps<T, U> {
+export interface AutoCompleteProps<T, U> {
     onChange: (val: { inputValue: string; selection?: U }) => void;
     filterFn: (items: T[], inputValue: string) => AutoCompleteOption<U>[];
     items: T[];
@@ -53,15 +53,15 @@ export function AutoComplete<T, U>({
         onInputValueChange({ inputValue }) {
             const filteredItems = filterFn(items, inputValue ?? "");
             setFilteredItems(filteredItems);
-            const exactItems = filteredItems.filter((item) => item.label === inputValue);
-            if (exactItems.length === 1) {
+            parentOnChange({
+                inputValue: inputValue ?? "",
+            });
+        },
+        onSelectedItemChange({ selectedItem, inputValue }) {
+            if (selectedItem) {
                 parentOnChange({
                     inputValue: inputValue ?? "",
-                    selection: exactItems[0].value,
-                });
-            } else {
-                parentOnChange({
-                    inputValue: inputValue ?? "",
+                    selection: selectedItem.value,
                 });
             }
         },
