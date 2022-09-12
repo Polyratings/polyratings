@@ -1,4 +1,3 @@
-export * from "./Backdrop";
 export * from "./EvaluateTeacherForm";
 export * from "./Navbar";
 export * from "./NewTeacherForm";

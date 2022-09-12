@@ -3,9 +3,10 @@ import { SubmitHandler, useForm } from "react-hook-form";
 import { toast } from "react-toastify";
 import { ValueOf } from "type-fest";
 import { z } from "zod";
-import { Backdrop } from "@/components";
+import Modal from "react-modal";
 import { inferQueryOutput, trpc } from "@/trpc";
 import { TextArea, TextInput } from "./forms";
+import { REACT_MODAL_STYLES } from "@/constants";
 
 export interface ClassSectionProps {
     ratings: ValueOf<inferQueryOutput<"getProfessor">["reviews"]>;
@@ -79,17 +80,20 @@ function ReportButton({ professorId, ratingId }: ReportButtonProps) {
     const [formShown, setFormShown] = useState(false);
     return (
         <div>
-            {formShown && (
-                <Backdrop>
-                    <div className="bg-white rounded shadow p-5 w-[35rem]">
-                        <ReportForm
-                            professorId={professorId}
-                            ratingId={ratingId}
-                            closeForm={() => setFormShown(false)}
-                        />
-                    </div>
-                </Backdrop>
-            )}
+            <Modal
+                isOpen={formShown}
+                style={REACT_MODAL_STYLES}
+                onRequestClose={() => setFormShown(false)}
+            >
+                <div className="bg-white rounded shadow p-5 w-[35rem]">
+                    <ReportForm
+                        professorId={professorId}
+                        ratingId={ratingId}
+                        closeForm={() => setFormShown(false)}
+                    />
+                </div>
+            </Modal>
+
             <svg
                 xmlns="http://www.w3.org/2000/svg"
                 className="h-6 w-6 m-auto mt-1 text-gray-500 hover:text-red-500 transition-all cursor-pointer"

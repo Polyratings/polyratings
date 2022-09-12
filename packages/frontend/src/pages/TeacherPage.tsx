@@ -5,8 +5,10 @@ import AnimateHeight from "react-animate-height";
 import AnchorLink from "react-anchor-link-smooth-scroll";
 import StarRatings from "react-star-ratings";
 import { ValueOf } from "type-fest";
-import { Backdrop, ClassSection, EvaluateTeacherForm } from "@/components";
+import Modal from "react-modal";
+import { ClassSection, EvaluateTeacherForm } from "@/components";
 import { inferQueryOutput, trpc } from "@/trpc";
+import { REACT_MODAL_STYLES } from "@/constants";
 
 interface ClassReviews {
     course: string;
@@ -92,19 +94,18 @@ export function TeacherPage() {
 
     return (
         <div>
-            {teacherEvaluationShownDesktop && (
-                <Backdrop>
-                    <div
-                        className="bg-white opacity-100 rounded shadow p-5"
-                        style={{ width: "40rem" }}
-                    >
-                        <EvaluateTeacherForm
-                            professor={teacherData}
-                            closeForm={() => setTeacherEvaluationShownDesktop(false)}
-                        />
-                    </div>
-                </Backdrop>
-            )}
+            <Modal
+                isOpen={teacherEvaluationShownDesktop}
+                onRequestClose={() => setTeacherEvaluationShownDesktop(false)}
+                style={REACT_MODAL_STYLES}
+            >
+                <div className="bg-white opacity-100 rounded shadow p-5 w-[40rem]">
+                    <EvaluateTeacherForm
+                        professor={teacherData}
+                        closeForm={() => setTeacherEvaluationShownDesktop(false)}
+                    />
+                </div>
+            </Modal>
 
             <div className="lg:max-w-5xl w-full mx-auto hidden sm:flex justify-between py-2 px-2">
                 <div>
