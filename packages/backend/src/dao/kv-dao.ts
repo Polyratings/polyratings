@@ -57,25 +57,31 @@ export class KVDAO {
         return this.polyratingsNamespace.get(professorValidator, id);
     }
 
-    getBulkNamespace(bulkKey: BulkKey): KvWrapper {
+    getBulkNamespace(bulkKey: BulkKey): { namespace: KvWrapper; validator: z.ZodTypeAny } {
         switch (bulkKey) {
             case "professors":
-                return this.polyratingsNamespace;
+                return { namespace: this.polyratingsNamespace, validator: professorValidator };
             case "professor-queue":
-                return this.professorApprovalQueueNamespace;
+                return {
+                    namespace: this.professorApprovalQueueNamespace,
+                    validator: professorValidator,
+                };
             case "users":
-                return this.usersNamespace;
+                return { namespace: this.usersNamespace, validator: userValidator };
             case "reports":
-                return this.reportsNamespace;
+                return { namespace: this.reportsNamespace, validator: ratingReportValidator };
             case "rating-queue":
-                return this.processingQueueNamespace;
+                return {
+                    namespace: this.processingQueueNamespace,
+                    validator: pendingRatingValidator,
+                };
             default:
                 throw new PolyratingsError(404, "Bulk key is not valid");
         }
     }
 
     async getBulkKeys(bulkKey: BulkKey): Promise<string[]> {
-        const namespace = this.getBulkNamespace(bulkKey);
+        const { namespace } = this.getBulkNamespace(bulkKey);
         const keys: string[] = [];
         let cursor: string | undefined;
         do {
@@ -102,8 +108,8 @@ export class KVDAO {
                 `Can not process more than ${KV_REQUESTS_PER_TRIGGER} keys per request`,
             );
         }
-        const namespace = this.getBulkNamespace(bulkKey);
-        return Promise.all(keys.map((key) => namespace.getUnsafe(key))) as never;
+        const { namespace, validator } = this.getBulkNamespace(bulkKey);
+        return Promise.all(keys.map((key) => namespace.get(validator, key)));
     }
 
     async putProfessor(professor: Professor, skipNameCollisionDetection = false) {
