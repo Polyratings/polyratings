@@ -108,8 +108,10 @@ export class KVDAO {
                 `Can not process more than ${KV_REQUESTS_PER_TRIGGER} keys per request`,
             );
         }
-        const { namespace, validator } = this.getBulkNamespace(bulkKey);
-        return Promise.all(keys.map((key) => namespace.get(validator, key)));
+        const { namespace } = this.getBulkNamespace(bulkKey);
+        // Use get unsafe for performance reasons. Since we are fetching a large number of records
+        // the time can be greater than 50ms resulting in occasional 503's
+        return Promise.all(keys.map((key) => namespace.getUnsafe(key))) as never;
     }
 
     async putProfessor(professor: Professor, skipNameCollisionDetection = false) {
