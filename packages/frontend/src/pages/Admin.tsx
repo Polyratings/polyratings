@@ -1,5 +1,5 @@
 /* eslint-disable react/no-unstable-nested-components */
-import { Fragment, lazy, Suspense, useState } from "react";
+import { Fragment, lazy, Suspense, useEffect, useState } from "react";
 import { Professor, RatingReport } from "@backend/types/schema";
 import { useAuth } from "@/hooks";
 import { trpc } from "@/trpc";
@@ -234,7 +234,12 @@ function ProcessedReviews() {
 
 // TODO: Re-Enable in a reasonable way
 function RecentReviews() {
+    const trpcContext = trpc.useContext();
     const { data: professors } = useDbValues("professors");
+    const { mutateAsync: removeRatingMutation } = trpc.useMutation("removeRating");
+
+    const [removedRatings, setRemovedRatings] = useState(new Set<string>());
+
     const ratings =
         professors
             ?.flatMap((professor) =>
@@ -246,9 +251,25 @@ function RecentReviews() {
                         ...review,
                     })),
             )
+            .filter(({ id }) => !removedRatings.has(id))
             .sort(
                 (reviewA, reviewB) => Date.parse(reviewB.postDate) - Date.parse(reviewA.postDate),
             ) ?? [];
+
+    const removeRating = async (professorId: string, ratingId: string) => {
+        await removeRatingMutation({ ratingId, professorId });
+        setRemovedRatings(new Set<string>(...removedRatings).add(ratingId));
+    };
+
+    useEffect(
+        () => () => {
+            if (removedRatings.size) {
+                // Invalidate to allow refetch if ratings have been deleted
+                trpcContext.queryClient.invalidateQueries(bulkInvalidationKey("professors"));
+            }
+        },
+        [],
+    );
 
     type ConnectedRating = typeof ratings[0];
     const columns = [
@@ -267,6 +288,18 @@ function RecentReviews() {
             wrap: true,
             grow: 3,
             selector: (row: ConnectedRating) => row.rating,
+        },
+        {
+            name: "Remove",
+            cell: (row: ConnectedRating) => (
+                <ConfirmationButton
+                    action={() => removeRating(row.professorId, row.id)}
+                    buttonClassName="p-2 bg-red-500 text-white rounded"
+                    buttonText="X"
+                />
+            ),
+            center: true,
+            grow: 0,
         },
     ];
 
