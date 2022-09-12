@@ -35,7 +35,7 @@
     "dependencies": {
         "@cloudflare/kv-asset-handler": "^0.2.0",
         "@tsndr/cloudflare-worker-jwt": "^1.1.5",
-        "@trpc/server": "^10.0.0-alpha.38",
+        "@trpc/server": "10.0.0-alpha.38",
         "class-validator": "^0.13.2",
         "toucan-js": "^2.5.0",
         "sunder": "^0.10.1",

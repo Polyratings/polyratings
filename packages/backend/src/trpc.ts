@@ -8,7 +8,9 @@ type Context = {
     };
 };
 
-export const t = initTRPC.context<Context>().create();
+export const t = initTRPC<{
+    ctx: Context;
+}>()({});
 
 export const protectedProcedure = t.procedure.use((params) => {
     if (!params.ctx.user) {

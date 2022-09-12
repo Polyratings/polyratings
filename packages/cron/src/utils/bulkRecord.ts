@@ -5,7 +5,7 @@ import { chunkArray } from "./chunkArray";
 
 const WORKER_RETRIEVAL_CHUNK_SIZE = 1000;
 
-export async function bulkRecord(client: TRPCClient<AppRouter>, bulkKey: BulkKey) {
+export async function bulkRecord<T extends BulkKey>(client: TRPCClient<AppRouter>, bulkKey: T) {
     const allKeys = await client.query("getBulkKeys", bulkKey);
     const values = (
         await Promise.all(

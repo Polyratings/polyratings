@@ -1,8 +1,7 @@
 /* eslint-disable global-require */
 
 module.exports = {
-    mode: "jit",
-    purge: ["./src/**/*.html", "./src/**/*.tsx"],
+    content: ["./src/**/*.html", "./src/**/*.tsx"],
     theme: {
         borderWidth: {
             DEFAULT: "0.0625rem",

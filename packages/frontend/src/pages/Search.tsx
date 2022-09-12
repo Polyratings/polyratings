@@ -1,4 +1,4 @@
-import { useParams } from "react-router-dom";
+import { Link, useParams } from "react-router-dom";
 import { useState } from "react";
 import { Location } from "history";
 import { useWindowVirtualizer } from "@tanstack/react-virtual";

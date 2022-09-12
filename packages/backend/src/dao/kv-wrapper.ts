@@ -1,6 +1,5 @@
 import { infer as zodInfer, ZodTypeAny } from "zod";
 import { TRPCError } from "@trpc/server";
-import { Exact } from "type-fest";
 
 export class KvWrapper {
     constructor(private kv: KVNamespace) {}
@@ -37,7 +36,7 @@ export class KvWrapper {
         return possiblyNullJson.filter((exists) => exists).map((json) => validator.parse(json));
     }
 
-    put<T extends ZodTypeAny, U extends Exact<zodInfer<T>, U>>(validator: T, key: string, data: U) {
+    put<T extends ZodTypeAny, U extends zodInfer<T>>(validator: T, key: string, data: U) {
         const parsed = validator.parse(data);
         return this.kv.put(key, JSON.stringify(parsed));
     }
