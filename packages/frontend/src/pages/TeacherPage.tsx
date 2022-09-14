@@ -43,8 +43,8 @@ export function TeacherPage() {
         );
 
         // Sort departments by class number
-        Object.values(teacherByDepartments).forEach((deparment) =>
-            deparment.sort((a, b) => {
+        Object.values(teacherByDepartments).forEach((department) =>
+            department.sort((a, b) => {
                 const [, aNumber] = a.taughtClass.split(" ");
                 const [, bNumber] = b.taughtClass.split(" ");
                 return parseInt(aNumber, 10) - parseInt(bNumber, 10);
