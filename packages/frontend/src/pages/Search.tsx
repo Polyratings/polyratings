@@ -104,12 +104,17 @@ export function Search({ location }: SearchPageProps) {
                 disableAutoComplete
             />
             {(!searchResults.length || !filteredTeachers.length) && (
-                <h1 className="text-4xl mt-5 text-center text-cal-poly-green">
-                    No Results Found.{" "}
-                    <Link className="underline" to="/new-teacher">
+                <>
+                    <h1 className="text-4xl mt-5 text-center text-cal-poly-green">
+                        No Results Found
+                    </h1>
+                    <Link
+                        className="hover:underline text-cal-poly-green font-semibold text-2xl flex justify-center"
+                        to="/new-teacher"
+                    >
                         Add a Professor?
                     </Link>
-                </h1>
+                </>
             )}
             {Boolean(searchResults.length) && (
                 <div className="relative">
