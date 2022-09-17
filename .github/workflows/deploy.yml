@@ -1,18 +1,29 @@
 name: Continuous Integration and Deployment
 
-on: [push]
+on: [push, pull_request]
 
 jobs:
-  Integration_And_Deployment:
+  CI_CD:
     runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        node-version: [lts/*, latest]
+
     steps:
-      - name: checkout
-        uses: actions/checkout@master
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v3
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: "npm"
 
       - name: Install Top Level Dependencies
         run: |
           npm ci
-      
+
       - name: Install Dependencies
         run: |
           npm run bootstrap
@@ -30,14 +41,14 @@ jobs:
           npm run test
 
       - name: Deploy Prod
-        if: github.ref == 'refs/heads/master'
+        if: github.ref == 'refs/heads/master' && matrix.node-version == 'lts'
         env:
           CF_API_TOKEN: ${{ secrets.CF_API_TOKEN }}
         run: |
           npm run deploy:prod
 
       - name: Deploy Beta
-        if: github.ref == 'refs/heads/beta'
+        if: github.ref == 'refs/heads/beta' && matrix.node-version == 'lts' 
         env:
           CF_API_TOKEN: ${{ secrets.CF_API_TOKEN }}
         run: |

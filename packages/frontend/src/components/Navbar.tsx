@@ -62,7 +62,6 @@ export function Navbar() {
                         Home
                     </Link>
                     <Link className="my-1" to="/new-teacher" onClick={triggerMobileNav}>
-                        {" "}
                         Add a Professor
                     </Link>
                     <Link className="my-1" to="/search" onClick={triggerMobileNav}>

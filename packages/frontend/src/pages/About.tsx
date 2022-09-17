@@ -72,7 +72,7 @@ export function About() {
                     the winter quarter. But Lanning and Dahms knew the site would be useless without
                     any publicity. So Lanning e-mailed Cal Poly&apos;s student newspaper, the
                     Mustang Daily, sparking interest in the site. This led to the first of a number
-                    of articles about the controvertial, but always popular website.
+                    of articles about the controversial, but always popular website.
                 </p>
 
                 <p className={paragraphStyle}>
@@ -95,7 +95,7 @@ export function About() {
                 </p>
                 <p className={paragraphStyle}>
                     Ultimately, Dahms and Lanning would appear on the local news and in a number of
-                    newspapers and mazaines, including the Japan Times, People, and the Christian
+                    newspapers and magazines, including the Japan Times, People, and the Christian
                     Science Monitor. The two never expected any publicity from their little
                     &quot;project&quot;, but it has happened and it was quite the rollercoaster
                     experience.
@@ -141,8 +141,8 @@ export function About() {
                 <p className={paragraphStyle}>
                     Polyratings 2.0 was officially launched, with a new database, a new ratings
                     engine, and a new look provided by Lanning, on August 19th, 2001. With the
-                    extensibility of a complete web framework, and modualarized ratings engine, and
-                    a fully SQL-capable database, Polyratings 2.0 is able to analyze and present
+                    extensibility of a complete web framework, and modularized ratings engine, and a
+                    fully SQL-capable database, Polyratings 2.0 is able to analyze and present
                     information regarding Poly&apos;s best (and worst) professors to the weary
                     student faster, easier, and with more value so students can be empowered to make
                     the necessary decisions to make the most of their education.
