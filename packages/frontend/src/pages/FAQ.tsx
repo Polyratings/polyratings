@@ -48,7 +48,7 @@ export function FAQ() {
                 </p>
                 <p className={paragraphStyle}>
                     We do not judge comments based upon the words they contain or the way they
-                    express their opinion, but if a comment is reported as innapropriate, we look to
+                    express their opinion, but if a comment is reported as inappropriate, we look to
                     see what value it adds to both Polyratings and to Cal Poly students in general.
                 </p>
                 <p className={paragraphStyle}>
@@ -70,13 +70,13 @@ export function FAQ() {
             </div>
             <div className={cardStyle}>
                 <h2 className={subTitleStyle}>
-                    Why do you let innapropriate comments be posted in the first place?
+                    Why do you let inappropriate comments be posted in the first place?
                 </h2>
                 <p className={paragraphStyle}>
                     Polyratings&apos; staff does not have time to read and approve every comment.
                 </p>
                 <p className={paragraphStyle}>
-                    As such, we only hear about innapropriate comments after the fact; just because
+                    As such, we only hear about inappropriate comments after the fact; just because
                     a comment appears does not mean that it&apos;s been reviewed and deemed
                     acceptable.
                 </p>
@@ -134,7 +134,7 @@ export function FAQ() {
                 </p>
                 <p className={paragraphStyle}>
                     Polyratings 4.0 is fully open source meaning that anyone can contribute. If you
-                    would like somthing changed or would like to implement a new feature, open a
+                    would like something changed or would like to implement a new feature, open a
                     pull request!
                 </p>
             </div>

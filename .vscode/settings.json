@@ -13,4 +13,14 @@
 	"files.eol": "\n",
 	"files.insertFinalNewline": true,
 	"typescript.tsdk": "node_modules\\typescript\\lib",
+	"cSpell.words": [
+		"Connor",
+		"Dahms",
+		"Evals",
+		"Krier",
+		"Lanning",
+		"Polyratings",
+		"Scroller",
+		"Thattayathu"
+	],
 }
