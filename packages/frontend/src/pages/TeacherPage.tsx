@@ -9,6 +9,7 @@ import Modal from "react-modal";
 import { ClassSection, EvaluateTeacherForm } from "@/components";
 import { inferQueryOutput, trpc } from "@/trpc";
 import { REACT_MODAL_STYLES } from "@/constants";
+import { Button } from "@/components/forms/Button";
 
 interface ClassReviews {
     course: string;
@@ -123,13 +124,13 @@ export function TeacherPage() {
                             />
                         )}
                     </div>
-                    <button
+                    <Button
                         onClick={() => setTeacherEvaluationShownDesktop(true)}
-                        className="bg-cal-poly-green text-white rounded-lg p-2 shadow mt-2"
+                        className="mt-2"
                         type="button"
                     >
                         Evaluate Teacher
-                    </button>
+                    </Button>
                 </div>{" "}
                 <div className="text-right">
                     <h2 className="text-4xl text-cal-poly-green">
@@ -155,13 +156,13 @@ export function TeacherPage() {
                     Recognizes Student Difficulties: {NaEvalZero(teacherData?.studentDifficulties)}
                 </p>
                 <p>Presents Material Clearly: {NaEvalZero(teacherData?.materialClear)}</p>
-                <button
+                <Button
                     onClick={() => setTeacherEvaluationShownMobile(!teacherEvaluationShownMobile)}
-                    className="bg-cal-poly-green text-white rounded-lg p-2 shadow mt-2"
+                    className="mt-2"
                     type="button"
                 >
                     {teacherEvaluationShownMobile ? "Close Evaluation" : "Evaluate Teacher"}
-                </button>
+                </Button>
             </div>
 
             {/* Mobile divider */}

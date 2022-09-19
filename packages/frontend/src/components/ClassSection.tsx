@@ -7,6 +7,7 @@ import Modal from "react-modal";
 import { inferQueryOutput, trpc } from "@/trpc";
 import { TextArea, TextInput } from "./forms";
 import { REACT_MODAL_STYLES } from "@/constants";
+import { Button } from "./forms/Button";
 
 export interface ClassSectionProps {
     ratings: ValueOf<inferQueryOutput<"getProfessor">["reviews"]>;
@@ -150,12 +151,13 @@ function ReportForm({ closeForm, professorId, ratingId }: ReportFormProps) {
 
     return (
         <form className="relative text-left" onSubmit={handleSubmit(onSubmit)}>
-            <div
+            <button
                 className="absolute right-0 top-0 p-3 font-bold cursor-pointer"
                 onClick={closeForm}
+                type="button"
             >
                 X
-            </div>
+            </button>
             <h2 className="text-3xl font-semibold mb-4">Report Rating</h2>
             <TextInput
                 wrapperClassName="!w-full"
@@ -172,12 +174,9 @@ function ReportForm({ closeForm, professorId, ratingId }: ReportFormProps) {
                 {...register("reason")}
             />
             <div className="flex justify-center">
-                <button
-                    className="bg-cal-poly-green text-white rounded-lg p-2 shadow w-24 mt-4"
-                    type="submit"
-                >
+                <Button className="mt-4" type="submit">
                     Submit
-                </button>
+                </Button>
             </div>
         </form>
     );

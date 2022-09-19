@@ -9,7 +9,18 @@ export interface TextInputProps extends Partial<HTMLAttributes<HTMLInputElement>
 }
 
 export const TextInput = forwardRef<HTMLInputElement, TextInputProps>(
-    ({ name, label, error, type, wrapperClassName = "", ...rest }: TextInputProps, ref) => (
+    (
+        {
+            name,
+            label,
+            error,
+            type,
+            wrapperClassName = "",
+            className = "",
+            ...rest
+        }: TextInputProps,
+        ref,
+    ) => (
         <div
             className={`flex flex-col w-[10.5rem] ${
                 error ? "text-red-500" : "text-inherit"
@@ -21,7 +32,7 @@ export const TextInput = forwardRef<HTMLInputElement, TextInputProps>(
             <input
                 className={`py-2 pl-4 pr-10 rounded  cursor-pointer appearance-none border-[1px] ${
                     error ? "border-red-500 bg-red-50" : "border-[#c3cdd5] bg-[#f2f5f8]"
-                } active:bg-[#f2feff]`}
+                } active:bg-[#f2feff] ${className}`}
                 id={name}
                 ref={ref}
                 type={type}

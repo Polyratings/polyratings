@@ -9,6 +9,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { trpc } from "@/trpc";
 import { Checkbox, Select, TextArea, TextInput } from "./forms";
 import { CLASS_INFORMATION, NUMERICAL_RATINGS } from "./EvaluateTeacherForm";
+import { Button } from "./forms/Button";
 
 export const NEW_TEACHER_FORM_WIDTH = 475;
 
@@ -176,13 +177,9 @@ export function NewTeacherForm() {
                 />
 
                 <div className="flex justify-center mt-2">
-                    <button
-                        className="bg-cal-poly-green text-white rounded-lg p-2 shadow w-24"
-                        type="submit"
-                        style={{ display: isLoading ? "none" : "block" }}
-                    >
+                    <Button type="submit" style={{ display: isLoading ? "none" : "block" }}>
                         Submit
-                    </button>
+                    </Button>
                     {/* Exact size for no layer shift when replacing button */}
                     <ClipLoader color="#1F4715" loading={isLoading} size={34} />
                 </div>

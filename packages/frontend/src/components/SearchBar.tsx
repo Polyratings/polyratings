@@ -4,6 +4,7 @@ import { DEPARTMENT_LIST } from "@backend/utils/const";
 import { AutoComplete } from "./AutoComplete";
 import { trpc } from "@/trpc";
 import { ProfessorSearchType, professorSearch } from "@/utils/ProfessorSearch";
+import { Button } from "./forms/Button";
 
 export interface SearchState {
     type: ProfessorSearchType;
@@ -106,12 +107,9 @@ export function SearchBar({
                 />
             </div>
             {showOnlyInput && (
-                <button
-                    className="bg-cal-poly-green text-white rounded-md px-5 ml-5 h-8 mt-3 lg:mt-0"
-                    type="submit"
-                >
+                <Button className="!py-1 ml-5 mt-3 md:mt-0" type="submit">
                     Submit
-                </button>
+                </Button>
             )}
         </form>
     );

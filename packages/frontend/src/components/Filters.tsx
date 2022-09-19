@@ -264,10 +264,11 @@ export function Filters({ teachers, onUpdate, className }: FilterProps) {
                 <h3>Department:</h3>
                 <div className="grid grid-cols-2 gap-x-2">
                     {departmentFilters.map(({ name, state }, i) => (
-                        <label key={name} className="mt-1 flex items-center">
+                        <label htmlFor={name} key={name} className="mt-1 flex items-center">
                             <input
                                 type="checkbox"
                                 checked={state}
+                                id={name}
                                 className="h-5 w-5"
                                 onChange={(e) => {
                                     const updatedDepartmentFilters = [...departmentFilters];

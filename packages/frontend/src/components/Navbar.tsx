@@ -38,16 +38,17 @@ export function Navbar() {
                 <img src={Logo} alt="Polyratings logo" className="h-8" />
             </Link>
 
-            <div
+            <button
                 onClick={triggerMobileNav}
                 className={`hamburger hamburger--slider block md:hidden  ${
                     mobileNavOpen ? "is-active hamburgerTurn" : ""
                 }`}
+                type="button"
             >
                 <div className="hamburger-box">
                     <div className="hamburger-inner bg-white" />
                 </div>
-            </div>
+            </button>
 
             {/* Mobile hamburger dropdown */}
             <AnimateHeight
@@ -55,9 +56,10 @@ export function Navbar() {
                 height={mobileNavOpen ? "auto" : 0}
                 className="absolute top-12 left-0 bg-cal-poly-green w-full z-50 transform -translate-y-1"
             >
-                <div
+                <button
                     className="flex flex-col text-center text-xl text-white"
                     onClick={triggerMobileNav}
+                    type="button"
                 >
                     <Link className="my-1" to="/">
                         Home
@@ -77,11 +79,11 @@ export function Navbar() {
                     </Link>
                     {/* <Link className="mr-7" to="contact">Contact</Link> */}
                     {isAuthenticated && (
-                        <div className="my-1" onClick={() => setJwt(null)}>
+                        <button type="button" className="my-1" onClick={() => setJwt(null)}>
                             Sign Out
-                        </div>
+                        </button>
                     )}
-                </div>
+                </button>
             </AnimateHeight>
 
             <div className="text-white hidden md:flex items-center text-lg font-semibold">
@@ -132,12 +134,13 @@ export function Navbar() {
                     </Link>
                 )}
                 {isAuthenticated && (
-                    <div
+                    <button
                         onClick={() => setJwt(null)}
                         className="rounded-full border-white pl-3 pr-3 border-2 pt-px pb-px cursor-pointer"
+                        type="button"
                     >
                         SIGN OUT
-                    </div>
+                    </button>
                 )}
             </div>
         </div>

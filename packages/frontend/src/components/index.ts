@@ -7,3 +7,4 @@ export * from "./MinMaxSlider";
 export * from "./Filters";
 export * from "./ClassSection";
 export * from "./AutoComplete";
+export * from "./forms";

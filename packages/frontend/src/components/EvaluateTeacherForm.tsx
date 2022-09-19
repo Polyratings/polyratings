@@ -13,6 +13,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { inferQueryOutput, trpc } from "@/trpc";
 import { Select, TextArea } from "./forms";
 import { TextInput } from "./forms/TextInput";
+import { Button } from "./forms/Button";
 
 export const CLASS_INFORMATION = [
     {
@@ -173,12 +174,13 @@ export function EvaluateTeacherForm({ professor, closeForm }: EvaluateTeacherFor
 
     return (
         <form className="relative w-full" onSubmit={handleSubmit(onSubmit)}>
-            <div
+            <button
                 className="absolute right-0 top-0 p-3 font-bold cursor-pointer hidden sm:block"
                 onClick={closeForm}
+                type="button"
             >
                 X
-            </div>
+            </button>
 
             <h2 className="text-2xl font-bold hidden sm:block mb-4">
                 Evaluate {professor?.lastName}, {professor?.firstName}
@@ -257,13 +259,15 @@ export function EvaluateTeacherForm({ professor, closeForm }: EvaluateTeacherFor
             <div className="flex justify-center mt-2">
                 {professor && (
                     <div>
-                        <button
-                            className="bg-cal-poly-gold sm:bg-cal-poly-green text-white rounded-lg p-2 shadow w-24 mt-2"
-                            style={{ display: isLoading ? "none" : "block" }}
+                        {/* TODO: FIXME */}
+                        <Button
+                            className={`${
+                                isLoading ? "hidden" : "block"
+                            } !bg-cal-poly-gold md:!bg-cal-poly-green`}
                             type="submit"
                         >
                             Submit
-                        </button>
+                        </Button>
                         {/* Exact size for no layer shift */}
                         <ClipLoader color="#1F4715" loading={isLoading} size={34} />
                     </div>
