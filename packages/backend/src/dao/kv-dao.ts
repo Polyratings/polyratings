@@ -1,4 +1,3 @@
-import { PolyratingsError } from "@backend/utils/errors";
 import { BulkKey, BulkKeyMap } from "@backend/utils/const";
 import { z } from "zod";
 import { TRPCError } from "@trpc/server";
@@ -39,7 +38,10 @@ export class KVDAO {
             "all",
         );
         if (!professorList) {
-            throw new PolyratingsError(404, "Could not find any professors.");
+            throw new TRPCError({
+                code: "INTERNAL_SERVER_ERROR",
+                message: "Could not find any professors.",
+            });
         }
 
         return professorList;
@@ -76,7 +78,7 @@ export class KVDAO {
                     validator: pendingRatingValidator,
                 };
             default:
-                throw new PolyratingsError(404, "Bulk key is not valid");
+                throw new TRPCError({ code: "BAD_REQUEST", message: "Bulk key is not valid" });
         }
     }
 
@@ -103,10 +105,10 @@ export class KVDAO {
 
     async getBulkValues<T extends BulkKey>(bulkKey: T, keys: string[]): Promise<BulkKeyMap[T]> {
         if (keys.length > KV_REQUESTS_PER_TRIGGER) {
-            throw new PolyratingsError(
-                400,
-                `Can not process more than ${KV_REQUESTS_PER_TRIGGER} keys per request`,
-            );
+            throw new TRPCError({
+                code: "BAD_REQUEST",
+                message: `Can not process more than ${KV_REQUESTS_PER_TRIGGER} keys per request`,
+            });
         }
         const { namespace } = this.getBulkNamespace(bulkKey);
         // Use get unsafe for performance reasons. Since we are fetching a large number of records

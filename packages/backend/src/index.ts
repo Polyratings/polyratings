@@ -1,7 +1,7 @@
-import { CloudflareEventFunctions } from "sunder/application";
 import { CloudflareEnv, Env } from "@backend/env";
 import Toucan from "toucan-js";
 import { fetchRequestHandler } from "@trpc/server/adapters/fetch";
+import { Context } from "toucan-js/dist/types";
 import { t } from "./trpc";
 import { professorRouter } from "./routers/professor";
 import { ratingsRouter } from "./routers/rating";
@@ -18,11 +18,7 @@ const CORS_HEADERS = {
 };
 
 export default {
-    async fetch(
-        request: Request,
-        coudflareEnv: CloudflareEnv,
-        cloudflareCtx: CloudflareEventFunctions,
-    ) {
+    async fetch(request: Request, coudflareEnv: CloudflareEnv, cloudflareCtx: Context) {
         if (request.method === "OPTIONS") {
             return new Response(null, { headers: CORS_HEADERS });
         }
