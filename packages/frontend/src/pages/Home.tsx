@@ -62,7 +62,7 @@ export function Home() {
                     <div className="flex mt-2 mb-6">
                         {/* Nothing Unique about items  */}
                         {[...Array(12)].map((_, i) => (
-                            <img key={i} src={star} alt="star" />
+                            <img key={i} src={star} className="h-7 w-7" alt="star" />
                         ))}
                     </div>
                     <div className="w-11/12">

@@ -19,7 +19,6 @@ export interface AutoCompleteProps<T, U> {
     className?: string;
     disableDropdown: boolean;
 }
-// TODO: Fix virtualization on large screen
 
 export function AutoComplete<T, U>({
     placeholder,
@@ -33,8 +32,12 @@ export function AutoComplete<T, U>({
     const [filteredItems, setFilteredItems] = useState(filterFn(items, ""));
     const listRef = useRef(undefined as unknown as HTMLElement);
 
+    const remMultiplier =
+        parseFloat(window.getComputedStyle(document.body).getPropertyValue("font-size") || "16") /
+        16;
+
     const rowVirtualizer = useVirtualizer({
-        estimateSize: useCallback(() => 28, []),
+        estimateSize: useCallback(() => 28 * remMultiplier, []),
         count: filteredItems.length,
         getScrollElement: () => listRef.current,
         overscan: 2,
@@ -99,18 +102,13 @@ export function AutoComplete<T, U>({
                             const item = filteredItems[virtualElement.index];
                             return (
                                 <li
-                                    // eslint-disable-next-line react/no-array-index-key
-                                    key={`${item.label}${virtualElement.index}`}
-                                    className={`pl-1 ${
+                                    key={`${item.label}${item.value}`}
+                                    className={`pl-1 absolute top-0 left-0 w-full ${
                                         highlightedIndex === virtualElement.index
                                             ? "bg-gray-300"
                                             : ""
                                     }`}
                                     style={{
-                                        position: "absolute",
-                                        top: 0,
-                                        left: 0,
-                                        width: "100%",
                                         height: `${virtualElement.size}px`,
                                         transform: `translateY(${virtualElement.start}px)`,
                                     }}
