@@ -91,8 +91,7 @@ export function EvaluateTeacherForm({ professor, closeForm }: EvaluateTeacherFor
             try {
                 await finalizeRatingUpload(id);
                 toast.success("Thank you for your review");
-                // TODO: Figure out how to invalidate individual professor
-                trpcContext.invalidateQueries("getProfessor");
+                trpcContext.invalidateQueries(["getProfessor", id]);
                 closeForm?.();
             } catch {
                 // No need to catch error since it is displayed in the ui
@@ -259,7 +258,6 @@ export function EvaluateTeacherForm({ professor, closeForm }: EvaluateTeacherFor
             <div className="flex justify-center mt-2">
                 {professor && (
                     <div>
-                        {/* TODO: FIXME */}
                         <Button
                             className={`${
                                 isLoading ? "hidden" : "block"

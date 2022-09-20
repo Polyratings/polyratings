@@ -232,7 +232,6 @@ function ProcessedReviews() {
     );
 }
 
-// TODO: Re-Enable in a reasonable way
 function RecentReviews() {
     const trpcContext = trpc.useContext();
     const { data: professors } = useDbValues("professors");

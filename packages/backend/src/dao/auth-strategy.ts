@@ -7,8 +7,7 @@ const HEX_BYTES_PER_CHAR = 2;
 export class AuthStrategy {
     private static SALT_SIZE = 32;
 
-    // Should jwtSigningKey be private?
-    constructor(public readonly jwtSigningKey: string) {}
+    constructor(private readonly jwtSigningKey: string) {}
 
     async hashPassword(input: string): Promise<string> {
         const textEncoder = new TextEncoder();

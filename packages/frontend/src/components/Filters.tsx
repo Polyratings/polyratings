@@ -1,6 +1,7 @@
 import { useLocation } from "react-router-dom";
 import { useEffect } from "react";
 import { DEPARTMENT_LIST } from "@backend/utils/const";
+import { ArrowLongUpIcon } from "@heroicons/react/24/outline";
 import { MinMaxSlider } from "@/components";
 import { inferQueryOutput, trpc } from "@/trpc";
 import { useHistoryState } from "@/hooks/useHistoryState";
@@ -182,23 +183,13 @@ export function Filters({ teachers, onUpdate, className }: FilterProps) {
                     <option value="presentsMaterialClearly">Presents Material Clearly</option>
                 </select>
                 {/* Sorting Arrow */}
-                <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    className={`h-5 w-5 hover:text-cal-poly-green transform transition-all ${
-                        reverseFilter ? "rotate-180" : ""
-                    }`}
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                    onClick={() => setReverseFilter(!reverseFilter)}
-                >
-                    <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M8 7l4-4m0 0l4 4m-4-4v18"
+                <button type="button" onClick={() => setReverseFilter(!reverseFilter)}>
+                    <ArrowLongUpIcon
+                        className={`h-5 w-5 hover:text-cal-poly-green transform transition-all ${
+                            reverseFilter ? "rotate-180" : ""
+                        }`}
                     />
-                </svg>
+                </button>
             </div>
 
             <h2 className="text-xl font-bold transform -translate-x-4 py-1">Filters:</h2>

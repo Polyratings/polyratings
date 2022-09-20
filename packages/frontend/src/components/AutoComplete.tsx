@@ -1,6 +1,7 @@
 import { useCallback, useRef, useState } from "react";
 import { useCombobox } from "downshift";
 import { useVirtualizer } from "@tanstack/react-virtual";
+import { MagnifyingGlassIcon } from "@heroicons/react/24/outline";
 import { useTailwindBreakpoint } from "@/hooks";
 
 export interface AutoCompleteOption<U> {
@@ -75,20 +76,11 @@ export function AutoComplete<T, U>({
     });
     return (
         <div className={`relative ${className}`} {...getComboboxProps()}>
-            <svg
-                xmlns="http://www.w3.org/2000/svg"
+            <MagnifyingGlassIcon
                 className="py-1 h-full absolute right-2 top-1/2 transform -translate-y-1/2"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-            >
-                <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-                />
-            </svg>
+                strokeWidth={2}
+            />
+
             <input
                 aria-label={label}
                 className="border-2 border-black p-2 w-full h-full rounded"
@@ -102,7 +94,7 @@ export function AutoComplete<T, U>({
                 className="absolute top-full left-0 w-full bg-white shadow-xl max-h-28 overflow-y-auto"
             >
                 {isOpen && !disableDropdown && deviceSupportsDropdown && (
-                    <div key="total-size" style={{ height: `${rowVirtualizer.getTotalSize()}px` }}>
+                    <div style={{ height: `${rowVirtualizer.getTotalSize()}px` }}>
                         {rowVirtualizer.getVirtualItems().map((virtualElement) => {
                             const item = filteredItems[virtualElement.index];
                             return (
@@ -120,7 +112,7 @@ export function AutoComplete<T, U>({
                                         left: 0,
                                         width: "100%",
                                         height: `${virtualElement.size}px`,
-                                        transform: `translateY(${virtualElement.start}px`,
+                                        transform: `translateY(${virtualElement.start}px)`,
                                     }}
                                     {...getItemProps({ item, index: virtualElement.index })}
                                 >
