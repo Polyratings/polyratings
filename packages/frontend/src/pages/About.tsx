@@ -233,10 +233,9 @@ export function About() {
                         Open Source
                     </a>
                     .
-                    <p>
-                        We take these actions to ensure that Polyratings will never go read-only
-                        again!
-                    </p>
+                </p>
+                <p>
+                    We take these actions to ensure that Polyratings will never go read-only again!
                 </p>
             </div>
         </div>

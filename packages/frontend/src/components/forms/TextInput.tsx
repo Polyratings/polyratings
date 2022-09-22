@@ -4,7 +4,7 @@ export interface TextInputProps extends Partial<HTMLAttributes<HTMLInputElement>
     name: string;
     label: string;
     error?: string;
-    type?: "text" | "number";
+    type?: "text" | "number" | "password";
     wrapperClassName?: string;
 }
 

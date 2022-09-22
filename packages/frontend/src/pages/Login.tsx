@@ -22,15 +22,16 @@ export function Login() {
     } = useForm<LoginSchema>({
         resolver: zodResolver(loginValidator),
     });
-    const { mutate: login, error: networkError, data: jwt } = trpc.useMutation("login");
-    const [, setJwt] = useAuth();
 
+    const [, setJwt] = useAuth();
     const history = useHistory();
 
-    if (jwt) {
-        setJwt(jwt);
-        history.push("/admin");
-    }
+    const { mutate: login, error: networkError } = trpc.useMutation("login", {
+        onSuccess: (jwt) => {
+            setJwt(jwt);
+            history.push("/admin");
+        },
+    });
 
     return (
         <div
@@ -55,6 +56,7 @@ export function Login() {
                         <TextInput
                             wrapperClassName="!w-full mt-6 mb-8"
                             label="Password"
+                            type="password"
                             {...register("password")}
                             error={errors.password?.message}
                         />

@@ -57,7 +57,7 @@ export function Navbar() {
                 className="absolute top-12 left-0 bg-cal-poly-green w-full z-50 transform -translate-y-1"
             >
                 <button
-                    className="flex flex-col text-center text-xl text-white"
+                    className="flex flex-col items-center w-full text-xl text-white"
                     onClick={triggerMobileNav}
                     type="button"
                 >
@@ -77,12 +77,6 @@ export function Navbar() {
                     <Link className="my-1" to="/faq">
                         FAQ
                     </Link>
-                    {/* <Link className="mr-7" to="contact">Contact</Link> */}
-                    {isAuthenticated && (
-                        <button type="button" className="my-1" onClick={() => setJwt(null)}>
-                            Sign Out
-                        </button>
-                    )}
                 </button>
             </AnimateHeight>
 

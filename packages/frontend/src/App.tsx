@@ -2,7 +2,7 @@ import { Switch, Route, Redirect, BrowserRouter } from "react-router-dom";
 import { ToastContainer } from "react-toastify";
 import { QueryClient, QueryClientProvider } from "react-query";
 import { persistQueryClient } from "react-query/persistQueryClient-experimental";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { httpLink } from "@trpc/client";
 import { DEV_ENV } from "@backend/generated/tomlGenerated";
 import { Home, TeacherPage, Login, NewTeacher, About, SearchWrapper, Admin, FAQ } from "./pages";
@@ -10,7 +10,7 @@ import { Navbar } from "./components";
 import "react-toastify/dist/ReactToastify.css";
 import { trpc } from "./trpc";
 import { createIDBPersister } from "./utils/idbPersister";
-import { JWT_KEY } from "./hooks";
+import { AuthContext, JWT_KEY, setJwtWrapper } from "./hooks";
 
 // Lazy load error logger to save bundle size
 if (process.env.NODE_ENV === "production") {
@@ -64,24 +64,35 @@ function App() {
         }),
     );
 
+    const [jwt, setJwtMemory] = useState(window.localStorage.getItem(JWT_KEY));
+    const contextObj = useMemo(
+        () => ({
+            jwt,
+            setJwt: setJwtWrapper(setJwtMemory),
+        }),
+        [jwt, setJwtMemory],
+    );
+
     return (
         <trpc.Provider client={trpcClient} queryClient={queryClient}>
             <QueryClientProvider client={queryClient}>
-                <BrowserRouter>
-                    <ToastContainer />
-                    <Navbar />
-                    <Switch>
-                        <Route path="/professor/:id" component={TeacherPage} />
-                        <Redirect from="/teacher/:id" to="/professor/:id" />
-                        <Route path="/search/:searchType?" component={SearchWrapper} />
-                        <Route path="/login" component={Login} />
-                        <Route path="/new-professor" component={NewTeacher} />
-                        <Route path="/about" component={About} />
-                        <Route path="/admin" component={Admin} />
-                        <Route path="/faq" component={FAQ} />
-                        <Route path="/" component={Home} />
-                    </Switch>
-                </BrowserRouter>
+                <AuthContext.Provider value={contextObj}>
+                    <BrowserRouter>
+                        <ToastContainer />
+                        <Navbar />
+                        <Switch>
+                            <Route path="/professor/:id" component={TeacherPage} />
+                            <Redirect from="/teacher/:id" to="/professor/:id" />
+                            <Route path="/search/:searchType?" component={SearchWrapper} />
+                            <Route path="/login" component={Login} />
+                            <Route path="/new-professor" component={NewTeacher} />
+                            <Route path="/about" component={About} />
+                            <Route path="/admin" component={Admin} />
+                            <Route path="/faq" component={FAQ} />
+                            <Route path="/" component={Home} />
+                        </Switch>
+                    </BrowserRouter>
+                </AuthContext.Provider>
             </QueryClientProvider>
         </trpc.Provider>
     );
