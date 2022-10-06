@@ -1,11 +1,5 @@
 import { PendingRating, Professor, RatingReport, User } from "@backend/types/schema";
 
-export const DEFAULT_VALIDATOR_OPTIONS = {
-    skipMissingProperties: false,
-    forbidNonWhitelisted: true,
-    whitelist: true,
-};
-
 /**
  * List of all departments with courses as of 1/23/2022
  */

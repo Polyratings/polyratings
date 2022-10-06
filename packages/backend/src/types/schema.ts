@@ -7,7 +7,7 @@ import {
     PENDING_RATING_STATUSES,
 } from "@backend/utils/const";
 
-export const ratingBaseValidator = z.object({
+export const ratingBaseParser = z.object({
     grade: z.enum(GRADES),
     gradeLevel: z.enum(GRADE_LEVELS),
     courseType: z.enum(COURSE_TYPES),
@@ -16,18 +16,18 @@ export const ratingBaseValidator = z.object({
     recognizesStudentDifficulties: z.number().min(0).max(4),
     rating: z.string(),
 });
-export type RatingBase = z.infer<typeof ratingBaseValidator>;
+export type RatingBase = z.infer<typeof ratingBaseParser>;
 
-export const ratingValidator = ratingBaseValidator.merge(
+export const ratingParser = ratingBaseParser.merge(
     z.object({
         id: z.string().uuid(),
         professor: z.string().uuid(),
         postDate: z.string(),
     }),
 );
-export type Rating = z.infer<typeof ratingValidator>;
+export type Rating = z.infer<typeof ratingParser>;
 
-export const perspectiveAttributeScoreValidator = z.object({
+export const perspectiveAttributeScoreParser = z.object({
     summaryScore: z.object({
         value: z.number(),
         type: z.string(),
@@ -45,20 +45,20 @@ export const perspectiveAttributeScoreValidator = z.object({
         ),
     ),
 });
-export type PerspectiveAttributeScore = z.infer<typeof perspectiveAttributeScoreValidator>;
+export type PerspectiveAttributeScore = z.infer<typeof perspectiveAttributeScoreParser>;
 
-export const pendingRatingValidator = ratingValidator.merge(
+export const pendingRatingParser = ratingParser.merge(
     z.object({
         status: z.enum(PENDING_RATING_STATUSES),
         error: z.nullable(z.string()),
-        sentimentResponse: z.nullable(z.record(perspectiveAttributeScoreValidator)),
+        sentimentResponse: z.nullable(z.record(perspectiveAttributeScoreParser)),
         courseNum: z.number().min(100).max(599),
         department: z.enum(DEPARTMENT_LIST),
     }),
 );
-export type PendingRating = z.infer<typeof pendingRatingValidator>;
+export type PendingRating = z.infer<typeof pendingRatingParser>;
 
-export const truncatedProfessorValidator = z.object({
+export const truncatedProfessorParser = z.object({
     id: z.string().uuid(),
     department: z.enum(DEPARTMENT_LIST),
     firstName: z.string(),
@@ -69,30 +69,30 @@ export const truncatedProfessorValidator = z.object({
     studentDifficulties: z.number().min(0).max(4),
     courses: z.array(z.string()),
 });
-export type TruncatedProfessor = z.infer<typeof truncatedProfessorValidator>;
+export type TruncatedProfessor = z.infer<typeof truncatedProfessorParser>;
 
-export const professorValidator = truncatedProfessorValidator.merge(
+export const professorParser = truncatedProfessorParser.merge(
     z.object({
-        reviews: z.record(z.array(ratingValidator)),
+        reviews: z.record(z.array(ratingParser)),
     }),
 );
-export type Professor = z.infer<typeof professorValidator>;
+export type Professor = z.infer<typeof professorParser>;
 
-export const userValidator = z.object({
+export const userParser = z.object({
     username: z.string(),
     password: z.string(),
 });
-export type User = z.infer<typeof userValidator>;
+export type User = z.infer<typeof userParser>;
 
-export const reportValidator = z.object({
+export const reportParser = z.object({
     email: z.nullable(z.string()),
     reason: z.string(),
 });
-export const ratingReportValidator = z.object({
+export const ratingReportParser = z.object({
     ratingId: z.string().uuid(),
     professorId: z.string().uuid(),
-    reports: z.array(reportValidator),
+    reports: z.array(reportParser),
 });
 
-export type RatingReport = z.infer<typeof ratingReportValidator>;
-export type Report = z.infer<typeof reportValidator>;
+export type RatingReport = z.infer<typeof ratingReportParser>;
+export type Report = z.infer<typeof reportParser>;

@@ -8,11 +8,11 @@ import { useAuth } from "@/hooks";
 import { Button } from "@/components/forms/Button";
 import { TextInput } from "@/components";
 
-const loginValidator = z.object({
+const loginParser = z.object({
     username: z.string().min(1, { message: "Required" }),
     password: z.string().min(1, { message: "Required" }),
 });
-type LoginSchema = z.infer<typeof loginValidator>;
+type LoginSchema = z.infer<typeof loginParser>;
 
 export function Login() {
     const {
@@ -20,7 +20,7 @@ export function Login() {
         handleSubmit,
         formState: { errors },
     } = useForm<LoginSchema>({
-        resolver: zodResolver(loginValidator),
+        resolver: zodResolver(loginParser),
     });
 
     const [, setJwt] = useAuth();

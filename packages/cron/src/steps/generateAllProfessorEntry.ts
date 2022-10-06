@@ -1,5 +1,5 @@
 import { cloudflareNamespaceInformation } from "@backend/generated/tomlGenerated";
-import { truncatedProfessorValidator } from "@backend/types/schema";
+import { truncatedProfessorParser } from "@backend/types/schema";
 import { bulkRecord } from "src/utils/bulkRecord";
 import { z } from "zod";
 import { CronEnv } from "../entry";
@@ -13,7 +13,7 @@ export async function generateAllProfessorEntry(env: CronEnv) {
     delete allProfessors.all;
 
     const truncatedProfessorList = z
-        .array(truncatedProfessorValidator)
+        .array(truncatedProfessorParser)
         .parse(Object.values(allProfessors));
 
     const prodProfessors = new env.KVWrapper(

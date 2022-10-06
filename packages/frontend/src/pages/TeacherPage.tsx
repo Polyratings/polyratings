@@ -19,7 +19,7 @@ interface ClassReviews {
 export function TeacherPage() {
     const { id } = useParams<{ id: string }>();
 
-    const { data: teacherData, error: fetchError } = trpc.useQuery(["getProfessor", id]);
+    const { data: teacherData, error: fetchError } = trpc.useQuery(["getProfessor", { id }]);
 
     // Put classes for teachers primary department first. This is to cut down on review spamming
     // of other departments. It is possible for a teacher to teach outside of the department but

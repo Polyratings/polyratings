@@ -3,15 +3,15 @@ import { z } from "zod";
 import { TRPCError } from "@trpc/server";
 import {
     PendingRating,
-    pendingRatingValidator,
+    pendingRatingParser,
     Professor,
-    professorValidator,
+    professorParser,
     RatingReport,
-    ratingReportValidator,
+    ratingReportParser,
     TruncatedProfessor,
-    truncatedProfessorValidator,
+    truncatedProfessorParser,
     User,
-    userValidator,
+    userParser,
 } from "@backend/types/schema";
 import {
     addRating,
@@ -34,7 +34,7 @@ export class KVDAO {
 
     async getAllProfessors() {
         const professorList = await this.polyratingsNamespace.safeGet(
-            z.array(truncatedProfessorValidator),
+            z.array(truncatedProfessorParser),
             "all",
         );
         if (!professorList.success) {
@@ -49,33 +49,33 @@ export class KVDAO {
 
     private async putAllProfessors(professorList: TruncatedProfessor[]) {
         await this.polyratingsNamespace.put(
-            z.array(truncatedProfessorValidator),
+            z.array(truncatedProfessorParser),
             "all",
             professorList,
         );
     }
 
     getProfessor(id: string) {
-        return this.polyratingsNamespace.get(professorValidator, id);
+        return this.polyratingsNamespace.get(professorParser, id);
     }
 
-    getBulkNamespace(bulkKey: BulkKey): { namespace: KvWrapper; validator: z.ZodTypeAny } {
+    getBulkNamespace(bulkKey: BulkKey): { namespace: KvWrapper; parser: z.ZodTypeAny } {
         switch (bulkKey) {
             case "professors":
-                return { namespace: this.polyratingsNamespace, validator: professorValidator };
+                return { namespace: this.polyratingsNamespace, parser: professorParser };
             case "professor-queue":
                 return {
                     namespace: this.professorApprovalQueueNamespace,
-                    validator: professorValidator,
+                    parser: professorParser,
                 };
             case "users":
-                return { namespace: this.usersNamespace, validator: userValidator };
+                return { namespace: this.usersNamespace, parser: userParser };
             case "reports":
-                return { namespace: this.reportsNamespace, validator: ratingReportValidator };
+                return { namespace: this.reportsNamespace, parser: ratingReportParser };
             case "rating-queue":
                 return {
                     namespace: this.processingQueueNamespace,
-                    validator: pendingRatingValidator,
+                    parser: pendingRatingParser,
                 };
             default:
                 throw new TRPCError({ code: "BAD_REQUEST", message: "Bulk key is not valid" });
@@ -128,7 +128,7 @@ export class KVDAO {
             }
         }
 
-        await this.polyratingsNamespace.put(professorValidator, professor.id, professor);
+        await this.polyratingsNamespace.put(professorParser, professor.id, professor);
 
         const profList = await this.getAllProfessors();
         // Right now we have these because of the unfortunate shape of our professor list structure.
@@ -160,11 +160,11 @@ export class KVDAO {
     }
 
     getPendingReview(id: string) {
-        return this.processingQueueNamespace.get(pendingRatingValidator, id);
+        return this.processingQueueNamespace.get(pendingRatingParser, id);
     }
 
     async addPendingReview(rating: PendingRating) {
-        return this.processingQueueNamespace.put(pendingRatingValidator, rating.id, rating);
+        return this.processingQueueNamespace.put(pendingRatingParser, rating.id, rating);
     }
 
     async addReview(pendingReview: PendingRating) {
@@ -188,7 +188,7 @@ export class KVDAO {
 
     async getUser(username: string) {
         try {
-            const user = await this.usersNamespace.get(userValidator, username);
+            const user = await this.usersNamespace.get(userParser, username);
             return user;
         } catch (e) {
             throw new TRPCError({ code: "UNAUTHORIZED" });
@@ -196,23 +196,19 @@ export class KVDAO {
     }
 
     putUser(user: User) {
-        return this.usersNamespace.put(userValidator, user.username, user);
+        return this.usersNamespace.put(userParser, user.username, user);
     }
 
     putPendingProfessor(professor: Professor) {
-        return this.professorApprovalQueueNamespace.put(
-            professorValidator,
-            professor.id,
-            professor,
-        );
+        return this.professorApprovalQueueNamespace.put(professorParser, professor.id, professor);
     }
 
     async getPendingProfessor(id: string) {
-        return this.professorApprovalQueueNamespace.get(professorValidator, id);
+        return this.professorApprovalQueueNamespace.get(professorParser, id);
     }
 
     async getAllPendingProfessors() {
-        return this.professorApprovalQueueNamespace.getAll(professorValidator);
+        return this.professorApprovalQueueNamespace.getAll(professorParser);
     }
 
     removePendingProfessor(id: string) {
@@ -220,20 +216,20 @@ export class KVDAO {
     }
 
     async getReport(ratingId: string) {
-        return this.reportsNamespace.get(ratingReportValidator, ratingId);
+        return this.reportsNamespace.get(ratingReportParser, ratingId);
     }
 
     async putReport(report: RatingReport): Promise<void> {
         const existingReport = await this.reportsNamespace.getOptional(
-            ratingReportValidator,
+            ratingReportParser,
             report.ratingId,
         );
 
         if (existingReport) {
             existingReport.reports = existingReport.reports.concat(report.reports);
-            await this.reportsNamespace.put(ratingReportValidator, report.ratingId, existingReport);
+            await this.reportsNamespace.put(ratingReportParser, report.ratingId, existingReport);
         } else {
-            await this.reportsNamespace.put(ratingReportValidator, report.ratingId, report);
+            await this.reportsNamespace.put(ratingReportParser, report.ratingId, report);
         }
     }
 

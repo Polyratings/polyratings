@@ -1,18 +1,13 @@
 import { t } from "@backend/trpc";
 import { z } from "zod";
 import { TRPCError } from "@trpc/server";
-import {
-    PendingRating,
-    ratingBaseValidator,
-    RatingReport,
-    reportValidator,
-} from "@backend/types/schema";
+import { PendingRating, ratingBaseParser, RatingReport, reportParser } from "@backend/types/schema";
 import { DEPARTMENT_LIST } from "@backend/utils/const";
 
 export const ratingsRouter = t.router({
     addNewRating: t.procedure
         .input(
-            ratingBaseValidator.merge(
+            ratingBaseParser.merge(
                 z.object({
                     professor: z.string().uuid(),
                     department: z.enum(DEPARTMENT_LIST),
@@ -79,7 +74,7 @@ export const ratingsRouter = t.router({
     }),
     reportRating: t.procedure
         .input(
-            reportValidator.merge(
+            reportParser.merge(
                 z.object({ ratingId: z.string().uuid(), professorId: z.string().uuid() }),
             ),
         )

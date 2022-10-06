@@ -91,7 +91,7 @@ export function EvaluateTeacherForm({ professor, closeForm }: EvaluateTeacherFor
             try {
                 await finalizeRatingUpload(id);
                 toast.success("Thank you for your review");
-                trpcContext.invalidateQueries(["getProfessor", id]);
+                trpcContext.invalidateQueries(["getProfessor", { id }]);
                 closeForm?.();
             } catch {
                 // No need to catch error since it is displayed in the ui

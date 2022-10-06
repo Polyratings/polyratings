@@ -1,24 +1,26 @@
 import { t } from "@backend/trpc";
 import { z } from "zod";
-import { Professor, ratingBaseValidator } from "@backend/types/schema";
+import { Professor, ratingBaseParser } from "@backend/types/schema";
 import { addRating } from "@backend/types/schemaHelpers";
 import { DEPARTMENT_LIST } from "@backend/utils/const";
 
 export const professorRouter = t.router({
     allProfessors: t.procedure.query(({ ctx }) => ctx.env.kvDao.getAllProfessors()),
     getProfessor: t.procedure
-        .input(z.string().uuid())
-        .query(({ input, ctx }) => ctx.env.kvDao.getProfessor(input)),
+        .input(z.object({ id: z.string().uuid() }))
+        .query(({ input, ctx }) => ctx.env.kvDao.getProfessor(input.id)),
     getProfessors: t.procedure
-        .input(z.array(z.string().uuid()))
-        .query(({ input, ctx }) => Promise.all(input.map((id) => ctx.env.kvDao.getProfessor(id)))),
+        .input(z.object({ ids: z.array(z.string().uuid()) }))
+        .query(({ input, ctx }) =>
+            Promise.all(input.ids.map((id) => ctx.env.kvDao.getProfessor(id))),
+        ),
     addNewProfessor: t.procedure
         .input(
             z.object({
                 department: z.enum(DEPARTMENT_LIST),
                 firstName: z.string(),
                 lastName: z.string(),
-                rating: ratingBaseValidator.merge(
+                rating: ratingBaseParser.merge(
                     z.object({
                         department: z.enum(DEPARTMENT_LIST),
                         courseNum: z.number().min(100).max(599),
@@ -43,15 +45,8 @@ export const professorRouter = t.router({
                         {
                             professor: professorId,
                             id: crypto.randomUUID(),
-                            overallRating: input.rating.overallRating,
-                            presentsMaterialClearly: input.rating.presentsMaterialClearly,
-                            recognizesStudentDifficulties:
-                                input.rating.recognizesStudentDifficulties,
-                            grade: input.rating.grade,
-                            gradeLevel: input.rating.gradeLevel,
-                            courseType: input.rating.courseType,
-                            rating: input.rating.rating,
                             postDate: `${new Date()}`,
+                            ...input.rating,
                         },
                     ],
                 },

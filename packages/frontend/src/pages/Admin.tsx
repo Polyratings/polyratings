@@ -37,7 +37,7 @@ function ReportedReviews() {
     const { data: ratingReports } = useDbValues("reports");
     const { data: professors } = trpc.useQuery([
         "getProfessors",
-        ratingReports?.map((report) => report.professorId) ?? [],
+        { ids: ratingReports?.map((report) => report.professorId) ?? [] },
     ]);
     const { mutate: removeReport } = trpc.useMutation("removeReport");
     const { mutate: actOnReport } = trpc.useMutation("actOnReport");
