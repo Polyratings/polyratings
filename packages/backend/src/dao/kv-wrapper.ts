@@ -1,4 +1,4 @@
-import { infer as zodInfer, ZodTypeAny } from "zod";
+import { infer as zodInfer, SafeParseReturnType, ZodTypeAny } from "zod";
 import { TRPCError } from "@trpc/server";
 
 export class KvWrapper {
@@ -10,6 +10,14 @@ export class KvWrapper {
             throw new TRPCError({ code: "NOT_FOUND" });
         }
         return validator.parse(json);
+    }
+
+    async safeGet<T extends ZodTypeAny>(
+        validator: T,
+        key: string,
+    ): Promise<SafeParseReturnType<T, zodInfer<T>>> {
+        const json = await this.kv.get(key, "json");
+        return validator.safeParse(json);
     }
 
     async getOptional<T extends ZodTypeAny>(

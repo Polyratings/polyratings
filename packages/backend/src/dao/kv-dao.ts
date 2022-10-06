@@ -33,18 +33,18 @@ export class KVDAO {
     ) {}
 
     async getAllProfessors() {
-        const professorList = await this.polyratingsNamespace.get(
+        const professorList = await this.polyratingsNamespace.safeGet(
             z.array(truncatedProfessorValidator),
             "all",
         );
-        if (!professorList) {
+        if (!professorList.success) {
             throw new TRPCError({
                 code: "INTERNAL_SERVER_ERROR",
                 message: "Could not find any professors.",
             });
         }
 
-        return professorList;
+        return professorList.data;
     }
 
     private async putAllProfessors(professorList: TruncatedProfessor[]) {
