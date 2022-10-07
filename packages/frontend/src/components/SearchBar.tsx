@@ -51,7 +51,7 @@ export function SearchBar({
     }) => {
         setSearchValue(inputValue);
         if (selection) {
-            history.push(`/professor/${selection}`);
+            navigate(`/professor/${selection}`);
         }
     };
 
