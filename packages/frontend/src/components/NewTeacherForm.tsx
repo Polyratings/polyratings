@@ -2,7 +2,7 @@ import { useForm } from "react-hook-form";
 // import { EvaluateTeacherForm } from "./EvaluateTeacherForm";
 import ClipLoader from "react-spinners/ClipLoader";
 import { toast } from "react-toastify";
-import { useHistory } from "react-router";
+import { useNavigate } from "react-router";
 import { COURSE_TYPES, DEPARTMENT_LIST, GRADES, GRADE_LEVELS } from "@backend/utils/const";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -60,7 +60,7 @@ export function NewTeacherForm() {
         isLoading,
         error: networkError,
     } = trpc.useMutation("addNewProfessor");
-    const history = useHistory();
+    const navigate = useNavigate();
 
     const onSubmit = async (data: NewProfessorFormInputs) => {
         try {
@@ -83,7 +83,7 @@ export function NewTeacherForm() {
             toast.success(
                 "Thank you for adding a professor. It will be reviewed manually and will be available soon",
             );
-            history.push("/");
+            navigate("/");
         } catch {
             // No need for error will be set by react-query
         }

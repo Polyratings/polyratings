@@ -1,6 +1,5 @@
-import { Link, useParams } from "react-router-dom";
+import { Link, useLocation, useParams } from "react-router-dom";
 import { useState } from "react";
-import { Location } from "history";
 import { useWindowVirtualizer } from "@tanstack/react-virtual";
 import { ChevronDoubleRightIcon } from "@heroicons/react/24/outline";
 import {
@@ -13,14 +12,11 @@ import {
 import { useQuery, useTailwindBreakpoint } from "@/hooks";
 import { professorSearch, ProfessorSearchType } from "@/utils/ProfessorSearch";
 import { inferQueryOutput, trpc } from "@/trpc";
-import { useHistoryState } from "@/hooks/useHistoryState";
-
-export interface SearchPageProps {
-    location: Location;
-}
+import { useLocationState } from "@/hooks/useLocationState";
 
 type Teacher = inferQueryOutput<"allProfessors">[0];
 
+// TODO: Fix search bar not working
 export function Search() {
     const query = useQuery();
 
@@ -31,7 +27,7 @@ export function Search() {
         type: searchType || "name",
         searchValue: navigatedSearchTerm ?? "",
     };
-    const [searchState, setSearchState] = useHistoryState<SearchState>(
+    const [searchState, setSearchState] = useLocationState<SearchState>(
         loadedSearchTerm,
         "searchState",
     );
@@ -150,8 +146,9 @@ export function Search() {
 // when a teacher is clicked but still has the ability to clear state when the nav bar button is clicked
 // This is an extension of ideas expressed in this thread:
 // https://stackoverflow.com/questions/38839510/forcing-a-react-router-link-to-load-a-page-even-if-were-already-on-that-page
-export function SearchWrapper({ location }: SearchPageProps) {
+export function SearchWrapper() {
     const [prevKey, setPrevKey] = useState("");
+    const location = useLocation();
     if (!location.state && location.key && prevKey !== location.key) {
         setPrevKey(location.key || `${Date.now()}`);
     }

@@ -4,7 +4,7 @@ import { DEPARTMENT_LIST } from "@backend/utils/const";
 import { ArrowLongUpIcon } from "@heroicons/react/24/outline";
 import { MinMaxSlider } from "@/components";
 import { inferQueryOutput, trpc } from "@/trpc";
-import { useHistoryState } from "@/hooks/useHistoryState";
+import { useLocationState } from "@/hooks/useLocationState";
 
 type SortingOptions =
     | "relevant"
@@ -47,36 +47,35 @@ export function Filters({ teachers, onUpdate, className }: FilterProps) {
     const location = useLocation();
     const previousState = location.state as FilterState | undefined;
     // Component State
-    const [departmentFilters, setDepartmentFilters] = useHistoryState<
+    const [departmentFilters, setDepartmentFilters] = useLocationState<
         { name: string; state: boolean }[]
     >(
         previousState?.departmentFilters ??
             DEPARTMENT_LIST.map((department) => ({ name: department, state: false })),
         "departmentFilters",
     );
-    const [avgRatingFilter, setAvgRatingFilter] = useHistoryState<[number, number]>(
+    const [avgRatingFilter, setAvgRatingFilter] = useLocationState<[number, number]>(
         previousState?.avgRatingFilter ?? [0, 4],
         "avgRatingFilter",
     );
-    const [studentDifficultyFilter, setStudentDifficultyFilter] = useHistoryState<[number, number]>(
-        previousState?.studentDifficultyFilter ?? [0, 4],
-        "studentDifficultyFilter",
-    );
-    const [materialClearFilter, setMaterialClearFilter] = useHistoryState<[number, number]>(
+    const [studentDifficultyFilter, setStudentDifficultyFilter] = useLocationState<
+        [number, number]
+    >(previousState?.studentDifficultyFilter ?? [0, 4], "studentDifficultyFilter");
+    const [materialClearFilter, setMaterialClearFilter] = useLocationState<[number, number]>(
         previousState?.materialClearFilter ?? [0, 4],
         "materialClearFilter",
     );
-    const [numberOfEvaluationsFilter, setNumberOfEvaluationsFilter] = useHistoryState<
+    const [numberOfEvaluationsFilter, setNumberOfEvaluationsFilter] = useLocationState<
         [number, number]
     >(
         previousState?.numberOfEvaluationsFilter ?? getEvaluationDomain(),
         "numberOfEvaluationsFilter",
     );
-    const [reverseFilter, setReverseFilter] = useHistoryState(
+    const [reverseFilter, setReverseFilter] = useLocationState(
         previousState?.reverseFilter ?? false,
         "reverseFilter",
     );
-    const [sortBy, setSortBy] = useHistoryState<SortingOptions>(
+    const [sortBy, setSortBy] = useLocationState<SortingOptions>(
         previousState?.sortBy ?? "relevant",
         "sortBy",
     );

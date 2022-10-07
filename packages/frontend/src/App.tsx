@@ -1,11 +1,28 @@
-import { Switch, Route, Redirect, BrowserRouter } from "react-router-dom";
+import {
+    Route,
+    createBrowserRouter,
+    createRoutesFromElements,
+    RouterProvider,
+    Outlet,
+    useLocation,
+} from "react-router-dom";
 import { ToastContainer } from "react-toastify";
 import { QueryClient, QueryClientProvider } from "react-query";
 import { persistQueryClient } from "react-query/persistQueryClient-experimental";
-import { useMemo, useState } from "react";
+import { useLayoutEffect, useMemo, useState } from "react";
 import { httpLink } from "@trpc/client";
 import { DEV_ENV } from "@backend/generated/tomlGenerated";
-import { Home, TeacherPage, Login, NewTeacher, About, SearchWrapper, Admin, FAQ } from "./pages";
+import {
+    Home,
+    TeacherPage,
+    Login,
+    NewTeacher,
+    About,
+    Admin,
+    FAQ,
+    teacherPageLoaderFactory,
+    SearchWrapper,
+} from "./pages";
 import { Navbar } from "./components";
 import "react-toastify/dist/ReactToastify.css";
 import { trpc } from "./trpc";
@@ -36,7 +53,8 @@ if (process.env.NODE_ENV === "production") {
     window.onunhandledrejection = (event) => captureError(event.reason);
 }
 
-function App() {
+// TODO: Fix large screen size
+export default function App() {
     const [queryClient] = useState(() => {
         const queryClient = new QueryClient({
             defaultOptions: { queries: { staleTime: Infinity, cacheTime: 600000 } },
@@ -77,24 +95,57 @@ function App() {
         <trpc.Provider client={trpcClient} queryClient={queryClient}>
             <QueryClientProvider client={queryClient}>
                 <AuthContext.Provider value={contextObj}>
-                    <BrowserRouter>
-                        <ToastContainer />
-                        <Navbar />
-                        <Switch>
-                            <Route path="/professor/:id" component={TeacherPage} />
-                            <Redirect from="/teacher/:id" to="/professor/:id" />
-                            <Route path="/search/:searchType?" component={SearchWrapper} />
-                            <Route path="/login" component={Login} />
-                            <Route path="/new-professor" component={NewTeacher} />
-                            <Route path="/about" component={About} />
-                            <Route path="/admin" component={Admin} />
-                            <Route path="/faq" component={FAQ} />
-                            <Route path="/" component={Home} />
-                        </Switch>
-                    </BrowserRouter>
+                    <PolyratingsRouter />
                 </AuthContext.Provider>
             </QueryClientProvider>
         </trpc.Provider>
     );
 }
-export default App;
+
+function PolyratingsRouter() {
+    const trpcContext = trpc.useContext();
+
+    const router = createBrowserRouter(
+        createRoutesFromElements(
+            <Route path="/" element={<BaseComponent />}>
+                <Route index element={<Home />} />
+                <Route
+                    path="professor/:id"
+                    element={<TeacherPage />}
+                    loader={teacherPageLoaderFactory(trpcContext)}
+                />
+                <Route path="search/:searchType?" element={<SearchWrapper />} />
+                <Route path="search" element={<SearchWrapper />} />
+                <Route path="login" element={<Login />} />
+                <Route path="new-professor" element={<NewTeacher />} />
+                <Route path="about" element={<About />} />
+                <Route path="admin" element={<Admin />} />
+                <Route path="faq" element={<FAQ />} />
+            </Route>,
+        ),
+    );
+
+    return <RouterProvider router={router} />;
+}
+
+function BaseComponent() {
+    return (
+        <>
+            <ScrollToTop />
+            <ToastContainer />
+            <Navbar />
+            <Outlet />
+        </>
+    );
+}
+
+// From https://v5.reactrouter.com/web/guides/scroll-restoration
+function ScrollToTop() {
+    const { pathname } = useLocation();
+
+    useLayoutEffect(() => {
+        window.scrollTo(0, 0);
+    }, [pathname]);
+
+    return null;
+}

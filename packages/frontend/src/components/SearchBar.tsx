@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
-import { useHistory } from "react-router-dom";
 import { DEPARTMENT_LIST } from "@backend/utils/const";
+import { useNavigate } from "react-router-dom";
 import { AutoComplete } from "./AutoComplete";
 import { trpc } from "@/trpc";
 import { ProfessorSearchType, professorSearch } from "@/utils/ProfessorSearch";
@@ -34,11 +34,11 @@ export function SearchBar({
         }
     }, [searchValue, searchType]);
 
-    const history = useHistory();
+    const navigate = useNavigate();
 
     const onFormSubmit = (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
-        history.push(`/search/${searchType}?term=${encodeURIComponent(searchValue)}`);
+        navigate(`/search/${searchType}?term=${encodeURIComponent(searchValue)}`);
     };
 
     const onAutoCompleteChange = ({

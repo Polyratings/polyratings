@@ -1,7 +1,7 @@
 import { z } from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useHistory } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import loginBackground from "@/assets/home-header.webp";
 import { trpc } from "@/trpc";
 import { useAuth } from "@/hooks";
@@ -24,12 +24,12 @@ export function Login() {
     });
 
     const [, setJwt] = useAuth();
-    const history = useHistory();
+    const navigate = useNavigate();
 
     const { mutate: login, error: networkError } = trpc.useMutation("login", {
         onSuccess: (jwt) => {
             setJwt(jwt);
-            history.push("/admin");
+            navigate("/admin");
         },
     });
 
