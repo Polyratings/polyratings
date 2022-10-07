@@ -4,7 +4,7 @@ import homeHeader from "@/assets/home-header.webp";
 import homeCurveTransition from "@/assets/home-curve-transition.svg";
 import star from "@/assets/star.svg";
 import worstOfWorstBackground from "@/assets/worst-of-worst-background.webp";
-import { SearchBar, TeacherCard } from "@/components";
+import { SearchBar, ProfessorCard } from "@/components";
 import { inferQueryOutput, trpc } from "@/trpc";
 
 export function Home() {
@@ -66,7 +66,7 @@ export function Home() {
                         ))}
                     </div>
                     <div className="w-11/12">
-                        <TeacherCard teacher={highlightedProfessor} />
+                        <ProfessorCard professor={highlightedProfessor} />
                     </div>
                 </div>
             </div>
@@ -85,8 +85,8 @@ export function Home() {
                     Best of the Best
                 </h2>
                 <div className="grid grid-cols-2 gap-y-14 m-auto mt-20 gap-x-12 xl:gap-x-24 w-[60rem] xl:w-[65rem]">
-                    {bestOfTheBest.map((teacher) => (
-                        <TeacherCard key={teacher.id} teacher={teacher} />
+                    {bestOfTheBest.map((professor) => (
+                        <ProfessorCard key={professor.id} professor={professor} />
                     ))}
                 </div>
             </div>
@@ -95,8 +95,8 @@ export function Home() {
 }
 
 function getBestProfessors(allProfessors: inferQueryOutput<"allProfessors">) {
-    const rankedTeachers = allProfessors
+    const rankedProfessors = allProfessors
         .filter((t) => t.numEvals > 10)
         .sort((a, b) => b.overallRating - a.overallRating);
-    return getRandomSubarray(rankedTeachers.slice(0, 100), 6);
+    return getRandomSubarray(rankedProfessors.slice(0, 100), 6);
 }

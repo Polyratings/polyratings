@@ -14,13 +14,13 @@ import { httpLink } from "@trpc/client";
 import { DEV_ENV } from "@backend/generated/tomlGenerated";
 import {
     Home,
-    TeacherPage,
+    ProfessorPage,
     Login,
-    NewTeacher,
+    NewProfessor,
     About,
     Admin,
     FAQ,
-    teacherPageLoaderFactory,
+    professorPageLoaderFactory,
     SearchWrapper,
 } from "./pages";
 import { Navbar } from "./components";
@@ -111,13 +111,13 @@ function PolyratingsRouter() {
                 <Route index element={<Home />} />
                 <Route
                     path="professor/:id"
-                    element={<TeacherPage />}
-                    loader={teacherPageLoaderFactory(trpcContext)}
+                    element={<ProfessorPage />}
+                    loader={professorPageLoaderFactory(trpcContext)}
                 />
                 <Route path="search/:searchType?" element={<SearchWrapper />} />
                 <Route path="search" element={<SearchWrapper />} />
                 <Route path="login" element={<Login />} />
-                <Route path="new-professor" element={<NewTeacher />} />
+                <Route path="new-professor" element={<NewProfessor />} />
                 <Route path="about" element={<About />} />
                 <Route path="admin" element={<Admin />} />
                 <Route path="faq" element={<FAQ />} />

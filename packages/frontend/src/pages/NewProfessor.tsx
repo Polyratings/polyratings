@@ -1,7 +1,7 @@
 import loginBackground from "@/assets/home-header.webp";
-import { NewTeacherForm } from "@/components";
+import { NewProfessorForm } from "@/components";
 
-export function NewTeacher() {
+export function NewProfessor() {
     return (
         <div>
             <div
@@ -14,11 +14,11 @@ export function NewTeacher() {
                 }}
             >
                 <div className="shadow">
-                    <NewTeacherForm />
+                    <NewProfessorForm />
                 </div>
             </div>
             <div className="sm:hidden flex justify-center bg-gray-300 min-h-screenWoNav">
-                <NewTeacherForm />
+                <NewProfessorForm />
             </div>
         </div>
     );

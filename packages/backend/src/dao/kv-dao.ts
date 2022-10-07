@@ -124,7 +124,7 @@ export class KVDAO {
                 existingProfessor.firstName !== professor.firstName ||
                 existingProfessor.lastName !== professor.lastName
             ) {
-                throw new Error("Possible teacher collision detected");
+                throw new Error("Possible professor collision detected");
             }
         }
 
@@ -159,30 +159,30 @@ export class KVDAO {
         await this.putAllProfessors(profList);
     }
 
-    getPendingReview(id: string) {
+    getPendingRating(id: string) {
         return this.processingQueueNamespace.get(pendingRatingParser, id);
     }
 
-    async addPendingReview(rating: PendingRating) {
+    async addPendingRating(rating: PendingRating) {
         return this.processingQueueNamespace.put(pendingRatingParser, rating.id, rating);
     }
 
-    async addReview(pendingReview: PendingRating) {
-        if (pendingReview.status !== "Successful") {
+    async addRating(pendingRating: PendingRating) {
+        if (pendingRating.status !== "Successful") {
             throw new Error("Cannot add rating to KV that has not been analyzed.");
         }
 
-        const professor = await this.getProfessor(pendingReview.professor);
-        const newReview = pendingRatingToRating(pendingReview);
-        addRating(professor, newReview, `${pendingReview.department} ${pendingReview.courseNum}`);
+        const professor = await this.getProfessor(pendingRating.professor);
+        const newRating = pendingRatingToRating(pendingRating);
+        addRating(professor, newRating, `${pendingRating.department} ${pendingRating.courseNum}`);
 
         this.putProfessor(professor);
         return professor;
     }
 
-    async removeReview(professorId: string, reviewId: string) {
+    async removeRating(professorId: string, ratingId: string) {
         const professor = await this.getProfessor(professorId);
-        removeRating(professor, reviewId);
+        removeRating(professor, ratingId);
         return this.putProfessor(professor);
     }
 

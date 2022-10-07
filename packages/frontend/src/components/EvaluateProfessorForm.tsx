@@ -44,7 +44,7 @@ const evaluateProfessorFormParser = z.object({
     overallRating: z.string().transform(Number),
     recognizesStudentDifficulties: z.string().transform(Number),
     presentsMaterialClearly: z.string().transform(Number),
-    ratingText: z.string().min(20, { message: "Review text must be at least 20 characters long" }),
+    ratingText: z.string().min(20, { message: "Rating text must be at least 20 characters long" }),
     unknownCourseDepartment: z.enum(DEPARTMENT_LIST).optional(),
     unknownCourseNumber: z
         .number()
@@ -56,22 +56,20 @@ const evaluateProfessorFormParser = z.object({
     courseType: z.enum(COURSE_TYPES),
 });
 
-type EvaluateTeacherFormInputs = z.infer<typeof evaluateProfessorFormParser>;
+type EvaluateProfessorFormInputs = z.infer<typeof evaluateProfessorFormParser>;
 
-type Teacher = inferQueryOutput<"getProfessor">;
-
-interface EvaluateTeacherFormProps {
-    professor?: Teacher | null;
+interface EvaluateProfessorFormProps {
+    professor?: inferQueryOutput<"getProfessor"> | null;
     closeForm?: () => void;
 }
-export function EvaluateTeacherForm({ professor, closeForm }: EvaluateTeacherFormProps) {
+export function EvaluateProfessorForm({ professor, closeForm }: EvaluateProfessorFormProps) {
     const {
         register,
         handleSubmit,
         watch,
         setError,
         formState: { errors },
-    } = useForm<EvaluateTeacherFormInputs>({
+    } = useForm<EvaluateProfessorFormInputs>({
         resolver: zodResolver(evaluateProfessorFormParser),
         defaultValues: {
             knownCourse: Object.keys(professor?.reviews || {})[0],
@@ -90,7 +88,7 @@ export function EvaluateTeacherForm({ professor, closeForm }: EvaluateTeacherFor
         onSuccess: async (id) => {
             try {
                 await finalizeRatingUpload(id);
-                toast.success("Thank you for your review");
+                toast.success("Thank you for your rating");
                 trpcContext.invalidateQueries(["getProfessor", { id }]);
                 closeForm?.();
             } catch {
@@ -99,7 +97,7 @@ export function EvaluateTeacherForm({ professor, closeForm }: EvaluateTeacherFor
         },
     });
 
-    const onSubmit: SubmitHandler<EvaluateTeacherFormInputs> = async (formResult) => {
+    const onSubmit: SubmitHandler<EvaluateProfessorFormInputs> = async (formResult) => {
         const courseNum = formResult.knownCourse
             ? parseInt(formResult.knownCourse.split(" ")[1], 10)
             : formResult.unknownCourseNumber;

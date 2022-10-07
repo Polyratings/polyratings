@@ -5,11 +5,11 @@ const ANALYZE_COMMENT_URL = "https://commentanalyzer.googleapis.com/v1alpha1/com
 export class PerspectiveDAO {
     constructor(private readonly apiKey: string) {}
 
-    async analyzeReview(review: PendingRating): Promise<AnalyzeCommentResponse["attributeScores"]> {
+    async analyzeRaring(rating: PendingRating): Promise<AnalyzeCommentResponse["attributeScores"]> {
         // TODO: Perhaps we should define a default request?
         const requestBody: AnalyzeCommentRequest = {
             comment: {
-                text: review.rating,
+                text: rating.rating,
                 type: "PLAIN_TEXT",
             },
             requestedAttributes: {

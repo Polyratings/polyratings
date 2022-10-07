@@ -3,11 +3,11 @@ import { useState } from "react";
 import { useWindowVirtualizer } from "@tanstack/react-virtual";
 import { ChevronDoubleRightIcon } from "@heroicons/react/24/outline";
 import {
-    TeacherCard,
+    ProfessorCard,
     SearchBar,
     SearchState,
     Filters,
-    TEACHER_CARD_HEIGHT_REM,
+    PROFESSOR_CARD_HEIGHT_REM,
 } from "@/components";
 import { useQuery, useTailwindBreakpoint } from "@/hooks";
 import { professorSearch, ProfessorSearchType } from "@/utils/ProfessorSearch";
@@ -36,7 +36,9 @@ export function Search() {
     );
     const [mobileFiltersOpened, setMobileFiltersOpened] = useState(false);
 
-    const [filteredTeachers, setFilteredTeachers] = useState<NonNullable<typeof allProfessors>>([]);
+    const [filteredProfessors, setFilteredProfessors] = useState<NonNullable<typeof allProfessors>>(
+        [],
+    );
 
     const mobileFilterBreakpoint = useTailwindBreakpoint({ xl: false }, true);
 
@@ -45,10 +47,10 @@ export function Search() {
         window.getComputedStyle(document.body).getPropertyValue("font-size") || "16",
     );
     // TODO: Reflow height when window changes size
-    const virtualScrollListHeight = TEACHER_CARD_HEIGHT_REM * rootFontSize;
+    const virtualScrollListHeight = PROFESSOR_CARD_HEIGHT_REM * rootFontSize;
 
     const rowVirtualizer = useWindowVirtualizer({
-        count: filteredTeachers.length,
+        count: filteredProfessors.length,
         estimateSize: () => virtualScrollListHeight,
         overscan: 5,
     });
@@ -61,10 +63,10 @@ export function Search() {
                 showOnlyInput
                 disableAutoComplete
             />
-            {(!searchResults.length || !filteredTeachers.length) && (
+            {(!searchResults.length || !filteredProfessors.length) && (
                 <h1 className="text-4xl mt-5 text-center text-cal-poly-green">
                     No Results Found.{" "}
-                    <Link className="underline" to="/new-teacher">
+                    <Link className="underline" to="/new-professor">
                         Add a Professor?
                     </Link>
                 </h1>
@@ -76,7 +78,7 @@ export function Search() {
                             // Use searchResults.length as key to force the child to re-render since it is an array
                             key={searchResults.length}
                             unfilteredProfessors={searchResults}
-                            onUpdate={setFilteredTeachers}
+                            onUpdate={setFilteredProfessors}
                             className="absolute left-0 top-0 pl-12 hidden xl:block"
                         />
                     )}
@@ -108,7 +110,7 @@ export function Search() {
                                 // Use searchResults.length as key to force the child to re-render since it is an array
                                 key={searchResults.length}
                                 unfilteredProfessors={searchResults}
-                                onUpdate={setFilteredTeachers}
+                                onUpdate={setFilteredProfessors}
                                 className="pl-12 pt-6 w-4/5"
                             />
                         </div>
@@ -120,7 +122,7 @@ export function Search() {
                         }}
                     >
                         {rowVirtualizer.getVirtualItems().map((virtualRow) => {
-                            const professor = filteredTeachers[virtualRow.index];
+                            const professor = filteredProfessors[virtualRow.index];
                             return (
                                 <div
                                     key={professor.id}
@@ -130,7 +132,7 @@ export function Search() {
                                         transform: `translateY(${virtualRow.start}px)`,
                                     }}
                                 >
-                                    <TeacherCard teacher={professor} />
+                                    <ProfessorCard professor={professor} />
                                 </div>
                             );
                         })}
@@ -142,7 +144,7 @@ export function Search() {
 }
 
 // This function Wraps the Search page so that it has the ability to swap out the page state
-// when a teacher is clicked but still has the ability to clear state when the nav bar button is clicked
+// when a professor is clicked but still has the ability to clear state when the nav bar button is clicked
 // This is an extension of ideas expressed in this thread:
 // https://stackoverflow.com/questions/38839510/forcing-a-react-router-link-to-load-a-page-even-if-were-already-on-that-page
 export function SearchWrapper() {

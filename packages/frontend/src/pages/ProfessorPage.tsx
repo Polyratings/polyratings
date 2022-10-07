@@ -10,40 +10,40 @@ import { FlagIcon } from "@heroicons/react/24/solid";
 import { z } from "zod";
 import { SubmitHandler, useForm } from "react-hook-form";
 import { toast } from "react-toastify";
-import { EvaluateTeacherForm, TextArea, TextInput } from "@/components";
+import { EvaluateProfessorForm, TextArea, TextInput } from "@/components";
 import { inferQueryOutput, trpc } from "@/trpc";
 import { REACT_MODAL_STYLES } from "@/constants";
 import { Button } from "@/components/forms/Button";
 
-interface ClassReviews {
+interface CourseRatings {
     course: string;
-    reviews: ValueOf<inferQueryOutput<"getProfessor">["reviews"]>;
+    ratings: ValueOf<inferQueryOutput<"getProfessor">["reviews"]>;
 }
 
-export function teacherPageLoaderFactory(trpcContext: ReturnType<typeof trpc["useContext"]>) {
-    const teacherPageLoader: IndexRouteObject["loader"] = ({ params }) =>
+export function professorPageLoaderFactory(trpcContext: ReturnType<typeof trpc["useContext"]>) {
+    const professorPageLoader: IndexRouteObject["loader"] = ({ params }) =>
         trpcContext.getQueryData(["getProfessor", { id: params.id ?? "" }]) ??
         trpcContext.fetchQuery(["getProfessor", { id: params.id ?? "" }]);
 
-    return teacherPageLoader;
+    return professorPageLoader;
 }
 
-export function TeacherPage() {
+export function ProfessorPage() {
     const { id } = useParams<{ id: string }>();
 
-    const { data: teacherData, error: fetchError } = trpc.useQuery([
+    const { data: professorData, error: fetchError } = trpc.useQuery([
         "getProfessor",
         { id: id ?? "" },
     ]);
 
-    // Put classes for teachers primary department first. This is to cut down on review spamming
-    // of other departments. It is possible for a teacher to teach outside of the department but
-    // it is ok if those reviews come after the primary department
+    // Put classes for professors primary department first. This is to cut down on rating spamming
+    // of other departments. It is possible for a professor to teach outside of the department but
+    // it is ok if those ratings come after the primary department
 
     // Sort Into Departments
-    const teacherByDepartments = Object.entries(teacherData?.reviews || {}).reduce(
-        (acc, [course, reviews]) => {
-            const obj: ClassReviews = { course, reviews };
+    const professorByDepartments = Object.entries(professorData?.reviews || {}).reduce(
+        (acc, [course, ratings]) => {
+            const obj: CourseRatings = { course, ratings };
             const [department] = course.split(" ");
             if (acc[department]) {
                 acc[department].push(obj);
@@ -52,11 +52,11 @@ export function TeacherPage() {
             }
             return acc;
         },
-        {} as { [department: string]: ClassReviews[] },
+        {} as { [department: string]: CourseRatings[] },
     );
 
     // Sort departments by class number
-    Object.values(teacherByDepartments).forEach((deparment) =>
+    Object.values(professorByDepartments).forEach((deparment) =>
         deparment.sort((a, b) => {
             const [, aNumber] = a.course.split(" ");
             const [, bNumber] = b.course.split(" ");
@@ -64,26 +64,26 @@ export function TeacherPage() {
         }),
     );
 
-    const primaryClasses = teacherByDepartments[teacherData?.department ?? ""] ?? [];
-    const otherClasses = Object.entries(teacherByDepartments)
-        .filter(([department]) => department !== teacherData?.department)
-        .flatMap(([, classReviews]) => classReviews);
+    const primaryClasses = professorByDepartments[professorData?.department ?? ""] ?? [];
+    const otherClasses = Object.entries(professorByDepartments)
+        .filter(([department]) => department !== professorData?.department)
+        .flatMap(([, courseRatings]) => courseRatings);
 
-    const teacherReviews = [...primaryClasses, ...otherClasses].map((classReview) => {
+    const professorRatings = [...primaryClasses, ...otherClasses].map((courseRating) => {
         // Be carful the array is sorted in place. This is fine here but if moved could cause issues.
-        classReview.reviews.sort((a, b) => Date.parse(b.postDate) - Date.parse(a.postDate));
-        return classReview;
+        courseRating.ratings.sort((a, b) => Date.parse(b.postDate) - Date.parse(a.postDate));
+        return courseRating;
     });
 
     const navigate = useNavigate();
     if (fetchError) {
         navigate("/");
     }
-    const [teacherEvaluationShownDesktop, setTeacherEvaluationShownDesktop] = useState(false);
-    const [teacherEvaluationShownMobile, setTeacherEvaluationShownMobile] = useState(false);
+    const [professorEvaluationShownDesktop, setProfessorEvaluationShownDesktop] = useState(false);
+    const [professorEvaluationShownMobile, setProfessorEvaluationShownMobile] = useState(false);
 
     const NaEvalZero = (val: number | undefined) => {
-        if (teacherData?.numEvals) {
+        if (professorData?.numEvals) {
             return val?.toFixed(2);
         }
         return "N/A";
@@ -98,8 +98,8 @@ export function TeacherPage() {
     }) {
         return (
             <div className={outerClassName}>
-                {teacherReviews &&
-                    teacherReviews.map(({ course }) => (
+                {professorRatings &&
+                    professorRatings.map(({ course }) => (
                         <AnchorLink key={course} href={`#${course}`} className={innerClassName}>
                             {course}
                         </AnchorLink>
@@ -111,14 +111,14 @@ export function TeacherPage() {
     return (
         <div>
             <Modal
-                isOpen={teacherEvaluationShownDesktop}
-                onRequestClose={() => setTeacherEvaluationShownDesktop(false)}
+                isOpen={professorEvaluationShownDesktop}
+                onRequestClose={() => setProfessorEvaluationShownDesktop(false)}
                 style={REACT_MODAL_STYLES}
             >
                 <div className="bg-white opacity-100 rounded shadow p-5 w-[40rem]">
-                    <EvaluateTeacherForm
-                        professor={teacherData}
-                        closeForm={() => setTeacherEvaluationShownDesktop(false)}
+                    <EvaluateProfessorForm
+                        professor={professorData}
+                        closeForm={() => setProfessorEvaluationShownDesktop(false)}
                     />
                 </div>
             </Modal>
@@ -126,12 +126,12 @@ export function TeacherPage() {
             <div className="lg:max-w-5xl w-full mx-auto hidden sm:flex justify-between py-2 px-2">
                 <div>
                     <h2 className="text-4xl text-cal-poly-green">
-                        {teacherData?.lastName}, {teacherData?.firstName}
+                        {professorData?.lastName}, {professorData?.firstName}
                     </h2>
                     <div>
-                        {Boolean(teacherData?.overallRating) && (
+                        {Boolean(professorData?.overallRating) && (
                             <StarRatings
-                                rating={teacherData?.overallRating}
+                                rating={professorData?.overallRating}
                                 starRatedColor="#BD8B13"
                                 numberOfStars={4}
                                 starDimension="1.5rem"
@@ -140,43 +140,46 @@ export function TeacherPage() {
                         )}
                     </div>
                     <Button
-                        onClick={() => setTeacherEvaluationShownDesktop(true)}
+                        onClick={() => setProfessorEvaluationShownDesktop(true)}
                         className="mt-2"
                         type="button"
                     >
-                        Evaluate Teacher
+                        Evaluate Professor
                     </Button>
                 </div>{" "}
                 <div className="text-right">
                     <h2 className="text-4xl text-cal-poly-green">
-                        {NaEvalZero(teacherData?.overallRating)} / 4.00
+                        {NaEvalZero(professorData?.overallRating)} / 4.00
                     </h2>
-                    <p>{teacherData?.numEvals} evaluations</p>
+                    <p>{professorData?.numEvals} evaluations</p>
                     <p>
                         {" "}
                         Recognizes Student Difficulties:{" "}
-                        {NaEvalZero(teacherData?.studentDifficulties)}
+                        {NaEvalZero(professorData?.studentDifficulties)}
                     </p>
-                    <p>Presents Material Clearly: {NaEvalZero(teacherData?.materialClear)}</p>
+                    <p>Presents Material Clearly: {NaEvalZero(professorData?.materialClear)}</p>
                 </div>
             </div>
 
             <div className="sm:hidden container py-2 text-center">
                 <h2 className="text-4xl text-cal-poly-green">
-                    {teacherData?.lastName}, {teacherData?.firstName}
+                    {professorData?.lastName}, {professorData?.firstName}
                 </h2>
-                <p>{teacherData?.department}</p>
-                <p>Overall Rating: {NaEvalZero(teacherData?.overallRating)} / 4.00</p>
+                <p>{professorData?.department}</p>
+                <p>Overall Rating: {NaEvalZero(professorData?.overallRating)} / 4.00</p>
                 <p>
-                    Recognizes Student Difficulties: {NaEvalZero(teacherData?.studentDifficulties)}
+                    Recognizes Student Difficulties:{" "}
+                    {NaEvalZero(professorData?.studentDifficulties)}
                 </p>
-                <p>Presents Material Clearly: {NaEvalZero(teacherData?.materialClear)}</p>
+                <p>Presents Material Clearly: {NaEvalZero(professorData?.materialClear)}</p>
                 <Button
-                    onClick={() => setTeacherEvaluationShownMobile(!teacherEvaluationShownMobile)}
+                    onClick={() =>
+                        setProfessorEvaluationShownMobile(!professorEvaluationShownMobile)
+                    }
                     className="mt-2"
                     type="button"
                 >
-                    {teacherEvaluationShownMobile ? "Close Evaluation" : "Evaluate Teacher"}
+                    {professorEvaluationShownMobile ? "Close Evaluation" : "Evaluate Professor"}
                 </Button>
             </div>
 
@@ -187,29 +190,33 @@ export function TeacherPage() {
             <div className="hidden sm:block lg:max-w-5xl mx-auto mt-2 px-2">
                 <div className="bg-cal-poly-green h-1 w-full" />
             </div>
-            <AnimateHeight duration={500} height={teacherEvaluationShownMobile ? "auto" : 0}>
+            <AnimateHeight duration={500} height={professorEvaluationShownMobile ? "auto" : 0}>
                 <div className="bg-cal-poly-green text-white p-5">
-                    <EvaluateTeacherForm
-                        professor={teacherData}
-                        closeForm={() => setTeacherEvaluationShownMobile(false)}
+                    <EvaluateProfessorForm
+                        professor={professorData}
+                        closeForm={() => setProfessorEvaluationShownMobile(false)}
                     />
                 </div>
             </AnimateHeight>
 
-            {teacherData &&
-                teacherReviews &&
-                teacherReviews.map(({ course, reviews }) => (
+            {professorData &&
+                professorRatings &&
+                professorRatings.map(({ course, ratings }) => (
                     <div key={course} className="pt-4 relative" id={course}>
                         <h2 className="text-center text-4xl text-cal-poly-green">{course}</h2>
                         <div className="container md:max-w-5xl flex flex-col m-auto px-2">
-                            {reviews.map((rating, i) => (
-                                // eslint-disable-next-line react/no-array-index-key
-                                <ReviewCard key={i} rating={rating} professorId={teacherData.id} />
+                            {ratings.map((rating, i) => (
+                                <RatingCard
+                                    // eslint-disable-next-line react/no-array-index-key
+                                    key={i}
+                                    rating={rating}
+                                    professorId={professorData.id}
+                                />
                             ))}
                         </div>
                     </div>
                 ))}
-            {!teacherReviews?.length && (
+            {!professorRatings?.length && (
                 <h2 className="text-4xl text-center text-cal-poly-green mt-10">
                     Be the first to add a rating!
                 </h2>
@@ -218,7 +225,7 @@ export function TeacherPage() {
                 outerClassName="hidden xl:flex flex-col fixed ml-4 top-1/2 transform -translate-y-1/2 max-h-10/12 overflow-y-auto"
                 innerClassName="text-cal-poly-green text-lg font-semibold mt-2"
             />
-            {/* Mobile class scroll needs room to see all reviews */}
+            {/* Mobile class scroll needs room to see all ratings */}
             <div className="block xl:hidden h-16 w-full" />
             <ClassScroll
                 outerClassName="flex items-center xl:hidden h-14 fixed bg-cal-poly-green w-full bottom-0 overflow-x-auto scrollbar-hidden"
@@ -228,11 +235,11 @@ export function TeacherPage() {
     );
 }
 
-interface ReviewCard {
+interface RatingCardProps {
     professorId: string;
     rating: ValueOf<inferQueryOutput<"getProfessor">["reviews"]>[0];
 }
-function ReviewCard({ rating, professorId }: ReviewCard) {
+function RatingCard({ rating, professorId }: RatingCardProps) {
     return (
         <div className="bg-white w-full rounded-3xl py-2 px-4 my-2 border-cal-poly-gold border-4 flex flex-col md:flex-row relative">
             <div className="hidden md:flex flex-col w-32 flex-shrink-0 m-auto mr-4 text-center text-sm">

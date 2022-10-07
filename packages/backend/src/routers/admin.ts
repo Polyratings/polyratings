@@ -7,12 +7,12 @@ export const adminRouter = t.router({
     removeRating: protectedProcedure
         .input(z.object({ professorId: z.string(), ratingId: z.string() }))
         .mutation(async ({ ctx, input: { professorId, ratingId } }) => {
-            await ctx.env.kvDao.removeReview(professorId, ratingId);
+            await ctx.env.kvDao.removeRating(professorId, ratingId);
         }),
     getPendingProfessors: protectedProcedure.query(({ ctx }) =>
         ctx.env.kvDao.getAllPendingProfessors(),
     ),
-    approvePendingTeacher: protectedProcedure
+    approvePendingProfessor: protectedProcedure
         .input(z.string().uuid())
         .mutation(async ({ ctx, input }) => {
             const pendingProfessor = await ctx.env.kvDao.getPendingProfessor(input);
@@ -80,7 +80,7 @@ export const adminRouter = t.router({
     }),
     actOnReport: protectedProcedure.input(z.string().uuid()).mutation(async ({ ctx, input }) => {
         const report = await ctx.env.kvDao.getReport(input);
-        await ctx.env.kvDao.removeReview(report.professorId, report.ratingId);
+        await ctx.env.kvDao.removeRating(report.professorId, report.ratingId);
         await ctx.env.kvDao.removeReport(input);
     }),
 });

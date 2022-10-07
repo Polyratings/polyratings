@@ -12,8 +12,8 @@ export function professorSearch(
         case "name": {
             const tokens = value.toLowerCase().split(" ");
             const tokenMatches = tokens.map((token) =>
-                allProfessors.filter((teacher) =>
-                    `${teacher.lastName}, ${teacher.firstName}`.toLowerCase().includes(token),
+                allProfessors.filter((professor) =>
+                    `${professor.lastName}, ${professor.firstName}`.toLowerCase().includes(token),
                 ),
             );
             const { intersect, nonIntersect } = intersectingDbEntities(tokenMatches);
@@ -22,14 +22,14 @@ export function professorSearch(
         case "class": {
             const courseName = value.toUpperCase();
             // use includes to possibly be more lenient
-            return allProfessors.filter((teacher) =>
-                teacher.courses.find((course) => course.includes(courseName)),
+            return allProfessors.filter((professor) =>
+                professor.courses.find((course) => course.includes(courseName)),
             );
         }
         case "department": {
             const department = value.toUpperCase();
             // Use starts with since most times with department you are looking for an exact match
-            return allProfessors.filter((teacher) => teacher.department.startsWith(department));
+            return allProfessors.filter((professor) => professor.department.startsWith(department));
         }
         default:
             throw new Error(`Invalid Search Type: ${type}`);

@@ -23,9 +23,9 @@ export function Admin() {
             <h1 className="text-center text-6xl font-semibold my-4">Polyratings Admin Panel</h1>
             <div className="container m-auto text-lg">
                 <PendingProfessors />
-                <ReportedReviews />
-                <ProcessedReviews />
-                <RecentReviews />
+                <ReportedRatings />
+                <ProcessedRatings />
+                <RecentRatings />
             </div>
         </div>
     ) : (
@@ -33,7 +33,7 @@ export function Admin() {
     );
 }
 
-function ReportedReviews() {
+function ReportedRatings() {
     const { data: ratingReports } = useDbValues("reports");
     const { data: professors } = trpc.useQuery([
         "getProfessors",
@@ -131,7 +131,7 @@ function ReportedReviews() {
 function PendingProfessors() {
     const { data: pendingProfessors } = useDbValues("professor-queue");
     const trpcContext = trpc.useContext();
-    const { mutate: approvePendingProfessor } = trpc.useMutation("approvePendingTeacher", {
+    const { mutate: approvePendingProfessor } = trpc.useMutation("approvePendingProfessor", {
         onSuccess: () =>
             trpcContext.queryClient.invalidateQueries(bulkInvalidationKey("professor-queue")),
     });
@@ -193,20 +193,20 @@ function PendingProfessors() {
     );
 }
 
-function ProcessedReviews() {
-    const { data: processedReviews } = useDbValues("rating-queue");
-    type PendingReview = NonNullable<typeof processedReviews>[0];
+function ProcessedRatings() {
+    const { data: processedRatings } = useDbValues("rating-queue");
+    type PendingRating = NonNullable<typeof processedRatings>[0];
 
     const columns = [
         {
             name: "Status",
-            selector: (row: PendingReview) => row.status,
+            selector: (row: PendingRating) => row.status,
             grow: 0.5,
         },
         {
             name: "Scores",
             grow: 1.5,
-            cell: (row: PendingReview) => (
+            cell: (row: PendingRating) => (
                 <div className="flex flex-col">
                     {Object.entries(row.sentimentResponse ?? {}).map(([name, score]) => (
                         <div key={name}>
@@ -220,19 +220,19 @@ function ProcessedReviews() {
             name: "Rating",
             wrap: true,
             grow: 3,
-            selector: (row: PendingReview) => row.rating,
+            selector: (row: PendingRating) => row.rating,
         },
     ];
 
     return (
         <div className="mt-4">
-            <h2 className="ml-1">Processed Reviews:</h2>
-            <DataTable columns={columns} data={processedReviews ?? []} pagination />
+            <h2 className="ml-1">Processed Ratings:</h2>
+            <DataTable columns={columns} data={processedRatings ?? []} pagination />
         </div>
     );
 }
 
-function RecentReviews() {
+function RecentRatings() {
     const trpcContext = trpc.useContext();
     const { data: professors } = useDbValues("professors");
     const { mutateAsync: removeRatingMutation } = trpc.useMutation("removeRating");
@@ -244,15 +244,15 @@ function RecentReviews() {
             ?.flatMap((professor) =>
                 Object.values(professor.reviews ?? [])
                     .flat()
-                    .map((review) => ({
+                    .map((rating) => ({
                         professorId: professor.id,
                         professorName: `${professor.lastName}, ${professor.firstName}`,
-                        ...review,
+                        ...rating,
                     })),
             )
             .filter(({ id }) => !removedRatings.has(id))
             .sort(
-                (reviewA, reviewB) => Date.parse(reviewB.postDate) - Date.parse(reviewA.postDate),
+                (ratingA, ratingB) => Date.parse(ratingB.postDate) - Date.parse(ratingA.postDate),
             ) ?? [];
 
     const removeRating = async (professorId: string, ratingId: string) => {
@@ -304,7 +304,7 @@ function RecentReviews() {
 
     return (
         <div className="mt-4">
-            <h2 className="ml-1">Recent Reviews:</h2>
+            <h2 className="ml-1">Recent Ratings:</h2>
             <DataTable columns={columns} data={ratings} pagination />
         </div>
     );

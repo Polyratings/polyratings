@@ -1,5 +1,4 @@
 import { useForm } from "react-hook-form";
-// import { EvaluateTeacherForm } from "./EvaluateTeacherForm";
 import ClipLoader from "react-spinners/ClipLoader";
 import { toast } from "react-toastify";
 import { useNavigate } from "react-router";
@@ -8,10 +7,8 @@ import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { trpc } from "@/trpc";
 import { Checkbox, Select, TextArea, TextInput } from "./forms";
-import { CLASS_INFORMATION, NUMERICAL_RATINGS } from "./EvaluateTeacherForm";
+import { CLASS_INFORMATION, NUMERICAL_RATINGS } from "./EvaluateProfessorForm";
 import { Button } from "./forms/Button";
-
-export const NEW_TEACHER_FORM_WIDTH = 475;
 
 const newProfessorFormParser = z.object({
     professorFirstName: z.string().min(1),
@@ -21,7 +18,7 @@ const newProfessorFormParser = z.object({
     overallRating: z.string().transform(Number),
     recognizesStudentDifficulties: z.string().transform(Number),
     presentsMaterialClearly: z.string().transform(Number),
-    ratingText: z.string().min(20, { message: "Review text must be at least 20 characters long" }),
+    ratingText: z.string().min(20, { message: "Rating text must be at least 20 characters long" }),
     courseDepartment: z.enum(DEPARTMENT_LIST),
     courseNum: z.preprocess(
         (val) => parseInt(z.string().parse(val), 10),
@@ -34,7 +31,7 @@ const newProfessorFormParser = z.object({
 
 type NewProfessorFormInputs = z.infer<typeof newProfessorFormParser>;
 
-export function NewTeacherForm() {
+export function NewProfessorForm() {
     const {
         register,
         handleSubmit,

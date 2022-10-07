@@ -26,12 +26,12 @@ export const ratingsRouter = t.router({
                 sentimentResponse: null,
             };
 
-            await ctx.env.kvDao.addPendingReview(pendingRating);
+            await ctx.env.kvDao.addPendingRating(pendingRating);
 
             return pendingRating.id;
         }),
     processRating: t.procedure.input(z.string().uuid()).mutation(async ({ ctx, input }) => {
-        const pendingRating = await ctx.env.kvDao.getPendingReview(input);
+        const pendingRating = await ctx.env.kvDao.getPendingRating(input);
 
         if (pendingRating.status !== "Queued") {
             throw new TRPCError({
@@ -40,7 +40,7 @@ export const ratingsRouter = t.router({
             });
         }
 
-        const attributeScores = await ctx.env.perspectiveDao.analyzeReview(pendingRating);
+        const attributeScores = await ctx.env.perspectiveDao.analyzeRaring(pendingRating);
         pendingRating.sentimentResponse = attributeScores;
 
         const passedAnalysis = [
@@ -57,19 +57,19 @@ export const ratingsRouter = t.router({
 
         if (passedAnalysis) {
             pendingRating.status = "Successful";
-            await ctx.env.kvDao.addReview(pendingRating);
-            // Update review in processing queue
-            await ctx.env.kvDao.addPendingReview(pendingRating);
+            await ctx.env.kvDao.addRating(pendingRating);
+            // Update rating in processing queue
+            await ctx.env.kvDao.addPendingRating(pendingRating);
 
-            return "Review has successfully been processed, it should be on the site within the next minute.";
+            return "Rating has successfully been processed, it should be on the site within the next minute.";
         }
         pendingRating.status = "Failed";
-        // Update review in processing queue
-        await ctx.env.kvDao.addPendingReview(pendingRating);
+        // Update rating in processing queue
+        await ctx.env.kvDao.addPendingRating(pendingRating);
         throw new TRPCError({
             code: "PRECONDITION_FAILED",
             message:
-                "Review failed sentiment analysis, please contact dev@polyratings.org for assistance",
+                "Rating failed sentiment analysis, please contact dev@polyratings.org for assistance",
         });
     }),
     reportRating: t.procedure

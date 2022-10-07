@@ -16,10 +16,10 @@ export class Env {
 
     constructor(env: CloudflareEnv, public sentry: Toucan) {
         this.kvDao = new KVDAO(
-            new KvWrapper(env.POLYRATINGS_TEACHERS),
+            new KvWrapper(env.POLYRATINGS_PROFESSORS),
             new KvWrapper(env.POLYRATINGS_USERS),
             new KvWrapper(env.PROCESSING_QUEUE),
-            new KvWrapper(env.POLYRATINGS_TEACHER_APPROVAL_QUEUE),
+            new KvWrapper(env.POLYRATINGS_PROFESSOR_APPROVAL_QUEUE),
             new KvWrapper(env.POLYRATINGS_REPORTS),
         );
         this.perspectiveDao = new PerspectiveDAO(env.PERSPECTIVE_API_KEY);
@@ -29,10 +29,10 @@ export class Env {
 }
 
 export interface CloudflareEnv {
-    POLYRATINGS_TEACHERS: KVNamespace;
+    POLYRATINGS_PROFESSORS: KVNamespace;
     PROCESSING_QUEUE: KVNamespace;
     POLYRATINGS_USERS: KVNamespace;
-    POLYRATINGS_TEACHER_APPROVAL_QUEUE: KVNamespace;
+    POLYRATINGS_PROFESSOR_APPROVAL_QUEUE: KVNamespace;
     POLYRATINGS_REPORTS: KVNamespace;
     JWT_SIGNING_KEY: string;
     PERSPECTIVE_API_KEY: string;

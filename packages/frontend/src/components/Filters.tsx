@@ -13,11 +13,11 @@ type SortingOptions =
     | "recognizesStudentDifficulties"
     | "presentsMaterialClearly";
 
-type Teacher = inferQueryOutput<"allProfessors">[0];
+type Professor = inferQueryOutput<"allProfessors">[0];
 
 export interface FilterProps {
-    unfilteredProfessors: Teacher[];
-    onUpdate: (professors: Teacher[]) => void;
+    unfilteredProfessors: Professor[];
+    onUpdate: (professors: Professor[]) => void;
     className?: string;
 }
 
@@ -80,25 +80,25 @@ export function Filters({ unfilteredProfessors, onUpdate, className }: FilterPro
         "sortBy",
     );
 
-    const teacherFilterFunctions: ((teacher: Teacher) => boolean)[] = [
-        (teacher) =>
-            teacher.overallRating >= avgRatingFilter[0] &&
-            teacher.overallRating <= avgRatingFilter[1],
+    const professorFilterFunctions: ((professor: Professor) => boolean)[] = [
+        (professor) =>
+            professor.overallRating >= avgRatingFilter[0] &&
+            professor.overallRating <= avgRatingFilter[1],
 
-        (teacher) =>
-            teacher.studentDifficulties >= studentDifficultyFilter[0] &&
-            teacher.studentDifficulties <= studentDifficultyFilter[1],
+        (professor) =>
+            professor.studentDifficulties >= studentDifficultyFilter[0] &&
+            professor.studentDifficulties <= studentDifficultyFilter[1],
 
-        (teacher) =>
-            teacher.materialClear >= materialClearFilter[0] &&
-            teacher.materialClear <= materialClearFilter[1],
+        (professor) =>
+            professor.materialClear >= materialClearFilter[0] &&
+            professor.materialClear <= materialClearFilter[1],
 
-        (teacher) =>
-            teacher.numEvals >= numberOfEvaluationsFilter[0] &&
-            teacher.numEvals <= numberOfEvaluationsFilter[1],
+        (professor) =>
+            professor.numEvals >= numberOfEvaluationsFilter[0] &&
+            professor.numEvals <= numberOfEvaluationsFilter[1],
     ];
 
-    const sortingMap: { [key in SortingOptions]: (a: Teacher, b: Teacher) => number } = {
+    const sortingMap: { [key in SortingOptions]: (a: Professor, b: Professor) => number } = {
         alphabetical: (a, b) => {
             const aName = `${a.lastName}, ${a.firstName}`;
             const bName = `${b.lastName}, ${b.firstName}`;
@@ -120,10 +120,10 @@ export function Filters({ unfilteredProfessors, onUpdate, className }: FilterPro
 
     // Filter logic and emit to parent element
     useEffect(() => {
-        const filteredResult = unfilteredProfessors.filter((teacher) => {
+        const filteredResult = unfilteredProfessors.filter((professor) => {
             // eslint-disable-next-line no-restricted-syntax
-            for (const filterFn of teacherFilterFunctions) {
-                if (!filterFn(teacher)) {
+            for (const filterFn of professorFilterFunctions) {
+                if (!filterFn(professor)) {
                     return false;
                 }
             }
@@ -239,7 +239,7 @@ export function Filters({ unfilteredProfessors, onUpdate, className }: FilterPro
                 </div>
             ))}
             <div>
-                <h3>Number of Reviews:</h3>
+                <h3>Number of Ratings:</h3>
                 <div className="mt-1">
                     <MinMaxSlider
                         value={numberOfEvaluationsFilter}
