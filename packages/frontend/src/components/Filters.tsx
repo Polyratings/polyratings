@@ -16,8 +16,8 @@ type SortingOptions =
 type Teacher = inferQueryOutput<"allProfessors">[0];
 
 export interface FilterProps {
-    teachers: Teacher[];
-    onUpdate: (teachers: Teacher[]) => void;
+    unfilteredProfessors: Teacher[];
+    onUpdate: (professors: Teacher[]) => void;
     className?: string;
 }
 
@@ -36,7 +36,7 @@ export interface FilterState {
 }
 
 // eslint-disable-next-line react/function-component-definition
-export function Filters({ teachers, onUpdate, className }: FilterProps) {
+export function Filters({ unfilteredProfessors, onUpdate, className }: FilterProps) {
     // Get all Professors to calculate states
     const { data: allProfessors } = trpc.useQuery(["allProfessors"]);
 
@@ -120,7 +120,7 @@ export function Filters({ teachers, onUpdate, className }: FilterProps) {
 
     // Filter logic and emit to parent element
     useEffect(() => {
-        const filteredResult = teachers.filter((teacher) => {
+        const filteredResult = unfilteredProfessors.filter((teacher) => {
             // eslint-disable-next-line no-restricted-syntax
             for (const filterFn of teacherFilterFunctions) {
                 if (!filterFn(teacher)) {

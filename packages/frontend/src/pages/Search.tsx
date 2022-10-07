@@ -11,12 +11,9 @@ import {
 } from "@/components";
 import { useQuery, useTailwindBreakpoint } from "@/hooks";
 import { professorSearch, ProfessorSearchType } from "@/utils/ProfessorSearch";
-import { inferQueryOutput, trpc } from "@/trpc";
+import { trpc } from "@/trpc";
 import { useLocationState } from "@/hooks/useLocationState";
 
-type Teacher = inferQueryOutput<"allProfessors">[0];
-
-// TODO: Fix search bar not working
 export function Search() {
     const query = useQuery();
 
@@ -39,7 +36,7 @@ export function Search() {
     );
     const [mobileFiltersOpened, setMobileFiltersOpened] = useState(false);
 
-    const [filteredTeachers, setFilteredTeachers] = useState<Teacher[]>([]);
+    const [filteredTeachers, setFilteredTeachers] = useState<NonNullable<typeof allProfessors>>([]);
 
     const mobileFilterBreakpoint = useTailwindBreakpoint({ xl: false }, true);
 
@@ -76,7 +73,9 @@ export function Search() {
                 <div className="relative">
                     {!mobileFilterBreakpoint && (
                         <Filters
-                            teachers={searchResults}
+                            // Use searchResults.length as key to force the child to re-render since it is an array
+                            key={searchResults.length}
+                            unfilteredProfessors={searchResults}
                             onUpdate={setFilteredTeachers}
                             className="absolute left-0 top-0 pl-12 hidden xl:block"
                         />
@@ -106,7 +105,9 @@ export function Search() {
                             </button>
 
                             <Filters
-                                teachers={searchResults}
+                                // Use searchResults.length as key to force the child to re-render since it is an array
+                                key={searchResults.length}
+                                unfilteredProfessors={searchResults}
                                 onUpdate={setFilteredTeachers}
                                 className="pl-12 pt-6 w-4/5"
                             />
@@ -118,8 +119,8 @@ export function Search() {
                             height: `${rowVirtualizer.getTotalSize()}px`,
                         }}
                     >
-                        {rowVirtualizer.getVirtualItems().map((virtualRow, index) => {
-                            const professor = filteredTeachers[index];
+                        {rowVirtualizer.getVirtualItems().map((virtualRow) => {
+                            const professor = filteredTeachers[virtualRow.index];
                             return (
                                 <div
                                     key={professor.id}
@@ -129,9 +130,7 @@ export function Search() {
                                         transform: `translateY(${virtualRow.start}px)`,
                                     }}
                                 >
-                                    {filteredTeachers[index] && (
-                                        <TeacherCard teacher={filteredTeachers[index]} />
-                                    )}
+                                    <TeacherCard teacher={professor} />
                                 </div>
                             );
                         })}
