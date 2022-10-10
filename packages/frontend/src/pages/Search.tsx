@@ -56,7 +56,7 @@ export function Search() {
     });
 
     return (
-        <div className="">
+        <div id="main">
             <SearchBar
                 initialState={searchState}
                 onChange={setSearchState}

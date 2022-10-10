@@ -44,7 +44,7 @@ export function Login() {
             }}
         >
             <div className="p-5 transform md:-translate-y-1/4" style={{ width: "500px" }}>
-                <div className="bg-white shadow-lg rounded p-10">
+                <div id="main" className="bg-white shadow-lg rounded p-10">
                     <h2 className="text-3xl font-bold mb-8">Sign In</h2>
                     <form onSubmit={handleSubmit((data) => login(data))}>
                         <TextInput
