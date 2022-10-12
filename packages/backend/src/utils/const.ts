@@ -109,14 +109,11 @@ export const DEPARTMENT_LIST = [
     "WVIT",
 ] as const;
 export type Department = typeof DEPARTMENT_LIST[number];
-// TODO: CLEAN DATA TO REMOVE EXTRA ENUM VARIANTS
 export const COURSE_TYPES = [
     "Elective",
     "General Ed",
     "Major (Support)",
     "Major (Required)",
-    "Required (Support)",
-    "Required (Major)",
 ] as const;
 export type CourseType = typeof COURSE_TYPES[number];
 
@@ -125,27 +122,12 @@ export const GRADE_LEVELS = [
     "Sophomore",
     "Junior",
     "Senior",
-    "5th Year Senior",
     "5th/6th Year",
-    "Graduate Student",
     "Grad Student",
 ] as const;
 export type GradeLevel = typeof GRADE_LEVELS[number];
 
-export const GRADES = [
-    "N/A",
-    "A",
-    "B",
-    "C",
-    "D",
-    "F",
-    "CR",
-    "Credit",
-    "NC",
-    "No Credit",
-    "W",
-    "Withdrawn",
-] as const;
+export const GRADES = ["N/A", "A", "B", "C", "D", "F", "CR", "NC", "W"] as const;
 export type Grade = typeof GRADES[number];
 
 export const PENDING_RATING_STATUSES = ["Queued", "Processing", "Successful", "Failed"] as const;
