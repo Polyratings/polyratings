@@ -1,19 +1,20 @@
 import { BulkKey, BulkKeyMap } from "@backend/utils/const";
-import { useQuery } from "react-query";
-import { trpc } from "@/trpc";
+import { useQuery } from "@tanstack/react-query";
+import { createTRPCProxyClient } from "@trpc/client";
+import { AppRouter } from "@backend/index";
+import { trpcClientOptions } from "@/constants";
 
 const WORKER_RETRIEVAL_CHUNK_SIZE = 100;
 
 export function useDbValues<T extends BulkKey>(bulkKey: T) {
-    const trpcContext = trpc.useContext();
+    const rawTrpcClient = createTRPCProxyClient<AppRouter>(trpcClientOptions);
 
-    return useQuery(`bulk-values-${bulkKey}`, async () => {
-        const keys = await trpcContext.client.query("getBulkKeys", bulkKey);
+    return useQuery([`bulk-values-${bulkKey}`], async () => {
+        const keys = await rawTrpcClient.admin.getBulkKeys.query(bulkKey);
         const chunkedKeys = chunkArray(keys, WORKER_RETRIEVAL_CHUNK_SIZE);
         const chunkedValues = await Promise.all(
             chunkedKeys.map((chunk) =>
-                trpcContext.client.mutation(
-                    "getBulkValues",
+                rawTrpcClient.admin.getBulkValues.mutate(
                     { keys: chunk, bulkKey },
                     { context: { skipBatch: true } },
                 ),
@@ -24,7 +25,7 @@ export function useDbValues<T extends BulkKey>(bulkKey: T) {
 }
 
 export function bulkInvalidationKey(bulkKey: BulkKey) {
-    return `bulk-values-${bulkKey}`;
+    return [`bulk-values-${bulkKey}`];
 }
 
 export function chunkArray<T>(arr: T[], size: number): T[][] {

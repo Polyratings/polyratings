@@ -7,11 +7,9 @@ import {
     useLocation,
 } from "react-router-dom";
 import { ToastContainer } from "react-toastify";
-import { QueryClient, QueryClientProvider } from "react-query";
-import { persistQueryClient } from "react-query/persistQueryClient-experimental";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { persistQueryClient } from "@tanstack/react-query-persist-client";
 import { useLayoutEffect, useMemo, useState } from "react";
-import { httpLink } from "@trpc/client";
-import { DEV_ENV } from "@backend/generated/tomlGenerated";
 import {
     Home,
     ProfessorPage,
@@ -28,6 +26,7 @@ import "react-toastify/dist/ReactToastify.css";
 import { trpc } from "./trpc";
 import { createIDBPersister } from "./utils/idbPersister";
 import { AuthContext, JWT_KEY, setJwtWrapper } from "./hooks";
+import { trpcClientOptions } from "./constants";
 
 // Lazy load error logger to save bundle size
 if (process.env.NODE_ENV === "production") {
@@ -61,26 +60,11 @@ export default function App() {
         });
         persistQueryClient({
             queryClient,
-            persistor: createIDBPersister(),
+            persister: createIDBPersister(),
         });
         return queryClient;
     });
-    const [trpcClient] = useState(() =>
-        trpc.createClient({
-            links: [
-                httpLink({
-                    // TODO: Change Back to config
-                    url: DEV_ENV.url,
-                }),
-            ],
-            headers() {
-                const jwt = window.localStorage.getItem(JWT_KEY);
-                return {
-                    authorization: jwt ? `Bearer ${jwt}` : "",
-                };
-            },
-        }),
-    );
+    const [trpcClient] = useState(() => trpc.createClient(trpcClientOptions));
 
     const [jwt, setJwtMemory] = useState(window.localStorage.getItem(JWT_KEY));
     const contextObj = useMemo(

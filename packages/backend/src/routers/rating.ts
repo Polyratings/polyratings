@@ -5,7 +5,7 @@ import { PendingRating, ratingBaseParser, RatingReport, reportParser } from "@ba
 import { DEPARTMENT_LIST } from "@backend/utils/const";
 
 export const ratingsRouter = t.router({
-    addNewRating: t.procedure
+    add: t.procedure
         .input(
             ratingBaseParser.merge(
                 z.object({
@@ -30,7 +30,7 @@ export const ratingsRouter = t.router({
 
             return pendingRating.id;
         }),
-    processRating: t.procedure.input(z.string().uuid()).mutation(async ({ ctx, input }) => {
+    process: t.procedure.input(z.string().uuid()).mutation(async ({ ctx, input }) => {
         const pendingRating = await ctx.env.kvDao.getPendingRating(input);
 
         if (pendingRating.status !== "Queued") {
@@ -72,7 +72,7 @@ export const ratingsRouter = t.router({
                 "Rating failed sentiment analysis, please contact dev@polyratings.org for assistance",
         });
     }),
-    reportRating: t.procedure
+    report: t.procedure
         .input(
             reportParser.merge(
                 z.object({ ratingId: z.string().uuid(), professorId: z.string().uuid() }),

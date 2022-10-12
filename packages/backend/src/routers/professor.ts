@@ -5,16 +5,16 @@ import { addRating } from "@backend/types/schemaHelpers";
 import { DEPARTMENT_LIST } from "@backend/utils/const";
 
 export const professorRouter = t.router({
-    allProfessors: t.procedure.query(({ ctx }) => ctx.env.kvDao.getAllProfessors()),
-    getProfessor: t.procedure
+    all: t.procedure.query(({ ctx }) => ctx.env.kvDao.getAllProfessors()),
+    get: t.procedure
         .input(z.object({ id: z.string().uuid() }))
         .query(({ input, ctx }) => ctx.env.kvDao.getProfessor(input.id)),
-    getProfessors: t.procedure
+    getMany: t.procedure
         .input(z.object({ ids: z.array(z.string().uuid()) }))
         .query(({ input, ctx }) =>
             Promise.all(input.ids.map((id) => ctx.env.kvDao.getProfessor(id))),
         ),
-    addNewProfessor: t.procedure
+    add: t.procedure
         .input(
             z.object({
                 department: z.enum(DEPARTMENT_LIST),

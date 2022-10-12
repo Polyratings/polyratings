@@ -2,8 +2,10 @@ import { useLocation } from "react-router-dom";
 import { useEffect } from "react";
 import { DEPARTMENT_LIST } from "@backend/utils/const";
 import { ArrowLongUpIcon } from "@heroicons/react/24/outline";
+import { inferProcedureOutput } from "@trpc/server";
+import { AppRouter } from "@backend/index";
 import { MinMaxSlider } from "@/components";
-import { inferQueryOutput, trpc } from "@/trpc";
+import { trpc } from "@/trpc";
 import { useLocationState } from "@/hooks/useLocationState";
 
 type SortingOptions =
@@ -13,7 +15,7 @@ type SortingOptions =
     | "recognizesStudentDifficulties"
     | "presentsMaterialClearly";
 
-type Professor = inferQueryOutput<"allProfessors">[0];
+type Professor = inferProcedureOutput<AppRouter["professors"]["all"]>[0];
 
 export interface FilterProps {
     unfilteredProfessors: Professor[];
@@ -38,7 +40,7 @@ export interface FilterState {
 // eslint-disable-next-line react/function-component-definition
 export function Filters({ unfilteredProfessors, onUpdate, className }: FilterProps) {
     // Get all Professors to calculate states
-    const { data: allProfessors } = trpc.useQuery(["allProfessors"]);
+    const { data: allProfessors } = trpc.professors.all.useQuery();
 
     const getEvaluationDomain = (): [number, number] => [
         Math.min(...(allProfessors?.map((professor) => professor.numEvals) ?? [1])),

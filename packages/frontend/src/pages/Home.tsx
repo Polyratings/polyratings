@@ -1,14 +1,16 @@
 /* eslint-disable react/no-array-index-key */
+import { inferProcedureOutput } from "@trpc/server";
+import { AppRouter } from "@backend/index";
 import { getRandomSubarray } from "@/utils";
 import homeHeader from "@/assets/home-header.webp";
 import homeCurveTransition from "@/assets/home-curve-transition.svg";
 import star from "@/assets/star.svg";
 import worstOfWorstBackground from "@/assets/worst-of-worst-background.webp";
 import { SearchBar, ProfessorCard } from "@/components";
-import { inferQueryOutput, trpc } from "@/trpc";
+import { trpc } from "@/trpc";
 
 export function Home() {
-    const { data: allProfessors } = trpc.useQuery(["allProfessors"]);
+    const { data: allProfessors } = trpc.professors.all.useQuery();
 
     const highlightedProfessor = getBestProfessors(allProfessors ?? [])?.[0];
     const bestOfTheBest = allProfessors ? getBestProfessors(allProfessors) : [];
@@ -94,7 +96,7 @@ export function Home() {
     );
 }
 
-function getBestProfessors(allProfessors: inferQueryOutput<"allProfessors">) {
+function getBestProfessors(allProfessors: inferProcedureOutput<AppRouter["professors"]["all"]>) {
     const rankedProfessors = allProfessors
         .filter((t) => t.numEvals > 10)
         .sort((a, b) => b.overallRating - a.overallRating);

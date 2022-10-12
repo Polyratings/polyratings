@@ -1,6 +1,7 @@
 /* eslint-disable react/no-unstable-nested-components */
 import { Fragment, lazy, Suspense, useEffect, useState } from "react";
 import { Professor, RatingReport } from "@backend/types/schema";
+import { useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/hooks";
 import { trpc } from "@/trpc";
 import { bulkInvalidationKey, useDbValues } from "@/hooks/useDbValues";
@@ -35,12 +36,11 @@ export function Admin() {
 
 function ReportedRatings() {
     const { data: ratingReports } = useDbValues("reports");
-    const { data: professors } = trpc.useQuery([
-        "getProfessors",
-        { ids: ratingReports?.map((report) => report.professorId) ?? [] },
-    ]);
-    const { mutate: removeReport } = trpc.useMutation("removeReport");
-    const { mutate: actOnReport } = trpc.useMutation("actOnReport");
+    const { data: professors } = trpc.professors.getMany.useQuery({
+        ids: ratingReports?.map((report) => report.professorId) ?? [],
+    });
+    const { mutate: removeReport } = trpc.admin.removeReport.useMutation();
+    const { mutate: actOnReport } = trpc.admin.actOnReport.useMutation();
 
     const columns = [
         {
@@ -130,14 +130,12 @@ function ReportedRatings() {
 
 function PendingProfessors() {
     const { data: pendingProfessors } = useDbValues("professor-queue");
-    const trpcContext = trpc.useContext();
-    const { mutate: approvePendingProfessor } = trpc.useMutation("approvePendingProfessor", {
-        onSuccess: () =>
-            trpcContext.queryClient.invalidateQueries(bulkInvalidationKey("professor-queue")),
+    const queryClient = useQueryClient();
+    const { mutate: approvePendingProfessor } = trpc.admin.approvePendingProfessor.useMutation({
+        onSuccess: () => queryClient.invalidateQueries(bulkInvalidationKey("professor-queue")),
     });
-    const { mutate: rejectPendingProfessor } = trpc.useMutation("rejectPendingProfessor", {
-        onSuccess: () =>
-            trpcContext.queryClient.invalidateQueries(bulkInvalidationKey("professor-queue")),
+    const { mutate: rejectPendingProfessor } = trpc.admin.rejectPendingProfessor.useMutation({
+        onSuccess: () => queryClient.invalidateQueries(bulkInvalidationKey("professor-queue")),
     });
 
     const columns = [
@@ -233,9 +231,9 @@ function ProcessedRatings() {
 }
 
 function RecentRatings() {
-    const trpcContext = trpc.useContext();
+    const queryClient = useQueryClient();
     const { data: professors } = useDbValues("professors");
-    const { mutateAsync: removeRatingMutation } = trpc.useMutation("removeRating");
+    const { mutateAsync: removeRatingMutation } = trpc.admin.removeRating.useMutation();
 
     const [removedRatings, setRemovedRatings] = useState(new Set<string>());
 
@@ -260,11 +258,12 @@ function RecentRatings() {
         setRemovedRatings(new Set<string>(...removedRatings).add(ratingId));
     };
 
+    // On unmount check if the user removed ratings
     useEffect(
         () => () => {
             if (removedRatings.size) {
                 // Invalidate to allow refetch if ratings have been deleted
-                trpcContext.queryClient.invalidateQueries(bulkInvalidationKey("professors"));
+                queryClient.invalidateQueries(bulkInvalidationKey("professors"));
             }
         },
         [],

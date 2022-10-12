@@ -10,20 +10,22 @@ import { FlagIcon } from "@heroicons/react/24/solid";
 import { z } from "zod";
 import { SubmitHandler, useForm } from "react-hook-form";
 import { toast } from "react-toastify";
+import { inferProcedureOutput } from "@trpc/server";
+import { AppRouter } from "@backend/index";
 import { EvaluateProfessorForm, TextArea, TextInput } from "@/components";
-import { inferQueryOutput, trpc } from "@/trpc";
+import { trpc } from "@/trpc";
 import { REACT_MODAL_STYLES } from "@/constants";
 import { Button } from "@/components/forms/Button";
 
 interface CourseRatings {
     course: string;
-    ratings: ValueOf<inferQueryOutput<"getProfessor">["reviews"]>;
+    ratings: ValueOf<inferProcedureOutput<AppRouter["professors"]["get"]>["reviews"]>;
 }
 
 export function professorPageLoaderFactory(trpcContext: ReturnType<typeof trpc["useContext"]>) {
     const professorPageLoader: IndexRouteObject["loader"] = ({ params }) =>
-        trpcContext.getQueryData(["getProfessor", { id: params.id ?? "" }]) ??
-        trpcContext.fetchQuery(["getProfessor", { id: params.id ?? "" }]);
+        trpcContext.professors.get.getData({ id: params.id ?? "" }) ??
+        trpcContext.professors.get.fetch({ id: params.id ?? "" });
 
     return professorPageLoader;
 }
@@ -31,10 +33,9 @@ export function professorPageLoaderFactory(trpcContext: ReturnType<typeof trpc["
 export function ProfessorPage() {
     const { id } = useParams<{ id: string }>();
 
-    const { data: professorData, error: fetchError } = trpc.useQuery([
-        "getProfessor",
-        { id: id ?? "" },
-    ]);
+    const { data: professorData, error: fetchError } = trpc.professors.get.useQuery({
+        id: id ?? "",
+    });
 
     // Put classes for professors primary department first. This is to cut down on rating spamming
     // of other departments. It is possible for a professor to teach outside of the department but
@@ -237,7 +238,7 @@ export function ProfessorPage() {
 
 interface RatingCardProps {
     professorId: string;
-    rating: ValueOf<inferQueryOutput<"getProfessor">["reviews"]>[0];
+    rating: ValueOf<inferProcedureOutput<AppRouter["professors"]["get"]>["reviews"]>[0];
 }
 function RatingCard({ rating, professorId }: RatingCardProps) {
     return (
@@ -330,7 +331,7 @@ function ReportForm({ closeForm, professorId, ratingId }: ReportFormProps) {
         formState: { errors },
     } = useForm<ReportFormInputs>();
 
-    const reportMutation = trpc.useMutation("reportRating");
+    const reportMutation = trpc.ratings.report.useMutation();
 
     const onSubmit: SubmitHandler<ReportFormInputs> = async (formResult) => {
         // Silently log error and tell the user that there report was successful

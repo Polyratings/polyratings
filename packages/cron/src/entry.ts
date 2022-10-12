@@ -5,7 +5,7 @@ import {
     PROD_ENV,
 } from "@backend/generated/tomlGenerated";
 import type { AppRouter } from "@backend/index";
-import { createTRPCClient, httpLink } from "@trpc/client";
+import { createTRPCProxyClient, httpLink } from "@trpc/client";
 import { syncKvStore } from "./steps/syncKvStore";
 import { cloudflareKVInit } from "./wrappers/kv-wrapper";
 import { Logger } from "./logger";
@@ -62,10 +62,10 @@ async function createRuntimeEnvironment(globalEnv: Record<string, string | undef
         throw new Error("Could not create cron environment. A required variable was not set");
     }
 
-    const authenticatedProductionClient = createTRPCClient<AppRouter>({
+    const authenticatedProductionClient = createTRPCProxyClient<AppRouter>({
         links: [httpLink({ url: PROD_ENV.url })],
     });
-    await authenticatedProductionClient.mutation("login", {
+    await authenticatedProductionClient.auth.login.mutate({
         username: polyratingsCIUsername,
         password: polyratingsCIPassword,
     });

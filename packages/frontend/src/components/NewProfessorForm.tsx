@@ -56,7 +56,7 @@ export function NewProfessorForm() {
         mutateAsync: addNewProfessorMutation,
         isLoading,
         error: networkError,
-    } = trpc.useMutation("addNewProfessor");
+    } = trpc.professors.add.useMutation();
     const navigate = useNavigate();
 
     const onSubmit = async (data: NewProfessorFormInputs) => {

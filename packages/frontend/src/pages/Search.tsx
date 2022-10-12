@@ -28,7 +28,7 @@ export function Search() {
         loadedSearchTerm,
         "searchState",
     );
-    const { data: allProfessors } = trpc.useQuery(["allProfessors"]);
+    const { data: allProfessors } = trpc.professors.all.useQuery();
     const searchResults = professorSearch(
         allProfessors ?? [],
         searchState.type,

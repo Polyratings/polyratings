@@ -1,13 +1,14 @@
-import { inferQueryOutput } from "@/trpc";
+import { AppRouter } from "@backend/index";
+import { inferProcedureOutput } from "@trpc/server";
 import { intersectingDbEntities } from "./intersectingDbEntities";
 
 export type ProfessorSearchType = "name" | "department" | "class";
 
 export function professorSearch(
-    allProfessors: inferQueryOutput<"allProfessors">,
+    allProfessors: inferProcedureOutput<AppRouter["professors"]["all"]>,
     type: ProfessorSearchType,
     value: string,
-): inferQueryOutput<"allProfessors"> {
+): inferProcedureOutput<AppRouter["professors"]["all"]> {
     switch (type) {
         case "name": {
             const tokens = value.toLowerCase().split(" ");

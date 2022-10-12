@@ -1,9 +1,10 @@
 import { Link } from "react-router-dom";
+import { inferProcedureOutput } from "@trpc/server";
+import { AppRouter } from "@backend/index";
 import star from "@/assets/star.svg";
-import { inferQueryOutput } from "@/trpc";
 
 interface ProfessorCardProps {
-    professor: inferQueryOutput<"allProfessors">[0] | null;
+    professor: inferProcedureOutput<AppRouter["professors"]["all"]>[0] | null;
 }
 
 export const PROFESSOR_CARD_HEIGHT_REM = 10;

@@ -10,7 +10,9 @@ import {
 } from "@backend/utils/const";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { inferQueryOutput, trpc } from "@/trpc";
+import { inferProcedureOutput } from "@trpc/server";
+import { AppRouter } from "@backend/index";
+import { trpc } from "@/trpc";
 import { Select, TextArea } from "./forms";
 import { TextInput } from "./forms/TextInput";
 import { Button } from "./forms/Button";
@@ -59,7 +61,7 @@ const evaluateProfessorFormParser = z.object({
 type EvaluateProfessorFormInputs = z.infer<typeof evaluateProfessorFormParser>;
 
 interface EvaluateProfessorFormProps {
-    professor?: inferQueryOutput<"getProfessor"> | null;
+    professor?: inferProcedureOutput<AppRouter["professors"]["get"]> | null;
     closeForm?: () => void;
 }
 export function EvaluateProfessorForm({ professor, closeForm }: EvaluateProfessorFormProps) {
@@ -79,17 +81,17 @@ export function EvaluateProfessorForm({ professor, closeForm }: EvaluateProfesso
     const knownCourseValue = watch("knownCourse");
     const trpcContext = trpc.useContext();
     const { mutateAsync: finalizeRatingUpload, error: finalizeError } =
-        trpc.useMutation("processRating");
+        trpc.ratings.process.useMutation();
     const {
         mutate: uploadNewRating,
         isLoading,
         error: startError,
-    } = trpc.useMutation("addNewRating", {
+    } = trpc.ratings.add.useMutation({
         onSuccess: async (id) => {
             try {
                 await finalizeRatingUpload(id);
                 toast.success("Thank you for your rating");
-                trpcContext.invalidateQueries(["getProfessor", { id }]);
+                trpcContext.professors.get.invalidate({ id });
                 closeForm?.();
             } catch {
                 // No need to catch error since it is displayed in the ui

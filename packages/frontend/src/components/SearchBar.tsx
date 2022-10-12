@@ -26,7 +26,7 @@ export function SearchBar({
     const [searchValue, setSearchValue] = useState(initialState?.searchValue ?? "");
     const [searchType, setSearchType] = useState<ProfessorSearchType>(initialState?.type ?? "name");
     const formRef = useRef<HTMLFormElement>(null);
-    const { data: allProfessors } = trpc.useQuery(["allProfessors"]);
+    const { data: allProfessors } = trpc.professors.all.useQuery();
 
     useEffect(() => {
         if (onChange) {

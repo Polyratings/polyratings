@@ -26,7 +26,7 @@ export function Login() {
     const [, setJwt] = useAuth();
     const navigate = useNavigate();
 
-    const { mutate: login, error: networkError } = trpc.useMutation("login", {
+    const { mutate: login, error: networkError } = trpc.auth.login.useMutation({
         onSuccess: (jwt) => {
             setJwt(jwt);
             navigate("/admin");

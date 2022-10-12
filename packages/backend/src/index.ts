@@ -8,7 +8,12 @@ import { ratingsRouter } from "./routers/rating";
 import { adminRouter } from "./routers/admin";
 import { authRouter } from "./routers/auth";
 
-export const appRouter = t.mergeRouters(professorRouter, ratingsRouter, adminRouter, authRouter);
+export const appRouter = t.router({
+    professors: professorRouter,
+    ratings: ratingsRouter,
+    admin: adminRouter,
+    auth: authRouter,
+});
 export type AppRouter = typeof appRouter;
 
 const CORS_HEADERS = {
