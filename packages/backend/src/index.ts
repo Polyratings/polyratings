@@ -43,7 +43,7 @@ export default {
                 enabled: false,
             },
             createContext: async ({ req }) => {
-                const env = new Env(coudflareEnv, sentry);
+                const env = new Env(coudflareEnv);
                 const authHeader = req.headers.get("Authorization");
                 const user = await env.authStrategy.verify(authHeader);
                 return { env, user };
@@ -56,6 +56,11 @@ export default {
                     ...CORS_HEADERS,
                 },
             }),
+            onError: (errorState) => {
+                if (errorState.error.code === "INTERNAL_SERVER_ERROR") {
+                    sentry.captureException(errorState.error);
+                }
+            },
         });
     },
 };

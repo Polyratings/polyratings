@@ -1,7 +1,6 @@
 import { KVDAO } from "@backend/dao/kv-dao";
 import { PerspectiveDAO } from "@backend/dao/perspective-dao";
 import { AuthStrategy } from "@backend/dao/auth-strategy";
-import Toucan from "toucan-js";
 import { DiscordNotificationDAO } from "@backend/dao/discord-notification-dao";
 import { KvWrapper } from "./dao/kv-wrapper";
 
@@ -14,7 +13,7 @@ export class Env {
 
     notificationDAO: DiscordNotificationDAO;
 
-    constructor(env: CloudflareEnv, public sentry: Toucan) {
+    constructor(env: CloudflareEnv) {
         this.kvDao = new KVDAO(
             new KvWrapper(env.POLYRATINGS_TEACHERS),
             new KvWrapper(env.POLYRATINGS_USERS),
