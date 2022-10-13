@@ -57,8 +57,8 @@ export function ProfessorPage() {
     );
 
     // Sort departments by class number
-    Object.values(professorByDepartments).forEach((deparment) =>
-        deparment.sort((a, b) => {
+    Object.values(professorByDepartments).forEach((department) =>
+        department.sort((a, b) => {
             const [, aNumber] = a.course.split(" ");
             const [, bNumber] = b.course.split(" ");
             return parseInt(aNumber, 10) - parseInt(bNumber, 10);
