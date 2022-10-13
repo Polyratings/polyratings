@@ -1,4 +1,4 @@
-import { Link, useLocation, useParams } from "react-router-dom";
+import { Link, useLocation, useParams, useSearchParams } from "react-router-dom";
 import { useState } from "react";
 import { useWindowVirtualizer } from "@tanstack/react-virtual";
 import { ChevronDoubleRightIcon } from "@heroicons/react/24/outline";
@@ -9,20 +9,19 @@ import {
     Filters,
     PROFESSOR_CARD_HEIGHT_REM,
 } from "@/components";
-import { useQuery, useTailwindBreakpoint } from "@/hooks";
+import { useTailwindBreakpoint } from "@/hooks";
 import { professorSearch, ProfessorSearchType } from "@/utils/ProfessorSearch";
 import { trpc } from "@/trpc";
 import { useLocationState } from "@/hooks/useLocationState";
 
 export function Search() {
-    const query = useQuery();
+    const [searchParams] = useSearchParams();
 
-    const navigatedSearchTerm = query.get("term");
-    const { searchType } = useParams<{ searchType: ProfessorSearchType | undefined }>();
+    const { searchType } = useParams<{ searchType: ProfessorSearchType }>();
 
     const loadedSearchTerm = {
         type: searchType || "name",
-        searchValue: navigatedSearchTerm ?? "",
+        searchValue: searchParams.get("term") ?? "",
     };
     const [searchState, setSearchState] = useLocationState<SearchState>(
         loadedSearchTerm,

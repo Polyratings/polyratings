@@ -15,7 +15,7 @@ export interface AutoCompleteProps<T, U> {
     items: T[];
     placeholder: string;
     label: string;
-    value: string;
+    initialValue: string;
     className?: string;
     disableDropdown: boolean;
 }
@@ -28,6 +28,7 @@ export function AutoComplete<T, U>({
     className = "",
     disableDropdown,
     label,
+    initialValue,
 }: AutoCompleteProps<T, U>) {
     const [filteredItems, setFilteredItems] = useState(filterFn(items, ""));
     const listRef = useRef(undefined as unknown as HTMLElement);
@@ -76,6 +77,7 @@ export function AutoComplete<T, U>({
         onHighlightedIndexChange({ highlightedIndex }) {
             rowVirtualizer.scrollToIndex(highlightedIndex ?? 0);
         },
+        initialInputValue: initialValue,
     });
     return (
         <div className={`relative ${className}`} {...getComboboxProps()}>

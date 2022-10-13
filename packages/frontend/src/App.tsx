@@ -98,8 +98,7 @@ function PolyratingsRouter() {
                     element={<ProfessorPage />}
                     loader={professorPageLoaderFactory(trpcContext)}
                 />
-                <Route path="search/:searchType?" element={<SearchWrapper />} />
-                <Route path="search" element={<SearchWrapper />} />
+                <Route path="search/:searchType" element={<SearchWrapper />} />
                 <Route path="login" element={<Login />} />
                 <Route path="new-professor" element={<NewProfessor />} />
                 <Route path="about" element={<About />} />

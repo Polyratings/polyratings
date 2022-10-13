@@ -101,7 +101,7 @@ export function SearchBar({
                     items={allProfessors ?? []}
                     filterFn={(_, inputValue) => autoCompleteFilter(inputValue)}
                     label="Professor Auto-complete"
-                    value={searchValue}
+                    initialValue={searchValue}
                     className="w-72 h-8 font-normal text-lg"
                     disableDropdown={disableAutoComplete}
                 />
