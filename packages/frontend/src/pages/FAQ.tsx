@@ -5,7 +5,7 @@ export function FAQ() {
     const subTitleStyle = "text-cal-poly-green font-medium text-2xl mb-2";
     const linkStyle = "hover:underline text-cal-poly-green font-semibold";
     return (
-        <div className="container m-auto px-2 md:px-12 max-w-7xl mb-12">
+        <div id="main" className="container m-auto px-2 md:px-12 max-w-7xl mb-12">
             <h1 className="text-4xl text-cal-poly-green mb-7 mt-12 font-semibold pl-1 md:pl-0">
                 Frequently Asked Questions
             </h1>

@@ -1,4 +1,4 @@
-import { BETA_ENV, DEV_ENV, PolyratingsAPIEnv, PROD_ENV } from "@polyratings/client";
+import { BETA_ENV, DEV_ENV, PolyratingsAPIEnv, PROD_ENV } from "@backend/generated/tomlGenerated";
 
 interface AppConfiguration {
     clientEnv: PolyratingsAPIEnv;

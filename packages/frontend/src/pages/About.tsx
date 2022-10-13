@@ -4,7 +4,7 @@ export function About() {
     const subTitleStyle = "text-cal-poly-green font-medium text-center text-3xl mb-2";
     const linkStyle = "hover:underline text-cal-poly-green font-semibold";
     return (
-        <div className="container m-auto px-2 md:px-12 max-w-7xl">
+        <div id="main" className="container m-auto px-2 md:px-12 max-w-7xl">
             <h1 className="text-4xl text-cal-poly-green mb-7 mt-12 font-semibold pl-1 md:pl-0">
                 About Polyratings
             </h1>
@@ -233,10 +233,9 @@ export function About() {
                         Open Source
                     </a>
                     .
-                    <p>
-                        We take these actions to ensure that Polyratings will never go read-only
-                        again!
-                    </p>
+                </p>
+                <p>
+                    We take these actions to ensure that Polyratings will never go read-only again!
                 </p>
             </div>
         </div>

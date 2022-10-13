@@ -1,64 +1,89 @@
-import { PolyratingsError } from "@polyratings/backend/utils/errors";
-import { DEFAULT_VALIDATOR_OPTIONS } from "@polyratings/backend/utils/const";
-import { validateOrReject } from "class-validator";
-import { transformAndValidate } from "@polyratings/backend/utils/transform-and-validate";
-import { plainToInstance } from "class-transformer";
-import { BulkKey, Internal } from "@polyratings/shared";
+import { BulkKey, BulkKeyMap } from "@backend/utils/const";
+import { z } from "zod";
+import { TRPCError } from "@trpc/server";
+import {
+    PendingRating,
+    pendingRatingParser,
+    Professor,
+    professorParser,
+    RatingReport,
+    ratingReportParser,
+    TruncatedProfessor,
+    truncatedProfessorParser,
+    User,
+    userParser,
+} from "@backend/types/schema";
+import {
+    addRating,
+    pendingRatingToRating,
+    professorToTruncatedProfessor,
+    removeRating,
+} from "@backend/types/schemaHelpers";
+import { KvWrapper } from "./kv-wrapper";
 
 const KV_REQUESTS_PER_TRIGGER = 1000;
 
 export class KVDAO {
     constructor(
-        private polyratingsNamespace: KVNamespace,
-        private usersNamespace: KVNamespace,
-        private processingQueueNamespace: KVNamespace,
-        private professorApprovalQueueNamespace: KVNamespace,
-        private reportsNamespace: KVNamespace,
+        private polyratingsNamespace: KvWrapper,
+        private usersNamespace: KvWrapper,
+        private processingQueueNamespace: KvWrapper,
+        private professorApprovalQueueNamespace: KvWrapper,
+        private reportsNamespace: KvWrapper,
     ) {}
 
-    // HACK: class-validator/transformer cannot actually parse through the entire
-    // list of professors, so we just have to trust that it's actually valid/correct.
-    async getAllProfessors(): Promise<string> {
-        const professorList = await this.polyratingsNamespace.get("all");
-        if (!professorList) {
-            throw new PolyratingsError(404, "Could not find any professors.");
+    async getAllProfessors() {
+        const professorList = await this.polyratingsNamespace.safeGet(
+            z.array(truncatedProfessorParser),
+            "all",
+        );
+        if (!professorList.success) {
+            throw new TRPCError({
+                code: "INTERNAL_SERVER_ERROR",
+                message: "Could not find any professors.",
+            });
         }
 
-        return professorList;
+        return professorList.data;
     }
 
-    private async putAllProfessors(professorList: Internal.TruncatedProfessorDTO[]) {
-        await this.polyratingsNamespace.put("all", JSON.stringify(professorList));
+    private async putAllProfessors(professorList: TruncatedProfessor[]) {
+        await this.polyratingsNamespace.put(
+            z.array(truncatedProfessorParser),
+            "all",
+            professorList,
+        );
     }
 
-    async getProfessor(id: string): Promise<Internal.ProfessorDTO> {
-        const profString = await this.polyratingsNamespace.get(id);
-        if (!profString) {
-            throw new PolyratingsError(404, "Professor does not exist!");
-        }
-
-        return transformAndValidate(Internal.ProfessorDTO, JSON.parse(profString));
+    getProfessor(id: string) {
+        return this.polyratingsNamespace.get(professorParser, id);
     }
 
-    getBulkNamespace(bulkKey: BulkKey): KVNamespace {
+    getBulkNamespace(bulkKey: BulkKey): { namespace: KvWrapper; parser: z.ZodTypeAny } {
         switch (bulkKey) {
             case "professors":
-                return this.polyratingsNamespace;
+                return { namespace: this.polyratingsNamespace, parser: professorParser };
             case "professor-queue":
-                return this.professorApprovalQueueNamespace;
+                return {
+                    namespace: this.professorApprovalQueueNamespace,
+                    parser: professorParser,
+                };
             case "users":
-                return this.usersNamespace;
+                return { namespace: this.usersNamespace, parser: userParser };
             case "reports":
-                return this.reportsNamespace;
+                return { namespace: this.reportsNamespace, parser: ratingReportParser };
             case "rating-queue":
-                return this.processingQueueNamespace;
+                return {
+                    namespace: this.processingQueueNamespace,
+                    parser: pendingRatingParser,
+                };
             default:
-                throw new PolyratingsError(404, "Bulk key is not valid");
+                throw new TRPCError({ code: "BAD_REQUEST", message: "Bulk key is not valid" });
         }
     }
 
     async getBulkKeys(bulkKey: BulkKey): Promise<string[]> {
-        const namespace = this.getBulkNamespace(bulkKey);
+        const { namespace } = this.getBulkNamespace(bulkKey);
         const keys: string[] = [];
         let cursor: string | undefined;
         do {
@@ -78,44 +103,38 @@ export class KVDAO {
         return keys;
     }
 
-    async getBulkValues(bulkKey: BulkKey, keys: string[]) {
+    async getBulkValues<T extends BulkKey>(bulkKey: T, keys: string[]): Promise<BulkKeyMap[T]> {
         if (keys.length > KV_REQUESTS_PER_TRIGGER) {
-            throw new PolyratingsError(
-                400,
-                `Can not process more than ${KV_REQUESTS_PER_TRIGGER} keys per request`,
-            );
+            throw new TRPCError({
+                code: "BAD_REQUEST",
+                message: `Can not process more than ${KV_REQUESTS_PER_TRIGGER} keys per request`,
+            });
         }
-        const namespace = this.getBulkNamespace(bulkKey);
-        const values = await Promise.all(keys.map((key) => namespace.get(key)));
-        // ts can not figure out that filter prevents the map from having null values
-        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-        return values.filter((v) => v !== null).map((v) => JSON.parse(v!));
+        const { namespace } = this.getBulkNamespace(bulkKey);
+        // Use get unsafe for performance reasons. Since we are fetching a large number of records
+        // the time can be greater than 50ms resulting in occasional 503's
+        return Promise.all(keys.map((key) => namespace.getUnsafe(key))) as never;
     }
 
-    async putProfessor(professor: Internal.ProfessorDTO, skipNameCollisionDetection = false) {
-        await validateOrReject(professor, DEFAULT_VALIDATOR_OPTIONS);
-
+    async putProfessor(professor: Professor, skipNameCollisionDetection = false) {
         // Need to check if key exists in order to not throw an error when calling `getProfessor`
-        if (!skipNameCollisionDetection && (await this.polyratingsNamespace.get(professor.id))) {
+        if (!skipNameCollisionDetection && (await this.getProfessor(professor.id))) {
             const existingProfessor = await this.getProfessor(professor.id);
             if (
                 existingProfessor.firstName !== professor.firstName ||
                 existingProfessor.lastName !== professor.lastName
             ) {
-                throw new Error("Possible teacher collision detected");
+                throw new Error("Possible professor collision detected");
             }
         }
 
-        await this.polyratingsNamespace.put(professor.id, JSON.stringify(professor));
+        await this.polyratingsNamespace.put(professorParser, professor.id, professor);
 
-        // Not actually of type TruncatedProfessorDTO just the plain version
-        const profList = JSON.parse(
-            await this.getAllProfessors(),
-        ) as Internal.TruncatedProfessorDTO[];
+        const profList = await this.getAllProfessors();
         // Right now we have these because of the unfortunate shape of our professor list structure.
         // TODO: Investigate better structure for the professor list
         const professorIndex = profList.findIndex((t) => t.id === professor.id);
-        const truncatedProf = professor.toTruncatedProfessorDTO();
+        const truncatedProf = professorToTruncatedProfessor(professor);
 
         if (professorIndex === -1) {
             profList.push(truncatedProf);
@@ -129,9 +148,7 @@ export class KVDAO {
     async removeProfessor(id: string) {
         await this.polyratingsNamespace.delete(id);
 
-        const profList = JSON.parse(
-            await this.getAllProfessors(),
-        ) as Internal.TruncatedProfessorDTO[];
+        const profList = await this.getAllProfessors();
         const professorIndex = profList.findIndex((t) => t.id === id);
 
         if (professorIndex === -1) {
@@ -142,114 +159,77 @@ export class KVDAO {
         await this.putAllProfessors(profList);
     }
 
-    async getPendingReview(id: string): Promise<Internal.PendingReviewDTO> {
-        const pendingRatingString = await this.processingQueueNamespace.get(id);
-        if (!pendingRatingString) {
-            throw new PolyratingsError(404, "Rating does not exist.");
-        }
-
-        return transformAndValidate(Internal.PendingReviewDTO, JSON.parse(pendingRatingString));
+    getPendingRating(id: string) {
+        return this.processingQueueNamespace.get(pendingRatingParser, id);
     }
 
-    async addPendingReview(review: Internal.PendingReviewDTO) {
-        await validateOrReject(review, DEFAULT_VALIDATOR_OPTIONS);
-
-        await this.processingQueueNamespace.put(review.id, JSON.stringify(review));
+    async addPendingRating(rating: PendingRating) {
+        return this.processingQueueNamespace.put(pendingRatingParser, rating.id, rating);
     }
 
-    async addReview(pendingReview: Internal.PendingReviewDTO): Promise<Internal.ProfessorDTO> {
-        await validateOrReject(pendingReview, DEFAULT_VALIDATOR_OPTIONS);
-
-        if (pendingReview.status !== "Successful") {
+    async addRating(pendingRating: PendingRating) {
+        if (pendingRating.status !== "Successful") {
             throw new Error("Cannot add rating to KV that has not been analyzed.");
         }
 
-        const professor = await this.getProfessor(pendingReview.professor);
-        const newReview = pendingReview.toReviewDTO();
-        professor.addReview(newReview, `${pendingReview.department} ${pendingReview.courseNum}`);
+        const professor = await this.getProfessor(pendingRating.professor);
+        const newRating = pendingRatingToRating(pendingRating);
+        addRating(professor, newRating, `${pendingRating.department} ${pendingRating.courseNum}`);
 
         this.putProfessor(professor);
         return professor;
     }
 
-    async removeReview(professorId: string, reviewId: string) {
+    async removeRating(professorId: string, ratingId: string) {
         const professor = await this.getProfessor(professorId);
-        professor.removeReview(reviewId);
+        removeRating(professor, ratingId);
         return this.putProfessor(professor);
     }
 
-    async getUser(username: string): Promise<Internal.User> {
-        const userString = await this.usersNamespace.get(username);
-
-        if (!userString) {
-            throw new PolyratingsError(401, "Incorrect Credentials");
+    async getUser(username: string) {
+        try {
+            const user = await this.usersNamespace.get(userParser, username);
+            return user;
+        } catch (e) {
+            throw new TRPCError({ code: "UNAUTHORIZED" });
         }
-
-        return transformAndValidate(Internal.User, JSON.parse(userString));
     }
 
-    async putUser(user: Internal.User) {
-        await validateOrReject(user, DEFAULT_VALIDATOR_OPTIONS);
-
-        await this.usersNamespace.put(user.username, JSON.stringify(user));
+    putUser(user: User) {
+        return this.usersNamespace.put(userParser, user.username, user);
     }
 
-    async putPendingProfessor(professor: Internal.ProfessorDTO) {
-        await validateOrReject(professor, DEFAULT_VALIDATOR_OPTIONS);
-
-        await this.professorApprovalQueueNamespace.put(professor.id, JSON.stringify(professor));
+    putPendingProfessor(professor: Professor) {
+        return this.professorApprovalQueueNamespace.put(professorParser, professor.id, professor);
     }
 
-    async getPendingProfessor(id: string): Promise<Internal.ProfessorDTO> {
-        const pendingProfessorString = await this.professorApprovalQueueNamespace.get(id);
-        if (!pendingProfessorString) {
-            throw new PolyratingsError(404, "Pending Professor does not exist.");
-        }
-
-        return transformAndValidate(Internal.ProfessorDTO, JSON.parse(pendingProfessorString));
+    async getPendingProfessor(id: string) {
+        return this.professorApprovalQueueNamespace.get(professorParser, id);
     }
 
-    async getAllPendingProfessors(): Promise<Internal.ProfessorDTO[]> {
-        const keys = await this.professorApprovalQueueNamespace.list();
-        const professorStrings = await Promise.all(
-            keys.keys.map((key) => this.professorApprovalQueueNamespace.get(key.name)),
-        );
-        return (
-            professorStrings
-                .filter((plainStr) => plainStr)
-                // We filter to make sure there is no race condition and keys are actually defined
-                // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-                .map((plainStr) => plainToInstance(Internal.ProfessorDTO, JSON.parse(plainStr!)))
-        );
+    async getAllPendingProfessors() {
+        return this.professorApprovalQueueNamespace.getAll(professorParser);
     }
 
-    removePendingProfessor(id: string): Promise<void> {
+    removePendingProfessor(id: string) {
         return this.professorApprovalQueueNamespace.delete(id);
     }
 
-    async getReport(ratingId: string): Promise<Internal.RatingReport> {
-        const ratingStr = await this.reportsNamespace.get(ratingId);
-        if (!ratingStr) {
-            throw new PolyratingsError(404, "Report does not exist!");
-        }
-
-        return transformAndValidate(Internal.RatingReport, JSON.parse(ratingStr));
+    async getReport(ratingId: string) {
+        return this.reportsNamespace.get(ratingReportParser, ratingId);
     }
 
-    async putReport(report: Internal.RatingReport): Promise<void> {
-        await validateOrReject(report, DEFAULT_VALIDATOR_OPTIONS);
-        const existingReportStr = await this.reportsNamespace.get(report.ratingId);
+    async putReport(report: RatingReport): Promise<void> {
+        const existingReport = await this.reportsNamespace.getOptional(
+            ratingReportParser,
+            report.ratingId,
+        );
 
-        if (existingReportStr) {
-            const existingReport = plainToInstance(
-                Internal.RatingReport,
-                JSON.parse(existingReportStr),
-            );
+        if (existingReport) {
             existingReport.reports = existingReport.reports.concat(report.reports);
-            await validateOrReject(existingReport, DEFAULT_VALIDATOR_OPTIONS);
-            await this.reportsNamespace.put(report.ratingId, JSON.stringify(existingReport));
+            await this.reportsNamespace.put(ratingReportParser, report.ratingId, existingReport);
         } else {
-            await this.reportsNamespace.put(report.ratingId, JSON.stringify(report));
+            await this.reportsNamespace.put(ratingReportParser, report.ratingId, report);
         }
     }
 

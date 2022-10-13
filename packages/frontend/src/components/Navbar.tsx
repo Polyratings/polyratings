@@ -2,8 +2,7 @@ import { Link, useLocation } from "react-router-dom";
 import "@/styles/hamburgers.css";
 import AnimateHeight from "react-animate-height";
 import { useEffect, useState } from "react";
-import { AuthService } from "@/services";
-import { useService, useAuth } from "@/hooks";
+import { useAuth } from "@/hooks";
 import { SearchBar } from "./SearchBar";
 import Logo from "@/assets/Logo.png";
 import DiscordLogo from "@/assets/Discord-Logo-White.svg";
@@ -20,8 +19,7 @@ const HIDE_SEARCH_BAR_ROUTES = [
 export function Navbar() {
     const [mobileNavOpen, setMobileNav] = useState(false);
     const triggerMobileNav = () => setMobileNav(!mobileNavOpen);
-    const isAuthenticated = useAuth();
-    const authService = useService(AuthService);
+    const [isAuthenticated, setJwt] = useAuth();
     const location = useLocation();
     const [showInputBar, setShowInputBar] = useState(true);
 
@@ -36,20 +34,25 @@ export function Navbar() {
                 isAuthenticated ? "bg-red-800" : "bg-cal-poly-green"
             } h-12 flex justify-between px-5 items-center`}
         >
+            <a className="absolute w-[1px] h-[1px] z-[-1]" href="#main">
+                Skip to main content
+            </a>
+
             <Link to="/" onClick={() => setMobileNav(false)}>
                 <img src={Logo} alt="Polyratings logo" className="h-8" />
             </Link>
 
-            <div
+            <button
                 onClick={triggerMobileNav}
                 className={`hamburger hamburger--slider block md:hidden  ${
                     mobileNavOpen ? "is-active hamburgerTurn" : ""
                 }`}
+                type="button"
             >
                 <div className="hamburger-box">
                     <div className="hamburger-inner bg-white" />
                 </div>
-            </div>
+            </button>
 
             {/* Mobile hamburger dropdown */}
             <AnimateHeight
@@ -57,35 +60,28 @@ export function Navbar() {
                 height={mobileNavOpen ? "auto" : 0}
                 className="absolute top-12 left-0 bg-cal-poly-green w-full z-50 transform -translate-y-1"
             >
-                <div className="flex flex-col text-center text-xl text-white">
-                    <Link className="my-1" to="/" onClick={triggerMobileNav}>
+                <button
+                    className="flex flex-col items-center w-full text-xl text-white"
+                    onClick={triggerMobileNav}
+                    type="button"
+                >
+                    <Link className="my-1" to="/">
                         Home
                     </Link>
-                    <Link className="my-1" to="/new-teacher" onClick={triggerMobileNav}>
+                    <Link className="my-1" to="/new-professor">
+                        {" "}
                         Add a Professor
                     </Link>
-                    <Link className="my-1" to="/search" onClick={triggerMobileNav}>
+                    <Link className="my-1" to="/search">
                         Professor List
                     </Link>
-                    <Link className="my-1" to="/about" onClick={triggerMobileNav}>
+                    <Link className="my-1" to="/about">
                         About
                     </Link>
-                    <Link className="my-1" to="/faq" onClick={triggerMobileNav}>
+                    <Link className="my-1" to="/faq">
                         FAQ
                     </Link>
-                    {/* <Link className="mr-7" to="contact">Contact</Link> */}
-                    {isAuthenticated && (
-                        <div
-                            className="my-1"
-                            onClick={() => {
-                                authService.signOut();
-                                triggerMobileNav();
-                            }}
-                        >
-                            Sign Out
-                        </div>
-                    )}
-                </div>
+                </button>
             </AnimateHeight>
 
             <div className="text-white hidden md:flex items-center text-lg font-semibold">
@@ -95,7 +91,7 @@ export function Navbar() {
                     </div>
                 )}
 
-                <Link className="mr-7" to="/new-teacher">
+                <Link className="mr-7" to="/new-professor">
                     {" "}
                     Add a Professor
                 </Link>
@@ -136,12 +132,13 @@ export function Navbar() {
                     </Link>
                 )}
                 {isAuthenticated && (
-                    <div
-                        onClick={() => authService.signOut()}
+                    <button
+                        onClick={() => setJwt(null)}
                         className="rounded-full border-white pl-3 pr-3 border-2 pt-px pb-px cursor-pointer"
+                        type="button"
                     >
                         SIGN OUT
-                    </div>
+                    </button>
                 )}
             </div>
         </div>
