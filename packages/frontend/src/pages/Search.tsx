@@ -64,12 +64,13 @@ export function Search() {
                 disableAutoComplete
             />
             {(!searchResults.length || !filteredProfessors.length) && (
-                <h1 className="text-4xl mt-5 text-center text-cal-poly-green">
-                    No Results Found.{" "}
-                    <Link className="underline" to="/new-professor">
+                <h2 className="text-4xl mt-5 text-center text-cal-poly-green">
+                    No Results Found.
+                    <br />
+                    <Link className="underline pt-10" to="/new-professor">
                         Add a Professor?
                     </Link>
-                </h1>
+                </h2>
             )}
             {Boolean(searchResults.length) && (
                 <div className="relative">
