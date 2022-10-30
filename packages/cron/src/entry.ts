@@ -28,16 +28,16 @@ export async function main(env: Record<string, string | undefined>, sentry?: Tou
         { name: "generateAllProfessorEntry", task: generateAllProfessorEntry },
         // We purposely ignore the `all` professor key to avoid issues around eventual consistency
         {
-            name: "syncProfessors",
+            name: "sync all professors key",
             task: syncKvStore("professors", "POLYRATINGS_TEACHERS", new Set(["all"])),
         },
         {
-            name: "syncProfessors",
+            name: "sync professors",
             task: syncKvStore("professor-queue", "POLYRATINGS_TEACHER_APPROVAL_QUEUE"),
         },
-        { name: "syncProfessors", task: syncKvStore("users", "POLYRATINGS_USERS") },
-        { name: "syncProfessors", task: syncKvStore("reports", "POLYRATINGS_REPORTS") },
-        { name: "clearRatingQueue", task: clearKvStore("PROCESSING_QUEUE") },
+        { name: "sync users", task: syncKvStore("users", "POLYRATINGS_USERS") },
+        { name: "sync reports", task: syncKvStore("reports", "POLYRATINGS_REPORTS") },
+        { name: "clear rating processing information", task: clearKvStore("PROCESSING_QUEUE") },
     ];
 
     for (const { task, name } of tasks) {
