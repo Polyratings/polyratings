@@ -1,5 +1,5 @@
-import { DEV_ENV } from "@backend/generated/tomlGenerated";
 import { httpLink } from "@trpc/client";
+import { config } from "./App.config";
 import { JWT_KEY } from "./hooks";
 
 export const REACT_MODAL_STYLES = {
@@ -20,8 +20,7 @@ export const REACT_MODAL_STYLES = {
 export const trpcClientOptions = {
     links: [
         httpLink({
-            // TODO: Change Back to config
-            url: DEV_ENV.url,
+            url: config.clientEnv.url,
             headers() {
                 const jwt = window.localStorage.getItem(JWT_KEY);
                 return {
