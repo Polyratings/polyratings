@@ -3,11 +3,13 @@ import { useQuery } from "@tanstack/react-query";
 import { createTRPCProxyClient } from "@trpc/client";
 import { AppRouter } from "@backend/index";
 import { trpcClientOptions } from "@/constants";
+import { useAuth } from "./useAuth";
 
 const WORKER_RETRIEVAL_CHUNK_SIZE = 100;
 
 export function useDbValues<T extends BulkKey>(bulkKey: T) {
-    const rawTrpcClient = createTRPCProxyClient<AppRouter>(trpcClientOptions);
+    const { jwt } = useAuth();
+    const rawTrpcClient = createTRPCProxyClient<AppRouter>(trpcClientOptions(jwt));
 
     return useQuery([`bulk-values-${bulkKey}`], async () => {
         const keys = await rawTrpcClient.admin.getBulkKeys.query(bulkKey);

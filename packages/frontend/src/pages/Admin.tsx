@@ -18,8 +18,8 @@ function DataTable({ ...rest }: any) {
 }
 
 export function Admin() {
-    const authenticated = useAuth();
-    return authenticated ? (
+    const { isAuthenticated } = useAuth();
+    return isAuthenticated ? (
         <div>
             <h1 className="text-center text-6xl font-semibold my-4">Polyratings Admin Panel</h1>
             <div className="container m-auto text-lg">

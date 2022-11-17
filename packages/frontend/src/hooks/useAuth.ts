@@ -1,12 +1,12 @@
 import jwtDecode from "jwt-decode";
-import { createContext, useContext } from "react";
+import { createContext, useContext, useEffect, useState } from "react";
 
 export const JWT_KEY = "AUTH_TOKEN" as const;
 
-export function useAuth(): [boolean, (val: string | null) => void] {
+export function useAuth() {
     const { jwt, setJwt } = useContext(AuthContext);
 
-    return [!!jwt, setJwt];
+    return { isAuthenticated: !!jwt, jwt, setJwt };
 }
 
 export function setJwtWrapper(fn: (incomingJwt: string | null) => void) {
@@ -25,13 +25,35 @@ export function loadStoredJwt() {
     if (storedJwt) {
         const user: { exp: number } = jwtDecode(storedJwt);
         if (user.exp * 1000 < Date.now()) {
-            return storedJwt;
+            return { storedJwt, user };
         }
     }
-    return null;
+    return { storedJwt: null, user: null };
 }
 
 export const AuthContext = createContext<{
     jwt: string | null;
     setJwt: (jwt: string | null) => void;
 }>({ jwt: null, setJwt: () => {} });
+
+// Used to hold authState that goes into the authContext
+export function useAuthState() {
+    const { storedJwt, user } = loadStoredJwt();
+    const [jwt, setJwtMemory] = useState(storedJwt);
+    const setJwt = setJwtWrapper(setJwtMemory);
+
+    // eslint-disable-next-line consistent-return
+    useEffect(() => {
+        if (user) {
+            const timer = setTimeout(() => {
+                setJwt(null);
+            }, user.exp * 1000);
+            return () => clearTimeout(timer);
+        }
+    }, [user]);
+
+    return {
+        jwt,
+        setJwt,
+    };
+}

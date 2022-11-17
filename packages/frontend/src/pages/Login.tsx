@@ -24,7 +24,7 @@ export function Login() {
         resolver: zodResolver(loginParser),
     });
 
-    const [, setJwt] = useAuth();
+    const { setJwt } = useAuth();
     const navigate = useNavigate();
 
     const { mutateAsync: login, data: jwt, error: networkError } = trpc.auth.login.useMutation();

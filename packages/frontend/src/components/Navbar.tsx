@@ -13,7 +13,7 @@ const HIDE_SEARCH_BAR_ROUTES = ["/", "/search/name", "/search/class", "/search/d
 export function Navbar() {
     const [mobileNavOpen, setMobileNav] = useState(false);
     const triggerMobileNav = () => setMobileNav(!mobileNavOpen);
-    const [isAuthenticated, setJwt] = useAuth();
+    const { isAuthenticated, setJwt } = useAuth();
     const location = useLocation();
     const [showInputBar, setShowInputBar] = useState(true);
 

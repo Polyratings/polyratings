@@ -9,7 +9,7 @@ import {
 import { ToastContainer } from "react-toastify";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { persistQueryClient } from "@tanstack/react-query-persist-client";
-import { useLayoutEffect, useMemo, useState } from "react";
+import { useLayoutEffect, useState } from "react";
 import {
     Home,
     ProfessorPage,
@@ -25,7 +25,7 @@ import { Navbar } from "./components";
 import "react-toastify/dist/ReactToastify.css";
 import { trpc } from "./trpc";
 import { createIDBPersister } from "./utils/idbPersister";
-import { AuthContext, JWT_KEY, setJwtWrapper } from "./hooks";
+import { AuthContext, useAuthState } from "./hooks";
 import { trpcClientOptions } from "./constants";
 
 // Lazy load error logger to save bundle size
@@ -54,6 +54,8 @@ if (process.env.NODE_ENV === "production") {
 
 // TODO: Fix large screen size
 export default function App() {
+    const authState = useAuthState();
+
     const [queryClient] = useState(() => {
         const queryClient = new QueryClient({
             defaultOptions: { queries: { staleTime: Infinity, cacheTime: 600000 } },
@@ -64,21 +66,12 @@ export default function App() {
         });
         return queryClient;
     });
-    const [trpcClient] = useState(() => trpc.createClient(trpcClientOptions));
-
-    const [jwt, setJwtMemory] = useState(window.localStorage.getItem(JWT_KEY));
-    const contextObj = useMemo(
-        () => ({
-            jwt,
-            setJwt: setJwtWrapper(setJwtMemory),
-        }),
-        [jwt, setJwtMemory],
-    );
+    const [trpcClient] = useState(() => trpc.createClient(trpcClientOptions(authState.jwt)));
 
     return (
         <trpc.Provider client={trpcClient} queryClient={queryClient}>
             <QueryClientProvider client={queryClient}>
-                <AuthContext.Provider value={contextObj}>
+                <AuthContext.Provider value={authState}>
                     <PolyratingsRouter />
                 </AuthContext.Provider>
             </QueryClientProvider>
