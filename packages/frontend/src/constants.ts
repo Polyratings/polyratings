@@ -1,5 +1,5 @@
-import { DEV_ENV } from "@backend/generated/tomlGenerated";
 import { httpLink } from "@trpc/client";
+import { config } from "./App.config";
 
 export const REACT_MODAL_STYLES = {
     content: {
@@ -19,10 +19,11 @@ export const REACT_MODAL_STYLES = {
 export const trpcClientOptions = (jwt: string | null) => ({
     links: [
         httpLink({
-            // TODO: Change Back to config
-            url: DEV_ENV.url,
-            headers: {
-                authorization: jwt ? `Bearer ${jwt}` : "",
+            url: config.clientEnv.url,
+            headers() {
+                return {
+                    authorization: jwt ? `Bearer ${jwt}` : "",
+                };
             },
         }),
     ],

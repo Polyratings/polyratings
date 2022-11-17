@@ -41,14 +41,14 @@ jobs:
           npm run test
 
       - name: Deploy Prod
-        if: github.ref == 'refs/heads/master' && matrix.node-version == 'lts'
+        if: github.ref == 'refs/heads/master' && matrix.node-version == 'lts/*'
         env:
           CF_API_TOKEN: ${{ secrets.CF_API_TOKEN }}
         run: |
           npm run deploy:prod
 
       - name: Deploy Beta
-        if: github.ref == 'refs/heads/beta' && matrix.node-version == 'lts'
+        if: github.ref == 'refs/heads/beta' && matrix.node-version == 'lts/*'
         env:
           CF_API_TOKEN: ${{ secrets.CF_API_TOKEN }}
         run: |
