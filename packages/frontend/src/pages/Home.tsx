@@ -43,14 +43,11 @@ export function Home() {
             </div>
             <div className="justify-center pl-5 lg:flex hidden z-10 relative">
                 <div className="w-1/2 transform xl:-translate-y-8 translate-y-2">
-                    <h2 className="xl:text-8xl lg:text-7xl font-semibold">Class of 2022</h2>
+                    <h2 className="xl:text-8xl lg:text-7xl font-semibold">Happy Holidays!</h2>
                     <p className="xl:w-2/3 lg:w-4/5 lg:text-2xl text-xl mt-8 font-medium">
-                        Congratulations on all the hard work you&apos;ve put in the last 4 years. It
-                        certainly hasn&apos;t been the smooth college experience we hoped for when
-                        we started years ago, but we&apos;ve made it.
-                    </p>
-                    <p className="xl:w-2/3 lg:w-4/5 lg:text-2xl text-xl mt-8 font-medium">
-                        Good luck in your future endeavors, and have a fantastic summer!
+                        This is the first major update since the site launched in May and we have a
+                        few more in store for the rest of the year. We wish everyone a stress-free
+                        finals week and joyful holidays.
                     </p>
                 </div>
 
