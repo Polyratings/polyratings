@@ -1,6 +1,7 @@
 import { renderHook, RenderResult } from "@testing-library/react-hooks";
 import { act } from "react-dom/test-utils";
 import { waitFor } from "@testing-library/dom";
+import { describe, test, beforeEach, expect } from "vitest";
 import { setWindowSize } from "@/test-utils";
 import { useTailwindBreakpoint } from "./useTailwindBreakpoints";
 
@@ -22,7 +23,7 @@ describe("UseTailwindBreakpoints", () => {
         ));
     });
 
-    it("sends default value if small", async () => {
+    test("sends default value if small", async () => {
         act(() => {
             setWindowSize(100, window.innerHeight);
         });
@@ -31,7 +32,7 @@ describe("UseTailwindBreakpoints", () => {
         });
     });
 
-    it("uses sm value for sm range", async () => {
+    test("uses sm value for sm range", async () => {
         act(() => {
             setWindowSize(650, window.innerWidth);
         });
@@ -40,7 +41,7 @@ describe("UseTailwindBreakpoints", () => {
         });
     });
 
-    it("uses largest value when above the range", async () => {
+    test("uses largest value when above the range", async () => {
         act(() => {
             setWindowSize(2000, window.innerWidth);
         });
