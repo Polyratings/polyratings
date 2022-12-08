@@ -9,7 +9,7 @@ export async function generateAllProfessorEntry(env: CronEnv) {
     Logger.info("Getting Prod professors");
     const allProfessors = await bulkRecord(env.authenticatedProductionClient, "professors");
 
-    // Remove all professor key since it will be regenerated
+    // Remove all professor key since we are generating it here
     delete allProfessors.all;
 
     const truncatedProfessorList = z

@@ -1,14 +1,14 @@
 import { AppRouter } from "@backend/index";
-import { BulkKey } from "@backend/utils/const";
+import { BulkKey, BulkKeyMap } from "@backend/utils/const";
 import { createTRPCProxyClient } from "@trpc/client";
 import { chunkArray } from "./chunkArray";
 
-const WORKER_RETRIEVAL_CHUNK_SIZE = 1000;
+const WORKER_RETRIEVAL_CHUNK_SIZE = 100;
 
 export async function bulkRecord<T extends BulkKey>(
     client: ReturnType<typeof createTRPCProxyClient<AppRouter>>,
     bulkKey: T,
-) {
+): Promise<Record<string, BulkKeyMap[T][0]>> {
     const allKeys = await client.admin.getBulkKeys.query(bulkKey);
     const values = (
         await Promise.all(
@@ -21,5 +21,6 @@ export async function bulkRecord<T extends BulkKey>(
             ),
         )
     ).flat();
+
     return Object.fromEntries(values.map(({ key, value }) => [key, value]));
 }
