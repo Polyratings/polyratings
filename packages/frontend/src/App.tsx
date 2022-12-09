@@ -9,7 +9,7 @@ import {
 import { ToastContainer } from "react-toastify";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { persistQueryClient } from "@tanstack/react-query-persist-client";
-import { useLayoutEffect, useState } from "react";
+import { useLayoutEffect, useMemo, useState } from "react";
 import {
     Home,
     ProfessorPage,
@@ -23,10 +23,9 @@ import {
 } from "./pages";
 import { Navbar } from "./components";
 import "react-toastify/dist/ReactToastify.css";
-import { trpc } from "./trpc";
+import { trpc, trpcClientOptions } from "./trpc";
 import { createIDBPersister } from "./utils/idbPersister";
 import { AuthContext, useAuthState } from "./hooks";
-import { trpcClientOptions } from "./constants";
 
 // Lazy load error logger to save bundle size
 if (process.env.NODE_ENV === "production") {
@@ -66,7 +65,10 @@ export default function App() {
         });
         return queryClient;
     });
-    const [trpcClient] = useState(() => trpc.createClient(trpcClientOptions(authState.jwt)));
+    const trpcClient = useMemo(
+        () => trpc.createClient(trpcClientOptions(authState.jwt)),
+        [authState.jwt],
+    );
 
     return (
         <trpc.Provider client={trpcClient} queryClient={queryClient}>

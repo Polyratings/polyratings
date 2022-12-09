@@ -2,7 +2,7 @@ import { BulkKey, BulkKeyMap } from "@backend/utils/const";
 import { useQuery } from "@tanstack/react-query";
 import { createTRPCProxyClient } from "@trpc/client";
 import { AppRouter } from "@backend/index";
-import { trpcClientOptions } from "@/constants";
+import { trpcClientOptions } from "@/trpc";
 import { useAuth } from "./useAuth";
 
 const WORKER_RETRIEVAL_CHUNK_SIZE = 100;
@@ -22,7 +22,8 @@ export function useDbValues<T extends BulkKey>(bulkKey: T) {
                 ),
             ),
         );
-        return chunkedValues.flat() as BulkKeyMap[T];
+        // Filter for null values in case of data consistency issues. Ex: value deleted after key is gotten
+        return chunkedValues.flat().filter((x) => x) as BulkKeyMap[T];
     });
 }
 

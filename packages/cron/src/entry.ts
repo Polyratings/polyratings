@@ -62,12 +62,23 @@ async function createRuntimeEnvironment(globalEnv: Record<string, string | undef
         throw new Error("Could not create cron environment. A required variable was not set");
     }
 
-    const authenticatedProductionClient = createTRPCProxyClient<AppRouter>({
+    const prodClient = createTRPCProxyClient<AppRouter>({
         links: [httpLink({ url: PROD_ENV.url })],
     });
-    await authenticatedProductionClient.auth.login.mutate({
+    const jwt = await prodClient.auth.login.mutate({
         username: polyratingsCIUsername,
         password: polyratingsCIPassword,
+    });
+
+    const authenticatedProductionClient = createTRPCProxyClient<AppRouter>({
+        links: [
+            httpLink({
+                url: PROD_ENV.url,
+                headers: {
+                    authorization: `Bearer ${jwt}`,
+                },
+            }),
+        ],
     });
 
     const KVWrapper = cloudflareKVInit(cfApiToken, cloudflareAccountId);
