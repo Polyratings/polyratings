@@ -118,7 +118,10 @@ export class KVDAO {
 
     async putProfessor(professor: Professor, skipNameCollisionDetection = false) {
         // Need to check if key exists in order to not throw an error when calling `getProfessor`
-        if (!skipNameCollisionDetection && (await this.getProfessor(professor.id))) {
+        if (
+            !skipNameCollisionDetection &&
+            (await this.polyratingsNamespace.getOptional(professorParser, professor.id))
+        ) {
             const existingProfessor = await this.getProfessor(professor.id);
             if (
                 existingProfessor.firstName !== professor.firstName ||
