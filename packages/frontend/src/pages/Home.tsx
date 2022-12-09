@@ -1,26 +1,19 @@
 /* eslint-disable react/no-array-index-key */
-import { useEffect, useState } from "react";
-import { Teacher } from "@polyratings/client";
+import { inferProcedureOutput } from "@trpc/server";
+import { AppRouter } from "@backend/index";
+import { getRandomSubarray } from "@/utils";
 import homeHeader from "@/assets/home-header.webp";
 import homeCurveTransition from "@/assets/home-curve-transition.svg";
 import star from "@/assets/star.svg";
 import worstOfWorstBackground from "@/assets/worst-of-worst-background.webp";
-import { TeacherService } from "@/services";
-import { SearchBar, TeacherCard } from "@/components";
-import { useService } from "@/hooks";
+import { SearchBar, ProfessorCard } from "@/components";
+import { trpc } from "@/trpc";
 
 export function Home() {
-    const [highlightedProfessor, setHighlightedProfessor] = useState<Teacher | null>(null);
-    const [bestOfTheBest, setBestOfTheBest] = useState<Teacher[]>([]);
-    const teacherService = useService(TeacherService);
+    const { data: allProfessors } = trpc.professors.all.useQuery();
 
-    useEffect(() => {
-        async function retrieveHomeData() {
-            setHighlightedProfessor((await teacherService.getBestTeachers())[0]);
-            setBestOfTheBest(await teacherService.getBestTeachers());
-        }
-        retrieveHomeData();
-    }, []);
+    const highlightedProfessor = getBestProfessors(allProfessors ?? [])?.[0];
+    const bestOfTheBest = allProfessors ? getBestProfessors(allProfessors) : [];
 
     return (
         <div>
@@ -34,7 +27,7 @@ export function Home() {
                 className="relative h-screenWoNav lg:h-screen3/5 min-h-[30rem] "
             >
                 <div className="flex flex-col w-full h-2/3 lg:h-80 justify-center justify-items-center">
-                    <h1 className="text-5xl md:text-9xl text-white text-center font-semibold drop-shadow-lg">
+                    <h1 className="text-6xl md:text-9xl text-white text-center font-semibold drop-shadow-lg">
                         Polyratings
                     </h1>
                     <div className="mt-6">
@@ -50,14 +43,11 @@ export function Home() {
             </div>
             <div className="justify-center pl-5 lg:flex hidden z-10 relative">
                 <div className="w-1/2 transform xl:-translate-y-8 translate-y-2">
-                    <h2 className="xl:text-8xl lg:text-7xl font-semibold">Class of 2022</h2>
+                    <h2 className="xl:text-8xl lg:text-7xl font-semibold">Happy Holidays!</h2>
                     <p className="xl:w-2/3 lg:w-4/5 lg:text-2xl text-xl mt-8 font-medium">
-                        Congratulations on all the hard work you&apos;ve put in the last 4 years. It
-                        certainly hasn&apos;t been the smooth college experience we hoped for when
-                        we started years ago, but we&apos;ve made it.
-                    </p>
-                    <p className="xl:w-2/3 lg:w-4/5 lg:text-2xl text-xl mt-8 font-medium">
-                        Good luck in your future endeavors, and have a fantastic summer!
+                        This is the first major update since the site launched in May and we have a
+                        few more in store for the rest of the year. We wish everyone a stress-free
+                        finals week and joyful holidays.
                     </p>
                 </div>
 
@@ -71,11 +61,11 @@ export function Home() {
                     <div className="flex mt-2 mb-6">
                         {/* Nothing Unique about items  */}
                         {[...Array(12)].map((_, i) => (
-                            <img key={i} src={star} alt="star" />
+                            <img key={i} src={star} className="h-7 w-7" alt="star" />
                         ))}
                     </div>
                     <div className="w-11/12">
-                        <TeacherCard teacher={highlightedProfessor} />
+                        <ProfessorCard professor={highlightedProfessor} />
                     </div>
                 </div>
             </div>
@@ -94,11 +84,18 @@ export function Home() {
                     Best of the Best
                 </h2>
                 <div className="grid grid-cols-2 gap-y-14 m-auto mt-20 gap-x-12 xl:gap-x-24 w-[60rem] xl:w-[65rem]">
-                    {bestOfTheBest.map((teacher) => (
-                        <TeacherCard key={teacher.id} teacher={teacher} />
+                    {bestOfTheBest.map((professor) => (
+                        <ProfessorCard key={professor.id} professor={professor} />
                     ))}
                 </div>
             </div>
         </div>
     );
+}
+
+function getBestProfessors(allProfessors: inferProcedureOutput<AppRouter["professors"]["all"]>) {
+    const rankedProfessors = allProfessors
+        .filter((t) => t.numEvals > 10)
+        .sort((a, b) => b.overallRating - a.overallRating);
+    return getRandomSubarray(rankedProfessors.slice(0, 100), 6);
 }

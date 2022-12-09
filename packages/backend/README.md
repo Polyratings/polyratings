@@ -12,9 +12,15 @@ access to a durable key-value storage that is backed by the Cloudflare Cache and
 the site's data-storage solution, primarily for its low-cost and speed.
 
 ## Architecture
-The backend begins with a single entrypoint in [index.ts](src/index.ts) that contains routing logic to handle
-requests based on the requests' URIs. Each route is served by a handler designed to accept specific path or query
-params within the request.
+The backend begins with a single entrypoint in [index.ts](src/index.ts) that sets up the trpc router and surrounding logic
+
+* routers - provide handlers for each module professors, ratings, admin and auth
+
+* dao (Data Access Object) - provide an abstraction layer over the data and allow request handlers to have a nice api surface. This includes all interactions with kv. For example adding/removing professors or reviews
+
+* generated - contains generated config files that are consumed by the cron job. These files are just a typescript file that represents the wrangler.toml file. These files are generated whenever the build command is called
+
+* types - contains kv schema along with supporting type helpers
 
 ## Building
 To build this package, you simply need to run `npm run build` and [esbuild](https://esbuild.github.io/) will
@@ -29,5 +35,5 @@ automate the building, testing, and deployment of this project within some type 
 This package makes use of [Wrangler](https://developers.cloudflare.com/workers/cli-wrangler) a Command-line Interface
 provided by Cloudflare which can automatically build and deploy your workers project to the Cloudflare network.
 
-After downloading the CLI tool and authenticating with it, you can simply run `wrangler publish --env ENV_NAME` to deploy
+After downloading the CLI tool and authenticating with it, you can simply run `npm run deploy:ENV_NAME` to deploy
 a live version of your code for testing, production, etc.

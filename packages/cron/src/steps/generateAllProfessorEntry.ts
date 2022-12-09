@@ -1,27 +1,20 @@
-import { Internal, cloudflareNamespaceInformation } from "@polyratings/client";
-import { plainToInstance, instanceToPlain } from "class-transformer";
+import { cloudflareNamespaceInformation } from "@backend/generated/tomlGenerated";
+import { truncatedProfessorParser } from "@backend/types/schema";
+import { bulkRecord } from "src/utils/bulkRecord";
+import { z } from "zod";
 import { CronEnv } from "../entry";
 import { Logger } from "../logger";
 
 export async function generateAllProfessorEntry(env: CronEnv) {
     Logger.info("Getting Prod professors");
-    const prodProfessorsPlain =
-        await env.authenticatedProductionClient.admin.bulkKvRecord<Internal.PlainProfessorDTO>(
-            "professors",
-        );
+    const allProfessors = await bulkRecord(env.authenticatedProductionClient, "professors");
 
-    // Remove all professor key since it will be regenerated
-    delete prodProfessorsPlain.all;
+    // Remove all professor key since we are generating it here
+    delete allProfessors.all;
 
-    const prodTruncatedProfessors = plainToInstance(
-        Internal.TruncatedProfessorDTO,
-        Object.values(prodProfessorsPlain),
-        {
-            excludeExtraneousValues: true,
-        },
-    );
-
-    const plainTruncatedProfessorList = instanceToPlain(prodTruncatedProfessors);
+    const truncatedProfessorList = z
+        .array(truncatedProfessorParser)
+        .parse(Object.values(allProfessors));
 
     const prodProfessors = new env.KVWrapper(
         cloudflareNamespaceInformation.POLYRATINGS_TEACHERS.prod,
@@ -33,7 +26,7 @@ export async function generateAllProfessorEntry(env: CronEnv) {
         cloudflareNamespaceInformation.POLYRATINGS_TEACHERS.dev,
     );
 
-    prodProfessors.putValues([{ key: "all", value: JSON.stringify(plainTruncatedProfessorList) }]);
-    betaProfessors.putValues([{ key: "all", value: JSON.stringify(plainTruncatedProfessorList) }]);
-    devProfessors.putValues([{ key: "all", value: JSON.stringify(plainTruncatedProfessorList) }]);
+    prodProfessors.putValues([{ key: "all", value: JSON.stringify(truncatedProfessorList) }]);
+    betaProfessors.putValues([{ key: "all", value: JSON.stringify(truncatedProfessorList) }]);
+    devProfessors.putValues([{ key: "all", value: JSON.stringify(truncatedProfessorList) }]);
 }

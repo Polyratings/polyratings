@@ -1,8 +1,7 @@
 /* eslint-disable global-require */
 
 module.exports = {
-    mode: "jit",
-    purge: ["./src/**/*.html", "./src/**/*.tsx"],
+    content: ["./src/**/*.html", "./src/**/*.tsx"],
     theme: {
         borderWidth: {
             DEFAULT: "0.0625rem",
@@ -53,9 +52,5 @@ module.exports = {
             },
         },
     },
-    plugins: [
-        require("tailwind-scrollbar-hide"),
-        // TODO: Enable tailwind forms to have uniform styling
-        // require('@tailwindcss/forms')
-    ],
+    plugins: [require("tailwind-scrollbar-hide")],
 };

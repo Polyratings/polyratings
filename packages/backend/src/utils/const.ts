@@ -1,5 +1,152 @@
-export const DEFAULT_VALIDATOR_OPTIONS = {
-    skipMissingProperties: false,
-    forbidNonWhitelisted: true,
-    whitelist: true,
+import { PendingRating, Professor, RatingReport, User } from "@backend/types/schema";
+
+/**
+ * List of all departments with courses as of 1/23/2022
+ */
+export const DEPARTMENT_LIST = [
+    "AEPS",
+    "AERO",
+    "AG",
+    "AGB",
+    "AGC",
+    "AGED",
+    "ANT",
+    "AP",
+    "ARCE",
+    "ARCH",
+    "ART",
+    "ASCI",
+    "ASTR",
+    "BIO",
+    "BMED",
+    "BOT",
+    "BRAE",
+    "BUS",
+    "CD",
+    "CE",
+    "CHEM",
+    "CHIN",
+    "CM",
+    "CMAT",
+    "COMS",
+    "CPE",
+    "CRP",
+    "CSC",
+    "CSUC",
+    "CSUV",
+    "DANC",
+    "DATA",
+    "DE",
+    "DEV10",
+    "DEV11",
+    "DSCI",
+    "ECON",
+    "EDES",
+    "EDUC",
+    "EE",
+    "ENGL",
+    "ENGR",
+    "ENVE",
+    "ERSC",
+    "ES",
+    "ESCI",
+    "EXSS",
+    "FPE",
+    "FR",
+    "FSN",
+    "GEOG",
+    "GEOL",
+    "GER",
+    "GRC",
+    "GS",
+    "GSA",
+    "GSB",
+    "GSE",
+    "GSP",
+    "HIST",
+    "HLTH",
+    "HNRC",
+    "HNRS",
+    "IME",
+    "IP",
+    "ISLA",
+    "ITAL",
+    "ITP",
+    "JOUR",
+    "JPNS",
+    "KINE",
+    "LA",
+    "LAES",
+    "LS",
+    "MATE",
+    "MATH",
+    "MCRO",
+    "ME",
+    "MSCI",
+    "MSL",
+    "MU",
+    "NE",
+    "NR",
+    "PEM",
+    "PEW",
+    "PHIL",
+    "PHYS",
+    "POLS",
+    "PSC",
+    "PSY",
+    "RELS",
+    "RPTA",
+    "SCM",
+    "SOC",
+    "SPAN",
+    "SPED",
+    "SS",
+    "STAT",
+    "TH",
+    "UNIV",
+    "WGS",
+    "WLC",
+    "WVIT",
+] as const;
+export type Department = typeof DEPARTMENT_LIST[number];
+export const COURSE_TYPES = [
+    "Elective",
+    "General Ed",
+    "Major (Support)",
+    "Major (Required)",
+] as const;
+export type CourseType = typeof COURSE_TYPES[number];
+
+export const GRADE_LEVELS = [
+    "Freshman",
+    "Sophomore",
+    "Junior",
+    "Senior",
+    "5th/6th Year",
+    "Grad Student",
+] as const;
+export type GradeLevel = typeof GRADE_LEVELS[number];
+
+export const GRADES = ["N/A", "A", "B", "C", "D", "F", "CR", "NC", "W"] as const;
+export type Grade = typeof GRADES[number];
+
+export const PENDING_RATING_STATUSES = ["Queued", "Processing", "Successful", "Failed"] as const;
+export type PendingRatingStatus = typeof PENDING_RATING_STATUSES[number];
+
+export const bulkKeys = [
+    "professors",
+    "rating-queue",
+    "professor-queue",
+    "reports",
+    "users",
+] as const;
+
+export type BulkKey = typeof bulkKeys[number];
+
+export type BulkKeyMap = {
+    professors: Professor[];
+    "rating-queue": PendingRating[];
+    "professor-queue": Professor[];
+    reports: RatingReport[];
+    users: User[];
 };

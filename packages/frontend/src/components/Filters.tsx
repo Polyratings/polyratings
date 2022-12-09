@@ -1,7 +1,12 @@
 import { useLocation } from "react-router-dom";
-import { useState, useEffect, forwardRef, useImperativeHandle } from "react";
-import { Teacher } from "@polyratings/client";
+import { useEffect } from "react";
+import { DEPARTMENT_LIST } from "@backend/utils/const";
+import { ArrowLongUpIcon } from "@heroicons/react/24/outline";
+import { inferProcedureOutput } from "@trpc/server";
+import { AppRouter } from "@backend/index";
 import { MinMaxSlider } from "@/components";
+import { trpc } from "@/trpc";
+import { useLocationState } from "@/hooks/useLocationState";
 
 type SortingOptions =
     | "relevant"
@@ -10,9 +15,11 @@ type SortingOptions =
     | "recognizesStudentDifficulties"
     | "presentsMaterialClearly";
 
+type Professor = inferProcedureOutput<AppRouter["professors"]["all"]>[0];
+
 export interface FilterProps {
-    teachers: Teacher[];
-    onUpdate: (teachers: Teacher[]) => void;
+    unfilteredProfessors: Professor[];
+    onUpdate: (professors: Professor[]) => void;
     className?: string;
 }
 
@@ -31,102 +38,69 @@ export interface FilterState {
 }
 
 // eslint-disable-next-line react/function-component-definition
-const FilterRenderFunction: React.ForwardRefRenderFunction<FilterHandle, FilterProps> = (
-    { teachers, onUpdate, className },
-    ref,
-) => {
+export function Filters({ unfilteredProfessors, onUpdate, className }: FilterProps) {
+    // Get all Professors to calculate states
+    const { data: allProfessors } = trpc.professors.all.useQuery();
+
+    const getEvaluationDomain = (): [number, number] => [
+        Math.min(...(allProfessors?.map((professor) => professor.numEvals) ?? [1])),
+        Math.max(...(allProfessors?.map((professor) => professor.numEvals) ?? [2])),
+    ];
     const location = useLocation();
     const previousState = location.state as FilterState | undefined;
     // Component State
-    const [departmentFilters, setDepartmentFilters] = useState<{ name: string; state: boolean }[]>(
-        previousState?.departmentFilters ?? [],
+    const [departmentFilters, setDepartmentFilters] = useLocationState<
+        { name: string; state: boolean }[]
+    >(
+        previousState?.departmentFilters ??
+            DEPARTMENT_LIST.map((department) => ({ name: department, state: false })),
+        "departmentFilters",
     );
-    const [avgRatingFilter, setAvgRatingFilter] = useState<[number, number]>(
+    const [avgRatingFilter, setAvgRatingFilter] = useLocationState<[number, number]>(
         previousState?.avgRatingFilter ?? [0, 4],
+        "avgRatingFilter",
     );
-    const [studentDifficultyFilter, setStudentDifficultyFilter] = useState<[number, number]>(
-        previousState?.studentDifficultyFilter ?? [0, 4],
-    );
-    const [materialClearFilter, setMaterialClearFilter] = useState<[number, number]>(
+    const [studentDifficultyFilter, setStudentDifficultyFilter] = useLocationState<
+        [number, number]
+    >(previousState?.studentDifficultyFilter ?? [0, 4], "studentDifficultyFilter");
+    const [materialClearFilter, setMaterialClearFilter] = useLocationState<[number, number]>(
         previousState?.materialClearFilter ?? [0, 4],
+        "materialClearFilter",
     );
-    const [numberOfEvaluationsFilter, setNumberOfEvaluationsFilter] = useState<[number, number]>(
-        previousState?.numberOfEvaluationsFilter ?? [1, 2],
+    const [numberOfEvaluationsFilter, setNumberOfEvaluationsFilter] = useLocationState<
+        [number, number]
+    >(
+        previousState?.numberOfEvaluationsFilter ?? getEvaluationDomain(),
+        "numberOfEvaluationsFilter",
     );
-    const [reverseFilter, setReverseFilter] = useState(previousState?.reverseFilter ?? false);
-    const [sortBy, setSortBy] = useState<SortingOptions>(previousState?.sortBy ?? "relevant");
+    const [reverseFilter, setReverseFilter] = useLocationState(
+        previousState?.reverseFilter ?? false,
+        "reverseFilter",
+    );
+    const [sortBy, setSortBy] = useLocationState<SortingOptions>(
+        previousState?.sortBy ?? "relevant",
+        "sortBy",
+    );
 
-    // Internal duplicate of result
-    const [preDepartmentFilters, setPreDepartmentFilters] = useState<Teacher[]>([]);
-    // On change duplicate result to the outside world
-    useEffect(() => {
-        const depFilters = departmentFilters.filter(({ state }) => state).map(({ name }) => name);
-        const teachersToEmit = preDepartmentFilters.filter(
-            (teacher) => depFilters.length === 0 || depFilters.includes(teacher.department),
-        );
-        onUpdate(teachersToEmit);
-    }, [preDepartmentFilters, departmentFilters]);
+    const professorFilterFunctions: ((professor: Professor) => boolean)[] = [
+        (professor) =>
+            professor.overallRating >= avgRatingFilter[0] &&
+            professor.overallRating <= avgRatingFilter[1],
 
-    const getState: () => FilterState = () => ({
-        departmentFilters,
-        avgRatingFilter,
-        studentDifficultyFilter,
-        materialClearFilter,
-        sortBy,
-        numberOfEvaluationsFilter,
-        reverseFilter,
-    });
+        (professor) =>
+            professor.studentDifficulties >= studentDifficultyFilter[0] &&
+            professor.studentDifficulties <= studentDifficultyFilter[1],
 
-    useImperativeHandle(ref, () => ({
-        getState,
-    }));
+        (professor) =>
+            professor.materialClear >= materialClearFilter[0] &&
+            professor.materialClear <= materialClearFilter[1],
 
-    const getEvaluationDomain: (data: Teacher[]) => [number, number] = (data: Teacher[]) => [
-        data.reduce((acc, curr) => (curr.numEvals < acc ? curr.numEvals : acc), Infinity),
-        data.reduce((acc, curr) => (curr.numEvals > acc ? curr.numEvals : acc), -Infinity),
+        (professor) =>
+            professor.numEvals >= numberOfEvaluationsFilter[0] &&
+            professor.numEvals <= numberOfEvaluationsFilter[1],
     ];
 
-    const generateDepartmentFilters = (list: Teacher[]) => {
-        const departments = [...new Set(list.map((t) => t.department))];
-        const previousSelectedMap = departmentFilters.reduce(
-            (acc: { [name: string]: boolean }, { name, state }) => {
-                acc[name] = state;
-                return acc;
-            },
-            {},
-        );
-        const initialDepartmentList = departments
-            .filter((dep) => !!dep)
-            .sort()
-            .map((dep) => ({ name: dep, state: !!previousSelectedMap[dep] }));
-        setDepartmentFilters(initialDepartmentList);
-    };
-
-    useEffect(() => {
-        generateDepartmentFilters(teachers);
-        const initialEvaluationRange = getEvaluationDomain(teachers);
-        setNumberOfEvaluationsFilter(initialEvaluationRange);
-    }, [teachers]);
-
-    const teacherFilterFunctions: ((teacher: Teacher) => boolean)[] = [
-        (teacher) =>
-            teacher.overallRating >= avgRatingFilter[0] &&
-            teacher.overallRating <= avgRatingFilter[1],
-
-        (teacher) =>
-            teacher.studentDifficulties >= studentDifficultyFilter[0] &&
-            teacher.studentDifficulties <= studentDifficultyFilter[1],
-
-        (teacher) =>
-            teacher.materialClear >= materialClearFilter[0] &&
-            teacher.materialClear <= materialClearFilter[1],
-
-        (teacher) =>
-            teacher.numEvals >= numberOfEvaluationsFilter[0] &&
-            teacher.numEvals <= numberOfEvaluationsFilter[1],
-    ];
-
-    const sortingMap: { [key in SortingOptions]: (a: Teacher, b: Teacher) => number } = {
+    const sortingMap: { [key in SortingOptions]: (a: Professor, b: Professor) => number } = {
         alphabetical: (a, b) => {
             const aName = `${a.lastName}, ${a.firstName}`;
             const bName = `${b.lastName}, ${b.firstName}`;
@@ -146,17 +120,12 @@ const FilterRenderFunction: React.ForwardRefRenderFunction<FilterHandle, FilterP
         presentsMaterialClearly: (a, b) => b.materialClear - a.materialClear,
     };
 
-    // Use keyof to hopefully stop spelling errors in the future
-    const departmentFilterKey: keyof FilterState = "departmentFilters";
-    const filterCalculationDependencies = Object.entries(getState())
-        .filter(([k]) => k !== departmentFilterKey)
-        .map(([, v]) => v);
-
+    // Filter logic and emit to parent element
     useEffect(() => {
-        const filteredResult = teachers.filter((teacher) => {
+        const filteredResult = unfilteredProfessors.filter((professor) => {
             // eslint-disable-next-line no-restricted-syntax
-            for (const filterFn of teacherFilterFunctions) {
-                if (!filterFn(teacher)) {
+            for (const filterFn of professorFilterFunctions) {
+                if (!filterFn(professor)) {
                     return false;
                 }
             }
@@ -172,9 +141,30 @@ const FilterRenderFunction: React.ForwardRefRenderFunction<FilterHandle, FilterP
             filteredResult.reverse();
         }
 
-        setPreDepartmentFilters(filteredResult);
-        generateDepartmentFilters(filteredResult);
-    }, Object.values(filterCalculationDependencies));
+        const selectedDepartments = departmentFilters.filter(
+            (departmentFilter) => departmentFilter.state,
+        );
+
+        if (selectedDepartments.length) {
+            const departmentSet = new Set(
+                selectedDepartments.map((departmentFilter) => departmentFilter.name),
+            );
+            const postDepartmentFilter = filteredResult.filter((professor) =>
+                departmentSet.has(professor.department),
+            );
+            onUpdate(postDepartmentFilter);
+        } else {
+            onUpdate(filteredResult);
+        }
+    }, [
+        departmentFilters,
+        avgRatingFilter,
+        studentDifficultyFilter,
+        materialClearFilter,
+        sortBy,
+        numberOfEvaluationsFilter,
+        reverseFilter,
+    ]);
 
     return (
         <div className={className ?? ""}>
@@ -194,23 +184,13 @@ const FilterRenderFunction: React.ForwardRefRenderFunction<FilterHandle, FilterP
                     <option value="presentsMaterialClearly">Presents Material Clearly</option>
                 </select>
                 {/* Sorting Arrow */}
-                <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    className={`h-5 w-5 hover:text-cal-poly-green transform transition-all ${
-                        reverseFilter ? "rotate-180" : ""
-                    }`}
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                    onClick={() => setReverseFilter(!reverseFilter)}
-                >
-                    <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M8 7l4-4m0 0l4 4m-4-4v18"
+                <button type="button" onClick={() => setReverseFilter(!reverseFilter)}>
+                    <ArrowLongUpIcon
+                        className={`h-5 w-5 hover:text-cal-poly-green transform transition-all ${
+                            reverseFilter ? "rotate-180" : ""
+                        }`}
                     />
-                </svg>
+                </button>
             </div>
 
             <h2 className="text-xl font-bold transform -translate-x-4 py-1">Filters:</h2>
@@ -261,12 +241,12 @@ const FilterRenderFunction: React.ForwardRefRenderFunction<FilterHandle, FilterP
                 </div>
             ))}
             <div>
-                <h3>Number of Reviews:</h3>
+                <h3>Number of Ratings:</h3>
                 <div className="mt-1">
                     <MinMaxSlider
                         value={numberOfEvaluationsFilter}
                         onchange={setNumberOfEvaluationsFilter}
-                        domain={getEvaluationDomain(teachers)}
+                        domain={getEvaluationDomain()}
                         resolution={1}
                     />
                 </div>
@@ -276,10 +256,11 @@ const FilterRenderFunction: React.ForwardRefRenderFunction<FilterHandle, FilterP
                 <h3>Department:</h3>
                 <div className="grid grid-cols-2 gap-x-2">
                     {departmentFilters.map(({ name, state }, i) => (
-                        <label key={name} className="mt-1 flex items-center">
+                        <label htmlFor={name} key={name} className="mt-1 flex items-center">
                             <input
                                 type="checkbox"
                                 checked={state}
+                                id={name}
                                 className="h-5 w-5"
                                 onChange={(e) => {
                                     const updatedDepartmentFilters = [...departmentFilters];
@@ -294,6 +275,4 @@ const FilterRenderFunction: React.ForwardRefRenderFunction<FilterHandle, FilterP
             </div>
         </div>
     );
-};
-
-export const Filters = forwardRef(FilterRenderFunction);
+}

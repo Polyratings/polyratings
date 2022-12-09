@@ -10,12 +10,12 @@
       "strict": true,
       "baseUrl": "./",
       "paths": {
-          "@polyratings/backend/*": ["src/*"]
+        "@backend/*": ["../backend/src/*"]
       },
       "declaration": true,
       "noEmit": true,
       "skipLibCheck": true,
-      "noEmitHelpers": true
+      "noEmitHelpers": true,
   },
   "include": ["src/**/*"]
 }

@@ -1,16 +1,13 @@
 /* eslint-disable react/no-unstable-nested-components */
 import { Fragment, lazy, Suspense, useEffect, useState } from "react";
-import { useAuth, useService } from "@/hooks";
-import {
-    AdminService,
-    ConnectedReview,
-    JoinedRatingReport,
-    PendingReview,
-    BackendProfessor,
-} from "@/services";
+import { Professor, RatingReport } from "@backend/types/schema";
+import { useQueryClient } from "@tanstack/react-query";
+import { useAuth } from "@/hooks";
+import { trpc } from "@/trpc";
+import { bulkInvalidationKey, useDbValues } from "@/hooks/useDbValues";
 
 const DataTableLazy = lazy(() => import("react-data-table-component"));
-// TODO: If more lazy loading is needed, refactor into generic lazy load component
+
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function DataTable({ ...rest }: any) {
     return (
@@ -21,15 +18,15 @@ function DataTable({ ...rest }: any) {
 }
 
 export function Admin() {
-    const authenticated = useAuth();
-    return authenticated ? (
+    const { isAuthenticated } = useAuth();
+    return isAuthenticated ? (
         <div>
             <h1 className="text-center text-6xl font-semibold my-4">Polyratings Admin Panel</h1>
             <div className="container m-auto text-lg">
                 <PendingProfessors />
-                <ReportedReviews />
-                <ProcessedReviews />
-                <RecentReviews />
+                <ReportedRatings />
+                <ProcessedRatings />
+                <RecentRatings />
             </div>
         </div>
     ) : (
@@ -37,40 +34,40 @@ export function Admin() {
     );
 }
 
-function ReportedReviews() {
-    const adminService = useService(AdminService);
-    const [reportedRatings, setReportedRatings] = useState([] as JoinedRatingReport[]);
-
-    useEffect(() => {
-        async function retrieveData() {
-            const reports = await adminService.getReports();
-            setReportedRatings(reports);
-        }
-        retrieveData();
-    }, []);
+function ReportedRatings() {
+    const { data: ratingReports } = useDbValues("reports");
+    const { data: professors } = trpc.professors.getMany.useQuery({
+        ids: ratingReports?.map((report) => report.professorId) ?? [],
+    });
+    const { mutate: removeReport } = trpc.admin.removeReport.useMutation();
+    const { mutate: actOnReport } = trpc.admin.actOnReport.useMutation();
 
     const columns = [
         {
             name: "Professor",
             grow: 0.5,
-            selector: (row: JoinedRatingReport) =>
-                `${row.professor.lastName}, ${row.professor.firstName}`,
+            selector: (row: RatingReport) => {
+                const professor = professors?.find(
+                    (professor) => professor?.id === row.professorId,
+                );
+                return `${professor?.lastName}, ${professor?.firstName}`;
+            },
         },
         {
             name: "Department",
             grow: 0.5,
-            selector: (row: JoinedRatingReport) => row.professor.department,
-        },
-        {
-            name: "Rating Course",
-            grow: 0.5,
-            selector: (row: JoinedRatingReport) => row.courseName,
+            selector: (row: RatingReport) => {
+                const professor = professors?.find(
+                    (professor) => professor?.id === row.professorId,
+                );
+                return professor?.department;
+            },
         },
         {
             name: "Reason",
             wrap: true,
             grow: 1.5,
-            cell: (row: JoinedRatingReport) => (
+            cell: (row: RatingReport) => (
                 <div className="flex flex-col w-full">
                     {row.reports.map((report, idx) => (
                         // Need to use index to help out with making each key unique
@@ -88,16 +85,20 @@ function ReportedReviews() {
             name: "Rating",
             wrap: true,
             grow: 3,
-            selector: (row: JoinedRatingReport) => row.review.rating,
+            selector: (row: RatingReport) => {
+                const professor = professors?.find(
+                    (professor) => professor?.id === row.professorId,
+                );
+                return Object.values(professor?.reviews ?? {})
+                    .flat()
+                    .find((rating) => rating.id === row.ratingId)?.rating;
+            },
         },
         {
             name: "Keep Rating",
-            cell: (row: JoinedRatingReport) => (
+            cell: (row: RatingReport) => (
                 <ConfirmationButton
-                    action={async () => {
-                        const reports = await adminService.removeReport(row.ratingId);
-                        setReportedRatings(reports);
-                    }}
+                    action={() => removeReport(row.ratingId)}
                     buttonClassName="p-2 bg-green-500 text-white rounded"
                     buttonText="K"
                 />
@@ -107,12 +108,9 @@ function ReportedReviews() {
         },
         {
             name: "Remove Rating",
-            cell: (row: JoinedRatingReport) => (
+            cell: (row: RatingReport) => (
                 <ConfirmationButton
-                    action={async () => {
-                        const reports = await adminService.actOnReport(row.ratingId);
-                        setReportedRatings(reports);
-                    }}
+                    action={() => actOnReport(row.ratingId)}
                     buttonClassName="p-2 bg-red-500 text-white rounded"
                     buttonText="R"
                 />
@@ -125,50 +123,45 @@ function ReportedReviews() {
     return (
         <div className="mt-4">
             <h2 className="ml-1">Reported Ratings:</h2>
-            <DataTable columns={columns} data={reportedRatings} pagination />
+            <DataTable columns={columns} data={ratingReports ?? []} pagination />
         </div>
     );
 }
 
 function PendingProfessors() {
-    const adminService = useService(AdminService);
-    const [pendingProfessors, setPendingProfessors] = useState([] as BackendProfessor[]);
-
-    useEffect(() => {
-        async function retrieveData() {
-            const professors = await adminService.pendingProfessors();
-            setPendingProfessors(professors);
-        }
-        retrieveData();
-    }, []);
+    const { data: pendingProfessors } = useDbValues("professor-queue");
+    const queryClient = useQueryClient();
+    const { mutate: approvePendingProfessor } = trpc.admin.approvePendingProfessor.useMutation({
+        onSuccess: () => queryClient.invalidateQueries(bulkInvalidationKey("professor-queue")),
+    });
+    const { mutate: rejectPendingProfessor } = trpc.admin.rejectPendingProfessor.useMutation({
+        onSuccess: () => queryClient.invalidateQueries(bulkInvalidationKey("professor-queue")),
+    });
 
     const columns = [
         {
             name: "Professor",
-            selector: (row: BackendProfessor) => `${row.lastName}, ${row.firstName}`,
+            selector: (row: Professor) => `${row.lastName}, ${row.firstName}`,
         },
         {
             name: "Department",
-            selector: (row: BackendProfessor) => row.department,
+            selector: (row: Professor) => row.department,
         },
         {
             name: "Rating Course",
-            selector: (row: BackendProfessor) => Object.keys(row.reviews ?? {})[0],
+            selector: (row: Professor) => Object.keys(row.reviews ?? {})[0],
         },
         {
             name: "Rating",
             wrap: true,
             grow: 3,
-            selector: (row: BackendProfessor) => Object.values(row.reviews ?? {})[0][0].rating,
+            selector: (row: Professor) => Object.values(row.reviews ?? {})[0][0].rating,
         },
         {
             name: "Approve",
-            cell: (row: BackendProfessor) => (
+            cell: (row: Professor) => (
                 <ConfirmationButton
-                    action={async () => {
-                        const afterApproval = await adminService.approvePendingProfessor(row.id);
-                        setPendingProfessors(afterApproval);
-                    }}
+                    action={async () => approvePendingProfessor(row.id)}
                     buttonClassName="p-2 bg-green-500 text-white rounded"
                     buttonText="✓"
                 />
@@ -178,12 +171,9 @@ function PendingProfessors() {
         },
         {
             name: "Deny",
-            cell: (row: BackendProfessor) => (
+            cell: (row: Professor) => (
                 <ConfirmationButton
-                    action={async () => {
-                        const afterRemoval = await adminService.removePendingProfessor(row.id);
-                        setPendingProfessors(afterRemoval);
-                    }}
+                    action={async () => rejectPendingProfessor(row.id)}
                     buttonClassName="p-2 bg-red-500 text-white rounded"
                     buttonText="X"
                 />
@@ -196,37 +186,29 @@ function PendingProfessors() {
     return (
         <div className="mt-4">
             <h2 className="ml-1">Pending Professors:</h2>
-            <DataTable columns={columns} data={pendingProfessors} pagination />
+            <DataTable columns={columns} data={pendingProfessors ?? []} pagination />
         </div>
     );
 }
 
-function ProcessedReviews() {
-    const adminService = useService(AdminService);
-    const [processedReviews, setProcessedReviews] = useState([] as PendingReview[]);
-
-    useEffect(() => {
-        async function retrieveData() {
-            const reviews = await adminService.getProcessedReviews();
-            setProcessedReviews(reviews);
-        }
-        retrieveData();
-    }, []);
+function ProcessedRatings() {
+    const { data: processedRatings } = useDbValues("rating-queue");
+    type PendingRating = NonNullable<typeof processedRatings>[0];
 
     const columns = [
         {
             name: "Status",
-            selector: (row: PendingReview) => row.status,
+            selector: (row: PendingRating) => row.status,
             grow: 0.5,
         },
         {
             name: "Scores",
             grow: 1.5,
-            cell: (row: PendingReview) => (
+            cell: (row: PendingRating) => (
                 <div className="flex flex-col">
-                    {Object.entries(row.scores).map(([name, score]) => (
+                    {Object.entries(row.sentimentResponse ?? {}).map(([name, score]) => (
                         <div key={name}>
-                            {name}: {score}
+                            {name}: {score.summaryScore.value}
                         </div>
                     ))}
                 </div>
@@ -236,60 +218,80 @@ function ProcessedReviews() {
             name: "Rating",
             wrap: true,
             grow: 3,
-            selector: (row: PendingReview) => row.rating,
+            selector: (row: PendingRating) => row.rating,
         },
     ];
 
     return (
         <div className="mt-4">
-            <h2 className="ml-1">Processed Reviews:</h2>
-            <DataTable columns={columns} data={processedReviews} pagination />
+            <h2 className="ml-1">Processed Ratings:</h2>
+            <DataTable columns={columns} data={processedRatings ?? []} pagination />
         </div>
     );
 }
 
-function RecentReviews() {
-    const adminService = useService(AdminService);
-    const [recentReviews, setRecentReviews] = useState([] as ConnectedReview[]);
-    const [retrievalTime, setRetrievalTime] = useState("");
+function RecentRatings() {
+    const queryClient = useQueryClient();
+    const { data: professors } = useDbValues("professors");
+    const { mutateAsync: removeRatingMutation } = trpc.admin.removeRating.useMutation();
 
-    useEffect(() => {
-        async function retrieveData() {
-            const reviews = await adminService.recentReviews();
-            setRecentReviews(reviews);
-            const lastRetrieved = await adminService.professorKvDumpUpdatedAt();
-            setRetrievalTime(lastRetrieved);
-        }
-        retrieveData();
-    }, []);
+    const [removedRatings, setRemovedRatings] = useState(new Set<string>());
+
+    const ratings =
+        professors
+            ?.flatMap((professor) =>
+                Object.values(professor.reviews ?? [])
+                    .flat()
+                    .map((rating) => ({
+                        professorId: professor.id,
+                        professorName: `${professor.lastName}, ${professor.firstName}`,
+                        ...rating,
+                    })),
+            )
+            .filter(({ id }) => !removedRatings.has(id))
+            .sort(
+                (ratingA, ratingB) => Date.parse(ratingB.postDate) - Date.parse(ratingA.postDate),
+            ) ?? [];
+
+    const removeRating = async (professorId: string, ratingId: string) => {
+        await removeRatingMutation({ ratingId, professorId });
+        setRemovedRatings(new Set<string>(...removedRatings).add(ratingId));
+    };
+
+    // On unmount check if the user removed ratings
+    useEffect(
+        () => () => {
+            if (removedRatings.size) {
+                // Invalidate to allow refetch if ratings have been deleted
+                queryClient.invalidateQueries(bulkInvalidationKey("professors"));
+            }
+        },
+        [],
+    );
+
+    type ConnectedRating = typeof ratings[0];
     const columns = [
         {
             name: "Professor",
-            selector: (row: ConnectedReview) => row.professorName,
+            selector: (row: ConnectedRating) => row.professorName,
             grow: 0.5,
         },
         {
             name: "Date",
-            selector: (row: ConnectedReview) => new Date(row.postDate).toLocaleDateString(),
+            selector: (row: ConnectedRating) => new Date(row.postDate).toLocaleDateString(),
             grow: 0.5,
         },
         {
             name: "Rating",
             wrap: true,
             grow: 3,
-            selector: (row: ConnectedReview) => row.rating,
+            selector: (row: ConnectedRating) => row.rating,
         },
         {
             name: "Remove",
-            cell: (row: ConnectedReview) => (
+            cell: (row: ConnectedRating) => (
                 <ConfirmationButton
-                    action={async () => {
-                        const reviewsLeft = await adminService.removeReview(
-                            row.professorId,
-                            row.id,
-                        );
-                        setRecentReviews(reviewsLeft);
-                    }}
+                    action={() => removeRating(row.professorId, row.id)}
                     buttonClassName="p-2 bg-red-500 text-white rounded"
                     buttonText="X"
                 />
@@ -301,9 +303,8 @@ function RecentReviews() {
 
     return (
         <div className="mt-4">
-            <h2 className="ml-1">Recent Reviews:</h2>
-            <p className="text-sm ml-1">Data last retrieved at: {retrievalTime}</p>
-            <DataTable columns={columns} data={recentReviews} pagination />
+            <h2 className="ml-1">Recent Ratings:</h2>
+            <DataTable columns={columns} data={ratings} pagination />
         </div>
     );
 }

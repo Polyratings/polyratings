@@ -1,0 +1,101 @@
+import { t } from "@backend/trpc";
+import { z } from "zod";
+import { TRPCError } from "@trpc/server";
+import { PendingRating, ratingBaseParser, RatingReport, reportParser } from "@backend/types/schema";
+import { DEPARTMENT_LIST } from "@backend/utils/const";
+
+export const ratingsRouter = t.router({
+    add: t.procedure
+        .input(
+            ratingBaseParser.merge(
+                z.object({
+                    professor: z.string().uuid(),
+                    department: z.enum(DEPARTMENT_LIST),
+                    courseNum: z.number().min(100).max(599),
+                }),
+            ),
+        )
+        .mutation(async ({ ctx, input }) => {
+            // Input is a string subset of PendingRating
+            const pendingRating: PendingRating = {
+                id: crypto.randomUUID(),
+                ...input,
+                postDate: new Date().toString(),
+                status: "Queued",
+                error: null,
+                sentimentResponse: null,
+            };
+
+            await ctx.env.kvDao.addPendingRating(pendingRating);
+
+            return pendingRating.id;
+        }),
+    process: t.procedure.input(z.string().uuid()).mutation(async ({ ctx, input }) => {
+        const pendingRating = await ctx.env.kvDao.getPendingRating(input);
+
+        if (pendingRating.status !== "Queued") {
+            throw new TRPCError({
+                code: "CONFLICT",
+                message: "Cannot perform operation on pending rating in terminal state!",
+            });
+        }
+
+        const attributeScores = await ctx.env.perspectiveDao.analyzeRaring(pendingRating);
+        pendingRating.sentimentResponse = attributeScores;
+
+        const passedAnalysis = [
+            attributeScores.SEVERE_TOXICITY?.summaryScore.value,
+            attributeScores.IDENTITY_ATTACK?.summaryScore?.value,
+            attributeScores.THREAT?.summaryScore?.value,
+            attributeScores.SEXUALLY_EXPLICIT?.summaryScore?.value,
+        ].reduce((acc, num) => {
+            if (num === undefined) {
+                throw new Error("Not all of perspective summery scores were received");
+            }
+            return num < 0.8 && acc;
+        }, true);
+
+        if (passedAnalysis) {
+            pendingRating.status = "Successful";
+            await ctx.env.kvDao.addRating(pendingRating);
+            // Update rating in processing queue
+            await ctx.env.kvDao.addPendingRating(pendingRating);
+
+            return "Rating has successfully been processed, it should be on the site within the next minute.";
+        }
+        pendingRating.status = "Failed";
+        // Update rating in processing queue
+        await ctx.env.kvDao.addPendingRating(pendingRating);
+        throw new TRPCError({
+            code: "PRECONDITION_FAILED",
+            message:
+                "Rating failed sentiment analysis, please contact dev@polyratings.org for assistance",
+        });
+    }),
+    report: t.procedure
+        .input(
+            reportParser.merge(
+                z.object({ ratingId: z.string().uuid(), professorId: z.string().uuid() }),
+            ),
+        )
+        .mutation(async ({ ctx, input }) => {
+            const ratingReport: RatingReport = {
+                ratingId: input.ratingId,
+                professorId: input.professorId,
+                reports: [
+                    {
+                        email: input.email,
+                        reason: input.reason,
+                    },
+                ],
+            };
+
+            await ctx.env.kvDao.putReport(ratingReport);
+            await ctx.env.notificationDAO.sendWebhook(
+                "Received A Report",
+                `Rating ID: ${ratingReport.ratingId}\n` +
+                    `Professor ID: ${ratingReport.professorId}\n` +
+                    `Reason: ${ratingReport.reports[0].reason}`,
+            );
+        }),
+});
