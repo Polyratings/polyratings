@@ -42,6 +42,7 @@ export function NewProfessorForm() {
         resolver: zodResolver(newProfessorFormParser),
         defaultValues: {
             sameDepartment: true,
+            professorDepartment: DEPARTMENT_LIST[0],
         },
     });
 
