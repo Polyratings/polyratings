@@ -23,10 +23,9 @@ import {
 } from "./pages";
 import { Navbar } from "./components";
 import "react-toastify/dist/ReactToastify.css";
-import { trpc } from "./trpc";
+import { trpc, trpcClientOptions } from "./trpc";
 import { createIDBPersister } from "./utils/idbPersister";
 import { AuthContext, useAuthState } from "./hooks";
-import { trpcClientOptions } from "./constants";
 
 // Lazy load error logger to save bundle size
 if (process.env.NODE_ENV === "production") {

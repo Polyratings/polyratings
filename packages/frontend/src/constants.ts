@@ -1,6 +1,3 @@
-import { httpLink } from "@trpc/client";
-import { config } from "./App.config";
-
 export const REACT_MODAL_STYLES = {
     content: {
         padding: 0,
@@ -15,16 +12,3 @@ export const REACT_MODAL_STYLES = {
         backgroundColor: "rgba(0, 0, 0, 0.8)",
     },
 } as const;
-
-export const trpcClientOptions = (jwt: string | null) => ({
-    links: [
-        httpLink({
-            url: config.clientEnv.url,
-            headers() {
-                return {
-                    authorization: jwt ? `Bearer ${jwt}` : "",
-                };
-            },
-        }),
-    ],
-});
