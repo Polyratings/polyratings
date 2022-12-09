@@ -22,7 +22,8 @@ export function useDbValues<T extends BulkKey>(bulkKey: T) {
                 ),
             ),
         );
-        return chunkedValues.flat() as BulkKeyMap[T];
+        // Filter for null values in case of data consistency issues. Ex: value deleted after key is gotten
+        return chunkedValues.flat().filter((x) => x) as BulkKeyMap[T];
     });
 }
 

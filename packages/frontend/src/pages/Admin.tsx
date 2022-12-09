@@ -39,8 +39,13 @@ function ReportedRatings() {
     const { data: professors } = trpc.professors.getMany.useQuery({
         ids: ratingReports?.map((report) => report.professorId) ?? [],
     });
-    const { mutate: removeReport } = trpc.admin.removeReport.useMutation();
-    const { mutate: actOnReport } = trpc.admin.actOnReport.useMutation();
+    const queryClient = useQueryClient();
+    const { mutate: removeReport } = trpc.admin.removeReport.useMutation({
+        onSuccess: () => queryClient.invalidateQueries(bulkInvalidationKey("reports")),
+    });
+    const { mutate: actOnReport } = trpc.admin.actOnReport.useMutation({
+        onSuccess: () => queryClient.invalidateQueries(bulkInvalidationKey("reports")),
+    });
 
     const columns = [
         {
