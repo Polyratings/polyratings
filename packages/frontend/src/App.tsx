@@ -9,7 +9,7 @@ import {
 import { ToastContainer } from "react-toastify";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { persistQueryClient } from "@tanstack/react-query-persist-client";
-import { useLayoutEffect, useState } from "react";
+import { useLayoutEffect, useMemo, useState } from "react";
 import {
     Home,
     ProfessorPage,
@@ -66,7 +66,10 @@ export default function App() {
         });
         return queryClient;
     });
-    const [trpcClient] = useState(() => trpc.createClient(trpcClientOptions(authState.jwt)));
+    const trpcClient = useMemo(
+        () => trpc.createClient(trpcClientOptions(authState.jwt)),
+        [authState.jwt],
+    );
 
     return (
         <trpc.Provider client={trpcClient} queryClient={queryClient}>

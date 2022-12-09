@@ -24,7 +24,7 @@ export function loadStoredJwt() {
     const storedJwt = window.localStorage.getItem(JWT_KEY);
     if (storedJwt) {
         const user: { exp: number } = jwtDecode(storedJwt);
-        if (user.exp * 1000 < Date.now()) {
+        if (user.exp * 1000 > Date.now()) {
             return { storedJwt, user };
         }
     }
@@ -47,7 +47,7 @@ export function useAuthState() {
         if (user) {
             const timer = setTimeout(() => {
                 setJwt(null);
-            }, user.exp * 1000);
+            }, user.exp * 1000 - Date.now());
             return () => clearTimeout(timer);
         }
     }, [user]);
