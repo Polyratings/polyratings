@@ -91,7 +91,7 @@ export function EvaluateProfessorForm({ professor, closeForm }: EvaluateProfesso
             try {
                 await finalizeRatingUpload(id);
                 toast.success("Thank you for your rating");
-                trpcContext.professors.get.invalidate({ id });
+                trpcContext.professors.get.invalidate({ id: professor?.id ?? "" });
                 closeForm?.();
             } catch {
                 // No need to catch error since it is displayed in the ui
