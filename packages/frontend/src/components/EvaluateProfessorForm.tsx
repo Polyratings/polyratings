@@ -48,7 +48,7 @@ const evaluateProfessorFormParser = z.object({
     presentsMaterialClearly: z.string().transform(Number),
     ratingText: z.string().min(20, { message: "Rating text must be at least 20 characters long" }),
     unknownCourseDepartment: z.enum(DEPARTMENT_LIST).optional(),
-    unknownCourseNumber: z
+    unknownCourseNumber: z.coerce
         .number()
         .min(100, { message: "Invalid" })
         .max(599, { message: "Invalid" })
