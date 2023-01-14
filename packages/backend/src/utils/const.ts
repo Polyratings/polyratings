@@ -108,14 +108,14 @@ export const DEPARTMENT_LIST = [
     "WLC",
     "WVIT",
 ] as const;
-export type Department = typeof DEPARTMENT_LIST[number];
+export type Department = (typeof DEPARTMENT_LIST)[number];
 export const COURSE_TYPES = [
     "Elective",
     "General Ed",
     "Major (Support)",
     "Major (Required)",
 ] as const;
-export type CourseType = typeof COURSE_TYPES[number];
+export type CourseType = (typeof COURSE_TYPES)[number];
 
 export const GRADE_LEVELS = [
     "Freshman",
@@ -125,13 +125,13 @@ export const GRADE_LEVELS = [
     "5th/6th Year",
     "Grad Student",
 ] as const;
-export type GradeLevel = typeof GRADE_LEVELS[number];
+export type GradeLevel = (typeof GRADE_LEVELS)[number];
 
 export const GRADES = ["N/A", "A", "B", "C", "D", "F", "CR", "NC", "W"] as const;
-export type Grade = typeof GRADES[number];
+export type Grade = (typeof GRADES)[number];
 
 export const PENDING_RATING_STATUSES = ["Queued", "Processing", "Successful", "Failed"] as const;
-export type PendingRatingStatus = typeof PENDING_RATING_STATUSES[number];
+export type PendingRatingStatus = (typeof PENDING_RATING_STATUSES)[number];
 
 export const bulkKeys = [
     "professors",
@@ -141,7 +141,7 @@ export const bulkKeys = [
     "users",
 ] as const;
 
-export type BulkKey = typeof bulkKeys[number];
+export type BulkKey = (typeof bulkKeys)[number];
 
 export type BulkKeyMap = {
     professors: Professor[];
