@@ -5,6 +5,7 @@ import { useNavigate } from "react-router";
 import { COURSE_TYPES, DEPARTMENT_LIST, GRADES, GRADE_LEVELS } from "@backend/utils/const";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { useEffect } from "react";
 import { trpc } from "@/trpc";
 import { Checkbox, Select, TextArea, TextInput } from "./forms";
 import { CLASS_INFORMATION, NUMERICAL_RATINGS } from "./EvaluateProfessorForm";
@@ -49,9 +50,14 @@ export function NewProfessorForm() {
     const professorDepartment = watch("professorDepartment");
     const sameAsProfessorDepartment = watch("sameDepartment");
 
-    if (sameAsProfessorDepartment) {
-        setValue("courseDepartment", professorDepartment);
-    }
+    // UseEffect is needed to prevent an infinite rerenders
+    // This used to not be needed but probably has to do with an internal
+    // change to react-hook-forms
+    useEffect(() => {
+        if (sameAsProfessorDepartment) {
+            setValue("courseDepartment", professorDepartment);
+        }
+    }, [professorDepartment]);
 
     const {
         mutateAsync: addNewProfessorMutation,

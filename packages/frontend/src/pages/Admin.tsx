@@ -274,7 +274,7 @@ function RecentRatings() {
         [],
     );
 
-    type ConnectedRating = typeof ratings[0];
+    type ConnectedRating = (typeof ratings)[0];
     const columns = [
         {
             name: "Professor",

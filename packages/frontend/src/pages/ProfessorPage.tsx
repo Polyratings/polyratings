@@ -22,7 +22,7 @@ interface CourseRatings {
     ratings: ValueOf<inferProcedureOutput<AppRouter["professors"]["get"]>["reviews"]>;
 }
 
-export function professorPageLoaderFactory(trpcContext: ReturnType<typeof trpc["useContext"]>) {
+export function professorPageLoaderFactory(trpcContext: ReturnType<(typeof trpc)["useContext"]>) {
     const professorPageLoader: IndexRouteObject["loader"] = ({ params }) =>
         trpcContext.professors.get.getData({ id: params.id ?? "" }) ??
         trpcContext.professors.get.fetch({ id: params.id ?? "" });
