@@ -40,7 +40,7 @@ jobs:
         with:
           apiToken: ${{ secrets.CF_API_TOKEN }}
           accountId: 4b59b59a6058dce1832781075d4fde9d
-          projectName: Polyratings/polyratings
+          projectName: polyratings
           directory: packages/frontend/dist
 
       - name: Deploy Prod
