@@ -10,6 +10,7 @@ import { createTRPCProxyClient } from "@trpc/client";
 import { AppRouter } from "@backend/index";
 import { PromisePool } from "@supercharge/promise-pool";
 import cliProgress from "cli-progress";
+import { getQueryKey } from "@trpc/react-query";
 import { trpc, trpcClientOptions } from "./trpc";
 import { routes } from "./App";
 
@@ -38,6 +39,10 @@ async function SSRRender(urlStr: string) {
             </trpc.Provider>
         </React.StrictMode>,
     );
+
+    // ! THIS IS USED TO REMOVE THE ALL PROFESSOR QUERY FROM SSG
+    // This greatly reduces file size and is not really necessary to be included for any page
+    queryClient.removeQueries({ queryKey: getQueryKey(trpc.professors.all) });
 
     await queryClient.refetchQueries();
 

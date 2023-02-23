@@ -1,13 +1,12 @@
 import { Link, useLocation } from "react-router-dom";
 import "@/styles/hamburgers.css";
 import AnimateHeight from "react-animate-height";
-import { lazy, Suspense, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { useAuth } from "@/hooks";
 import Logo from "@/assets/Logo.png";
 import DiscordLogo from "@/assets/Discord-Logo-White.svg";
 import GithubLogo from "@/assets/github.svg";
-
-const SearchBar = lazy(() => import("./SearchBar").then((m) => ({ default: m.SearchBar })));
+import { SearchBar } from "./SearchBar";
 
 const HIDE_SEARCH_BAR_ROUTES = ["/", "/search/name", "/search/class", "/search/department"];
 
@@ -82,9 +81,7 @@ export function Navbar() {
             <div className="text-white hidden md:flex items-center text-lg font-semibold">
                 {showInputBar && (
                     <div className="text-black mr-7 hidden lg:block">
-                        <Suspense fallback={<Loading />}>
-                            <SearchBar showOnlyInput={false} />
-                        </Suspense>
+                        <SearchBar showOnlyInput={false} />
                     </div>
                 )}
 
@@ -140,8 +137,4 @@ export function Navbar() {
             </div>
         </div>
     );
-}
-
-function Loading() {
-    return <div>Loading map...</div>;
 }
