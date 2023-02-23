@@ -6,11 +6,12 @@ import { dehydrate, Hydrate, QueryClient, QueryClientProvider } from "@tanstack/
 import React from "react";
 import ReactDOMServer from "react-dom/server";
 import { createStaticRouter, StaticRouterProvider } from "react-router-dom/server";
-import { routes } from "./App";
-import { trpc, trpcClientOptions } from "./trpc";
 import { createTRPCProxyClient } from "@trpc/client";
 import { AppRouter } from "@backend/index";
-import {PromisePool} from "@supercharge/promise-pool";
+import { PromisePool } from "@supercharge/promise-pool";
+import cliProgress from "cli-progress";
+import { trpc, trpcClientOptions } from "./trpc";
+import { routes } from "./App";
 
 async function SSRRender(urlStr: string) {
     const { query } = createStaticHandler(routes);
@@ -72,9 +73,13 @@ async function main() {
 
     const routesToPrerender = [...professorUrls, "/faq", "/new-professor"];
 
+    const progressBar = new cliProgress.SingleBar({}, cliProgress.Presets.legacy);
+    progressBar.start(routesToPrerender.length, 0);
+
     const { errors } = await PromisePool.withConcurrency(20)
         .for(routesToPrerender)
-        .process(async (url, i) => {
+        .onTaskFinished(() => progressBar.increment())
+        .process(async (url) => {
             const appHtml = await SSRRender(`http://localhost:300${url}`);
 
             const html = template.replace("<!--app-html-->", appHtml);
@@ -86,12 +91,12 @@ async function main() {
                 //
             }
             fs.writeFileSync(filePath, html);
-            console.log(`${i}/${routesToPrerender.length}`);
         });
 
     if (errors.length) {
-        console.log("Got Errors");
-        console.log(errors);
+        // eslint-disable-next-line no-console
+        console.log(`Got Errors\n:${errors}`);
+        process.exit(1);
     }
 }
 main();
