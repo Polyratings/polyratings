@@ -36,8 +36,6 @@ jobs:
       - name: Test Packages
         run: npm run test
 
-      - name: Echo Name
-        run: echo ${{ github.ref_name }}
 
       - name: Publish to Cloudflare Pages
         uses: cloudflare/pages-action@v1
@@ -46,7 +44,9 @@ jobs:
           accountId: 4b59b59a6058dce1832781075d4fde9d
           projectName: polyratings
           directory: packages/frontend/dist
-          branch: ${{ github.ref_name }}
+          # Get branch name
+          # https://stackoverflow.com/questions/58033366/how-to-get-the-current-branch-within-github-actions
+          branch: ${GITHUB_REF##*/}
 
       - name: Deploy Prod
         if: github.ref == 'refs/heads/master'
