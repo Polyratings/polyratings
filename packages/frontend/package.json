@@ -5,7 +5,7 @@
     "type": "module",
     "scripts": {
         "start:dev": "vite",
-        "build": "npm run build:client && npm run build:server",
+        "build": "npm run build:client && npm run build:server && node ./dist-ssg/entry-ssg.js",
         "build:client": "vite build --outDir dist",
         "build:server": "vite build --ssr src/entry-ssg.tsx --outDir dist-ssg",
         "serve": "vite preview",
