@@ -1,0 +1,35 @@
+name: Continuous Integration and Deployment
+
+on:
+  pull_request:
+    branches:
+        - beta
+jobs:
+  CI_CD:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
+      - name: Setup Node
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18
+          cache: "npm"
+
+      - name: Install Top Level Dependencies
+        run: npm ci
+
+      - name: Install Dependencies
+        run: npm run bootstrap
+
+      - name: Lint packages
+        run: npm run lint
+
+      - name: Build Packages
+        run:  npm run build
+
+      - name: Test Packages
+        run: npm run test
