@@ -35,7 +35,7 @@ jobs:
       # Getting branch
       # https://stackoverflow.com/questions/58033366/how-to-get-the-current-branch-within-github-actions
       - name: Extract branch name
-        run: echo "##[set-output name=branch;]$(echo ${GITHUB_REF#refs/heads/})"
+        run: branch=${GITHUB_REF#refs/heads/} >> $GITHUB_OUTPUT
         id: extract_branch
 
       - name: Publish to Cloudflare Pages
