@@ -21,7 +21,7 @@ export function setJwtWrapper(fn: (incomingJwt: string | null) => void) {
 }
 
 export function loadStoredJwt() {
-    const storedJwt = window.localStorage.getItem(JWT_KEY);
+    const storedJwt = globalThis.localStorage?.getItem(JWT_KEY);
     if (storedJwt) {
         const user: { exp: number } = jwtDecode(storedJwt);
         if (user.exp * 1000 > Date.now()) {

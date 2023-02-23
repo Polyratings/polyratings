@@ -1,15 +1,8 @@
-import {
-    Route,
-    createBrowserRouter,
-    createRoutesFromElements,
-    RouterProvider,
-    Outlet,
-    useLocation,
-} from "react-router-dom";
+import { Outlet, useLocation, RouteObject } from "react-router-dom";
 import { ToastContainer } from "react-toastify";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { persistQueryClient } from "@tanstack/react-query-persist-client";
-import { useLayoutEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import {
     Home,
     ProfessorPage,
@@ -25,7 +18,7 @@ import { Navbar } from "./components";
 import "react-toastify/dist/ReactToastify.css";
 import { trpc, trpcClientOptions } from "./trpc";
 import { createIDBPersister } from "./utils/idbPersister";
-import { AuthContext, useAuthState } from "./hooks";
+import { useIsomorphicLayoutEffect, AuthContext, useAuthState } from "./hooks";
 
 // Lazy load error logger to save bundle size
 if (process.env.NODE_ENV === "production") {
@@ -51,69 +44,58 @@ if (process.env.NODE_ENV === "production") {
     window.onunhandledrejection = (event) => captureError(event.reason);
 }
 
+export const routes: RouteObject[] = [
+    {
+        path: "/",
+        element: <App />,
+        children: [
+            {
+                index: true,
+                element: <Home />,
+            },
+            {
+                path: "professor/:id",
+                element: <ProfessorPage />,
+            },
+            {
+                path: "search/:searchType",
+                element: <SearchWrapper />,
+            },
+            {
+                path: "login",
+                element: <Login />,
+            },
+            {
+                path: "new-professor",
+                element: <NewProfessor />,
+            },
+            {
+                path: "about",
+                element: <About />,
+            },
+            {
+                path: "admin",
+                element: <Admin />,
+            },
+            {
+                path: "faq",
+                element: <FAQ />,
+            },
+        ],
+    },
+];
+
 // TODO: Fix large screen size
 export default function App() {
     const authState = useAuthState();
 
-    const [queryClient] = useState(() => {
-        const queryClient = new QueryClient({
-            defaultOptions: { queries: { staleTime: Infinity, cacheTime: 600000 } },
-        });
-        persistQueryClient({
-            queryClient,
-            persister: createIDBPersister(),
-        });
-        return queryClient;
-    });
-    const trpcClient = useMemo(
-        () => trpc.createClient(trpcClientOptions(authState.jwt)),
-        [authState.jwt],
-    );
-
     return (
-        <trpc.Provider client={trpcClient} queryClient={queryClient}>
-            <QueryClientProvider client={queryClient}>
-                <AuthContext.Provider value={authState}>
-                    <PolyratingsRouter />
-                </AuthContext.Provider>
-            </QueryClientProvider>
-        </trpc.Provider>
-    );
-}
-
-function PolyratingsRouter() {
-    const trpcContext = trpc.useContext();
-
-    const router = createBrowserRouter(
-        createRoutesFromElements(
-            <Route path="/" element={<BaseComponent />}>
-                <Route index element={<Home />} />
-                <Route
-                    path="professor/:id"
-                    element={<ProfessorPage />}
-                    loader={professorPageLoaderFactory(trpcContext)}
-                />
-                <Route path="search/:searchType" element={<SearchWrapper />} />
-                <Route path="login" element={<Login />} />
-                <Route path="new-professor" element={<NewProfessor />} />
-                <Route path="about" element={<About />} />
-                <Route path="admin" element={<Admin />} />
-                <Route path="faq" element={<FAQ />} />
-            </Route>,
-        ),
-    );
-
-    return <RouterProvider router={router} />;
-}
-
-function BaseComponent() {
-    return (
-        <>
+        <AuthContext.Provider value={authState}>
             <ScrollToTop />
             <ToastContainer />
             <Navbar />
             <Outlet />
-        </>
+        </AuthContext.Provider>
     );
 }
 
@@ -121,7 +103,7 @@ function BaseComponent() {
 function ScrollToTop() {
     const { pathname } = useLocation();
 
-    useLayoutEffect(() => {
+    useIsomorphicLayoutEffect(() => {
         window.scrollTo(0, 0);
     }, [pathname]);
 

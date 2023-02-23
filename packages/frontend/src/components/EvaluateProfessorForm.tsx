@@ -267,7 +267,7 @@ export function EvaluateProfessorForm({ professor, closeForm }: EvaluateProfesso
                             Submit
                         </Button>
                         {/* Exact size for no layer shift */}
-                        <ClipLoader color="#1F4715" loading={isLoading} size={34} />
+                        {/* <ClipLoader color="#1F4715" loading={isLoading} size={34} /> */}
                     </div>
                 )}
             </div>

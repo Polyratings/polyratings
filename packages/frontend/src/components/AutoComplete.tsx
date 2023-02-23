@@ -1,7 +1,7 @@
 import { useCallback, useRef, useState } from "react";
 import { useCombobox } from "downshift";
 import { useVirtualizer } from "@tanstack/react-virtual";
-import { MagnifyingGlassIcon } from "@heroicons/react/24/outline";
+import { MagnifyingGlassIcon } from "@heroicons/react/24/outline/index";
 import { useTailwindBreakpoint } from "@/hooks";
 
 export interface AutoCompleteOption<U> {
@@ -33,9 +33,13 @@ export function AutoComplete<T, U>({
     const [filteredItems, setFilteredItems] = useState(filterFn(items, ""));
     const listRef = useRef(undefined as unknown as HTMLElement);
 
-    const remMultiplier =
-        parseFloat(window.getComputedStyle(document.body).getPropertyValue("font-size") || "16") /
-        16;
+    const rootFont =
+        typeof window !== "undefined"
+            ? parseFloat(
+                  window.getComputedStyle(document.body).getPropertyValue("font-size") || "16",
+              )
+            : 16;
+    const remMultiplier = rootFont / 16;
 
     const rowVirtualizer = useVirtualizer({
         estimateSize: useCallback(() => 28 * remMultiplier, []),

@@ -1,7 +1,7 @@
 import { useLocation } from "react-router-dom";
 import { useEffect } from "react";
 import { DEPARTMENT_LIST } from "@backend/utils/const";
-import { ArrowLongUpIcon } from "@heroicons/react/24/outline";
+import { ArrowLongUpIcon } from "@heroicons/react/24/outline/index";
 import { inferProcedureOutput } from "@trpc/server";
 import { AppRouter } from "@backend/index";
 import { MinMaxSlider } from "@/components";

@@ -3,10 +3,9 @@ import { useState } from "react";
 import { IndexRouteObject, useNavigate, useParams } from "react-router-dom";
 import AnimateHeight from "react-animate-height";
 import AnchorLink from "react-anchor-link-smooth-scroll";
-import StarRatings from "react-star-ratings";
 import { ValueOf } from "type-fest";
 import Modal from "react-modal";
-import { FlagIcon } from "@heroicons/react/24/solid";
+import { FlagIcon } from "@heroicons/react/24/solid/index";
 import { z } from "zod";
 import { SubmitHandler, useForm } from "react-hook-form";
 import { toast } from "react-toastify";
@@ -22,7 +21,7 @@ interface CourseRatings {
     ratings: ValueOf<inferProcedureOutput<AppRouter["professors"]["get"]>["reviews"]>;
 }
 
-export function professorPageLoaderFactory(trpcContext: ReturnType<(typeof trpc)["useContext"]>) {
+export function professorPageLoaderFactory(trpcContext: ReturnType<typeof trpc["useContext"]>) {
     const professorPageLoader: IndexRouteObject["loader"] = ({ params }) =>
         trpcContext.professors.get.getData({ id: params.id ?? "" }) ??
         trpcContext.professors.get.fetch({ id: params.id ?? "" });
@@ -101,9 +100,9 @@ export function ProfessorPage() {
             <div className={outerClassName}>
                 {professorRatings &&
                     professorRatings.map(({ course }) => (
-                        <AnchorLink key={course} href={`#${course}`} className={innerClassName}>
+                        <a key={course} href={`#${course}`} className={innerClassName}>
                             {course}
-                        </AnchorLink>
+                        </a>
                     ))}
             </div>
         );
@@ -129,17 +128,6 @@ export function ProfessorPage() {
                     <h2 className="text-4xl text-cal-poly-green">
                         {professorData?.lastName}, {professorData?.firstName}
                     </h2>
-                    <div>
-                        {Boolean(professorData?.overallRating) && (
-                            <StarRatings
-                                rating={professorData?.overallRating}
-                                starRatedColor="#BD8B13"
-                                numberOfStars={4}
-                                starDimension="1.5rem"
-                                starSpacing="5px "
-                            />
-                        )}
-                    </div>
                     <Button
                         onClick={() => setProfessorEvaluationShownDesktop(true)}
                         className="mt-2"

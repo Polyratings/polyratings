@@ -1,7 +1,7 @@
 import { Link, useLocation, useParams, useSearchParams } from "react-router-dom";
 import { useState } from "react";
 import { useWindowVirtualizer } from "@tanstack/react-virtual";
-import { ChevronDoubleRightIcon } from "@heroicons/react/24/outline";
+import { ChevronDoubleRightIcon } from "@heroicons/react/24/outline/index";
 import {
     ProfessorCard,
     SearchBar,
@@ -42,9 +42,12 @@ export function Search() {
     const mobileFilterBreakpoint = useTailwindBreakpoint({ xl: false }, true);
 
     // Provide a default value in case of running in a test environment or for some reason font-size is not defined
-    const rootFontSize = parseFloat(
-        window.getComputedStyle(document.body).getPropertyValue("font-size") || "16",
-    );
+    const rootFontSize =
+        typeof window !== "undefined"
+            ? parseFloat(
+                  window.getComputedStyle(document.body).getPropertyValue("font-size") || "16",
+              )
+            : 16;
     // TODO: Reflow height when window changes size
     const virtualScrollListHeight = PROFESSOR_CARD_HEIGHT_REM * rootFontSize;
 

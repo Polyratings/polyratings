@@ -185,7 +185,7 @@ export function NewProfessorForm() {
                         Submit
                     </Button>
                     {/* Exact size for no layer shift when replacing button */}
-                    <ClipLoader color="#1F4715" loading={isLoading} size={34} />
+                    {/* <ClipLoader color="#1F4715" loading={isLoading} size={34} /> */}
                 </div>
                 <div className="text-red-500 text-sm">{networkError?.message}</div>
             </form>

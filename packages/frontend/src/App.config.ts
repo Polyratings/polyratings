@@ -20,6 +20,6 @@ const betaConfig: AppConfiguration = {
     base: "/",
 };
 
-const liveConfig = window.location.href.includes("beta.") ? betaConfig : prodConfig;
+const liveConfig = globalThis.location?.href?.includes("beta.") ? betaConfig : prodConfig;
 
 export const config = process.env.NODE_ENV === "development" ? devConfig : liveConfig;
