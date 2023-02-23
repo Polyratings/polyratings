@@ -14,8 +14,6 @@ jobs:
     steps:
       - name: Checkout Code
         uses: actions/checkout@v3
-        with:
-          fetch-depth: 1
 
       - name: Setup Node
         uses: actions/setup-node@v3
@@ -45,6 +43,7 @@ jobs:
           accountId: 4b59b59a6058dce1832781075d4fde9d
           projectName: polyratings
           directory: packages/frontend/dist
+          branch: ${{ github.ref_name }}
 
       - name: Deploy Prod
         if: github.ref == 'refs/heads/master'
