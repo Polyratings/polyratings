@@ -10,7 +10,6 @@
         "build:server": "vite build --ssr src/entry-ssg.tsx --outDir dist-ssg",
         "serve": "vite preview",
         "test": "vitest run",
-        "lint": "eslint --max-warnings=0 .",
         "fix": "eslint . --fix"
     },
     "dependencies": {
