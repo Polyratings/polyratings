@@ -1,5 +1,5 @@
 /* eslint-disable react/no-unstable-nested-components */
-import { useState } from "react";
+import { Fragment, useState } from "react";
 import { IndexRouteObject, useNavigate, useParams } from "react-router-dom";
 import AnimateHeight from "react-animate-height";
 import AnchorLink from "react-anchor-link-smooth-scroll";
@@ -18,11 +18,9 @@ import { EvaluateProfessorForm, TextArea, TextInput } from "@/components";
 import { trpc } from "@/trpc";
 import { REACT_MODAL_STYLES } from "@/constants";
 import { Button } from "@/components/forms/Button";
+import { useSortedCourses } from "@/hooks";
 
-interface CourseRatings {
-    course: string;
-    ratings: ValueOf<inferProcedureOutput<AppRouter["professors"]["get"]>["reviews"]>;
-}
+const TAG_DEMO = false;
 
 export function professorPageLoaderFactory(trpcContext: ReturnType<(typeof trpc)["useContext"]>) {
     const professorPageLoader: IndexRouteObject["loader"] = ({ params }) =>
@@ -41,59 +39,15 @@ export function ProfessorPage() {
     const { data: professorData, error: fetchError } = trpc.professors.get.useQuery({
         id: id ?? "",
     });
-
-    // Put classes for professors primary department first. This is to cut down on rating spamming
-    // of other departments. It is possible for a professor to teach outside of the department but
-    // it is ok if those ratings come after the primary department
-
-    // Sort Into Departments
-    const professorByDepartments = Object.entries(professorData?.reviews || {}).reduce(
-        (acc, [course, ratings]) => {
-            const obj: CourseRatings = { course, ratings };
-            const [department] = course.split(" ");
-            if (acc[department]) {
-                acc[department].push(obj);
-            } else {
-                acc[department] = [obj];
-            }
-            return acc;
-        },
-        {} as { [department: string]: CourseRatings[] },
-    );
-
-    // Sort departments by class number
-    Object.values(professorByDepartments).forEach((department) =>
-        department.sort((a, b) => {
-            const [, aNumber] = a.course.split(" ");
-            const [, bNumber] = b.course.split(" ");
-            return parseInt(aNumber, 10) - parseInt(bNumber, 10);
-        }),
-    );
-
-    const primaryClasses = professorByDepartments[professorData?.department ?? ""] ?? [];
-    const otherClasses = Object.entries(professorByDepartments)
-        .filter(([department]) => department !== professorData?.department)
-        .flatMap(([, courseRatings]) => courseRatings);
-
-    const professorRatings = [...primaryClasses, ...otherClasses].map((courseRating) => {
-        // Be carful the array is sorted in place. This is fine here but if moved could cause issues.
-        courseRating.ratings.sort((a, b) => Date.parse(b.postDate) - Date.parse(a.postDate));
-        return courseRating;
-    });
-
     const navigate = useNavigate();
     if (fetchError) {
         navigate("/");
     }
+
+    const sortedCourses = useSortedCourses(id);
+
     const [professorEvaluationShownDesktop, setProfessorEvaluationShownDesktop] = useState(false);
     const [professorEvaluationShownMobile, setProfessorEvaluationShownMobile] = useState(false);
-
-    const NaEvalZero = (val: number | undefined) => {
-        if (professorData?.numEvals) {
-            return val?.toFixed(2);
-        }
-        return "N/A";
-    };
 
     function ClassScroll({
         outerClassName,
@@ -104,19 +58,26 @@ export function ProfessorPage() {
     }) {
         return (
             <div className={outerClassName}>
-                {professorRatings &&
-                    professorRatings.map(({ course }, i) => (
+                {sortedCourses &&
+                    sortedCourses.map(({ courseName }, i) => (
                         <AnchorLink
-                            key={course}
-                            href={`#${course}`}
-                            className={innerClassName(course, i)}
+                            key={courseName}
+                            href={`#${courseName}`}
+                            className={innerClassName(courseName, i)}
                         >
-                            {course}
+                            {courseName}
                         </AnchorLink>
                     ))}
             </div>
         );
     }
+
+    const naEvalZero = (val: number | undefined) => {
+        if (professorData?.numEvals) {
+            return val?.toFixed(2);
+        }
+        return "N/A";
+    };
 
     return (
         <div>
@@ -141,17 +102,19 @@ export function ProfessorPage() {
                         {professorData?.lastName}, {professorData?.firstName}
                     </h1>
 
-                    <div className="flex gap-2 flex-wrap my-4">
-                        <ProfessorTag tagName="Records Lectures" />
-                        <ProfessorTag tagName="Flexible Attendance Policy" />
-                        <ProfessorTag tagName="Zoom Office Hours" />
-                        <ProfessorTag tagName="High Availability" />
-                    </div>
+                    {TAG_DEMO && (
+                        <div className="flex gap-2 flex-wrap mt-4 mb-2">
+                            <ProfessorTag tagName="Records Lectures" />
+                            <ProfessorTag tagName="Flexible Attendance Policy" />
+                            <ProfessorTag tagName="Zoom Office Hours" />
+                            <ProfessorTag tagName="High Availability" />
+                        </div>
+                    )}
 
                     <div>
                         <Button
                             onClick={() => setProfessorEvaluationShownDesktop(true)}
-                            className="mt-2"
+                            className="mt-4"
                             type="button"
                         >
                             Evaluate Professor
@@ -168,12 +131,12 @@ export function ProfessorPage() {
                     {professorData?.lastName}, {professorData?.firstName}
                 </h2>
                 <p>{professorData?.department}</p>
-                <p>Overall Rating: {NaEvalZero(professorData?.overallRating)} / 4.00</p>
+                <p>Overall Rating: {naEvalZero(professorData?.overallRating)} / 4.00</p>
                 <p>
                     Recognizes Student Difficulties:{" "}
-                    {NaEvalZero(professorData?.studentDifficulties)}
+                    {naEvalZero(professorData?.studentDifficulties)}
                 </p>
-                <p>Presents Material Clearly: {NaEvalZero(professorData?.materialClear)}</p>
+                <p>Presents Material Clearly: {naEvalZero(professorData?.materialClear)}</p>
                 <Button
                     onClick={() =>
                         setProfessorEvaluationShownMobile(!professorEvaluationShownMobile)
@@ -202,25 +165,23 @@ export function ProfessorPage() {
             </AnimateHeight>
 
             {professorData &&
-                professorRatings &&
-                professorRatings.map(({ course, ratings }, i) => (
-                    <>
+                sortedCourses &&
+                sortedCourses.map(({ courseName, ratings }, i) => (
+                    <Fragment key={courseName}>
                         <InView
                             as="div"
-                            key={course}
                             className="pt-4 relative"
-                            id={course}
+                            id={courseName}
                             onChange={(status) => {
                                 courseVisibility[i] = status;
                                 setCourseVisibility([...courseVisibility]);
                             }}
                         >
                             <div className="container md:max-w-5xl flex flex-col m-auto px-2">
-                                <h3 className="text-4xl font-semibold my-3 ml-2">{course}</h3>
-                                {ratings.map((rating, i) => (
+                                <h3 className="text-4xl font-semibold my-3 ml-2">{courseName}</h3>
+                                {ratings.map((rating) => (
                                     <RatingCard
-                                        // eslint-disable-next-line react/no-array-index-key
-                                        key={i}
+                                        key={rating.id}
                                         rating={rating}
                                         professorId={professorData.id}
                                     />
@@ -229,9 +190,9 @@ export function ProfessorPage() {
                         </InView>
                         {/* Add space outside the interaction observer to get scroll to highlight correct course */}
                         <div className="block h-2 w-full" />
-                    </>
+                    </Fragment>
                 ))}
-            {!professorRatings?.length && (
+            {!sortedCourses?.length && (
                 <h2 className="text-4xl text-center text-cal-poly-green mt-10">
                     Be the first to add a rating!
                 </h2>
@@ -263,17 +224,29 @@ type StatsCardProps = {
     className?: string;
 };
 function StatsCard({ professor, className = "" }: StatsCardProps) {
+    const naEvalZero = (val: number | undefined) => {
+        if (professor?.numEvals) {
+            return val?.toFixed(2);
+        }
+        return "N/A";
+    };
+
     return (
         // Box shadow taken from figma
         <div
             className={`flex flex-col shadow-[0_0_50px_rgba(0,0,0,0.15)] rounded-lg gap-1 py-5 px-6 min-w-[27rem] ${className}`}
         >
-            <div className="flex justify-between mb-3">
+            <div className="flex justify-between mb-3 align-bottom">
                 <div className="flex items-center">
-                    <span className="text-6xl font-bold">{professor?.overallRating}</span>
+                    <span className="text-6xl font-bold">
+                        {naEvalZero(professor?.overallRating)}
+                    </span>
                     <span className="text-4xl font-bold ml-1">/4</span>
                 </div>
                 <div className="flex flex-col justify-end gap-[0.125rem]">
+                    <p className="text-right text-sm font-medium">
+                        {professor?.numEvals} Evaluations
+                    </p>
                     <StarRatings
                         rating={professor?.overallRating}
                         starRatedColor="#BD8B13"
@@ -281,12 +254,9 @@ function StatsCard({ professor, className = "" }: StatsCardProps) {
                         starDimension="1.8em"
                         starSpacing="3px"
                     />
-                    <p className="text-right text-sm font-medium">
-                        {professor?.numEvals} Evaluations
-                    </p>
                 </div>
             </div>
-            <div className="flex justify-between font-medium">
+            <div className="flex justify-between font-medium bg-gray-200 px-3 py-2 rounded">
                 <p>Recognizes Student Difficulties</p>
                 <div className="flex items-center">
                     {/* Hack since star ratings will not items-center properly */}
@@ -299,10 +269,10 @@ function StatsCard({ professor, className = "" }: StatsCardProps) {
                             starSpacing="1px"
                         />
                     </div>
-                    <span className="ml-4 mr-1">{professor?.studentDifficulties}</span>
+                    <span className="ml-4 mr-1">{naEvalZero(professor?.studentDifficulties)}</span>
                 </div>
             </div>
-            <div className="flex justify-between font-medium">
+            <div className="flex justify-between font-medium bg-gray-200 px-3 py-2 rounded">
                 <p>Presents Material Clearly</p>
                 <div className="flex items-center">
                     {/* Hack since star ratings will not items-center properly */}
@@ -315,7 +285,7 @@ function StatsCard({ professor, className = "" }: StatsCardProps) {
                             starSpacing="1px"
                         />
                     </div>
-                    <span className="ml-4 mr-1">{professor?.materialClear}</span>
+                    <span className="ml-4 mr-1">{naEvalZero(professor?.materialClear)}</span>
                 </div>
             </div>
         </div>
@@ -500,6 +470,11 @@ type ProfessorTagProps = {
     tagName: string;
 };
 function ProfessorTag({ tagName }: ProfessorTagProps) {
+    if (!TAG_DEMO) {
+        // eslint-disable-next-line react/jsx-no-useless-fragment
+        return <></>;
+    }
+
     return (
         <div className="flex items-center rounded px-2 py-[0.125rem] bg-cal-poly-light-green text-cal-poly-green">
             <TagIcon className="w-3 h-3" />
