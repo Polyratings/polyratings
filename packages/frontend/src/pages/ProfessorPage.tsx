@@ -72,13 +72,6 @@ export function ProfessorPage() {
         );
     }
 
-    const naEvalZero = (val: number | undefined) => {
-        if (professorData?.numEvals) {
-            return val?.toFixed(2);
-        }
-        return "N/A";
-    };
-
     return (
         <div>
             <Modal
@@ -94,7 +87,7 @@ export function ProfessorPage() {
                 </div>
             </Modal>
 
-            <div className="lg:max-w-5xl w-full mx-auto hidden sm:flex justify-between pt-10 pb-3 px-2">
+            <div className="lg:max-w-5xl w-full mx-auto flex justify-center md:justify-between pt-10 pb-3 px-2">
                 <div className="flex flex-col">
                     <h2 className="text-lg font-semibold">{professorData?.department} Professor</h2>
 
@@ -111,7 +104,9 @@ export function ProfessorPage() {
                         </div>
                     )}
 
-                    <div>
+                    <StatsCard className="mt-4 mb-3 block md:hidden" professor={professorData} />
+
+                    <div className="hidden md:block">
                         <Button
                             onClick={() => setProfessorEvaluationShownDesktop(true)}
                             className="mt-4"
@@ -120,32 +115,25 @@ export function ProfessorPage() {
                             Evaluate Professor
                         </Button>
                     </div>
+
+                    <div className="block md:hidden m-auto">
+                        <Button
+                            onClick={() =>
+                                setProfessorEvaluationShownMobile(!professorEvaluationShownMobile)
+                            }
+                            className="mt-4"
+                            type="button"
+                        >
+                            Evaluate Professor
+                        </Button>
+                    </div>
                 </div>{" "}
                 <div>
-                    <StatsCard className="mt-4 mb-3 ml-8" professor={professorData} />
+                    <StatsCard
+                        className="mt-4 mb-3 ml-8 hidden md:block"
+                        professor={professorData}
+                    />
                 </div>
-            </div>
-
-            <div className="sm:hidden container py-2 text-center">
-                <h2 className="text-4xl text-cal-poly-green">
-                    {professorData?.lastName}, {professorData?.firstName}
-                </h2>
-                <p>{professorData?.department}</p>
-                <p>Overall Rating: {naEvalZero(professorData?.overallRating)} / 4.00</p>
-                <p>
-                    Recognizes Student Difficulties:{" "}
-                    {naEvalZero(professorData?.studentDifficulties)}
-                </p>
-                <p>Presents Material Clearly: {naEvalZero(professorData?.materialClear)}</p>
-                <Button
-                    onClick={() =>
-                        setProfessorEvaluationShownMobile(!professorEvaluationShownMobile)
-                    }
-                    className="mt-2"
-                    type="button"
-                >
-                    {professorEvaluationShownMobile ? "Close Evaluation" : "Evaluate Professor"}
-                </Button>
             </div>
 
             {/* Mobile divider */}
@@ -317,24 +305,26 @@ function RatingCard({ rating, professorId }: RatingCardProps) {
                 <div>{rating.gradeLevel}</div>
             </div>
 
-            <div className="flex md:hidden flex-col flex-shrink-0 m-auto text-center text-sm">
-                <div>Grade Received: {rating.grade}</div>
-                <div>
-                    Posted:{" "}
-                    {new Date(rating.postDate).toLocaleString("en-US", {
-                        year: "numeric",
-                        month: "short",
-                    })}
-                </div>
-                <div className="absolute right-5 top-2">
-                    <ReportButton professorId={professorId} ratingId={rating.id} />
-                </div>
+            <div className="flex md:hidden gap-4 m-auto align-middle text-sm">
+                {/* Only show stars for ratings from the new site */}
+                {new Date(rating.postDate).getFullYear() >= 2022 && (
+                    <StarRatings
+                        rating={rating?.overallRating}
+                        starRatedColor="#BD8B13"
+                        numberOfStars={4}
+                        starDimension="1.1rem"
+                        starSpacing="1px"
+                    />
+                )}
+                {/* Weird padding to algin star ratings */}
+                <p className="pt-[0.07rem]"> Grade Relieved: {rating.grade}</p>
+                <p className="pt-[0.07rem]">{rating.gradeLevel}</p>
             </div>
 
             {/* Desktop divider */}
             <div className="hidden md:flex bg-black w-[0.08rem] mr-4 mt-2 mb-2 flex-shrink-0" />
             {/* Mobile divider */}
-            <div className="flex md:hidden bg-cal-poly-green w-4/5 h-1 m-auto my-2" />
+            <div className="flex md:hidden bg-black w-4/5 h-[0.08rem] m-auto my-2" />
 
             <div className="flex-grow py-3">
                 <p className="text-xl font-semibold mb-2">
