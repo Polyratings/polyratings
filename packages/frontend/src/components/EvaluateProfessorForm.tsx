@@ -80,16 +80,13 @@ export function EvaluateProfessorForm({ professor, closeForm }: EvaluateProfesso
 
     const knownCourseValue = watch("knownCourse");
     const trpcContext = trpc.useContext();
-    const { mutateAsync: finalizeRatingUpload, error: finalizeError } =
-        trpc.ratings.process.useMutation();
     const {
-        mutate: uploadNewRating,
+        mutate: uploadRating,
         isLoading,
-        error: startError,
+        error: networkError,
     } = trpc.ratings.add.useMutation({
-        onSuccess: async (id) => {
+        onSuccess: () => {
             try {
-                await finalizeRatingUpload(id);
                 toast.success("Thank you for your rating");
                 trpcContext.professors.get.invalidate({ id: professor?.id ?? "" });
                 closeForm?.();
@@ -120,7 +117,7 @@ export function EvaluateProfessorForm({ professor, closeForm }: EvaluateProfesso
             return;
         }
 
-        uploadNewRating({
+        uploadRating({
             professor: professor?.id ?? "",
             courseNum,
             department,
@@ -271,7 +268,7 @@ export function EvaluateProfessorForm({ professor, closeForm }: EvaluateProfesso
                     </div>
                 )}
             </div>
-            <div className="text-red-500 text-sm">{startError ?? finalizeError}</div>
+            <div className="text-red-500 text-sm">{networkError}</div>
         </form>
     );
 }

@@ -15,19 +15,19 @@ import {
 } from "@backend/types/schema";
 import {
     addRating,
-    pendingRatingToRating,
     professorToTruncatedProfessor,
     removeRating,
 } from "@backend/types/schemaHelpers";
 import { KvWrapper } from "./kv-wrapper";
 
 const KV_REQUESTS_PER_TRIGGER = 1000;
+const ONE_WEEK = 1000 * 60 * 60 * 24 * 7
 
 export class KVDAO {
     constructor(
         private polyratingsNamespace: KvWrapper,
         private usersNamespace: KvWrapper,
-        private processingQueueNamespace: KvWrapper,
+        private ratingsLog: KvWrapper,
         private professorApprovalQueueNamespace: KvWrapper,
         private reportsNamespace: KvWrapper,
     ) {}
@@ -60,26 +60,21 @@ export class KVDAO {
     }
 
     getBulkNamespace(bulkKey: BulkKey): { namespace: KvWrapper; parser: z.ZodTypeAny } {
-        switch (bulkKey) {
-            case "professors":
-                return { namespace: this.polyratingsNamespace, parser: professorParser };
-            case "professor-queue":
-                return {
-                    namespace: this.professorApprovalQueueNamespace,
-                    parser: professorParser,
-                };
-            case "users":
-                return { namespace: this.usersNamespace, parser: userParser };
-            case "reports":
-                return { namespace: this.reportsNamespace, parser: ratingReportParser };
-            case "rating-queue":
-                return {
-                    namespace: this.processingQueueNamespace,
-                    parser: pendingRatingParser,
-                };
-            default:
-                throw new TRPCError({ code: "BAD_REQUEST", message: "Bulk key is not valid" });
+        const namespaceMap: Record<BulkKey, { namespace: KvWrapper; parser: z.ZodTypeAny } > = {
+            professors: { namespace: this.polyratingsNamespace, parser: professorParser },
+            "professor-queue": {
+                namespace: this.professorApprovalQueueNamespace,
+                parser: professorParser,
+            },
+            users: { namespace: this.usersNamespace, parser: userParser },
+            reports: { namespace: this.reportsNamespace, parser: ratingReportParser },
+            "rating-log": {
+                namespace: this.ratingsLog,
+                parser: pendingRatingParser,
+            }
         }
+
+        return namespaceMap[bulkKey]
     }
 
     async getBulkKeys(bulkKey: BulkKey): Promise<string[]> {
@@ -162,22 +157,17 @@ export class KVDAO {
         await this.putAllProfessors(profList);
     }
 
-    getPendingRating(id: string) {
-        return this.processingQueueNamespace.get(pendingRatingParser, id);
+    async addRatingLog(rating: PendingRating) {
+        return this.ratingsLog.put(pendingRatingParser, rating.id, rating, { expiration: Date.now() + ONE_WEEK });
     }
 
-    async addPendingRating(rating: PendingRating) {
-        return this.processingQueueNamespace.put(pendingRatingParser, rating.id, rating);
-    }
-
-    async addRating(pendingRating: PendingRating) {
-        if (pendingRating.status !== "Successful") {
+    async addRating(newRating: PendingRating) {
+        if (newRating.status !== "Successful") {
             throw new Error("Cannot add rating to KV that has not been analyzed.");
         }
 
-        const professor = await this.getProfessor(pendingRating.professor);
-        const newRating = pendingRatingToRating(pendingRating);
-        addRating(professor, newRating, `${pendingRating.department} ${pendingRating.courseNum}`);
+        const professor = await this.getProfessor(newRating.professor);
+        addRating(professor, newRating, `${newRating.department} ${newRating.courseNum}`);
 
         this.putProfessor(professor);
         return professor;
