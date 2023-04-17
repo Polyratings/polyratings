@@ -102,7 +102,7 @@ export function SearchBar({
                     filterFn={(_, inputValue) => autoCompleteFilter(inputValue)}
                     label="Professor Auto-complete"
                     initialValue={searchValue}
-                    className="w-72 h-8 font-normal text-lg"
+                    className="xl:w-72 w-[15rem] h-8 font-normal text-lg"
                     disableDropdown={disableAutoComplete}
                 />
             </div>

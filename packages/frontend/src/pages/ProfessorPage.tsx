@@ -1,26 +1,26 @@
 /* eslint-disable react/no-unstable-nested-components */
-import { useState } from "react";
+import { Fragment, useState } from "react";
 import { IndexRouteObject, useNavigate, useParams } from "react-router-dom";
 import AnimateHeight from "react-animate-height";
 import AnchorLink from "react-anchor-link-smooth-scroll";
 import StarRatings from "react-star-ratings";
 import { ValueOf } from "type-fest";
 import Modal from "react-modal";
-import { FlagIcon } from "@heroicons/react/24/solid";
+import { TagIcon } from "@heroicons/react/24/solid";
+import { FlagIcon } from "@heroicons/react/24/outline";
 import { z } from "zod";
 import { SubmitHandler, useForm } from "react-hook-form";
 import { toast } from "react-toastify";
 import { inferProcedureOutput } from "@trpc/server";
 import { AppRouter } from "@backend/index";
+import { InView } from "react-intersection-observer";
 import { EvaluateProfessorForm, TextArea, TextInput } from "@/components";
 import { trpc } from "@/trpc";
 import { REACT_MODAL_STYLES } from "@/constants";
 import { Button } from "@/components/forms/Button";
+import { useSortedCourses } from "@/hooks";
 
-interface CourseRatings {
-    course: string;
-    ratings: ValueOf<inferProcedureOutput<AppRouter["professors"]["get"]>["reviews"]>;
-}
+const TAG_DEMO = false;
 
 export function professorPageLoaderFactory(trpcContext: ReturnType<(typeof trpc)["useContext"]>) {
     const professorPageLoader: IndexRouteObject["loader"] = ({ params }) =>
@@ -33,76 +33,39 @@ export function professorPageLoaderFactory(trpcContext: ReturnType<(typeof trpc)
 export function ProfessorPage() {
     const { id } = useParams<{ id: string }>();
 
+    const [courseVisibility, setCourseVisibility] = useState<boolean[]>([]);
+    const firstVisibleCourseIndex = courseVisibility.findIndex(Boolean);
+
     const { data: professorData, error: fetchError } = trpc.professors.get.useQuery({
         id: id ?? "",
     });
-
-    // Put classes for professors primary department first. This is to cut down on rating spamming
-    // of other departments. It is possible for a professor to teach outside of the department but
-    // it is ok if those ratings come after the primary department
-
-    // Sort Into Departments
-    const professorByDepartments = Object.entries(professorData?.reviews || {}).reduce(
-        (acc, [course, ratings]) => {
-            const obj: CourseRatings = { course, ratings };
-            const [department] = course.split(" ");
-            if (acc[department]) {
-                acc[department].push(obj);
-            } else {
-                acc[department] = [obj];
-            }
-            return acc;
-        },
-        {} as { [department: string]: CourseRatings[] },
-    );
-
-    // Sort departments by class number
-    Object.values(professorByDepartments).forEach((department) =>
-        department.sort((a, b) => {
-            const [, aNumber] = a.course.split(" ");
-            const [, bNumber] = b.course.split(" ");
-            return parseInt(aNumber, 10) - parseInt(bNumber, 10);
-        }),
-    );
-
-    const primaryClasses = professorByDepartments[professorData?.department ?? ""] ?? [];
-    const otherClasses = Object.entries(professorByDepartments)
-        .filter(([department]) => department !== professorData?.department)
-        .flatMap(([, courseRatings]) => courseRatings);
-
-    const professorRatings = [...primaryClasses, ...otherClasses].map((courseRating) => {
-        // Be carful the array is sorted in place. This is fine here but if moved could cause issues.
-        courseRating.ratings.sort((a, b) => Date.parse(b.postDate) - Date.parse(a.postDate));
-        return courseRating;
-    });
-
     const navigate = useNavigate();
     if (fetchError) {
         navigate("/");
     }
+
+    const sortedCourses = useSortedCourses(id);
+
     const [professorEvaluationShownDesktop, setProfessorEvaluationShownDesktop] = useState(false);
     const [professorEvaluationShownMobile, setProfessorEvaluationShownMobile] = useState(false);
-
-    const NaEvalZero = (val: number | undefined) => {
-        if (professorData?.numEvals) {
-            return val?.toFixed(2);
-        }
-        return "N/A";
-    };
 
     function ClassScroll({
         outerClassName,
         innerClassName,
     }: {
         outerClassName: string;
-        innerClassName: string;
+        innerClassName: (course: string, index: number) => string;
     }) {
         return (
             <div className={outerClassName}>
-                {professorRatings &&
-                    professorRatings.map(({ course }) => (
-                        <AnchorLink key={course} href={`#${course}`} className={innerClassName}>
-                            {course}
+                {sortedCourses &&
+                    sortedCourses.map(({ courseName }, i) => (
+                        <AnchorLink
+                            key={courseName}
+                            href={`#${courseName}`}
+                            className={innerClassName(courseName, i)}
+                        >
+                            {courseName}
                         </AnchorLink>
                     ))}
             </div>
@@ -124,64 +87,53 @@ export function ProfessorPage() {
                 </div>
             </Modal>
 
-            <div className="lg:max-w-5xl w-full mx-auto hidden sm:flex justify-between py-2 px-2">
-                <div>
-                    <h2 className="text-4xl text-cal-poly-green">
-                        {professorData?.lastName}, {professorData?.firstName}
-                    </h2>
-                    <div>
-                        {Boolean(professorData?.overallRating) && (
-                            <StarRatings
-                                rating={professorData?.overallRating}
-                                starRatedColor="#BD8B13"
-                                numberOfStars={4}
-                                starDimension="1.5rem"
-                                starSpacing="5px "
-                            />
-                        )}
-                    </div>
-                    <Button
-                        onClick={() => setProfessorEvaluationShownDesktop(true)}
-                        className="mt-2"
-                        type="button"
-                    >
-                        Evaluate Professor
-                    </Button>
-                </div>{" "}
-                <div className="text-right">
-                    <h2 className="text-4xl text-cal-poly-green">
-                        {NaEvalZero(professorData?.overallRating)} / 4.00
-                    </h2>
-                    <p>{professorData?.numEvals} evaluations</p>
-                    <p>
-                        {" "}
-                        Recognizes Student Difficulties:{" "}
-                        {NaEvalZero(professorData?.studentDifficulties)}
-                    </p>
-                    <p>Presents Material Clearly: {NaEvalZero(professorData?.materialClear)}</p>
-                </div>
-            </div>
+            <div className="lg:max-w-5xl w-full mx-auto flex justify-center md:justify-between pt-10 pb-3 px-2">
+                <div className="flex flex-col">
+                    <h2 className="text-lg font-semibold">{professorData?.department} Professor</h2>
 
-            <div className="sm:hidden container py-2 text-center">
-                <h2 className="text-4xl text-cal-poly-green">
-                    {professorData?.lastName}, {professorData?.firstName}
-                </h2>
-                <p>{professorData?.department}</p>
-                <p>Overall Rating: {NaEvalZero(professorData?.overallRating)} / 4.00</p>
-                <p>
-                    Recognizes Student Difficulties:{" "}
-                    {NaEvalZero(professorData?.studentDifficulties)}
-                </p>
-                <p>Presents Material Clearly: {NaEvalZero(professorData?.materialClear)}</p>
-                <Button
-                    onClick={() =>
-                        setProfessorEvaluationShownMobile(!professorEvaluationShownMobile)
-                    }
-                    className="mt-2"
-                    type="button"
-                >
-                    {professorEvaluationShownMobile ? "Close Evaluation" : "Evaluate Professor"}
-                </Button>
+                    <h1 className="text-5xl font-bold">
+                        {professorData?.lastName}, {professorData?.firstName}
+                    </h1>
+
+                    {TAG_DEMO && (
+                        <div className="flex gap-2 flex-wrap mt-4 mb-2">
+                            <ProfessorTag tagName="Records Lectures" />
+                            <ProfessorTag tagName="Flexible Attendance Policy" />
+                            <ProfessorTag tagName="Zoom Office Hours" />
+                            <ProfessorTag tagName="High Availability" />
+                        </div>
+                    )}
+
+                    <StatsCard className="mt-4 mb-3 block md:hidden" professor={professorData} />
+
+                    <div className="hidden md:block">
+                        <Button
+                            onClick={() => setProfessorEvaluationShownDesktop(true)}
+                            className="mt-4"
+                            type="button"
+                        >
+                            Evaluate Professor
+                        </Button>
+                    </div>
+
+                    <div className="block md:hidden m-auto">
+                        <Button
+                            onClick={() =>
+                                setProfessorEvaluationShownMobile(!professorEvaluationShownMobile)
+                            }
+                            className="mt-4"
+                            type="button"
+                        >
+                            Evaluate Professor
+                        </Button>
+                    </div>
+                </div>{" "}
+                <div>
+                    <StatsCard
+                        className="mt-4 mb-3 ml-8 hidden md:block"
+                        professor={professorData}
+                    />
+                </div>
             </div>
 
             {/* Mobile divider */}
@@ -201,37 +153,133 @@ export function ProfessorPage() {
             </AnimateHeight>
 
             {professorData &&
-                professorRatings &&
-                professorRatings.map(({ course, ratings }) => (
-                    <div key={course} className="pt-4 relative" id={course}>
-                        <h2 className="text-center text-4xl text-cal-poly-green">{course}</h2>
-                        <div className="container md:max-w-5xl flex flex-col m-auto px-2">
-                            {ratings.map((rating, i) => (
-                                <RatingCard
-                                    // eslint-disable-next-line react/no-array-index-key
-                                    key={i}
-                                    rating={rating}
-                                    professorId={professorData.id}
-                                />
-                            ))}
-                        </div>
-                    </div>
+                sortedCourses &&
+                sortedCourses.map(({ courseName, ratings }, i) => (
+                    <Fragment key={courseName}>
+                        <InView
+                            as="div"
+                            className="pt-4 relative"
+                            id={courseName}
+                            onChange={(status) => {
+                                courseVisibility[i] = status;
+                                setCourseVisibility([...courseVisibility]);
+                            }}
+                        >
+                            <div className="container md:max-w-5xl flex flex-col m-auto px-2">
+                                <h3 className="text-4xl font-semibold my-3 ml-2">{courseName}</h3>
+                                {ratings.map((rating) => (
+                                    <RatingCard
+                                        key={rating.id}
+                                        rating={rating}
+                                        professorId={professorData.id}
+                                    />
+                                ))}
+                            </div>
+                        </InView>
+                        {/* Add space outside the interaction observer to get scroll to highlight correct course */}
+                        <div className="block h-2 w-full" />
+                    </Fragment>
                 ))}
-            {!professorRatings?.length && (
+            {!sortedCourses?.length && (
                 <h2 className="text-4xl text-center text-cal-poly-green mt-10">
                     Be the first to add a rating!
                 </h2>
             )}
             <ClassScroll
                 outerClassName="hidden xl:flex flex-col fixed ml-4 top-1/2 transform -translate-y-1/2 max-h-10/12 overflow-y-auto"
-                innerClassName="text-cal-poly-green text-lg font-semibold mt-2"
+                innerClassName={(_, i) =>
+                    `text-lg font-semibold mt-2 rounded-xl px-2 py-[0.1rem] text-center ${
+                        firstVisibleCourseIndex === i
+                            ? "bg-cal-poly-gold text-white"
+                            : "text-cal-poly-green"
+                    }`
+                }
             />
             {/* Mobile class scroll needs room to see all ratings */}
             <div className="block xl:hidden h-16 w-full" />
             <ClassScroll
                 outerClassName="flex items-center xl:hidden h-14 fixed bg-cal-poly-green w-full bottom-0 overflow-x-auto scrollbar-hidden"
-                innerClassName="text-md font-semibold h-8 bg-cal-poly-gold text-white ml-4 rounded-xl py-1 px-2 whitespace-nowrap"
+                innerClassName={() =>
+                    "text-md font-semibold h-8 bg-cal-poly-gold text-white ml-4 rounded-xl py-1 px-2 whitespace-nowrap"
+                }
             />
+        </div>
+    );
+}
+
+type StatsCardProps = {
+    professor: inferProcedureOutput<AppRouter["professors"]["get"]> | undefined;
+    className?: string;
+};
+function StatsCard({ professor, className = "" }: StatsCardProps) {
+    const naEvalZero = (val: number | undefined) => {
+        if (professor?.numEvals) {
+            return val?.toFixed(2);
+        }
+        return "N/A";
+    };
+
+    return (
+        // Box shadow taken from figma
+        <div
+            className={`flex flex-col shadow-[0_0_50px_rgba(0,0,0,0.15)] rounded-lg gap-1 py-5 px-6 min-w-[22rem] sm:min-w-[27rem] ${className}`}
+        >
+            <div className="flex justify-between mb-3 align-bottom">
+                <div className="flex items-center">
+                    <span className="text-6xl font-bold">
+                        {naEvalZero(professor?.overallRating)}
+                    </span>
+                    <span className="text-4xl font-bold ml-1 hidden sm:block">/4</span>
+                </div>
+                <div className="flex flex-col justify-end gap-[0.125rem]">
+                    <p className="text-right text-sm font-medium">
+                        {professor?.numEvals} Evaluations
+                    </p>
+                    <StarRatings
+                        rating={professor?.overallRating}
+                        starRatedColor="#BD8B13"
+                        numberOfStars={4}
+                        starDimension="1.8em"
+                        starSpacing="3px"
+                    />
+                </div>
+            </div>
+            <div className="flex justify-between font-medium bg-gray-200 px-3 py-2 rounded">
+                <p>Recognizes Difficulties</p>
+                <div className="flex items-center">
+                    {/* Hack since star ratings will not items-center properly */}
+                    <div className="mb-[0.13rem]">
+                        <StarRatings
+                            rating={professor?.studentDifficulties}
+                            starRatedColor="#BD8B13"
+                            numberOfStars={4}
+                            starDimension="1.1rem"
+                            starSpacing="1px"
+                        />
+                    </div>
+                    <span className="ml-4 mr-1 hidden sm:block">
+                        {naEvalZero(professor?.studentDifficulties)}
+                    </span>
+                </div>
+            </div>
+            <div className="flex justify-between font-medium bg-gray-200 px-3 py-2 rounded mt-2">
+                <p>Presents Clearly</p>
+                <div className="flex items-center">
+                    {/* Hack since star ratings will not items-center properly */}
+                    <div className="mb-[0.13rem]">
+                        <StarRatings
+                            rating={professor?.materialClear}
+                            starRatedColor="#BD8B13"
+                            numberOfStars={4}
+                            starDimension="1.1rem"
+                            starSpacing="1px"
+                        />
+                    </div>
+                    <span className="ml-4 mr-1 hidden sm:block">
+                        {naEvalZero(professor?.materialClear)}
+                    </span>
+                </div>
+            </div>
         </div>
     );
 }
@@ -242,40 +290,72 @@ interface RatingCardProps {
 }
 function RatingCard({ rating, professorId }: RatingCardProps) {
     return (
-        <div className="bg-white w-full rounded-3xl py-2 px-4 my-2 border-cal-poly-gold border-4 flex flex-col md:flex-row relative">
-            <div className="hidden md:flex flex-col w-32 flex-shrink-0 m-auto mr-4 text-center text-sm">
-                <div>{rating.gradeLevel}</div>
-                <div>{rating.grade}</div>
-                <div>{rating.courseType}</div>
-                <div>
-                    {new Date(rating.postDate).toLocaleString("en-US", {
-                        year: "numeric",
-                        month: "short",
-                    })}
+        <div className="bg-white w-full rounded-3xl py-3 px-6 my-2 border-cal-poly-green border-4 flex flex-col md:flex-row relative">
+            <div className="hidden md:flex flex-col gap-1 w-32 flex-shrink-0 m-auto mr-4 text-center">
+                <div className="mb-2">
+                    {/* Only show stars for ratings from the new site */}
+                    {new Date(rating.postDate).getFullYear() >= 2022 && (
+                        <StarRatings
+                            rating={rating?.overallRating}
+                            starRatedColor="#BD8B13"
+                            numberOfStars={4}
+                            starDimension="1.1rem"
+                            starSpacing="1px"
+                        />
+                    )}
                 </div>
-                <ReportButton professorId={professorId} ratingId={rating.id} />
+                <div> Grade Received: {rating.grade}</div>
+                <div>{rating.courseType}</div>
+                <div>{rating.gradeLevel}</div>
             </div>
 
-            <div className="flex md:hidden flex-col flex-shrink-0 m-auto text-center text-sm">
-                <div>Grade Received: {rating.grade}</div>
-                <div>
-                    Posted:{" "}
-                    {new Date(rating.postDate).toLocaleString("en-US", {
-                        year: "numeric",
-                        month: "short",
-                    })}
-                </div>
-                <div className="absolute right-5 top-2">
-                    <ReportButton professorId={professorId} ratingId={rating.id} />
-                </div>
+            <div className="flex md:hidden gap-4 m-auto align-middle text-sm">
+                {/* Only show stars for ratings from the new site */}
+                {new Date(rating.postDate).getFullYear() >= 2022 && (
+                    <StarRatings
+                        rating={rating?.overallRating}
+                        starRatedColor="#BD8B13"
+                        numberOfStars={4}
+                        starDimension="1.1rem"
+                        starSpacing="1px"
+                    />
+                )}
+                {/* Weird padding to algin star ratings */}
+                <p className="pt-[0.07rem]"> Grade Received: {rating.grade}</p>
+                <p className="pt-[0.07rem]">{rating.gradeLevel}</p>
             </div>
 
             {/* Desktop divider */}
-            <div className="hidden md:flex bg-cal-poly-green w-1 mr-4 mt-2 mb-2 flex-shrink-0" />
+            <div className="hidden md:flex bg-black w-[0.08rem] mr-4 mt-2 mb-2 flex-shrink-0" />
             {/* Mobile divider */}
-            <div className="flex md:hidden bg-cal-poly-green w-4/5 h-1 m-auto my-2" />
+            <div className="flex md:hidden bg-black w-4/5 h-[0.08rem] m-auto my-2" />
 
-            <div className="flex-grow">{rating.rating}</div>
+            <div className="flex-grow py-3">
+                <p className="text-xl font-semibold mb-2">
+                    {new Date(rating.postDate).toLocaleString("en-US", {
+                        year: "numeric",
+                        month: "short",
+                    })}
+                </p>
+                <p>{rating.rating}</p>
+                <div className="flex justify-between mt-2">
+                    {/* A little hack to get the desired behavior with overflowing line and keeping report at bottom right */}
+                    <div className="pt-[0.125rem]">
+                        <div className="flex gap-3 flex-wrap">
+                            <ProfessorTag tagName="Flexible Attendance Policy" />
+                            <ProfessorTag tagName="Zoom Office Hours" />
+                            <ProfessorTag tagName="High Availability" />
+                        </div>
+                    </div>
+                    <div className="flex flex-col-reverse">
+                        <ReportButton
+                            className="ml-10"
+                            professorId={professorId}
+                            ratingId={rating.id}
+                        />
+                    </div>
+                </div>
+            </div>
         </div>
     );
 }
@@ -283,11 +363,12 @@ function RatingCard({ rating, professorId }: RatingCardProps) {
 interface ReportButtonProps {
     professorId: string;
     ratingId: string;
+    className?: string;
 }
-function ReportButton({ professorId, ratingId }: ReportButtonProps) {
+function ReportButton({ professorId, ratingId, className = "" }: ReportButtonProps) {
     const [formShown, setFormShown] = useState(false);
     return (
-        <div>
+        <div className={className}>
             <Modal
                 isOpen={formShown}
                 style={REACT_MODAL_STYLES}
@@ -376,5 +457,22 @@ function ReportForm({ closeForm, professorId, ratingId }: ReportFormProps) {
                 </Button>
             </div>
         </form>
+    );
+}
+
+type ProfessorTagProps = {
+    tagName: string;
+};
+function ProfessorTag({ tagName }: ProfessorTagProps) {
+    if (!TAG_DEMO) {
+        // eslint-disable-next-line react/jsx-no-useless-fragment
+        return <></>;
+    }
+
+    return (
+        <div className="flex items-center rounded px-2 py-[0.125rem] bg-cal-poly-light-green text-cal-poly-green">
+            <TagIcon className="w-3 h-3" />
+            <span className="font-medium ml-2">{tagName}</span>
+        </div>
     );
 }

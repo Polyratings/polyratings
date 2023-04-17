@@ -16,6 +16,7 @@ import { trpc } from "@/trpc";
 import { Select, TextArea } from "./forms";
 import { TextInput } from "./forms/TextInput";
 import { Button } from "./forms/Button";
+import { useSortedCourses } from "@/hooks";
 
 export const CLASS_INFORMATION = [
     {
@@ -134,42 +135,7 @@ export function EvaluateProfessorForm({ professor, closeForm }: EvaluateProfesso
         });
     };
 
-    const departmentGroups = Object.keys(professor?.reviews || {})?.reduce((acc, curr) => {
-        const [department] = curr.split(" ");
-        if (acc[department]) {
-            acc[department].push(curr);
-        } else {
-            acc[department] = [curr];
-        }
-        return acc;
-    }, {} as Record<string, string[]>);
-
-    const sortedCourses = Object.values(departmentGroups)
-        .map((group) =>
-            group.sort((courseA, courseB) => {
-                const numberA = parseFloat(courseA.split(" ")[1]);
-                const numberB = parseFloat(courseB.split(" ")[1]);
-                return numberA - numberB;
-            }),
-        )
-        .sort((groupA, groupB) => {
-            const [departmentA] = groupA[0].split(" ");
-            const [departmentB] = groupB[0].split(" ");
-            if (departmentA === professor?.department) {
-                return -1;
-            }
-            if (departmentB === professor?.department) {
-                return 1;
-            }
-            if (departmentA < departmentB) {
-                return -1;
-            }
-            if (departmentA > departmentB) {
-                return 1;
-            }
-            return 0;
-        })
-        .flat();
+    const sortedCourses = useSortedCourses(professor?.id).map(({ courseName }) => courseName);
 
     return (
         <form className="relative w-full" onSubmit={handleSubmit(onSubmit)}>
