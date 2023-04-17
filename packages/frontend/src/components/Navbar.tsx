@@ -4,7 +4,7 @@ import AnimateHeight from "react-animate-height";
 import { useEffect, useState } from "react";
 import { useAuth } from "@/hooks";
 import { SearchBar } from "./SearchBar";
-import Logo from "@/assets/Logo.png";
+import Logo from "@/assets/Logo.svg";
 import DiscordLogo from "@/assets/Discord-Logo-White.svg";
 import GithubLogo from "@/assets/github.svg";
 

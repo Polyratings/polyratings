@@ -13,6 +13,7 @@ module.exports = {
         extend: {
             colors: {
                 "cal-poly-green": "#1F4715",
+                "cal-poly-light-green": "#D7EACE",
                 "cal-poly-gold": "#BD8B13",
             },
             height: () => ({
