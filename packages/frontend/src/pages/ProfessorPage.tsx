@@ -374,7 +374,7 @@ function ReportButton({ professorId, ratingId, className = "" }: ReportButtonPro
                 style={REACT_MODAL_STYLES}
                 onRequestClose={() => setFormShown(false)}
             >
-                <div className="bg-white rounded shadow p-5 w-[35rem]">
+                <div className="bg-white rounded shadow p-5 w-screen sm:w-[35rem]">
                     <ReportForm
                         professorId={professorId}
                         ratingId={ratingId}
