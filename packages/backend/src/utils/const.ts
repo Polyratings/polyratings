@@ -1,4 +1,5 @@
 import { PendingRating, Professor, RatingReport, User } from "@backend/types/schema";
+import type { IsEqual } from "type-fest";
 
 /**
  * List of all departments with courses as of 1/23/2022
@@ -152,3 +153,8 @@ export type BulkKeyMap = {
     reports: RatingReport[];
     users: User[];
 };
+
+
+type TypeEqual = IsEqual<BulkKey, keyof BulkKeyMap> extends true ? true : never
+// Error will be generated here if the BulkKey union does not match the keys of BulkKeyMap
+const realPart:TypeEqual = true
