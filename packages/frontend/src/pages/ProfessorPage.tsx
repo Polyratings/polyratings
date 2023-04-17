@@ -188,7 +188,7 @@ export function ProfessorPage() {
             <ClassScroll
                 outerClassName="hidden xl:flex flex-col fixed ml-4 top-1/2 transform -translate-y-1/2 max-h-10/12 overflow-y-auto"
                 innerClassName={(_, i) =>
-                    `text-lg font-semibold mt-2 rounded-xl px-2 py-[0.1rem] ${
+                    `text-lg font-semibold mt-2 rounded-xl px-2 py-[0.1rem] text-center ${
                         firstVisibleCourseIndex === i
                             ? "bg-cal-poly-gold text-white"
                             : "text-cal-poly-green"
@@ -222,14 +222,14 @@ function StatsCard({ professor, className = "" }: StatsCardProps) {
     return (
         // Box shadow taken from figma
         <div
-            className={`flex flex-col shadow-[0_0_50px_rgba(0,0,0,0.15)] rounded-lg gap-1 py-5 px-6 min-w-[27rem] ${className}`}
+            className={`flex flex-col shadow-[0_0_50px_rgba(0,0,0,0.15)] rounded-lg gap-1 py-5 px-6 min-w-[22rem] sm:min-w-[27rem] ${className}`}
         >
             <div className="flex justify-between mb-3 align-bottom">
                 <div className="flex items-center">
                     <span className="text-6xl font-bold">
                         {naEvalZero(professor?.overallRating)}
                     </span>
-                    <span className="text-4xl font-bold ml-1">/4</span>
+                    <span className="text-4xl font-bold ml-1 hidden sm:block">/4</span>
                 </div>
                 <div className="flex flex-col justify-end gap-[0.125rem]">
                     <p className="text-right text-sm font-medium">
@@ -245,7 +245,7 @@ function StatsCard({ professor, className = "" }: StatsCardProps) {
                 </div>
             </div>
             <div className="flex justify-between font-medium bg-gray-200 px-3 py-2 rounded">
-                <p>Recognizes Student Difficulties</p>
+                <p>Recognizes Difficulties</p>
                 <div className="flex items-center">
                     {/* Hack since star ratings will not items-center properly */}
                     <div className="mb-[0.13rem]">
@@ -257,11 +257,13 @@ function StatsCard({ professor, className = "" }: StatsCardProps) {
                             starSpacing="1px"
                         />
                     </div>
-                    <span className="ml-4 mr-1">{naEvalZero(professor?.studentDifficulties)}</span>
+                    <span className="ml-4 mr-1 hidden sm:block">
+                        {naEvalZero(professor?.studentDifficulties)}
+                    </span>
                 </div>
             </div>
-            <div className="flex justify-between font-medium bg-gray-200 px-3 py-2 rounded">
-                <p>Presents Material Clearly</p>
+            <div className="flex justify-between font-medium bg-gray-200 px-3 py-2 rounded mt-2">
+                <p>Presents Clearly</p>
                 <div className="flex items-center">
                     {/* Hack since star ratings will not items-center properly */}
                     <div className="mb-[0.13rem]">
@@ -273,7 +275,9 @@ function StatsCard({ professor, className = "" }: StatsCardProps) {
                             starSpacing="1px"
                         />
                     </div>
-                    <span className="ml-4 mr-1">{naEvalZero(professor?.materialClear)}</span>
+                    <span className="ml-4 mr-1 hidden sm:block">
+                        {naEvalZero(professor?.materialClear)}
+                    </span>
                 </div>
             </div>
         </div>
@@ -300,7 +304,7 @@ function RatingCard({ rating, professorId }: RatingCardProps) {
                         />
                     )}
                 </div>
-                <div> Grade Relieved: {rating.grade}</div>
+                <div> Grade Received: {rating.grade}</div>
                 <div>{rating.courseType}</div>
                 <div>{rating.gradeLevel}</div>
             </div>
@@ -317,7 +321,7 @@ function RatingCard({ rating, professorId }: RatingCardProps) {
                     />
                 )}
                 {/* Weird padding to algin star ratings */}
-                <p className="pt-[0.07rem]"> Grade Relieved: {rating.grade}</p>
+                <p className="pt-[0.07rem]"> Grade Received: {rating.grade}</p>
                 <p className="pt-[0.07rem]">{rating.gradeLevel}</p>
             </div>
 
