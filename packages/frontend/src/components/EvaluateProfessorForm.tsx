@@ -86,10 +86,10 @@ export function EvaluateProfessorForm({ professor, closeForm }: EvaluateProfesso
         isLoading,
         error: networkError,
     } = trpc.ratings.add.useMutation({
-        onSuccess: () => {
+        onSuccess: (updatedProfessor) => {
             try {
                 toast.success("Thank you for your rating");
-                trpcContext.professors.get.invalidate({ id: professor?.id ?? "" });
+                trpcContext.professors.get.setData({ id: updatedProfessor.id }, updatedProfessor);
                 closeForm?.();
             } catch {
                 // No need to catch error since it is displayed in the ui
@@ -234,7 +234,7 @@ export function EvaluateProfessorForm({ professor, closeForm }: EvaluateProfesso
                     </div>
                 )}
             </div>
-            <div className="text-red-500 text-sm">{networkError}</div>
+            <div className="text-red-500 text-sm">{networkError?.message}</div>
         </form>
     );
 }

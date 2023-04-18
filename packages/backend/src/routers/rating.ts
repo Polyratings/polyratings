@@ -25,11 +25,11 @@ export const ratingsRouter = t.router({
                 error: null,
                 sentimentResponse: null,
             };
-    
+
             const attributeScores = await ctx.env.perspectiveDao.analyzeRaring(pendingRating);
             pendingRating.sentimentResponse = attributeScores;
-    
-            // At least 50% of people would find the text offensive in catagory
+
+            // At least 50% of people would find the text offensive in category
             const PERSPECTIVE_THRESHOLD = 0.5;
 
             const passedAnalysis = [
@@ -43,7 +43,7 @@ export const ratingsRouter = t.router({
                 }
                 return num < PERSPECTIVE_THRESHOLD && acc;
             }, true);
-    
+
             if (!passedAnalysis) {
                 // Update rating in processing queue
                 pendingRating.status = "Failed";
@@ -60,7 +60,7 @@ export const ratingsRouter = t.router({
             pendingRating.status = "Successful";
             await ctx.env.kvDao.addRatingLog(pendingRating);
 
-            await ctx.env.kvDao.addRating(pendingRating);
+            return ctx.env.kvDao.addRating(pendingRating);
         }),
     report: t.procedure
         .input(

@@ -21,7 +21,7 @@ import {
 import { KvWrapper } from "./kv-wrapper";
 
 const KV_REQUESTS_PER_TRIGGER = 1000;
-const ONE_WEEK = 1000 * 60 * 60 * 24 * 7
+const THREE_WEEKS_SECONDS = 60 * 60 * 24 * 7 * 3;
 
 export class KVDAO {
     constructor(
@@ -60,7 +60,7 @@ export class KVDAO {
     }
 
     getBulkNamespace(bulkKey: BulkKey): { namespace: KvWrapper; parser: z.ZodTypeAny } {
-        const namespaceMap: Record<BulkKey, { namespace: KvWrapper; parser: z.ZodTypeAny } > = {
+        const namespaceMap: Record<BulkKey, { namespace: KvWrapper; parser: z.ZodTypeAny }> = {
             professors: { namespace: this.polyratingsNamespace, parser: professorParser },
             "professor-queue": {
                 namespace: this.professorApprovalQueueNamespace,
@@ -71,10 +71,10 @@ export class KVDAO {
             "rating-log": {
                 namespace: this.ratingsLog,
                 parser: pendingRatingParser,
-            }
-        }
+            },
+        };
 
-        return namespaceMap[bulkKey]
+        return namespaceMap[bulkKey];
     }
 
     async getBulkKeys(bulkKey: BulkKey): Promise<string[]> {
@@ -141,6 +141,8 @@ export class KVDAO {
         }
 
         await this.putAllProfessors(profList);
+
+        return professor;
     }
 
     async removeProfessor(id: string) {
@@ -158,7 +160,9 @@ export class KVDAO {
     }
 
     async addRatingLog(rating: PendingRating) {
-        return this.ratingsLog.put(pendingRatingParser, rating.id, rating, { expiration: Date.now() + ONE_WEEK });
+        return this.ratingsLog.put(pendingRatingParser, rating.id, rating, {
+            expirationTtl: THREE_WEEKS_SECONDS,
+        });
     }
 
     async addRating(newRating: PendingRating) {
@@ -169,8 +173,7 @@ export class KVDAO {
         const professor = await this.getProfessor(newRating.professor);
         addRating(professor, newRating, `${newRating.department} ${newRating.courseNum}`);
 
-        this.putProfessor(professor);
-        return professor;
+        return this.putProfessor(professor);
     }
 
     async removeRating(professorId: string, ratingId: string) {

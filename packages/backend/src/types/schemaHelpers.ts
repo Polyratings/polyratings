@@ -1,12 +1,11 @@
-import { PendingRating, Professor, Rating, ratingParser, TruncatedProfessor } from "./schema";
+import { Professor, Rating, ratingParser, TruncatedProfessor } from "./schema";
 
 export function addRating(professor: Professor, reviewUnparsed: Rating, courseName: string) {
-    // Ensure that no extranious keys are present
+    // Ensure that no extraneous keys are present
     // Unsure if this is actually needed since the kv put may strip anyways
-    const review = ratingParser.parse(reviewUnparsed)
+    const review = ratingParser.parse(reviewUnparsed);
 
     // Ensure that the review has the correct professor id
-    // TODO: Investigate the necessity of having this field
     review.professor = professor.id;
 
     const ratings = professor.reviews[courseName];
@@ -17,7 +16,7 @@ export function addRating(professor: Professor, reviewUnparsed: Rating, courseNa
     }
 
     // Ensure that courses value is up to date
-    professor.courses = Object.keys(professor.reviews)
+    professor.courses = Object.keys(professor.reviews);
 
     const newMaterial =
         (professor.materialClear * professor.numEvals + review.presentsMaterialClearly) /
@@ -54,7 +53,7 @@ export function removeRating(professor: Professor, reviewId: string) {
         [removedRating] = professor.reviews[courseName];
         delete professor.reviews[courseName];
         // Make sure the courses property is up to date
-        professor.courses = Object.keys(professor.reviews)
+        professor.courses = Object.keys(professor.reviews);
     } else {
         // We know professor index is good since we found it previously
         const reviewIndex = reviews.findIndex((review) => review.id === reviewId);

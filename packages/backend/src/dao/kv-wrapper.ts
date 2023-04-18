@@ -44,7 +44,12 @@ export class KvWrapper {
         return possiblyNullJson.filter((exists) => exists).map((json) => parser.parse(json));
     }
 
-    put<T extends ZodTypeAny, U extends zodInfer<T>>(parser: T, key: string, data: U, options?:KVNamespacePutOptions) {
+    put<T extends ZodTypeAny, U extends zodInfer<T>>(
+        parser: T,
+        key: string,
+        data: U,
+        options?: KVNamespacePutOptions,
+    ) {
         const parsed = parser.parse(data);
         return this.kv.put(key, JSON.stringify(parsed), options);
     }
