@@ -37,7 +37,6 @@ export async function main(env: Record<string, string | undefined>, sentry?: Tou
         { name: "sync users", task: syncKvStore("users", "POLYRATINGS_USERS") },
         { name: "sync reports", task: syncKvStore("reports", "POLYRATINGS_REPORTS") },
         { name: "sync rating log", task: syncKvStore("rating-log", "PROCESSING_QUEUE") },
-
     ];
 
     for (const { task, name } of tasks) {
