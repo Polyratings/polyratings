@@ -43,11 +43,12 @@ export function Home() {
             </div>
             <div className="justify-center pl-5 lg:flex hidden z-10 relative">
                 <div className="w-1/2 transform xl:-translate-y-8 translate-y-2">
-                    <h2 className="xl:text-8xl lg:text-7xl font-semibold">Happy Spring!</h2>
+                    <h2 className="xl:text-8xl lg:text-7xl font-semibold">Course Accessability!</h2>
                     {/* pl-2 since the title font has spacing with the H */}
                     <p className="xl:w-2/3 lg:w-4/5 lg:text-2xl text-xl mt-8 font-medium pl-2">
-                        Hope everyone had a great spring break! We at Polyratings are sick of the
-                        winter rain and hope for a beautiful spring quarter.
+                        We are happy to announce the release of the course accessability allowing
+                        students to add tags to ratings. Top tags will be displayed at the top of
+                        the professor page.
                     </p>
                 </div>
 
