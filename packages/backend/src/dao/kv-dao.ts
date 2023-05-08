@@ -15,7 +15,6 @@ import {
 } from "@backend/types/schema";
 import {
     addRating,
-    pendingRatingToRating,
     professorToTruncatedProfessor,
     removeRating,
 } from "@backend/types/schemaHelpers";
@@ -176,8 +175,11 @@ export class KVDAO {
         }
 
         const professor = await this.getProfessor(pendingRating.professor);
-        const newRating = pendingRatingToRating(pendingRating);
-        addRating(professor, newRating, `${pendingRating.department} ${pendingRating.courseNum}`);
+        addRating(
+            professor,
+            pendingRating,
+            `${pendingRating.department} ${pendingRating.courseNum}`,
+        );
 
         this.putProfessor(professor);
         return professor;

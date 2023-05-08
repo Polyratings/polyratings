@@ -22,7 +22,7 @@ export const TextArea = forwardRef<HTMLTextAreaElement, TextAreaProps>(
                 id={name}
                 ref={ref}
                 name={name}
-                className={`w-full h-64 rounded text-black p-2 border-[#c3cdd5] bg-[#f2f5f8] active:bg-[#f2feff] border-[1px] ${className}`}
+                className={`w-full h-48 rounded text-black p-2 border-[#c3cdd5] bg-[#f2f5f8] active:bg-[#f2feff] border-[1px] ${className}`}
                 {...rest}
             />
             {error && <p className="text-sm text-red-500">{error}</p>}

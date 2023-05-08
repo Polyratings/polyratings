@@ -150,3 +150,26 @@ export type BulkKeyMap = {
     reports: RatingReport[];
     users: User[];
 };
+
+export const MAX_PROFESSOR_TAGS_PER_RATING = 3;
+
+export const PROFESSOR_TAGS = [
+    "Hybrid Option",
+    "Recorded Lectures",
+    "Zoom Office Hours",
+    "High In-Person Availability",
+    "Fast Response Time",
+    "Flexible Attendance Policy",
+    "Inflexible Attendance Policy",
+    "Flexible Deadline Policy",
+    "Class Handouts",
+    "Inflexible Deadline Policy",
+    "Pop Quizzes",
+    "Supplemental Study Material",
+    "Flexible Grading Policy",
+    "Inflexible Grading Policy",
+    "Does not use Canvas",
+    "Honor DRC Accommodations",
+    "Uploads Slides",
+    "No breaks during lecture",
+] as const;

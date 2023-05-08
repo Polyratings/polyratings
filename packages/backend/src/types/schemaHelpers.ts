@@ -1,9 +1,18 @@
-import { PendingRating, Professor, Rating, TruncatedProfessor } from "./schema";
+import { Professor, Rating, TruncatedProfessor } from "./schema";
 
 export function addRating(professor: Professor, review: Rating, courseName: string) {
     // Ensure that the review has the correct professor id
     // TODO: Investigate the necessity of having this field
     review.professor = professor.id;
+
+    // For migration purposes from old schema
+    professor.tags ??= {};
+
+    // Add tags to the professor
+    for (const tag of review.tags ?? []) {
+        const current = professor.tags[tag] ?? 0;
+        professor.tags[tag] = current + 1;
+    }
 
     if (!professor.courses.includes(courseName)) {
         professor.courses.push(courseName);
@@ -112,32 +121,6 @@ export function professorToTruncatedProfessor({
         overallRating,
         materialClear,
         studentDifficulties,
-    };
-}
-
-export function pendingRatingToRating({
-    id,
-    professor,
-    grade,
-    gradeLevel,
-    courseType,
-    postDate,
-    overallRating,
-    presentsMaterialClearly,
-    recognizesStudentDifficulties,
-    rating,
-}: PendingRating): Rating {
-    return {
-        id,
-        professor,
-        grade,
-        gradeLevel,
-        courseType,
-        postDate,
-        overallRating,
-        presentsMaterialClearly,
-        recognizesStudentDifficulties,
-        rating,
     };
 }
 
