@@ -21,57 +21,47 @@ export const ratingsRouter = t.router({
                 id: crypto.randomUUID(),
                 ...input,
                 postDate: new Date().toString(),
-                status: "Queued",
+                status: "Failed",
                 error: null,
                 sentimentResponse: null,
             };
 
-            await ctx.env.kvDao.addPendingRating(pendingRating);
+            const attributeScores = await ctx.env.perspectiveDao.analyzeRaring(pendingRating);
+            pendingRating.sentimentResponse = attributeScores;
 
-            return pendingRating.id;
-        }),
-    process: t.procedure.input(z.string().uuid()).mutation(async ({ ctx, input }) => {
-        const pendingRating = await ctx.env.kvDao.getPendingRating(input);
+            // At least 50% of people would find the text offensive in category
+            const PERSPECTIVE_THRESHOLD = 0.5;
 
-        if (pendingRating.status !== "Queued") {
-            throw new TRPCError({
-                code: "CONFLICT",
-                message: "Cannot perform operation on pending rating in terminal state!",
-            });
-        }
+            const passedAnalysis = [
+                attributeScores.SEVERE_TOXICITY?.summaryScore.value,
+                attributeScores.IDENTITY_ATTACK?.summaryScore?.value,
+                attributeScores.THREAT?.summaryScore?.value,
+                attributeScores.SEXUALLY_EXPLICIT?.summaryScore?.value,
+            ].reduce((acc, num) => {
+                if (num === undefined) {
+                    throw new Error("Not all of perspective summery scores were received");
+                }
+                return num < PERSPECTIVE_THRESHOLD && acc;
+            }, true);
 
-        const attributeScores = await ctx.env.perspectiveDao.analyzeRaring(pendingRating);
-        pendingRating.sentimentResponse = attributeScores;
+            if (!passedAnalysis) {
+                // Update rating in processing queue
+                pendingRating.status = "Failed";
+                await ctx.env.kvDao.addRatingLog(pendingRating);
 
-        const passedAnalysis = [
-            attributeScores.SEVERE_TOXICITY?.summaryScore.value,
-            attributeScores.IDENTITY_ATTACK?.summaryScore?.value,
-            attributeScores.THREAT?.summaryScore?.value,
-            attributeScores.SEXUALLY_EXPLICIT?.summaryScore?.value,
-        ].reduce((acc, num) => {
-            if (num === undefined) {
-                throw new Error("Not all of perspective summery scores were received");
+                throw new TRPCError({
+                    code: "PRECONDITION_FAILED",
+                    message:
+                        "Rating failed sentiment analysis, please contact dev@polyratings.org for assistance",
+                });
             }
-            return num < 0.8 && acc;
-        }, true);
 
-        if (passedAnalysis) {
-            pendingRating.status = "Successful";
-            await ctx.env.kvDao.addRating(pendingRating);
             // Update rating in processing queue
-            await ctx.env.kvDao.addPendingRating(pendingRating);
+            pendingRating.status = "Successful";
+            await ctx.env.kvDao.addRatingLog(pendingRating);
 
-            return "Rating has successfully been processed, it should be on the site within the next minute.";
-        }
-        pendingRating.status = "Failed";
-        // Update rating in processing queue
-        await ctx.env.kvDao.addPendingRating(pendingRating);
-        throw new TRPCError({
-            code: "PRECONDITION_FAILED",
-            message:
-                "Rating failed sentiment analysis, please contact dev@polyratings.org for assistance",
-        });
-    }),
+            return ctx.env.kvDao.addRating(pendingRating);
+        }),
     report: t.procedure
         .input(
             reportParser.merge(

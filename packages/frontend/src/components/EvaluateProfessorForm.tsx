@@ -34,10 +34,7 @@ export function TwoStepEvaluateProfessor({ professor, closeForm }: EvaluateProfe
         return <></>;
     }
 
-    const { onSubmit, hookForm, startError, finalizeError, isLoading } = useEvaluationForm(
-        professor,
-        closeForm,
-    );
+    const { onSubmit, hookForm, networkError, isLoading } = useEvaluationForm(professor, closeForm);
     const { control, trigger: triggerValidation } = hookForm;
 
     const [formStep, setFormStep] = useState<"first" | "second">("first");
@@ -131,7 +128,7 @@ export function TwoStepEvaluateProfessor({ professor, closeForm }: EvaluateProfe
                 {/* Exact size for no layer shift */}
                 <ClipLoader color="#1F4715" loading={isLoading} size={34} />
             </div>
-            <div className="text-red-500 text-sm">{startError ?? finalizeError}</div>
+            <div className="text-red-500 text-sm">{networkError?.message}</div>
         </form>
     );
 }
@@ -141,10 +138,7 @@ export function EvaluateProfessorFormLinear({ professor, closeForm }: EvaluatePr
     if (!professor) {
         return <div />;
     }
-    const { onSubmit, hookForm, isLoading, startError, finalizeError } = useEvaluationForm(
-        professor,
-        closeForm,
-    );
+    const { onSubmit, hookForm, isLoading, networkError } = useEvaluationForm(professor, closeForm);
     const { control } = hookForm;
 
     return (
@@ -169,7 +163,7 @@ export function EvaluateProfessorFormLinear({ professor, closeForm }: EvaluatePr
                 {/* Exact size for no layer shift */}
                 <ClipLoader color="white" loading={isLoading} size={34} />
             </div>
-            <div className="text-red-500 text-sm">{startError ?? finalizeError}</div>
+            <div className="text-red-500 text-sm">{networkError?.message}</div>
         </form>
     );
 }
@@ -412,18 +406,15 @@ function useEvaluationForm(
     const { setError } = hookForm;
 
     const trpcContext = trpc.useContext();
-    const { mutateAsync: finalizeRatingUpload, error: finalizeError } =
-        trpc.ratings.process.useMutation();
     const {
-        mutate: uploadNewRating,
+        mutate: uploadRating,
         isLoading,
-        error: startError,
+        error: networkError,
     } = trpc.ratings.add.useMutation({
-        onSuccess: async (id) => {
+        onSuccess: (updatedProfessor) => {
             try {
-                await finalizeRatingUpload(id);
                 toast.success("Thank you for your rating");
-                trpcContext.professors.get.invalidate({ id: professor.id ?? "" });
+                trpcContext.professors.get.setData({ id: updatedProfessor.id }, updatedProfessor);
                 closeForm?.();
             } catch {
                 // No need to catch error since it is displayed in the ui
@@ -452,8 +443,8 @@ function useEvaluationForm(
             return;
         }
 
-        uploadNewRating({
-            professor: professor.id ?? "",
+        uploadRating({
+            professor: professor?.id ?? "",
             courseNum,
             department,
             overallRating: formResult.overallRating,
@@ -463,15 +454,13 @@ function useEvaluationForm(
             courseType: formResult.courseType,
             rating: formResult.ratingText,
             gradeLevel: formResult.gradeLevel,
-            tags: formResult.tags,
         });
     };
 
     return {
         hookForm,
         isLoading,
-        startError,
-        finalizeError,
+        networkError,
         onSubmit: hookForm.handleSubmit(onSubmitHandler),
     };
 }
