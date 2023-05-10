@@ -81,18 +81,15 @@ export function EvaluateProfessorForm({ professor, closeForm }: EvaluateProfesso
 
     const knownCourseValue = watch("knownCourse");
     const trpcContext = trpc.useContext();
-    const { mutateAsync: finalizeRatingUpload, error: finalizeError } =
-        trpc.ratings.process.useMutation();
     const {
-        mutate: uploadNewRating,
+        mutate: uploadRating,
         isLoading,
-        error: startError,
+        error: networkError,
     } = trpc.ratings.add.useMutation({
-        onSuccess: async (id) => {
+        onSuccess: (updatedProfessor) => {
             try {
-                await finalizeRatingUpload(id);
                 toast.success("Thank you for your rating");
-                trpcContext.professors.get.invalidate({ id: professor?.id ?? "" });
+                trpcContext.professors.get.setData({ id: updatedProfessor.id }, updatedProfessor);
                 closeForm?.();
             } catch {
                 // No need to catch error since it is displayed in the ui
@@ -121,7 +118,7 @@ export function EvaluateProfessorForm({ professor, closeForm }: EvaluateProfesso
             return;
         }
 
-        uploadNewRating({
+        uploadRating({
             professor: professor?.id ?? "",
             courseNum,
             department,
@@ -237,7 +234,7 @@ export function EvaluateProfessorForm({ professor, closeForm }: EvaluateProfesso
                     </div>
                 )}
             </div>
-            <div className="text-red-500 text-sm">{startError ?? finalizeError}</div>
+            <div className="text-red-500 text-sm">{networkError?.message}</div>
         </form>
     );
 }

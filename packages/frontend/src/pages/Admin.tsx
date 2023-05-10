@@ -197,7 +197,7 @@ function PendingProfessors() {
 }
 
 function ProcessedRatings() {
-    const { data: processedRatings } = useDbValues("rating-queue");
+    const { data: processedRatings } = useDbValues("rating-log");
     type PendingRating = NonNullable<typeof processedRatings>[0];
 
     const columns = [
