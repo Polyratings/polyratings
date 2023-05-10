@@ -103,7 +103,7 @@ export function TwoStepEvaluateProfessor({ professor, closeForm }: EvaluateProfe
                 } `}
             >
                 <Button variant="secondary" type="submit">
-                    Skip Course Accessability
+                    Skip Course Accessibility
                 </Button>
                 <Button
                     type="button"
