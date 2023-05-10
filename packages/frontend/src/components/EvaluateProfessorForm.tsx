@@ -362,8 +362,8 @@ function SelectableTag({
         "after:content-[attr(title)] after:block after:font-bold after:h-1 after:text-transparent after:overflow-hidden";
 
     const className = selected
-        ? `${pseudoExpander} py-1 px-2 h-9 font-nunito font-semibold text-cal-poly-green rounded-lg ${selectedVariantMap[variant]} ${buttonClassName}`
-        : `${pseudoExpander} font-nunito font-[350] text-cal-poly-green py-1 px-2 h-9 rounded-lg ${unselectedVariantMap[variant]} ${buttonClassName}`;
+        ? `${pseudoExpander} font-semibold ${selectedVariantMap[variant]} ${buttonClassName}`
+        : `${pseudoExpander} font-[350] ${unselectedVariantMap[variant]} ${buttonClassName}`;
 
     return (
         <button
@@ -371,7 +371,8 @@ function SelectableTag({
             {...buttonProps}
             title={tagText}
             disabled={disabled && !selected}
-            className={`${className}`}
+            // Use different y padding to account for weird font height
+            className={`${className} pb-1 pt-[.313rem] px-2 h-9 text-cal-poly-green rounded-lg font-nunito`}
         >
             {tagText}
         </button>

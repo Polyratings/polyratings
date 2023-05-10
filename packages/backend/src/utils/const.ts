@@ -168,8 +168,8 @@ export const PROFESSOR_TAGS = [
     "Supplemental Study Material",
     "Flexible Grading Policy",
     "Inflexible Grading Policy",
-    "Does not use Canvas",
+    "Does Not Use Canvas",
     "Honor DRC Accommodations",
     "Uploads Slides",
-    "No breaks during lecture",
+    "No Breaks During Lecture",
 ] as const;
