@@ -1,10 +1,8 @@
-import { forwardRef, HTMLAttributes } from "react";
+import { forwardRef } from "react";
 
-export interface TextInputProps extends Partial<HTMLAttributes<HTMLInputElement>> {
-    name: string;
+export interface TextInputProps extends React.ComponentProps<"input"> {
     label: string;
     error?: string;
-    type?: "text" | "number" | "password";
     wrapperClassName?: string;
 }
 

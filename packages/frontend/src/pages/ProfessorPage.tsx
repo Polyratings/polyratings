@@ -14,13 +14,16 @@ import { toast } from "react-toastify";
 import { inferProcedureOutput } from "@trpc/server";
 import { AppRouter } from "@backend/index";
 import { InView } from "react-intersection-observer";
-import { EvaluateProfessorForm, TextArea, TextInput } from "@/components";
+import {
+    TwoStepEvaluateProfessor,
+    TextArea,
+    TextInput,
+    EvaluateProfessorFormLinear,
+} from "@/components";
 import { trpc } from "@/trpc";
 import { REACT_MODAL_STYLES } from "@/constants";
 import { Button } from "@/components/forms/Button";
 import { useSortedCourses } from "@/hooks";
-
-const TAG_DEMO = false;
 
 export function professorPageLoaderFactory(trpcContext: ReturnType<(typeof trpc)["useContext"]>) {
     const professorPageLoader: IndexRouteObject["loader"] = ({ params }) =>
@@ -39,6 +42,12 @@ export function ProfessorPage() {
     const { data: professorData, error: fetchError } = trpc.professors.get.useQuery({
         id: id ?? "",
     });
+
+    const topTags = Object.entries(professorData?.tags ?? {})
+        .sort(([, aNum], [, bNum]) => bNum - aNum)
+        .map(([tagName]) => tagName)
+        .slice(0, 4);
+
     const navigate = useNavigate();
     if (fetchError) {
         navigate("/");
@@ -79,15 +88,15 @@ export function ProfessorPage() {
                 onRequestClose={() => setProfessorEvaluationShownDesktop(false)}
                 style={REACT_MODAL_STYLES}
             >
-                <div className="bg-white opacity-100 rounded shadow p-5 w-[40rem]">
-                    <EvaluateProfessorForm
+                <div className="bg-white opacity-100 rounded shadow p-5 w-[40.5rem]">
+                    <TwoStepEvaluateProfessor
                         professor={professorData}
                         closeForm={() => setProfessorEvaluationShownDesktop(false)}
                     />
                 </div>
             </Modal>
 
-            <div className="lg:max-w-5xl w-full mx-auto flex justify-center md:justify-between pt-10 pb-3 px-2">
+            <div className="lg:max-w-5xl w-full mx-auto flex justify-center md:justify-between pt-4 md:pt-10 pb-3 px-2">
                 <div className="flex flex-col">
                     <h2 className="text-lg font-semibold">{professorData?.department} Professor</h2>
 
@@ -95,12 +104,11 @@ export function ProfessorPage() {
                         {professorData?.lastName}, {professorData?.firstName}
                     </h1>
 
-                    {TAG_DEMO && (
+                    {Boolean(topTags.length) && (
                         <div className="flex gap-2 flex-wrap mt-4 mb-2">
-                            <ProfessorTag tagName="Records Lectures" />
-                            <ProfessorTag tagName="Flexible Attendance Policy" />
-                            <ProfessorTag tagName="Zoom Office Hours" />
-                            <ProfessorTag tagName="High Availability" />
+                            {topTags.map((tag) => (
+                                <ProfessorTag key={tag} tagName={tag} />
+                            ))}
                         </div>
                     )}
 
@@ -145,7 +153,7 @@ export function ProfessorPage() {
             </div>
             <AnimateHeight duration={500} height={professorEvaluationShownMobile ? "auto" : 0}>
                 <div className="bg-cal-poly-green text-white p-5">
-                    <EvaluateProfessorForm
+                    <EvaluateProfessorFormLinear
                         professor={professorData}
                         closeForm={() => setProfessorEvaluationShownMobile(false)}
                     />
@@ -198,7 +206,9 @@ export function ProfessorPage() {
             {/* Mobile class scroll needs room to see all ratings */}
             <div className="block xl:hidden h-16 w-full" />
             <ClassScroll
-                outerClassName="flex items-center xl:hidden h-14 fixed bg-cal-poly-green w-full bottom-0 overflow-x-auto scrollbar-hidden"
+                outerClassName={`${
+                    professorEvaluationShownMobile ? "hidden" : "flex"
+                } items-center xl:hidden h-14 fixed bg-cal-poly-green w-full bottom-0 overflow-x-auto scrollbar-hidden`}
                 innerClassName={() =>
                     "text-md font-semibold h-8 bg-cal-poly-gold text-white ml-4 rounded-xl py-1 px-2 whitespace-nowrap"
                 }
@@ -291,7 +301,7 @@ interface RatingCardProps {
 function RatingCard({ rating, professorId }: RatingCardProps) {
     return (
         <div className="bg-white w-full rounded-3xl py-3 px-6 my-2 border-cal-poly-green border-4 flex flex-col md:flex-row relative">
-            <div className="hidden md:flex flex-col gap-1 w-32 flex-shrink-0 m-auto mr-4 text-center">
+            <div className="hidden md:flex flex-col gap-1 flex-shrink-0 mr-4 text-center">
                 <div className="mb-2">
                     {/* Only show stars for ratings from the new site */}
                     {new Date(rating.postDate).getFullYear() >= 2022 && (
@@ -304,9 +314,9 @@ function RatingCard({ rating, professorId }: RatingCardProps) {
                         />
                     )}
                 </div>
-                <div> Grade Received: {rating.grade}</div>
-                <div>{rating.courseType}</div>
-                <div>{rating.gradeLevel}</div>
+                <p className="whitespace-nowrap"> Grade Received: {rating.grade}</p>
+                <p>{rating.courseType}</p>
+                <p>{rating.gradeLevel}</p>
             </div>
 
             <div className="flex md:hidden gap-4 m-auto align-middle text-sm">
@@ -330,7 +340,7 @@ function RatingCard({ rating, professorId }: RatingCardProps) {
             {/* Mobile divider */}
             <div className="flex md:hidden bg-black w-4/5 h-[0.08rem] m-auto my-2" />
 
-            <div className="flex-grow py-3">
+            <div className="py-3 flex-grow">
                 <p className="text-xl font-semibold mb-2">
                     {new Date(rating.postDate).toLocaleString("en-US", {
                         year: "numeric",
@@ -341,15 +351,18 @@ function RatingCard({ rating, professorId }: RatingCardProps) {
                 <div className="flex justify-between mt-2">
                     {/* A little hack to get the desired behavior with overflowing line and keeping report at bottom right */}
                     <div className="pt-[0.125rem]">
-                        <div className="flex gap-3 flex-wrap">
-                            <ProfessorTag tagName="Flexible Attendance Policy" />
-                            <ProfessorTag tagName="Zoom Office Hours" />
-                            <ProfessorTag tagName="High Availability" />
+                        <div className="flex gap-1 md:gap-3 flex-wrap">
+                            {rating.tags
+                                // Attempt to sort tags from small to large to have them on the same line
+                                ?.sort((a, b) => a.length - b.length)
+                                ?.map((tag) => (
+                                    <ProfessorTag key={tag} tagName={tag} />
+                                ))}
                         </div>
                     </div>
                     <div className="flex flex-col-reverse">
                         <ReportButton
-                            className="ml-10"
+                            className="ml-2 md:ml-10"
                             professorId={professorId}
                             ratingId={rating.id}
                         />
@@ -464,15 +477,10 @@ type ProfessorTagProps = {
     tagName: string;
 };
 function ProfessorTag({ tagName }: ProfessorTagProps) {
-    if (!TAG_DEMO) {
-        // eslint-disable-next-line react/jsx-no-useless-fragment
-        return <></>;
-    }
-
     return (
-        <div className="flex items-center rounded px-2 py-[0.125rem] bg-cal-poly-light-green text-cal-poly-green">
-            <TagIcon className="w-3 h-3" />
-            <span className="font-medium ml-2">{tagName}</span>
+        <div className="flex items-center rounded px-2 py-[0.125rem] bg-cal-poly-light-green text-cal-poly-green text-xs md:text-base">
+            <TagIcon className="w-2 h-2 md:w-3 md:h-3" />
+            <span className="font-medium ml-1 md:ml-2">{tagName}</span>
         </div>
     );
 }

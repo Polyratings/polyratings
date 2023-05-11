@@ -4,7 +4,9 @@ import {
     DEPARTMENT_LIST,
     GRADES,
     GRADE_LEVELS,
+    MAX_PROFESSOR_TAGS_PER_RATING,
     PENDING_RATING_STATUSES,
+    PROFESSOR_TAGS,
 } from "@backend/utils/const";
 
 export const ratingBaseParser = z.object({
@@ -15,6 +17,7 @@ export const ratingBaseParser = z.object({
     presentsMaterialClearly: z.number().min(0).max(4),
     recognizesStudentDifficulties: z.number().min(0).max(4),
     rating: z.string(),
+    tags: z.enum(PROFESSOR_TAGS).array().max(MAX_PROFESSOR_TAGS_PER_RATING).optional(),
 });
 export type RatingBase = z.infer<typeof ratingBaseParser>;
 
@@ -68,6 +71,7 @@ export const truncatedProfessorParser = z.object({
     materialClear: z.number().min(0).max(4),
     studentDifficulties: z.number().min(0).max(4),
     courses: z.array(z.string()),
+    tags: z.record(z.enum(PROFESSOR_TAGS), z.number()).optional(),
 });
 export type TruncatedProfessor = z.infer<typeof truncatedProfessorParser>;
 

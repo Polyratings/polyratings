@@ -1,8 +1,7 @@
-import { forwardRef, HTMLAttributes } from "react";
+import { forwardRef } from "react";
 
-export interface CheckboxProps extends Partial<HTMLAttributes<HTMLInputElement>> {
+export interface CheckboxProps extends React.ComponentProps<"input"> {
     label: string;
-    name: string;
 }
 
 export const Checkbox = forwardRef<HTMLInputElement, CheckboxProps>(

@@ -1,9 +1,8 @@
-import { SelectHTMLAttributes, forwardRef } from "react";
+import { forwardRef } from "react";
 import { ChevronDownIcon } from "@heroicons/react/24/outline";
 
-export interface SelectProps extends SelectHTMLAttributes<unknown> {
+export interface SelectProps extends React.ComponentProps<"select"> {
     options: { value: string; label: string }[];
-    name: string;
     label: string;
     error?: string;
     wrapperClassName?: string;

@@ -153,6 +153,29 @@ export type BulkKeyMap = {
     users: User[];
 };
 
+export const MAX_PROFESSOR_TAGS_PER_RATING = 3;
+
+export const PROFESSOR_TAGS = [
+    "Hybrid Option",
+    "Recorded Lectures",
+    "Zoom Office Hours",
+    "High In-Person Availability",
+    "Fast Response Time",
+    "Flexible Attendance Policy",
+    "Inflexible Attendance Policy",
+    "Flexible Deadline Policy",
+    "Class Handouts",
+    "Inflexible Deadline Policy",
+    "Pop Quizzes",
+    "Supplemental Study Material",
+    "Flexible Grading Policy",
+    "Inflexible Grading Policy",
+    "Does Not Use Canvas",
+    "Honor DRC Accommodations",
+    "Uploads Slides",
+    "No Breaks During Lecture",
+] as const;
+
 type TypeEqual = IsEqual<BulkKey, keyof BulkKeyMap> extends true ? true : never;
 // Error will be generated here if the BulkKey union does not match the keys of BulkKeyMap
 // eslint-disable-next-line @typescript-eslint/no-unused-vars

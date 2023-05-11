@@ -8,6 +8,15 @@ export function addRating(professor: Professor, reviewUnparsed: Rating, courseNa
     // Ensure that the review has the correct professor id
     review.professor = professor.id;
 
+    // For migration purposes from old schema
+    professor.tags ??= {};
+
+    // Add tags to the professor
+    for (const tag of review.tags ?? []) {
+        const current = professor.tags[tag] ?? 0;
+        professor.tags[tag] = current + 1;
+    }
+
     const ratings = professor.reviews[courseName];
     if (!ratings) {
         professor.reviews[courseName] = [review];
