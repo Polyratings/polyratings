@@ -56,10 +56,11 @@ export const ratingsRouter = t.router({
                 });
             }
 
-            const updatedProfessor = await ctx.env.kvDao.addRating(pendingRating);
-
             // Update rating in processing queue
             pendingRating.status = "Successful";
+
+            const updatedProfessor = await ctx.env.kvDao.addRating(pendingRating);
+
             await ctx.env.kvDao.addRatingLog(pendingRating);
 
             return updatedProfessor;

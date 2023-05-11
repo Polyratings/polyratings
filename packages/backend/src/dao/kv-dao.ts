@@ -14,7 +14,7 @@ import {
     userParser,
 } from "@backend/types/schema";
 import {
-    addRating,
+    addRating as addRatingToProfessor,
     professorToTruncatedProfessor,
     removeRating,
 } from "@backend/types/schemaHelpers";
@@ -171,7 +171,11 @@ export class KVDAO {
         }
 
         const professor = await this.getProfessor(newRating.professor);
-        addRating(professor, newRating, `${newRating.department} ${newRating.courseNum}`);
+        addRatingToProfessor(
+            professor,
+            newRating,
+            `${newRating.department} ${newRating.courseNum}`,
+        );
 
         return this.putProfessor(professor);
     }
