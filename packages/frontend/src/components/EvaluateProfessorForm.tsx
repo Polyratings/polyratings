@@ -454,6 +454,7 @@ function useEvaluationForm(
             courseType: formResult.courseType,
             rating: formResult.ratingText,
             gradeLevel: formResult.gradeLevel,
+            tags: formResult.tags,
         });
     };
 
