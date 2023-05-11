@@ -35,6 +35,9 @@ jobs:
       - name: Test Packages
         run: npm run test
 
+      - name: Print Ref
+        run:  echo ${{ github.ref }}
+
       - name: Deploy Prod
         if: github.ref == 'refs/heads/master'
         env:
