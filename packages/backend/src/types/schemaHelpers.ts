@@ -1,12 +1,20 @@
-import { PendingRating, Professor, Rating, TruncatedProfessor } from "./schema";
+import { Professor, Rating, ratingParser, TruncatedProfessor } from "./schema";
 
-export function addRating(professor: Professor, review: Rating, courseName: string) {
+export function addRating(professor: Professor, reviewUnparsed: Rating, courseName: string) {
+    // Ensure that no extraneous keys are present
+    // Unsure if this is actually needed since the kv put may strip anyways
+    const review = ratingParser.parse(reviewUnparsed);
+
     // Ensure that the review has the correct professor id
-    // TODO: Investigate the necessity of having this field
     review.professor = professor.id;
 
-    if (!professor.courses.includes(courseName)) {
-        professor.courses.push(courseName);
+    // For migration purposes from old schema
+    professor.tags ??= {};
+
+    // Add tags to the professor
+    for (const tag of review.tags ?? []) {
+        const current = professor.tags[tag] ?? 0;
+        professor.tags[tag] = current + 1;
     }
 
     const ratings = professor.reviews[courseName];
@@ -15,6 +23,9 @@ export function addRating(professor: Professor, review: Rating, courseName: stri
     } else {
         ratings.push(review);
     }
+
+    // Ensure that courses value is up to date
+    professor.courses = Object.keys(professor.reviews);
 
     const newMaterial =
         (professor.materialClear * professor.numEvals + review.presentsMaterialClearly) /
@@ -50,12 +61,8 @@ export function removeRating(professor: Professor, reviewId: string) {
     if (reviews.length === 1) {
         [removedRating] = professor.reviews[courseName];
         delete professor.reviews[courseName];
-        const coursesIndex = professor.courses.indexOf(courseName);
-        if (coursesIndex === -1) {
-            throw new Error("Course to be removed is missing from professorDTO courses");
-        }
-        // Modifies in place
-        professor.courses.splice(coursesIndex, 1);
+        // Make sure the courses property is up to date
+        professor.courses = Object.keys(professor.reviews);
     } else {
         // We know professor index is good since we found it previously
         const reviewIndex = reviews.findIndex((review) => review.id === reviewId);
@@ -112,32 +119,6 @@ export function professorToTruncatedProfessor({
         overallRating,
         materialClear,
         studentDifficulties,
-    };
-}
-
-export function pendingRatingToRating({
-    id,
-    professor,
-    grade,
-    gradeLevel,
-    courseType,
-    postDate,
-    overallRating,
-    presentsMaterialClearly,
-    recognizesStudentDifficulties,
-    rating,
-}: PendingRating): Rating {
-    return {
-        id,
-        professor,
-        grade,
-        gradeLevel,
-        courseType,
-        postDate,
-        overallRating,
-        presentsMaterialClearly,
-        recognizesStudentDifficulties,
-        rating,
     };
 }
 

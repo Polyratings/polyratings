@@ -3,6 +3,9 @@
 module.exports = {
     content: ["./src/**/*.html", "./src/**/*.tsx"],
     theme: {
+        fontFamily: {
+            nunito: ["Nunito"],
+        },
         borderWidth: {
             DEFAULT: "0.0625rem",
             0: "0",

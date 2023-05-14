@@ -63,7 +63,9 @@ export function Login() {
                             {...register("password")}
                             error={errors.password?.message}
                         />
-                        {networkError && <p className="text-red-500 text-sm">{networkError}</p>}
+                        {networkError && (
+                            <p className="text-red-500 text-sm">{networkError.message}</p>
+                        )}
                         <Button className="w-full" type="submit">
                             Continue
                         </Button>

@@ -9,7 +9,6 @@ import { createTRPCProxyClient, httpLink } from "@trpc/client";
 import { syncKvStore } from "./steps/syncKvStore";
 import { cloudflareKVInit } from "./wrappers/kv-wrapper";
 import { Logger } from "./logger";
-import { clearKvStore } from "./steps/clearKvStore";
 import { generateAllProfessorEntry } from "./steps/generateAllProfessorEntry";
 
 export type KvName = keyof typeof cloudflareNamespaceInformation;
@@ -37,7 +36,7 @@ export async function main(env: Record<string, string | undefined>, sentry?: Tou
         },
         { name: "sync users", task: syncKvStore("users", "POLYRATINGS_USERS") },
         { name: "sync reports", task: syncKvStore("reports", "POLYRATINGS_REPORTS") },
-        { name: "clear rating processing information", task: clearKvStore("PROCESSING_QUEUE") },
+        { name: "sync rating log", task: syncKvStore("rating-log", "PROCESSING_QUEUE") },
     ];
 
     for (const { task, name } of tasks) {
