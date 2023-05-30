@@ -21,3 +21,10 @@ input::-webkit-inner-spin-button {
 input[type='number'] {
   -moz-appearance: textfield;
 }
+
+
+@counter-style home-list {
+  system: cyclic;
+  symbols: ◇;
+  suffix: " ";
+}
