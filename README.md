@@ -2,10 +2,8 @@
 Lerna monorepo to contain all polyratings related code
 
 ## Packages
-* [frontend](./packages/frontend/) - Frontend react app deployed at https://polyratings.org
+* [frontend](./packages/frontend/) - Frontend react app deployed at https://polyratings.dev
 * [backend](./packages/backend/) - Backend typescript app deployed on Cloudflare Workers
-* [shared](./packages/shared/) - Common data types related to sharing data between packages
-* [client](./packages/client/) - Client package that wraps interaction to the backend as well as re-exports the shared package
 * [cron](./packages/cron/) - nightly job that syncs data between environments as well as backs up the professor list to a separate git [repo](TODO://PROVIDE_URL)
 * [eslint-config](./packages/eslint-config/) - shared eslint config that is enforced in all other packages
 
