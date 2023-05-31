@@ -30,6 +30,7 @@ export const professorRouter = t.router({
         )
         .mutation(async ({ ctx, input }) => {
             const professorId = crypto.randomUUID();
+            const tags = Object.fromEntries((input.rating.tags ?? []).map((tag) => [tag, 1]));
             const professor: Professor = {
                 id: professorId,
                 firstName: input.firstName,
@@ -40,6 +41,7 @@ export const professorRouter = t.router({
                 overallRating: input.rating.overallRating,
                 materialClear: input.rating.presentsMaterialClearly,
                 studentDifficulties: input.rating.recognizesStudentDifficulties,
+                tags,
                 reviews: {
                     [`${input.rating.department} ${input.rating.courseNum}`]: [
                         {
