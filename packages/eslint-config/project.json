@@ -8,14 +8,20 @@
             "executor": "@nx/linter:eslint",
             "outputs": ["{options.outputFile}"],
             "options": {
-                "lintFilePatterns": ["packages/eslint-config/**/*.ts"]
+                "lintFilePatterns": [
+                    "packages/eslint-config/**/*.ts",
+                    "packages/eslint-config/**/*.js"
+                ]
             }
         },
         "lint-fix": {
             "executor": "@nx/linter:eslint",
             "outputs": ["{options.outputFile}"],
             "options": {
-                "lintFilePatterns": ["packages/eslint-config/**/*.ts"],
+                "lintFilePatterns": [
+                    "packages/eslint-config/**/*.ts",
+                    "packages/eslint-config/**/*.js"
+                ],
                 "fix": true
             }
         }

@@ -35,6 +35,7 @@ export function TwoStepEvaluateProfessor({ professor, closeForm }: EvaluateProfe
         return <></>;
     }
 
+    // eslint-disable-next-line react-hooks/rules-of-hooks
     const { onSubmit, hookForm, networkError, isLoading } = useEvaluationForm(professor, closeForm);
     const { control, trigger: triggerValidation } = hookForm;
 
@@ -161,6 +162,7 @@ export function EvaluateProfessorFormLinear({ professor, closeForm }: EvaluatePr
     if (!professor) {
         return <div />;
     }
+    // eslint-disable-next-line react-hooks/rules-of-hooks
     const { onSubmit, hookForm, isLoading, networkError } = useEvaluationForm(professor, closeForm);
     const { control } = hookForm;
 

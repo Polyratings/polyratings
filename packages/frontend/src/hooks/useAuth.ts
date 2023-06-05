@@ -34,6 +34,7 @@ export function loadStoredJwt() {
 export const AuthContext = createContext<{
     jwt: string | null;
     setJwt: (jwt: string | null) => void;
+    // eslint-disable-next-line @typescript-eslint/no-empty-function
 }>({ jwt: null, setJwt: () => {} });
 
 // Used to hold authState that goes into the authContext

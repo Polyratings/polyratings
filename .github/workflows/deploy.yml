@@ -21,29 +21,26 @@ jobs:
                   node-version: 16
                   cache: "npm"
 
-            - name: Install Top Level Dependencies
+            - name: Install Dependencies
               run: npm ci
 
-            - name: Install Dependencies
-              run: npm run bootstrap
-
             - name: Lint packages
-              run: npm run lint
+              run: nx run-many -t lint
 
             - name: Build Packages
-              run: npm run build
+              run: nx run-many -t build
 
             - name: Test Packages
-              run: npm run test
+              run: nx run-many -t test
 
             - name: Deploy Prod
               if: github.ref == 'refs/heads/master'
               env:
                   CF_API_TOKEN: ${{ secrets.CF_API_TOKEN }}
-              run: npm run deploy:prod
+              run: nx run-many -t deploy:prod
 
             - name: Deploy Beta
               if: github.ref == 'refs/heads/beta'
               env:
                   CF_API_TOKEN: ${{ secrets.CF_API_TOKEN }}
-              run: npm run deploy:beta
+              run: nx run-many -t deploy:beta
