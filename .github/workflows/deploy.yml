@@ -29,6 +29,9 @@ jobs:
               with:
                   main-branch-name: "master"
 
+            - name: Fetch base branch
+              run: git fetch origin ${{ env.BASE_REF }}:${{ env.BASE_REF }}
+
             - name: Install Dependencies
               run: npm ci
 
