@@ -6,7 +6,7 @@ workers_dev = false
 compatibility_date = "2022-01-15"
 
 [build]
-command = "nx build backend"
+command = "npx nx build backend"
 
 [build.upload]
 format = "modules"

@@ -6,7 +6,7 @@ workers_dev = false
 compatibility_date = "2022-01-15"
 
 [build]
-command = "nx build cron"
+command = "npx nx build cron"
 
 [build.upload]
 format = "modules"
