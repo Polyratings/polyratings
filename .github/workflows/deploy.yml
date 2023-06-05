@@ -1,19 +1,13 @@
-name: Continuous Integration and Deployment
-
-on:
-    pull_request:
-    push:
-        branches:
-            - master
-            - beta
-
 jobs:
     CI_CD:
         runs-on: ubuntu-latest
-
+        env:
+            BASE_REF: ${{ github.event.pull_request.base.ref != '' && github.event.pull_request.base.ref || 'master' }}
         steps:
             - name: Checkout Code
               uses: actions/checkout@v3
+              with:
+                fetch-depth: 0
 
             - name: Setup Node
               uses: actions/setup-node@v3
@@ -23,6 +17,8 @@ jobs:
 
             - name: Setup Nx
               uses: nrwl/nx-set-shas@v3
+              with:
+                main-branch-name: 'master'
 
             - name: Install Dependencies
               run: npm ci
@@ -31,22 +27,22 @@ jobs:
               run: npx nx format:check
 
             - name: Lint packages
-              run: npx nx affected -t lint --parallel=3
+              run: npx nx affected --base=${BASE_REF} --head=HEAD -t lint --parallel=3
 
             - name: Build Packages
-              run: npx nx affected -t build --parallel=3
+              run: npx nx affected --base=${BASE_REF} --head=HEAD -t build --parallel=3
 
             - name: Test Packages
-              run: npx nx affected -t test --parallel=3 --configuration=ci
+              run: npx nx affected --base=${BASE_REF} --head=HEAD -t test --parallel=3 --configuration=ci
 
             - name: Deploy Prod
-              if: github.ref == 'refs/heads/master'
+              if: github.ref == 'refs/heads/master' && github.event_name == 'push'
               env:
                   CF_API_TOKEN: ${{ secrets.CF_API_TOKEN }}
-              run: npx nx affected -t deploy:prod
+              run: npx nx run-many -t deploy:prod
 
             - name: Deploy Beta
-              if: github.ref == 'refs/heads/beta'
+              if: github.ref == 'refs/heads/beta' && github.event_name == 'push'
               env:
                   CF_API_TOKEN: ${{ secrets.CF_API_TOKEN }}
-              run: npx nx affected -t deploy:beta
+              run: npx nx run-many -t deploy:beta
