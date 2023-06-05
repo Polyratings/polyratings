@@ -1,3 +1,12 @@
+name: Continuous Integration and Deployment
+
+on:
+    pull_request:
+    push:
+        branches:
+            - master
+            - beta
+
 jobs:
     CI_CD:
         runs-on: ubuntu-latest
