@@ -1,6 +1,6 @@
 # Polyratings Monorepo
 
-Lerna monorepo to contain all polyratings related code
+Nx monorepo to contain all polyratings related code
 
 ## Packages
 
@@ -20,7 +20,7 @@ In order to set up for development you have one of two options:
 
 ## Setup
 
-Since this repository is organized using lerna setup is a little different than standard js projects.
+Since this repository is organized using Nx setup is a little different than standard js projects.
 
 Install top level JS dependencies
 

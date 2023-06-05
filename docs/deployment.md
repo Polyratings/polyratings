@@ -27,11 +27,11 @@ Setting up the different Cloudflare workers requires some manual setup (both thr
 To setup your KVs, navigate to the "Workers" tab from the Cloudflare Dashboard, and the select the "KV" subtab. In the center-right section of the page, you'll see a "Create namespace" button, become familiar with it because you'll need to create at least 4 separate KV namespaces (or more as each deployment environment--prod/beta/dev--requires 4 unique namespaces to operate).
 **Namespaces to create:**
 
--   POLYRATINGS*TEACHERS*`ENV`
--   POLYRATINGS*RATING_QUEUE*`ENV`
--   POLYRATINGS*PROFESSOR_QUEUE*`ENV`
--   POLYRATINGS*USERS*`ENV`
--   POLYRATINGS*REPORTS*`ENV`
+-   `POLYRATINGS_TEACHERS_<ENV>`
+-   `POLYRATINGS_RATING_QUEUE_<ENV>`
+-   `POLYRATINGS_PROFESSOR_QUEUE_<ENV>`
+-   `POLYRATINGS_USERS_<ENV>`
+-   `POLYRATINGS_REPORTS_<ENV>`
     Take note of the namespace IDs as you'll need them for later configuration.
 
 ### Workers Usage Model
