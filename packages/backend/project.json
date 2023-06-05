@@ -1,0 +1,91 @@
+{
+    "name": "backend",
+    "$schema": "../../node_modules/nx/schemas/project-schema.json",
+    "sourceRoot": "packages/backend/src",
+    "projectType": "library",
+    "targets": {
+        "generateBackendTypes": {
+            "executor": "nx:run-commands",
+            "options": {
+                "command": "node packages/backend/generateBackendTypes.js",
+                "cwd": ".",
+                "color": true
+            }
+        },
+        "build": {
+            "executor": "@nx/esbuild:esbuild",
+            "outputs": ["{options.outputPath}"],
+            "dependsOn": ["generateBackendTypes"],
+            "options": {
+                "outputPath": "dist/packages/backend",
+                "main": "packages/backend/src/index.ts",
+                "tsConfig": "packages/backend/tsconfig.lib.json",
+                "assets": ["packages/backend/*.md"],
+                "generatePackageJson": true
+            }
+        },
+        "stats": {
+            "executor": "nx:run-commands",
+            "options": {
+                "commands": [
+                    "esbuild-visualizer --metadata ./stats/metadata.json --filename ./stats/stats.html"
+                ],
+                "parallel": false
+            }
+        },
+        "deploy:prod": {
+            "executor": "nx:run-commands",
+            "dependsOn": ["build"],
+            "options": {
+                "commands": ["wrangler publish --env prod"],
+                "parallel": false
+            }
+        },
+        "deploy:beta": {
+            "executor": "nx:run-commands",
+            "dependsOn": ["build"],
+            "options": {
+                "commands": ["wrangler publish --env beta"],
+                "parallel": false
+            }
+        },
+        "deploy:dev": {
+            "executor": "nx:run-commands",
+            "dependsOn": ["build"],
+            "options": {
+                "commands": ["wrangler publish --env dev"],
+                "parallel": false
+            }
+        },
+        "lint": {
+            "executor": "@nx/linter:eslint",
+            "outputs": ["{options.outputFile}"],
+            "options": {
+                "lintFilePatterns": ["packages/backend/**/*.ts"]
+            }
+        },
+        "lint-dix": {
+            "executor": "@nx/linter:eslint",
+            "outputs": ["{options.outputFile}"],
+            "options": {
+                "lintFilePatterns": ["packages/backend/**/*.ts"],
+                "fix": true
+            }
+        },
+        "test": {
+            "executor": "@nx/jest:jest",
+            "outputs": ["{workspaceRoot}/coverage/{projectRoot}"],
+            "options": {
+                "jestConfig": "packages/backend/jest.config.ts",
+                "passWithNoTests": true
+            },
+            "configurations": {
+                "ci": {
+                    "ci": true,
+                    "codeCoverage": true
+                }
+            }
+        }
+    },
+    "tags": []
+}

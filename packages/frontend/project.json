@@ -1,0 +1,86 @@
+{
+    "name": "frontend",
+    "$schema": "../../node_modules/nx/schemas/project-schema.json",
+    "sourceRoot": "packages/frontend/src",
+    "projectType": "application",
+    "targets": {
+        "build": {
+            "executor": "@nx/vite:build",
+            "outputs": ["{options.outputPath}"],
+            "defaultConfiguration": "production",
+            "options": {
+                "outputPath": "dist/packages/frontend"
+            },
+            "configurations": {
+                "development": {
+                    "mode": "development"
+                },
+                "production": {
+                    "mode": "production"
+                }
+            }
+        },
+        "serve": {
+            "executor": "@nx/vite:dev-server",
+            "defaultConfiguration": "development",
+            "options": {
+                "buildTarget": "frontend:build"
+            },
+            "configurations": {
+                "development": {
+                    "buildTarget": "frontend:build:development",
+                    "hmr": true
+                },
+                "production": {
+                    "buildTarget": "frontend:build:production",
+                    "hmr": false
+                }
+            }
+        },
+        "preview": {
+            "executor": "@nx/vite:preview-server",
+            "defaultConfiguration": "development",
+            "options": {
+                "buildTarget": "frontend:build"
+            },
+            "configurations": {
+                "development": {
+                    "buildTarget": "frontend:build:development"
+                },
+                "production": {
+                    "buildTarget": "frontend:build:production"
+                }
+            }
+        },
+        "test": {
+            "executor": "@nx/vite:test",
+            "outputs": ["coverage/packages/frontend"],
+            "options": {
+                "passWithNoTests": true,
+                "reportsDirectory": "../../coverage/packages/frontend"
+            }
+        },
+        "lint": {
+            "executor": "@nx/linter:eslint",
+            "outputs": ["{options.outputFile}"],
+            "options": {
+                "lintFilePatterns": ["packages/frontend/**/*.{ts,tsx,js,jsx}"]
+            }
+        },
+        "lint-fix": {
+            "executor": "@nx/linter:eslint",
+            "outputs": ["{options.outputFile}"],
+            "options": {
+                "lintFilePatterns": ["packages/frontend/**/*.{ts,tsx,js,jsx}"],
+                "fix": true
+            }
+        },
+        "serve-static": {
+            "executor": "@nx/web:file-server",
+            "options": {
+                "buildTarget": "frontend:build"
+            }
+        }
+    },
+    "tags": []
+}

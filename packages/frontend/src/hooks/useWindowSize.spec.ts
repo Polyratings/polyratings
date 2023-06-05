@@ -1,4 +1,4 @@
-import { renderHook, RenderResult } from "@testing-library/react-hooks";
+import { renderHook, RenderResult } from "@testing-library/react";
 import { act } from "react-dom/test-utils";
 import { waitFor } from "@testing-library/dom";
 import { describe, test, beforeEach, expect } from "vitest";

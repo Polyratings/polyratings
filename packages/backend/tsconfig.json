@@ -1,22 +1,32 @@
 {
+    "extends": "../../tsconfig.base.json",
     "compilerOptions": {
         "target": "ESNext",
         "module": "ESNext",
         "lib": ["ESNext"],
         "types": ["@cloudflare/workers-types"],
-        "outDir": "dist",
-        "moduleResolution": "Node",
-        "experimentalDecorators": true,
+        "forceConsistentCasingInFileNames": true,
         "strictPropertyInitialization": false,
         "strict": true,
+        "noImplicitOverride": true,
+        "noPropertyAccessFromIndexSignature": true,
+        "noImplicitReturns": true,
+        "noFallthroughCasesInSwitch": true,
         "baseUrl": "./",
         "paths": {
             "@backend/*": ["src/*"]
         },
-        "declaration": true,
         "noEmit": true,
-        "skipLibCheck": true,
         "noEmitHelpers": true
     },
-    "include": ["src/**/*"]
+    "files": [],
+    "include": [],
+    "references": [
+        {
+            "path": "./tsconfig.lib.json"
+        },
+        {
+            "path": "./tsconfig.spec.json"
+        }
+    ]
 }

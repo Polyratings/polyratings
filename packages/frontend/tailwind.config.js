@@ -1,7 +1,12 @@
-/* eslint-disable global-require */
+const { createGlobPatternsForDependencies } = require("@nx/react/tailwind");
+const { join } = require("path");
 
+/** @type {import('tailwindcss').Config} */
 module.exports = {
-    content: ["./src/**/*.html", "./src/**/*.tsx"],
+    content: [
+        join(__dirname, "{src,pages,components,app}/**/*!(*.stories|*.spec).{ts,tsx,html}"),
+        ...createGlobPatternsForDependencies(__dirname),
+    ],
     theme: {
         fontFamily: {
             nunito: ["Nunito"],
@@ -56,5 +61,6 @@ module.exports = {
             },
         },
     },
+    // eslint-disable-next-line global-require
     plugins: [require("tailwind-scrollbar-hide")],
 };

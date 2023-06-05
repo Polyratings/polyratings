@@ -1,0 +1,24 @@
+{
+    "name": "eslint-config",
+    "$schema": "../../node_modules/nx/schemas/project-schema.json",
+    "sourceRoot": "packages/eslint-config/src",
+    "projectType": "library",
+    "targets": {
+        "lint": {
+            "executor": "@nx/linter:eslint",
+            "outputs": ["{options.outputFile}"],
+            "options": {
+                "lintFilePatterns": ["packages/eslint-config/**/*.ts"]
+            }
+        },
+        "lint-fix": {
+            "executor": "@nx/linter:eslint",
+            "outputs": ["{options.outputFile}"],
+            "options": {
+                "lintFilePatterns": ["packages/eslint-config/**/*.ts"],
+                "fix": true
+            }
+        }
+    },
+    "tags": []
+}

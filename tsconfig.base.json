@@ -1,0 +1,25 @@
+{
+    "compileOnSave": false,
+    "compilerOptions": {
+        "rootDir": ".",
+        "sourceMap": true,
+        "declaration": false,
+        "moduleResolution": "node",
+        "emitDecoratorMetadata": true,
+        "experimentalDecorators": true,
+        "importHelpers": true,
+        "target": "es2015",
+        "module": "esnext",
+        "lib": ["es2020", "dom"],
+        "skipLibCheck": true,
+        "skipDefaultLibCheck": true,
+        "baseUrl": ".",
+        "paths": {
+            "@/*": ["packages/frontend/src/*"],
+            "@backend/*": ["packages/backend/src/*"],
+            "cron": ["packages/cron/src/*"],
+            "eslint-config": ["packages/eslint-config/src/*"]
+        }
+    },
+    "exclude": ["node_modules", "tmp"]
+}
