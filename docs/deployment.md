@@ -117,7 +117,7 @@ You'll need to fill out the page using the following settings:
 -   **Project name:** The name you want associated with this Pages project. Note: it **is not** the final URL that will point to your homepage.
 -   **Production branch**: This should usually be `master` unless you've changed the default branch of your repository.
 -   **Framework preset**: None
--   **Build command**: `npm run bootstrap && npm run build`. This is because the monorepo is orchestrated by [Lerna](https://lerna.js.org/) so all of the installation, symlinking, and building is handled at the top level.
+-   **Build command**: `nx build frontend`.
 -   **Build output directory**: `/packages/frontend/dist`
 
 Then select "Save and Deploy." Your site should automatically deploy to `project-name.pages.dev` though if your project name is identical to another, there will be a unique identifier appended to the end of `project-name`.

@@ -28,7 +28,7 @@ The backend begins with a single entrypoint in [index.ts](src/index.ts) that set
 
 ## Building
 
-To build this package, you simply need to run `nx run backend:build` and [esbuild](https://esbuild.github.io/) will
+To build this package, you simply need to run `nx build backend` and [esbuild](https://esbuild.github.io/) will
 bundle the entire project and its dependencies together. The build artifact from this process can be manually uploaded
 to Cloudflare Workers.
 
@@ -42,5 +42,5 @@ automate the building, testing, and deployment of this project within some type 
 This package makes use of [Wrangler](https://developers.cloudflare.com/workers/cli-wrangler) a Command-line Interface
 provided by Cloudflare which can automatically build and deploy your workers project to the Cloudflare network.
 
-After downloading the CLI tool and authenticating with it, you can simply run `npm run deploy:ENV_NAME` to deploy
+After downloading the CLI tool and authenticating with it, you can simply run `nx run backend:deploy:ENV_NAME` to deploy
 a live version of your code for testing, production, etc.
