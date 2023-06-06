@@ -1,13 +1,81 @@
 {
     "root": true,
     "ignorePatterns": ["**/*"],
-    "extends": ["./packages/eslint-config/index.js"],
-    "plugins": ["@nx"],
+    "env": {
+        "browser": true,
+        "es2020": true
+    },
+    "extends": [
+        // General Prettier defaults
+        "airbnb",
+        "plugin:@typescript-eslint/recommended",
+        "prettier"
+    ],
+    "plugins": ["@nx", "react", "prettier"],
+    "parser": "@typescript-eslint/parser",
+    "parserOptions": {
+        "ecmaVersion": 2020
+    },
+    "settings": {
+        "import/resolver": {
+            "node": {
+                "extensions": [".ts", ".tsx"]
+            }
+        }
+    },
     "overrides": [
         {
             "files": ["*.ts", "*.tsx", "*.js", "*.jsx"],
             "rules": {
-                "@nx/enforce-module-boundaries": "off"
+                "@nx/enforce-module-boundaries": "off",
+                // Standard ESLint config
+                "indent": "off",
+                "quotes": ["error", "double"],
+                "camelcase": ["error", { "properties": "always" }],
+                "linebreak-style": ["error", "unix"],
+                "eol-last": ["error", "always"],
+                "max-len": ["error", { "code": 150, "tabWidth": 4 }],
+                "no-console": "warn",
+                "no-debugger": "warn",
+                "no-param-reassign": ["error", { "props": false }],
+                "no-bitwise": "off",
+                "no-shadow": "off",
+                "no-use-before-define": "off",
+                "no-restricted-imports": ["error", { "patterns": ["..*", "!@/*"] }],
+                "no-unused-vars": "off",
+                "no-useless-constructor": "off",
+                "no-empty-function": "off",
+                "max-classes-per-file": "off",
+
+                // TypeScript plugin config
+                "@typescript-eslint/no-use-before-define": "off",
+                "@typescript-eslint/no-unused-vars": ["error"],
+                "@typescript-eslint/no-empty-function": "off",
+
+                "react/react-in-jsx-scope": "off",
+                "react/jsx-filename-extension": [0],
+
+                // Import plugin config (used to intelligently validate module import statements)
+                "import/prefer-default-export": "off",
+                "import/extensions": "off",
+                "import/no-unresolved": "off",
+                "import/no-extraneous-dependencies": "off",
+
+                "react/jsx-props-no-spreading": "off",
+                "react/require-default-props": "off",
+                "react/prop-types": "off",
+
+                // Prettier Rules
+                "prettier/prettier": [
+                    "error",
+                    {
+                        "printWidth": 100,
+                        "trailingComma": "all",
+                        "tabWidth": 4,
+                        "semi": true,
+                        "singleQuote": false
+                    }
+                ]
             }
         },
         {

@@ -2,9 +2,7 @@
     "name": "polyratings",
     "version": "0.0.0",
     "license": "AGPL-3.0",
-    "scripts": {
-        "bootstrap": ""
-    },
+    "scripts": {},
     "private": true,
     "devDependencies": {
         "@cloudflare/workers-types": "^3.3.1",

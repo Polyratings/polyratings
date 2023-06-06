@@ -7,7 +7,6 @@ Nx monorepo to contain all polyratings related code
 -   [frontend](./packages/frontend/) - Frontend react app deployed at https://polyratings.dev
 -   [backend](./packages/backend/) - Backend typescript app deployed on Cloudflare Workers
 -   [cron](./packages/cron/) - nightly job that syncs data between environments as well as backs up the professor list to a separate git [repo](TODO://PROVIDE_URL)
--   [eslint-config](./packages/eslint-config/) - shared eslint config that is enforced in all other packages
 
 ## Getting Ready for development
 

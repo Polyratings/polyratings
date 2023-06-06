@@ -17,8 +17,7 @@
         "paths": {
             "@/*": ["packages/frontend/src/*"],
             "@backend/*": ["packages/backend/src/*"],
-            "cron": ["packages/cron/src/*"],
-            "eslint-config": ["packages/eslint-config/src/*"]
+            "cron": ["packages/cron/src/*"]
         }
     },
     "exclude": ["node_modules", "tmp"]
