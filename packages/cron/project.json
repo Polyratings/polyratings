@@ -56,20 +56,6 @@
                 "lintFilePatterns": ["packages/cron/**/*.ts"],
                 "fix": true
             }
-        },
-        "test": {
-            "executor": "@nx/jest:jest",
-            "outputs": ["{workspaceRoot}/coverage/{projectRoot}"],
-            "options": {
-                "jestConfig": "packages/cron/jest.config.ts",
-                "passWithNoTests": true
-            },
-            "configurations": {
-                "ci": {
-                    "ci": true,
-                    "codeCoverage": true
-                }
-            }
         }
     },
     "tags": []
