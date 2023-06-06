@@ -11,7 +11,7 @@
         "plugin:@typescript-eslint/recommended",
         "prettier"
     ],
-    "plugins": ["@nx", "react", "prettier"],
+    "plugins": ["@nx", "react"],
     "parser": "@typescript-eslint/parser",
     "parserOptions": {
         "ecmaVersion": 2020
@@ -63,19 +63,7 @@
 
                 "react/jsx-props-no-spreading": "off",
                 "react/require-default-props": "off",
-                "react/prop-types": "off",
-
-                // Prettier Rules
-                "prettier/prettier": [
-                    "error",
-                    {
-                        "printWidth": 100,
-                        "trailingComma": "all",
-                        "tabWidth": 4,
-                        "semi": true,
-                        "singleQuote": false
-                    }
-                ]
+                "react/prop-types": "off"
             }
         },
         {

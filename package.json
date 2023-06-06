@@ -38,7 +38,7 @@
         "esbuild-visualizer": "^0.3.1",
         "eslint": "~8.15.0",
         "eslint-config-airbnb": "^19.0.4",
-        "eslint-config-prettier": "8.1.0",
+        "eslint-config-prettier": "^8.1.0",
         "eslint-plugin-cypress": "^2.10.3",
         "eslint-plugin-import": "2.27.5",
         "eslint-plugin-jsx-a11y": "6.7.1",

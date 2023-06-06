@@ -11,8 +11,7 @@
                 "outputPath": "dist/packages/cron",
                 "main": "packages/cron/src/worker.ts",
                 "tsConfig": "packages/cron/tsconfig.lib.json",
-                "assets": ["packages/cron/*.md"],
-                "generatePackageJson": true
+                "assets": ["packages/cron/*.md"]
             }
         },
         "build:local": {
@@ -22,24 +21,21 @@
                 "outputPath": "dist/packages/cron",
                 "main": "packages/cron/src/local.ts",
                 "tsConfig": "packages/cron/tsconfig.lib.json",
-                "assets": ["packages/cron/*.md"],
-                "generatePackageJson": true
+                "assets": ["packages/cron/*.md"]
             }
         },
         "deploy:prod": {
             "executor": "nx:run-commands",
             "dependsOn": ["build"],
             "options": {
-                "commands": ["wrangler publish --env prod"],
-                "parallel": false
+                "commands": ["wrangler publish --env prod"]
             }
         },
         "run:local": {
             "executor": "nx:run-commands",
             "dependsOn": ["build:local"],
             "options": {
-                "commands": ["node dist/packages/cron/local.js"],
-                "parallel": false
+                "commands": ["node dist/packages/cron/local.js"]
             }
         },
         "lint": {

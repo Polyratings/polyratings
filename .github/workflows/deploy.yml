@@ -39,13 +39,13 @@ jobs:
               run: npx nx format:check
 
             - name: Lint packages
-              run: npx nx affected --base=${BASE_REF} --head=HEAD -t lint --parallel=3
+              run: npx nx affected --base=${BASE_REF} --head=HEAD -t lint
 
             - name: Build Packages
-              run: npx nx affected --base=${BASE_REF} --head=HEAD -t build --parallel=3
+              run: npx nx affected --base=${BASE_REF} --head=HEAD -t build
 
             - name: Test Packages
-              run: npx nx affected --base=${BASE_REF} --head=HEAD -t test --parallel=3 --configuration=ci
+              run: npx nx affected --base=${BASE_REF} --head=HEAD -t test --configuration=ci
 
             - name: Deploy Prod
               if: github.ref == 'refs/heads/master' && github.event_name == 'push'

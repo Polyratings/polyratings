@@ -20,8 +20,7 @@
                 "outputPath": "dist/packages/backend",
                 "main": "packages/backend/src/index.ts",
                 "tsConfig": "packages/backend/tsconfig.lib.json",
-                "assets": ["packages/backend/*.md"],
-                "generatePackageJson": true
+                "assets": ["packages/backend/*.md"]
             }
         },
         "stats": {
@@ -29,32 +28,28 @@
             "options": {
                 "commands": [
                     "esbuild-visualizer --metadata ./stats/metadata.json --filename ./stats/stats.html"
-                ],
-                "parallel": false
+                ]
             }
         },
         "deploy:prod": {
             "executor": "nx:run-commands",
             "dependsOn": ["build"],
             "options": {
-                "commands": ["wrangler publish --env prod"],
-                "parallel": false
+                "commands": ["wrangler publish --env prod"]
             }
         },
         "deploy:beta": {
             "executor": "nx:run-commands",
             "dependsOn": ["build"],
             "options": {
-                "commands": ["wrangler publish --env beta"],
-                "parallel": false
+                "commands": ["wrangler publish --env beta"]
             }
         },
         "deploy:dev": {
             "executor": "nx:run-commands",
             "dependsOn": ["build"],
             "options": {
-                "commands": ["wrangler publish --env dev"],
-                "parallel": false
+                "commands": ["wrangler publish --env dev"]
             }
         },
         "lint": {
