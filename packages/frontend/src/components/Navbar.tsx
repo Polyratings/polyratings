@@ -26,9 +26,9 @@ export function Navbar() {
         <div
             className={`w-full ${
                 isAuthenticated ? "bg-red-800" : "bg-cal-poly-green"
-            } h-12 flex justify-between px-5 items-center`}
+            } flex h-12 items-center justify-between px-5`}
         >
-            <a className="absolute w-[1px] h-[1px] z-[-1]" href="#main">
+            <a className="absolute z-[-1] h-[1px] w-[1px]" href="#main">
                 Skip to main content
             </a>
 
@@ -52,10 +52,10 @@ export function Navbar() {
             <AnimateHeight
                 duration={500}
                 height={mobileNavOpen ? "auto" : 0}
-                className="absolute top-12 left-0 bg-cal-poly-green w-full z-50 transform -translate-y-1"
+                className="absolute top-12 left-0 z-50 w-full -translate-y-1 transform bg-cal-poly-green"
             >
                 <button
-                    className="flex flex-col items-center w-full text-xl text-white"
+                    className="flex w-full flex-col items-center text-xl text-white"
                     onClick={triggerMobileNav}
                     type="button"
                 >
@@ -78,9 +78,9 @@ export function Navbar() {
                 </button>
             </AnimateHeight>
 
-            <div className="text-white hidden md:flex items-center text-lg font-semibold">
+            <div className="hidden items-center text-lg font-semibold text-white md:flex">
                 {showInputBar && (
-                    <div className="text-black mr-7 hidden lg:block">
+                    <div className="mr-7 hidden text-black lg:block">
                         <SearchBar showOnlyInput={false} />
                     </div>
                 )}
@@ -105,7 +105,7 @@ export function Navbar() {
                     <img
                         src={DiscordLogo}
                         alt="Discord Link"
-                        className="w-9 opacity-80 hover:opacity-100 transition-all mr-7 hidden lg:block mt-[0.15rem]"
+                        className="mr-7 mt-[0.15rem] hidden w-9 opacity-80 transition-all hover:opacity-100 lg:block"
                     />
                 </a>
                 <a
@@ -116,7 +116,7 @@ export function Navbar() {
                     <img
                         src={GithubLogo}
                         alt="Github Link"
-                        className="w-8 opacity-80 hover:opacity-100 transition-all mr-1 hidden lg:block"
+                        className="mr-1 hidden w-8 opacity-80 transition-all hover:opacity-100 lg:block"
                     />
                 </a>
                 {isAuthenticated && (
@@ -128,7 +128,7 @@ export function Navbar() {
                 {isAuthenticated && (
                     <button
                         onClick={() => setJwt(null)}
-                        className="rounded-full border-white pl-3 pr-3 border-2 pt-px pb-px cursor-pointer"
+                        className="cursor-pointer rounded-full border-2 border-white pl-3 pr-3 pt-px pb-px"
                         type="button"
                     >
                         SIGN OUT

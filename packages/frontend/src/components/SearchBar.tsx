@@ -78,7 +78,7 @@ export function SearchBar({
     };
     return (
         <form
-            className="flex flex-col md:flex-row justify-center items-center py-6"
+            className="flex flex-col items-center justify-center py-6 md:flex-row"
             onSubmit={onFormSubmit}
             ref={formRef}
         >
@@ -87,7 +87,7 @@ export function SearchBar({
                     <select
                         value={searchType}
                         onChange={(e) => setSearchType(e.target.value as ProfessorSearchType)}
-                        className="hidden md:block rounded w-40 mr-4 bg-gray-100 font-medium border-2 border-black"
+                        className="mr-4 hidden w-40 rounded border-2 border-black bg-gray-100 font-medium md:block"
                     >
                         <option value="name">Professor</option>
                         <option value="class">Class</option>
@@ -102,12 +102,12 @@ export function SearchBar({
                     filterFn={(_, inputValue) => autoCompleteFilter(inputValue)}
                     label="Professor Auto-complete"
                     initialValue={searchValue}
-                    className="xl:w-72 w-[15rem] h-8 font-normal text-lg"
+                    className="h-8 w-[15rem] text-lg font-normal xl:w-72"
                     disableDropdown={disableAutoComplete}
                 />
             </div>
             {showOnlyInput && (
-                <Button className="!py-1 ml-5 mt-3 md:mt-0" type="submit">
+                <Button className="ml-5 mt-3 !py-1 md:mt-0" type="submit">
                     Submit
                 </Button>
             )}

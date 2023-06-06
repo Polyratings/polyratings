@@ -82,13 +82,13 @@ export function AutoComplete<T, U>({
     return (
         <div className={`relative ${className}`} {...getComboboxProps()}>
             <MagnifyingGlassIcon
-                className="py-1 h-full absolute right-2 top-1/2 transform -translate-y-1/2"
+                className="absolute right-2 top-1/2 h-full -translate-y-1/2 transform py-1"
                 strokeWidth={2}
             />
 
             <input
                 aria-label={label}
-                className="border-2 border-black p-2 w-full h-full rounded"
+                className="h-full w-full rounded border-2 border-black p-2"
                 type="text"
                 placeholder={placeholder}
                 {...getInputProps()}
@@ -96,7 +96,7 @@ export function AutoComplete<T, U>({
 
             <ul
                 {...getMenuProps({ ref: listRef })}
-                className="absolute top-full left-0 w-full bg-white shadow-xl max-h-28 overflow-y-auto"
+                className="absolute top-full left-0 max-h-28 w-full overflow-y-auto bg-white shadow-xl"
             >
                 {isOpen && !disableDropdown && deviceSupportsDropdown && (
                     <div style={{ height: `${rowVirtualizer.getTotalSize()}px` }}>
@@ -105,7 +105,7 @@ export function AutoComplete<T, U>({
                             return (
                                 <li
                                     key={`${item.label}${item.value}`}
-                                    className={`pl-1 absolute top-0 left-0 w-full ${
+                                    className={`absolute top-0 left-0 w-full pl-1 ${
                                         highlightedIndex === virtualElement.index
                                             ? "bg-gray-300"
                                             : ""

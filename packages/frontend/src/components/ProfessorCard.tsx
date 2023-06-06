@@ -14,16 +14,16 @@ export function ProfessorCard({ professor }: ProfessorCardProps) {
         <Link to={`/professor/${professor?.id}`}>
             <div
                 // eslint-disable-next-line max-len
-                className="w-full h-32 border-cal-poly-gold border-4 bg-white flex justify-between items-center text-cal-poly-green cursor-pointer"
+                className="flex h-32 w-full cursor-pointer items-center justify-between border-4 border-cal-poly-gold bg-white text-cal-poly-green"
                 style={{ borderRadius: "1.5rem" }}
             >
-                <h3 className="text-3xl font-medium pl-3">
+                <h3 className="pl-3 text-3xl font-medium">
                     {professor?.lastName}, {professor?.firstName}
                 </h3>
-                <div className="text-right text-xl pr-3 font-medium flex-shrink-0">
+                <div className="flex-shrink-0 pr-3 text-right text-xl font-medium">
                     <div>{professor?.department}</div>
                     <div className="flex items-center justify-end">
-                        <img className="pr-1 h-4" src={star} alt="" />
+                        <img className="h-4 pr-1" src={star} alt="" />
                         <div>{professor?.overallRating.toFixed(2)}</div>
                     </div>
                     <div>{professor?.numEvals} evals</div>

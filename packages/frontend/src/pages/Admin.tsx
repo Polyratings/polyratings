@@ -21,7 +21,7 @@ export function Admin() {
     const { isAuthenticated } = useAuth();
     return isAuthenticated ? (
         <div>
-            <h1 className="text-center text-6xl font-semibold my-4">Polyratings Admin Panel</h1>
+            <h1 className="my-4 text-center text-6xl font-semibold">Polyratings Admin Panel</h1>
             <div className="container m-auto text-lg">
                 <PendingProfessors />
                 <ReportedRatings />
@@ -73,12 +73,12 @@ function ReportedRatings() {
             wrap: true,
             grow: 1.5,
             cell: (row: RatingReport) => (
-                <div className="flex flex-col w-full">
+                <div className="flex w-full flex-col">
                     {row.reports.map((report, idx) => (
                         // Need to use index to help out with making each key unique
                         // eslint-disable-next-line react/no-array-index-key
                         <Fragment key={idx + report.reason + report.email}>
-                            {idx !== 0 && <div className="w-full h-1 bg-black my-2" />}
+                            {idx !== 0 && <div className="my-2 h-1 w-full bg-black" />}
                             {report.email && <div>Email: {report.email}</div>}
                             <div>Reason: {report.reason}</div>
                         </Fragment>
@@ -341,9 +341,9 @@ export function ConfirmationButton({
                 {buttonText}
             </button>
             {confirmationOpen && (
-                <div className="absolute p-2 w-28 z-50 bg-white shadow top-0 right-0">
+                <div className="absolute top-0 right-0 z-50 w-28 bg-white p-2 shadow">
                     <div>Are You Sure?</div>
-                    <div className="flex justify-between mt-1">
+                    <div className="mt-1 flex justify-between">
                         <button
                             className="bg-green-500 px-2 py-1 text-white"
                             type="button"

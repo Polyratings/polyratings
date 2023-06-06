@@ -23,10 +23,10 @@ export function Home() {
                     backgroundPosition: "center",
                     backgroundSize: "cover",
                 }}
-                className="relative h-screenWoNav lg:h-screen3/5 min-h-[30rem]"
+                className="relative h-screenWoNav min-h-[30rem] lg:h-screen3/5"
             >
-                <div className="flex flex-col w-full h-2/3 lg:h-80 justify-center justify-items-center">
-                    <h1 className="text-6xl md:text-9xl text-white text-center font-semibold drop-shadow-lg">
+                <div className="flex h-2/3 w-full flex-col justify-center justify-items-center lg:h-80">
+                    <h1 className="text-center text-6xl font-semibold text-white drop-shadow-lg md:text-9xl">
                         Polyratings
                     </h1>
                     <div className="mt-6">
@@ -36,30 +36,30 @@ export function Home() {
                 <img
                     src={homeCurveTransition}
                     alt="curve transition"
-                    className="absolute left-0 -bottom-7 w-full lg:block hidden select-none pointer-events-none"
+                    className="pointer-events-none absolute left-0 -bottom-7 hidden w-full select-none lg:block"
                 />
             </div>
-            <div className="lg:block hidden">
-                <div className="w-[60rem] text-center m-auto z-10 relative">
-                    <p className="absolute text-6xl -left-14 hidden xl:block">🎉</p>
-                    <p className="absolute text-6xl -right-14 hidden xl:block">🎉</p>
-                    <h3 className="text-5xl font-bold mb-8">
+            <div className="hidden lg:block">
+                <div className="relative z-10 m-auto w-[60rem] text-center">
+                    <p className="absolute -left-14 hidden text-6xl xl:block">🎉</p>
+                    <p className="absolute -right-14 hidden text-6xl xl:block">🎉</p>
+                    <h3 className="mb-8 text-5xl font-bold">
                         Newest Feature: Course Accessibility!
                     </h3>
-                    <p className="text-2xl font-medium mb-6">
+                    <p className="mb-6 text-2xl font-medium">
                         We are happy to announce the release of the course accessibility allowing
                         students to add tags to ratings.
                     </p>
                 </div>
-                <div className="flex justify-center items-start gap-16">
+                <div className="flex items-start justify-center gap-16">
                     <img
                         className="w-[35rem]"
                         src={homeTags}
                         alt="Accessability tag form to rate professors"
                     />
-                    <div className="text-left w-[31rem]">
+                    <div className="w-[31rem] text-left">
                         <img src={homeProfessorSummary} alt="Professor summary with tags" />
-                        <ul className="text-xl list-[home-list] mt-4">
+                        <ul className="mt-4 list-[home-list] text-xl">
                             <li className="ml-7 mb-4">Select tags in Evaluation form</li>
                             <li className="ml-7">
                                 Top tags will be displayed at the top of the professor page
@@ -77,12 +77,12 @@ export function Home() {
                     minHeight: "100vh",
                     clipPath: "polygon(0 100%,0 10%,100% 0,100% 100%)",
                 }}
-                className="lg:block hidden"
+                className="hidden lg:block"
             >
-                <h2 className="text-white font-semibold text-8xl xl:text-9xl text-center pt-40">
+                <h2 className="pt-40 text-center text-8xl font-semibold text-white xl:text-9xl">
                     Best of the Best
                 </h2>
-                <div className="grid grid-cols-2 gap-y-14 m-auto mt-20 gap-x-12 xl:gap-x-24 w-[60rem] xl:w-[65rem]">
+                <div className="m-auto mt-20 grid w-[60rem] grid-cols-2 gap-y-14 gap-x-12 xl:w-[65rem] xl:gap-x-24">
                     {bestOfTheBest.map((professor) => (
                         <ProfessorCard key={professor.id} professor={professor} />
                     ))}

@@ -63,10 +63,10 @@ export function Search() {
                 disableAutoComplete
             />
             {(!searchResults.length || !filteredProfessors.length) && (
-                <h2 className="text-4xl mt-5 text-center text-cal-poly-green">
+                <h2 className="mt-5 text-center text-4xl text-cal-poly-green">
                     No Results Found.
                     <br />
-                    <Link className="underline pt-10" to="/new-professor">
+                    <Link className="pt-10 underline" to="/new-professor">
                         Add a Professor?
                     </Link>
                 </h2>
@@ -79,21 +79,21 @@ export function Search() {
                             key={searchResults.length}
                             unfilteredProfessors={searchResults}
                             onUpdate={setFilteredProfessors}
-                            className="absolute left-0 top-0 pl-12 hidden xl:block"
+                            className="absolute left-0 top-0 hidden pl-12 xl:block"
                         />
                     )}
 
                     {/* Mobile Filters dropdown */}
                     {mobileFilterBreakpoint && (
                         <div
-                            className={`bg-gray-300 w-[calc(100vw-2rem)] h-screen fixed top-0 z-10 transition-all left-0 transform
+                            className={`fixed top-0 left-0 z-10 h-screen w-[calc(100vw-2rem)] transform bg-gray-300 transition-all
               ${mobileFiltersOpened ? "-translate-x-0" : "-translate-x-full"}`}
                         >
                             <button
                                 type="button"
                                 onClick={() => setMobileFiltersOpened(!mobileFiltersOpened)}
                                 data-testid="mobile-filters"
-                                className={`bg-gray-400 w-8 h-12 absolute -right-8 transition-all
+                                className={`absolute -right-8 h-12 w-8 bg-gray-400 transition-all
                   ${
                       mobileFiltersOpened ? "top-0 rounded-r-none" : "top-14 rounded-r"
                   } flex items-center justify-center`}
@@ -111,12 +111,12 @@ export function Search() {
                                 key={searchResults.length}
                                 unfilteredProfessors={searchResults}
                                 onUpdate={setFilteredProfessors}
-                                className="pl-12 pt-6 w-4/5"
+                                className="w-4/5 pl-12 pt-6"
                             />
                         </div>
                     )}
                     <div
-                        className="relative sm:w-[37.5rem] md:w-[42rem] lg:w-[37.5rem] 2xl:w-[42rem] m-auto"
+                        className="relative m-auto sm:w-[37.5rem] md:w-[42rem] lg:w-[37.5rem] 2xl:w-[42rem]"
                         style={{
                             height: `${rowVirtualizer.getTotalSize()}px`,
                         }}
@@ -126,7 +126,7 @@ export function Search() {
                             return (
                                 <div
                                     key={professor.id}
-                                    className="absolute top-0 left-0 w-full my-4 px-4"
+                                    className="absolute top-0 left-0 my-4 w-full px-4"
                                     style={{
                                         height: `${virtualRow.size}px`,
                                         transform: `translateY(${virtualRow.start}px)`,
