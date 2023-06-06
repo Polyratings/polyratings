@@ -1,3 +1,4 @@
+/* eslint-disable react/no-unstable-nested-components */
 import { useForm, SubmitHandler, UseFormReturn, Controller } from "react-hook-form";
 import { toast } from "react-toastify";
 import ClipLoader from "react-spinners/ClipLoader";
@@ -15,7 +16,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { inferProcedureOutput } from "@trpc/server";
 import { AppRouter } from "@backend/index";
 import { UserIcon } from "@heroicons/react/24/solid";
-import { useState } from "react";
+import { ReactElement, useState } from "react";
 import { trpc } from "@/trpc";
 import { Select, TextArea } from "./forms";
 import { TextInput } from "./forms/TextInput";
@@ -37,8 +38,6 @@ export function TwoStepEvaluateProfessor({ professor, closeForm }: EvaluateProfe
     const { onSubmit, hookForm, networkError, isLoading } = useEvaluationForm(professor, closeForm);
     const { control, trigger: triggerValidation } = hookForm;
 
-    const [formStep, setFormStep] = useState<"first" | "second">("first");
-
     return (
         <form className="relative w-full" onSubmit={onSubmit}>
             <button
@@ -56,6 +55,40 @@ export function TwoStepEvaluateProfessor({ professor, closeForm }: EvaluateProfe
                 </h2>
             </div>
 
+            <FormBar
+                firstStep={() => <EvaluateProfessorStep {...hookForm} professor={professor} />}
+                secondStep={() => (
+                    <Controller
+                        control={control}
+                        name="tags"
+                        render={({ field: { onChange } }) => (
+                            <TagSelection onChange={onChange} variant="desktop-primary" />
+                        )}
+                    />
+                )}
+                isLoading={isLoading}
+                triggerValidation={triggerValidation}
+            />
+
+            <div className="text-red-500 text-sm">{networkError?.message}</div>
+        </form>
+    );
+}
+
+export type FormStep = "first" | "second";
+export type FormBarProps = {
+    isLoading: boolean;
+    // Fine to use any since trigger does not use the type param
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    triggerValidation: UseFormReturn<any>["trigger"];
+    firstStep: () => ReactElement;
+    secondStep: () => ReactElement;
+};
+export function FormBar({ isLoading, triggerValidation, firstStep, secondStep }: FormBarProps) {
+    const [formStep, setFormStep] = useState<FormStep>("first");
+
+    return (
+        <>
             <div className="w-[24rem] my-4 m-auto">
                 <div className="flex mb-1">
                     <div
@@ -82,17 +115,8 @@ export function TwoStepEvaluateProfessor({ professor, closeForm }: EvaluateProfe
                 </div>
             </div>
 
-            {formStep === "first" && <EvaluateProfessorStep {...hookForm} professor={professor} />}
-
-            {formStep === "second" && (
-                <Controller
-                    control={control}
-                    name="tags"
-                    render={({ field: { onChange } }) => (
-                        <TagSelection onChange={onChange} variant="desktop" />
-                    )}
-                />
-            )}
+            {formStep === "first" && firstStep()}
+            {formStep === "second" && secondStep()}
 
             <div
                 className={`flex justify-center gap-6 mt-2 ${
@@ -128,8 +152,7 @@ export function TwoStepEvaluateProfessor({ professor, closeForm }: EvaluateProfe
                 {/* Exact size for no layer shift */}
                 <ClipLoader color="#1F4715" loading={isLoading} size={34} />
             </div>
-            <div className="text-red-500 text-sm">{networkError?.message}</div>
-        </form>
+        </>
     );
 }
 
@@ -149,7 +172,7 @@ export function EvaluateProfessorFormLinear({ professor, closeForm }: EvaluatePr
                 control={control}
                 name="tags"
                 render={({ field: { onChange } }) => (
-                    <TagSelection onChange={onChange} variant="mobile" />
+                    <TagSelection onChange={onChange} variant="mobile-secondary" />
                 )}
             />
 
@@ -278,27 +301,38 @@ function EvaluateProfessorStep({
     );
 }
 
-type Platform = "desktop" | "mobile";
+type TagSelectionVariant =
+    | "desktop-primary"
+    | "desktop-secondary"
+    | "mobile-primary"
+    | "mobile-secondary";
 
-type TagSelectionProps = {
+export type TagSelectionProps = {
     onChange: (tags: string[]) => void;
-    variant: Platform;
+    variant: TagSelectionVariant;
 };
-function TagSelection({ onChange, variant }: TagSelectionProps) {
+export function TagSelection({ onChange, variant }: TagSelectionProps) {
     const [tagState, setTagState] = useState(
         PROFESSOR_TAGS.map((tagText) => ({ tagText, selected: false })),
     );
 
     const selectedTags = tagState.filter(({ selected }) => selected);
 
+    const variantMap: Record<TagSelectionVariant, SelectableTagVariant> = {
+        "mobile-primary": "primary",
+        "mobile-secondary": "secondary",
+        "desktop-primary": "primary",
+        "desktop-secondary": "secondary",
+    };
+
     return (
         <>
-            {variant === "desktop" && (
+            {variant.startsWith("desktop") && (
                 <h2 className="font-bold text-2xl mb-4">
                     Select up to {MAX_PROFESSOR_TAGS_PER_RATING} tags (Optional)
                 </h2>
             )}
-            {variant === "mobile" && (
+            {variant.startsWith("mobile") && (
                 <h3 className="text-xs mb-2">
                     Select up to {MAX_PROFESSOR_TAGS_PER_RATING} tags (Optional)
                 </h3>
@@ -306,7 +340,7 @@ function TagSelection({ onChange, variant }: TagSelectionProps) {
             <div className="flex gap-2 flex-wrap mb-4">
                 {tagState.map((tag, i) => (
                     <SelectableTag
-                        variant={variant}
+                        variant={variantMap[variant]}
                         key={tag.tagText}
                         disabled={
                             selectedTags.length === MAX_PROFESSOR_TAGS_PER_RATING && !tag.selected
@@ -329,8 +363,10 @@ function TagSelection({ onChange, variant }: TagSelectionProps) {
     );
 }
 
+type SelectableTagVariant = "primary" | "secondary";
+
 export interface SelectableTagProps extends React.ComponentProps<"button"> {
-    variant: Platform;
+    variant: SelectableTagVariant;
     tagText: string;
     selected: boolean;
 }
@@ -343,13 +379,13 @@ function SelectableTag({
     ...buttonProps
 }: SelectableTagProps) {
     const selectedVariantMap = {
-        desktop: "bg-cal-poly-light-green border-[0.1rem]",
-        mobile: "border-cal-poly-gold border-2 font-bold bg-white",
+        primary: "bg-cal-poly-light-green border-[0.1rem]",
+        secondary: "border-cal-poly-gold border-2 font-bold bg-white",
     };
 
     const unselectedVariantMap = {
-        desktop: `${disabled ? "bg-gray-100" : "bg-white"} border-cal-poly-green border-[0.1rem]`,
-        mobile: `${disabled ? "bg-gray-300" : "bg-white"} border-2`,
+        primary: `${disabled ? "bg-gray-100" : "bg-white"} border-cal-poly-green border-[0.1rem]`,
+        secondary: `${disabled ? "bg-gray-300" : "bg-white"} border-2`,
     };
 
     const pseudoExpander =
