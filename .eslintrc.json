@@ -5,24 +5,28 @@
         "browser": true,
         "es2020": true
     },
+    "settings": {
+        "import/parsers": {
+            "@typescript-eslint/parser": [".ts", ".tsx"]
+        },
+        "import/resolver": {
+            "node": {
+                "extensions": [".ts", ".tsx"]
+            },
+            "typescript": {
+                "alwaysTryTypes": true,
+                "project": ["packages/*/tsconfig.*?.json", "tsconfig.base.json"]
+            }
+        }
+    },
     "extends": [
         // General Prettier defaults
         "airbnb",
         "plugin:@typescript-eslint/recommended",
+        "plugin:tailwindcss/recommended",
         "prettier"
     ],
-    "plugins": ["@nx", "react"],
-    "parser": "@typescript-eslint/parser",
-    "parserOptions": {
-        "ecmaVersion": 2020
-    },
-    "settings": {
-        "import/resolver": {
-            "node": {
-                "extensions": [".ts", ".tsx"]
-            }
-        }
-    },
+    "plugins": ["@nx", "@typescript-eslint", "eslint-plugin-import", "react"],
     "overrides": [
         {
             "files": ["*.ts", "*.tsx", "*.js", "*.jsx"],
@@ -63,12 +67,23 @@
 
                 "react/jsx-props-no-spreading": "off",
                 "react/require-default-props": "off",
-                "react/prop-types": "off"
+                "react/prop-types": "off",
+
+                "tailwindcss/no-custom-classname": "off"
             }
         },
         {
             "files": ["*.ts", "*.tsx"],
-            "extends": ["plugin:@nx/typescript"],
+            "extends": [
+                "plugin:@nx/typescript",
+                "plugin:import/recommended",
+                "plugin:import/typescript"
+            ],
+            "parser": "@typescript-eslint/parser",
+            "parserOptions": {
+                "ecmaVersion": 2020,
+                "createDefaultProgram": true
+            },
             "rules": {}
         },
         {

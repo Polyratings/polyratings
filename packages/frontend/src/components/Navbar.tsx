@@ -3,10 +3,10 @@ import "@/styles/hamburgers.css";
 import AnimateHeight from "react-animate-height";
 import { useEffect, useState } from "react";
 import { useAuth } from "@/hooks";
-import { SearchBar } from "./SearchBar";
 import Logo from "@/assets/Logo.svg";
 import DiscordLogo from "@/assets/Discord-Logo-White.svg";
 import GithubLogo from "@/assets/github.svg";
+import { SearchBar } from "./SearchBar";
 
 const HIDE_SEARCH_BAR_ROUTES = ["/", "/search/name", "/search/class", "/search/department"];
 
@@ -52,7 +52,7 @@ export function Navbar() {
             <AnimateHeight
                 duration={500}
                 height={mobileNavOpen ? "auto" : 0}
-                className="absolute top-12 left-0 z-50 w-full -translate-y-1 transform bg-cal-poly-green"
+                className="bg-cal-poly-green absolute left-0 top-12 z-50 w-full -translate-y-1"
             >
                 <button
                     className="flex w-full flex-col items-center text-xl text-white"
@@ -128,7 +128,7 @@ export function Navbar() {
                 {isAuthenticated && (
                     <button
                         onClick={() => setJwt(null)}
-                        className="cursor-pointer rounded-full border-2 border-white pl-3 pr-3 pt-px pb-px"
+                        className="cursor-pointer rounded-full border-2 border-white px-3 py-px"
                         type="button"
                     >
                         SIGN OUT

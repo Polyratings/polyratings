@@ -1,6 +1,7 @@
 import { BulkKey } from "@backend/utils/const";
 import { cloudflareNamespaceInformation } from "@backend/generated/tomlGenerated";
 import { bulkRecord } from "src/utils/bulkRecord";
+// eslint-disable-next-line import/no-cycle
 import { CronEnv, KvName } from "../entry";
 import { Logger } from "../logger";
 

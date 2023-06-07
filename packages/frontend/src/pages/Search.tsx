@@ -63,7 +63,7 @@ export function Search() {
                 disableAutoComplete
             />
             {(!searchResults.length || !filteredProfessors.length) && (
-                <h2 className="mt-5 text-center text-4xl text-cal-poly-green">
+                <h2 className="text-cal-poly-green mt-5 text-center text-4xl">
                     No Results Found.
                     <br />
                     <Link className="pt-10 underline" to="/new-professor">
@@ -86,8 +86,7 @@ export function Search() {
                     {/* Mobile Filters dropdown */}
                     {mobileFilterBreakpoint && (
                         <div
-                            className={`fixed top-0 left-0 z-10 h-screen w-[calc(100vw-2rem)] transform bg-gray-300 transition-all
-              ${mobileFiltersOpened ? "-translate-x-0" : "-translate-x-full"}`}
+                            className={`fixed left-0 top-0 z-10 h-screen w-[calc(100vw-2rem)] bg-gray-300 transition-all${mobileFiltersOpened ? "-translate-x-0" : "-translate-x-full"}`}
                         >
                             <button
                                 type="button"
@@ -99,7 +98,7 @@ export function Search() {
                   } flex items-center justify-center`}
                             >
                                 <ChevronDoubleRightIcon
-                                    className={`h-6 w-6 transform transition-all ${
+                                    className={`h-6 w-6 transition-all${
                                         mobileFiltersOpened ? "rotate-180" : "rotate-0"
                                     }`}
                                     strokeWidth={2}
@@ -126,7 +125,7 @@ export function Search() {
                             return (
                                 <div
                                     key={professor.id}
-                                    className="absolute top-0 left-0 my-4 w-full px-4"
+                                    className="absolute left-0 top-0 my-4 w-full px-4"
                                     style={{
                                         height: `${virtualRow.size}px`,
                                         transform: `translateY(${virtualRow.start}px)`,

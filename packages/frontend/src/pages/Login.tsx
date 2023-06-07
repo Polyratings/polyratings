@@ -38,7 +38,7 @@ export function Login() {
 
     return (
         <div
-            className="flex h-screenWoNav items-center justify-center"
+            className="h-screenWoNav flex items-center justify-center"
             style={{
                 backgroundImage: `url(${loginBackground})`,
                 backgroundRepeat: "no-repeat",
@@ -46,7 +46,7 @@ export function Login() {
                 backgroundSize: "cover",
             }}
         >
-            <div className="transform p-5 md:-translate-y-1/4" style={{ width: "500px" }}>
+            <div className="p-5 md:-translate-y-1/4" style={{ width: "500px" }}>
                 <div id="main" className="rounded bg-white p-10 shadow-lg">
                     <h2 className="mb-8 text-3xl font-bold">Sign In</h2>
                     <form onSubmit={handleSubmit((data) => login(data))}>

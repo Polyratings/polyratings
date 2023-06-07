@@ -341,7 +341,7 @@ export function ConfirmationButton({
                 {buttonText}
             </button>
             {confirmationOpen && (
-                <div className="absolute top-0 right-0 z-50 w-28 bg-white p-2 shadow">
+                <div className="absolute right-0 top-0 z-50 w-28 bg-white p-2 shadow">
                     <div>Are You Sure?</div>
                     <div className="mt-1 flex justify-between">
                         <button

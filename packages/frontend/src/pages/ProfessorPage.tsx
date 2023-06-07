@@ -96,7 +96,7 @@ export function ProfessorPage() {
                 </div>
             </Modal>
 
-            <div className="mx-auto flex w-full justify-center px-2 pt-4 pb-3 md:justify-between md:pt-10 lg:max-w-5xl">
+            <div className="mx-auto flex w-full justify-center px-2 pb-3 pt-4 md:justify-between md:pt-10 lg:max-w-5xl">
                 <div className="flex flex-col">
                     <h2 className="text-lg font-semibold">{professorData?.department} Professor</h2>
 
@@ -105,14 +105,14 @@ export function ProfessorPage() {
                     </h1>
 
                     {Boolean(topTags.length) && (
-                        <div className="mt-4 mb-2 flex flex-wrap gap-2">
+                        <div className="mb-2 mt-4 flex flex-wrap gap-2">
                             {topTags.map((tag) => (
                                 <ProfessorTag key={tag} tagName={tag} />
                             ))}
                         </div>
                     )}
 
-                    <StatsCard className="mt-4 mb-3 block md:hidden" professor={professorData} />
+                    <StatsCard className="mb-3 mt-4 block md:hidden" professor={professorData} />
 
                     <div className="hidden md:block">
                         <Button
@@ -138,18 +138,18 @@ export function ProfessorPage() {
                 </div>{" "}
                 <div>
                     <StatsCard
-                        className="mt-4 mb-3 ml-8 hidden md:block"
+                        className="mb-3 ml-8 mt-4 hidden md:block"
                         professor={professorData}
                     />
                 </div>
             </div>
 
             {/* Mobile divider */}
-            <div className="h-1 w-full bg-cal-poly-green sm:hidden" />
+            <div className="bg-cal-poly-green h-1 w-full sm:hidden" />
 
             {/* Desktop Divider */}
             <div className="mx-auto mt-2 hidden px-2 sm:block lg:max-w-5xl">
-                <div className="h-1 w-full bg-cal-poly-green" />
+                <div className="bg-cal-poly-green h-1 w-full" />
             </div>
             <AnimateHeight duration={500} height={professorEvaluationShownMobile ? "auto" : 0}>
                 <div className="bg-cal-poly-green p-5 text-white">
@@ -189,7 +189,7 @@ export function ProfessorPage() {
                     </Fragment>
                 ))}
             {!sortedCourses?.length && (
-                <h2 className="mt-10 text-center text-4xl text-cal-poly-green">
+                <h2 className="text-cal-poly-green mt-10 text-center text-4xl">
                     Be the first to add a rating!
                 </h2>
             )}
@@ -232,7 +232,7 @@ function StatsCard({ professor, className = "" }: StatsCardProps) {
     return (
         // Box shadow taken from figma
         <div
-            className={`flex min-w-[22rem] flex-col gap-1 rounded-lg py-5 px-6 shadow-[0_0_50px_rgba(0,0,0,0.15)] sm:min-w-[27rem] ${className}`}
+            className={`flex min-w-[22rem] flex-col gap-1 rounded-lg px-6 py-5 shadow-[0_0_50px_rgba(0,0,0,0.15)] sm:min-w-[27rem] ${className}`}
         >
             <div className="mb-3 flex justify-between align-bottom">
                 <div className="flex items-center">
@@ -300,8 +300,8 @@ interface RatingCardProps {
 }
 function RatingCard({ rating, professorId }: RatingCardProps) {
     return (
-        <div className="relative my-2 flex w-full flex-col rounded-3xl border-4 border-cal-poly-green bg-white py-3 px-6 md:flex-row">
-            <div className="mr-4 hidden flex-shrink-0 flex-col gap-1 text-center md:flex">
+        <div className="border-cal-poly-green relative my-2 flex w-full flex-col rounded-3xl border-4 bg-white px-6 py-3 md:flex-row">
+            <div className="mr-4 hidden shrink-0 flex-col gap-1 text-center md:flex">
                 <div className="mb-2">
                     {/* Only show stars for ratings from the new site */}
                     {new Date(rating.postDate).getFullYear() >= 2022 && (
@@ -336,11 +336,11 @@ function RatingCard({ rating, professorId }: RatingCardProps) {
             </div>
 
             {/* Desktop divider */}
-            <div className="mr-4 mt-2 mb-2 hidden w-[0.08rem] flex-shrink-0 bg-black md:flex" />
+            <div className="my-2 mr-4 hidden w-[0.08rem] shrink-0 bg-black md:flex" />
             {/* Mobile divider */}
             <div className="m-auto my-2 flex h-[0.08rem] w-4/5 bg-black md:hidden" />
 
-            <div className="flex-grow py-3">
+            <div className="grow py-3">
                 <p className="mb-2 text-xl font-semibold">
                     {new Date(rating.postDate).toLocaleString("en-US", {
                         year: "numeric",
@@ -478,7 +478,7 @@ type ProfessorTagProps = {
 };
 function ProfessorTag({ tagName }: ProfessorTagProps) {
     return (
-        <div className="flex items-center rounded bg-cal-poly-light-green px-2 py-[0.125rem] text-xs text-cal-poly-green md:text-base">
+        <div className="bg-cal-poly-light-green text-cal-poly-green flex items-center rounded px-2 py-[0.125rem] text-xs md:text-base">
             <TagIcon className="h-2 w-2 md:h-3 md:w-3" />
             <span className="ml-1 font-medium md:ml-2">{tagName}</span>
         </div>

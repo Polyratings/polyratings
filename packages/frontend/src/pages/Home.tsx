@@ -23,7 +23,7 @@ export function Home() {
                     backgroundPosition: "center",
                     backgroundSize: "cover",
                 }}
-                className="relative h-screenWoNav min-h-[30rem] lg:h-screen3/5"
+                className="h-screenWoNav lg:h-screen3/5 relative min-h-[30rem]"
             >
                 <div className="flex h-2/3 w-full flex-col justify-center justify-items-center lg:h-80">
                     <h1 className="text-center text-6xl font-semibold text-white drop-shadow-lg md:text-9xl">
@@ -36,7 +36,7 @@ export function Home() {
                 <img
                     src={homeCurveTransition}
                     alt="curve transition"
-                    className="pointer-events-none absolute left-0 -bottom-7 hidden w-full select-none lg:block"
+                    className="pointer-events-none absolute -bottom-7 left-0 hidden w-full select-none lg:block"
                 />
             </div>
             <div className="hidden lg:block">
@@ -60,7 +60,7 @@ export function Home() {
                     <div className="w-[31rem] text-left">
                         <img src={homeProfessorSummary} alt="Professor summary with tags" />
                         <ul className="mt-4 list-[home-list] text-xl">
-                            <li className="ml-7 mb-4">Select tags in Evaluation form</li>
+                            <li className="mb-4 ml-7">Select tags in Evaluation form</li>
                             <li className="ml-7">
                                 Top tags will be displayed at the top of the professor page
                             </li>
@@ -82,7 +82,7 @@ export function Home() {
                 <h2 className="pt-40 text-center text-8xl font-semibold text-white xl:text-9xl">
                     Best of the Best
                 </h2>
-                <div className="m-auto mt-20 grid w-[60rem] grid-cols-2 gap-y-14 gap-x-12 xl:w-[65rem] xl:gap-x-24">
+                <div className="m-auto mt-20 grid w-[60rem] grid-cols-2 gap-x-12 gap-y-14 xl:w-[65rem] xl:gap-x-24">
                     {bestOfTheBest.map((professor) => (
                         <ProfessorCard key={professor.id} professor={professor} />
                     ))}

@@ -18,10 +18,10 @@ import { AppRouter } from "@backend/index";
 import { UserIcon } from "@heroicons/react/24/solid";
 import { ReactElement, useState } from "react";
 import { trpc } from "@/trpc";
+import { useSortedCourses } from "@/hooks";
 import { Select, TextArea } from "./forms";
 import { TextInput } from "./forms/TextInput";
 import { Button } from "./forms/Button";
-import { useSortedCourses } from "@/hooks";
 
 interface EvaluateProfessorFormProps {
     professor?: inferProcedureOutput<AppRouter["professors"]["get"]>;
@@ -50,7 +50,7 @@ export function TwoStepEvaluateProfessor({ professor, closeForm }: EvaluateProfe
             </button>
 
             <div className="mb-4 flex items-end">
-                <UserIcon className="mb-[0.1rem] mr-2 h-6 w-6 fill-cal-poly-green" />
+                <UserIcon className="fill-cal-poly-green mb-[0.1rem] mr-2 h-6 w-6" />
                 <h2 className="hidden text-2xl font-bold sm:block">
                     Evaluate {professor.lastName}, {professor.firstName}
                 </h2>
@@ -109,7 +109,7 @@ export function FormBar({ isLoading, triggerValidation, firstStep, secondStep }:
                 </div>
                 <div className="relative h-1 rounded bg-gray-200 transition-all">
                     <div
-                        className={`absolute h-1 w-1/2 rounded bg-cal-poly-green ${
+                        className={`bg-cal-poly-green absolute h-1 w-1/2 rounded ${
                             formStep === "first" ? "left-0" : "left-1/2"
                         }`}
                     />
@@ -404,7 +404,7 @@ function SelectableTag({
             title={tagText}
             disabled={disabled && !selected}
             // Use different y padding to account for weird font height
-            className={`${className} h-9 rounded-lg px-2 pb-1 pt-[.313rem] font-nunito text-cal-poly-green`}
+            className={`${className} font-nunito text-cal-poly-green h-9 rounded-lg px-2 pb-1 pt-[.313rem]`}
         >
             {tagText}
         </button>

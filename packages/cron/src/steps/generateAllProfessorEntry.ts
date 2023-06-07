@@ -2,6 +2,7 @@ import { cloudflareNamespaceInformation } from "@backend/generated/tomlGenerated
 import { truncatedProfessorParser } from "@backend/types/schema";
 import { bulkRecord } from "src/utils/bulkRecord";
 import { z } from "zod";
+// eslint-disable-next-line import/no-cycle
 import { CronEnv } from "../entry";
 import { Logger } from "../logger";
 

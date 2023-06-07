@@ -82,7 +82,7 @@ export function AutoComplete<T, U>({
     return (
         <div className={`relative ${className}`} {...getComboboxProps()}>
             <MagnifyingGlassIcon
-                className="absolute right-2 top-1/2 h-full -translate-y-1/2 transform py-1"
+                className="absolute right-2 top-1/2 h-full -translate-y-1/2 py-1"
                 strokeWidth={2}
             />
 
@@ -96,7 +96,7 @@ export function AutoComplete<T, U>({
 
             <ul
                 {...getMenuProps({ ref: listRef })}
-                className="absolute top-full left-0 max-h-28 w-full overflow-y-auto bg-white shadow-xl"
+                className="absolute left-0 top-full max-h-28 w-full overflow-y-auto bg-white shadow-xl"
             >
                 {isOpen && !disableDropdown && deviceSupportsDropdown && (
                     <div style={{ height: `${rowVirtualizer.getTotalSize()}px` }}>
@@ -105,7 +105,7 @@ export function AutoComplete<T, U>({
                             return (
                                 <li
                                     key={`${item.label}${item.value}`}
-                                    className={`absolute top-0 left-0 w-full pl-1 ${
+                                    className={`absolute left-0 top-0 w-full pl-1 ${
                                         highlightedIndex === virtualElement.index
                                             ? "bg-gray-300"
                                             : ""

@@ -1,3 +1,4 @@
+// eslint-disable-next-line import/no-cycle
 import { PendingRating, Professor, RatingReport, User } from "@backend/types/schema";
 import type { IsEqual } from "type-fest";
 

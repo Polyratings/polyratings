@@ -1,4 +1,5 @@
 import { z } from "zod";
+// eslint-disable-next-line import/no-cycle
 import {
     COURSE_TYPES,
     DEPARTMENT_LIST,

@@ -6,9 +6,11 @@ import {
 } from "@backend/generated/tomlGenerated";
 import type { AppRouter } from "@backend/index";
 import { createTRPCProxyClient, httpLink } from "@trpc/client";
+// eslint-disable-next-line import/no-cycle
 import { syncKvStore } from "./steps/syncKvStore";
 import { cloudflareKVInit } from "./wrappers/kv-wrapper";
 import { Logger } from "./logger";
+// eslint-disable-next-line import/no-cycle
 import { generateAllProfessorEntry } from "./steps/generateAllProfessorEntry";
 
 export type KvName = keyof typeof cloudflareNamespaceInformation;
