@@ -26,7 +26,7 @@
         "plugin:tailwindcss/recommended",
         "prettier"
     ],
-    "plugins": ["@nx", "@typescript-eslint", "eslint-plugin-import", "react"],
+    "plugins": ["@nx", "@typescript-eslint", "import", "react"],
     "overrides": [
         {
             "files": ["*.ts", "*.tsx", "*.js", "*.jsx"],

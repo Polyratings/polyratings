@@ -3,29 +3,20 @@
         "default": {
             "runner": "nx/tasks-runners/default",
             "options": {
-                "cacheableOperations": ["build", "lint", "test", "e2e"]
+                "cacheableOperations": [
+                    "build",
+                    "build:local",
+                    "generateBackendTypes",
+                    "lint",
+                    "lint-fix",
+                    "test",
+                    "e2e"
+                ]
             }
         }
     },
     "extends": "nx/presets/npm.json",
     "$schema": "./node_modules/nx/schemas/nx-schema.json",
-    "generators": {
-        "@nx/react": {
-            "application": {
-                "style": "css",
-                "linter": "eslint",
-                "bundler": "vite",
-                "babel": true
-            },
-            "component": {
-                "style": "css"
-            },
-            "library": {
-                "style": "css",
-                "linter": "eslint"
-            }
-        }
-    },
     "targetDefaults": {
         "test": {
             "inputs": ["default", "^default"]
