@@ -86,7 +86,9 @@ export function Search() {
                     {/* Mobile Filters dropdown */}
                     {mobileFilterBreakpoint && (
                         <div
-                            className={`fixed left-0 top-0 z-10 h-screen w-[calc(100vw-2rem)] bg-gray-300 transition-all${mobileFiltersOpened ? "-translate-x-0" : "-translate-x-full"}`}
+                            className={`fixed left-0 top-0 z-10 h-screen w-[calc(100vw-2rem)] bg-gray-300 transition-all${
+                                mobileFiltersOpened ? "-translate-x-0" : "-translate-x-full"
+                            }`}
                         >
                             <button
                                 type="button"
