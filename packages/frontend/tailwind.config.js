@@ -3,6 +3,7 @@ const { join } = require("path");
 
 /** @type {import('tailwindcss').Config} */
 module.exports = {
+    // https://nx.dev/recipes/other/using-tailwind-css-in-react#introducing-nx-utility-for-better-tailwind-purging
     content: [
         join(__dirname, "{src,pages,components,app}/**/*!(*.stories|*.spec).{ts,tsx,html}"),
         ...createGlobPatternsForDependencies(__dirname),
