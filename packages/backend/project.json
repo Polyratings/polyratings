@@ -59,7 +59,7 @@
                 "lintFilePatterns": ["packages/backend/**/*.ts"]
             }
         },
-        "lint-dix": {
+        "lint-fix": {
             "executor": "@nx/linter:eslint",
             "outputs": ["{options.outputFile}"],
             "options": {
