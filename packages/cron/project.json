@@ -10,8 +10,7 @@
             "options": {
                 "outputPath": "dist/packages/cron",
                 "main": "packages/cron/src/worker.ts",
-                "tsConfig": "packages/cron/tsconfig.lib.json",
-                "assets": ["packages/cron/*.md"]
+                "tsConfig": "packages/cron/tsconfig.lib.json"
             }
         },
         "build:local": {
@@ -20,8 +19,7 @@
             "options": {
                 "outputPath": "dist/packages/cron",
                 "main": "packages/cron/src/local.ts",
-                "tsConfig": "packages/cron/tsconfig.lib.json",
-                "assets": ["packages/cron/*.md"]
+                "tsConfig": "packages/cron/tsconfig.lib.json"
             }
         },
         "deploy:prod": {

@@ -19,8 +19,7 @@
             "options": {
                 "outputPath": "dist/packages/backend",
                 "main": "packages/backend/src/index.ts",
-                "tsConfig": "packages/backend/tsconfig.lib.json",
-                "assets": ["packages/backend/*.md"]
+                "tsConfig": "packages/backend/tsconfig.lib.json"
             }
         },
         "stats": {
