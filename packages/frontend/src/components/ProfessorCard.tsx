@@ -20,7 +20,7 @@ export function ProfessorCard({ professor }: ProfessorCardProps) {
                 <h3 className="pl-3 text-3xl font-medium">
                     {professor?.lastName}, {professor?.firstName}
                 </h3>
-                <div className="shrink-0 pr-3 text-right text-xl font-medium">
+                <div className="flex-shrink-0 pr-3 text-right text-xl font-medium">
                     <div>{professor?.department}</div>
                     <div className="flex items-center justify-end">
                         <img className="h-4 pr-1" src={star} alt="" />

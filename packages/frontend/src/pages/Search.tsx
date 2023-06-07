@@ -86,9 +86,8 @@ export function Search() {
                     {/* Mobile Filters dropdown */}
                     {mobileFilterBreakpoint && (
                         <div
-                            className={`fixed left-0 top-0 z-10 h-screen w-[calc(100vw-2rem)] bg-gray-300 transition-all${
-                                mobileFiltersOpened ? "-translate-x-0" : "-translate-x-full"
-                            }`}
+                            className={`fixed left-0 top-0 z-10 h-screen w-[calc(100vw-2rem)] transform bg-gray-300 transition-all
+              ${mobileFiltersOpened ? "-translate-x-0" : "-translate-x-full"}`}
                         >
                             <button
                                 type="button"
@@ -100,7 +99,7 @@ export function Search() {
                   } flex items-center justify-center`}
                             >
                                 <ChevronDoubleRightIcon
-                                    className={`h-6 w-6 transition-all${
+                                    className={`h-6 w-6 transform transition-all ${
                                         mobileFiltersOpened ? "rotate-180" : "rotate-0"
                                     }`}
                                     strokeWidth={2}

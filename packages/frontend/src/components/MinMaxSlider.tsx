@@ -65,7 +65,7 @@ const handleRender: SliderProps["handleRender"] = (handle, sliderProps) => {
         <div
             // Have to set key since it is force inserted as a child to an element
             key="custom-slider-popup-key"
-            className={`absolute bottom-[0.6rem] left-[0.3rem] flex	-translate-x-1/2 flex-col items-center${
+            className={`absolute bottom-[0.6rem] left-[0.3rem] flex	-translate-x-1/2 transform flex-col items-center ${
                 dragging ? "opacity-1" : "opacity-0"
             }`}
         >
@@ -73,7 +73,7 @@ const handleRender: SliderProps["handleRender"] = (handle, sliderProps) => {
                 {value}
             </div>
             <div className="inline-block w-3 overflow-hidden">
-                <div className=" h-2 w-2 origin-top-left -rotate-45 bg-gray-900" />
+                <div className=" h-2 w-2 origin-top-left -rotate-45 transform bg-gray-900" />
             </div>
         </div>
     );

@@ -169,10 +169,10 @@ export function Filters({ unfilteredProfessors, onUpdate, className }: FilterPro
 
     return (
         <div className={className ?? ""}>
-            <h2 className="-translate-x-4 pb-1 text-xl font-bold">Sort by:</h2>
+            <h2 className="-translate-x-4 transform pb-1 text-xl font-bold">Sort by:</h2>
             <div className="flex items-center">
                 <select
-                    className="mt-1 block h-7 w-[106%] -translate-x-2 rounded-md border-2 border-black"
+                    className="mt-1 block h-7 w-[106%] -translate-x-2 transform rounded-md border-2 border-black"
                     value={sortBy}
                     onChange={(e) => setSortBy(e.target.value as SortingOptions)}
                 >
@@ -187,19 +187,19 @@ export function Filters({ unfilteredProfessors, onUpdate, className }: FilterPro
                 {/* Sorting Arrow */}
                 <button type="button" onClick={() => setReverseFilter(!reverseFilter)}>
                     <ArrowLongUpIcon
-                        className={`hover:text-cal-poly-green h-5 w-5 transition-all${
+                        className={`hover:text-cal-poly-green h-5 w-5 transform transition-all ${
                             reverseFilter ? "rotate-180" : ""
                         }`}
                     />
                 </button>
             </div>
 
-            <h2 className="-translate-x-4 py-1 text-xl font-bold">Filters:</h2>
+            <h2 className="-translate-x-4 transform py-1 text-xl font-bold">Filters:</h2>
 
             <div className="mb-2 block xl:hidden">
                 <h3>Department:</h3>
                 <select
-                    className="mt-1 h-7 w-[106%] -translate-x-2 rounded-md border-2 border-black"
+                    className="mt-1 h-7 w-[106%] -translate-x-2 transform rounded-md border-2 border-black"
                     onChange={(e) => {
                         const value = parseInt(e.target.value, 10);
                         const newDepartmentFilters = [...departmentFilters].map(({ name }) => ({

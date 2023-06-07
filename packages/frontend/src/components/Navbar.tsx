@@ -52,7 +52,7 @@ export function Navbar() {
             <AnimateHeight
                 duration={500}
                 height={mobileNavOpen ? "auto" : 0}
-                className="bg-cal-poly-green absolute left-0 top-12 z-50 w-full -translate-y-1"
+                className="bg-cal-poly-green absolute left-0 top-12 z-50 w-full -translate-y-1 transform"
             >
                 <button
                     className="flex w-full flex-col items-center text-xl text-white"

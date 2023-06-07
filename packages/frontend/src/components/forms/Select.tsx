@@ -38,7 +38,7 @@ export const Select = forwardRef<HTMLSelectElement, SelectProps>(
                 </select>
                 <ChevronDownIcon
                     strokeWidth={1.5}
-                    className="pointer-events-none absolute right-3 top-1/2 h-6 w-6 -translate-y-1/2"
+                    className="pointer-events-none absolute right-3 top-1/2 h-6 w-6 -translate-y-1/2 transform"
                 />
             </div>
             {error && <p className="text-sm text-red-500">{error}</p>}

@@ -69,7 +69,8 @@
                 "react/require-default-props": "off",
                 "react/prop-types": "off",
 
-                "tailwindcss/no-custom-classname": "off"
+                "tailwindcss/no-custom-classname": "off",
+                "tailwindcss/migration-from-tailwind-2": "off"
             }
         },
         {

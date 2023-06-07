@@ -82,7 +82,7 @@ export function AutoComplete<T, U>({
     return (
         <div className={`relative ${className}`} {...getComboboxProps()}>
             <MagnifyingGlassIcon
-                className="absolute right-2 top-1/2 h-full -translate-y-1/2 py-1"
+                className="absolute right-2 top-1/2 h-full -translate-y-1/2 transform py-1"
                 strokeWidth={2}
             />
 

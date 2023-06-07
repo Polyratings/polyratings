@@ -301,7 +301,7 @@ interface RatingCardProps {
 function RatingCard({ rating, professorId }: RatingCardProps) {
     return (
         <div className="border-cal-poly-green relative my-2 flex w-full flex-col rounded-3xl border-4 bg-white px-6 py-3 md:flex-row">
-            <div className="mr-4 hidden shrink-0 flex-col gap-1 text-center md:flex">
+            <div className="mr-4 hidden flex-shrink-0 flex-col gap-1 text-center md:flex">
                 <div className="mb-2">
                     {/* Only show stars for ratings from the new site */}
                     {new Date(rating.postDate).getFullYear() >= 2022 && (
@@ -336,11 +336,11 @@ function RatingCard({ rating, professorId }: RatingCardProps) {
             </div>
 
             {/* Desktop divider */}
-            <div className="my-2 mr-4 hidden w-[0.08rem] shrink-0 bg-black md:flex" />
+            <div className="my-2 mr-4 hidden w-[0.08rem] flex-shrink-0 bg-black md:flex" />
             {/* Mobile divider */}
             <div className="m-auto my-2 flex h-[0.08rem] w-4/5 bg-black md:hidden" />
 
-            <div className="grow py-3">
+            <div className="flex-grow py-3">
                 <p className="mb-2 text-xl font-semibold">
                     {new Date(rating.postDate).toLocaleString("en-US", {
                         year: "numeric",
