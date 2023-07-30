@@ -60,6 +60,7 @@ export default {
                 if (errorState.error.code === "INTERNAL_SERVER_ERROR") {
                     sentry.captureException(errorState.error);
                 }
+                console.log(errorState);
             },
         });
     },

@@ -33,6 +33,7 @@ export class KVDAO {
     ) {}
 
     async getAllProfessors() {
+        console.log("fuck you");
         const professorList = await this.polyratingsNamespace.safeGet(
             z.array(truncatedProfessorParser),
             "all",
@@ -188,7 +189,9 @@ export class KVDAO {
 
     async getUser(username: string) {
         try {
+            console.log("fuck off");
             const user = await this.usersNamespace.get(userParser, username);
+            console.log(`user: ${user}`);
             return user;
         } catch (e) {
             throw new TRPCError({ code: "UNAUTHORIZED" });

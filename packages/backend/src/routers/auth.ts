@@ -6,6 +6,7 @@ export const authRouter = t.router({
     login: t.procedure
         .input(z.object({ username: z.string(), password: z.string() }))
         .mutation(async ({ input: { username, password }, ctx }) => {
+            console.log("hello");
             const user = await ctx.env.kvDao.getUser(username);
 
             const isAuthenticated = ctx.env.authStrategy.verifyHash(user.password, password);
