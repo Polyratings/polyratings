@@ -1,21 +1,16 @@
-type = "javascript"
 zone_id = "a7bc6d72d8d7927ad1a49d855cfad6c6" # polyratings.dev
 account_id = "4b59b59a6058dce1832781075d4fde9d"
 usage_model = "unbound"
 workers_dev = false
 compatibility_date = "2022-01-15"
 
+main = "./dist/worker.js"
+rules = [
+    { type = "ESModule", globs = ["**/*.js"] }
+]
+
 [build]
 command = "npm run build"
-
-[build.upload]
-format = "modules"
-dir = 'dist'
-main = './worker.js'
-
-[[build.upload.rules]]
-type = "ESModule"
-globs = ["**/*.js"]
 
 [triggers]
 crons = ["0 9 * * *"]
