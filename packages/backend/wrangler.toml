@@ -23,6 +23,18 @@ watch_dir = [
     "src/trpc.ts"
 ]
 
+[env.dev]
+name = 'polyratings-dev-backend'
+route = 'api-dev.polyratings.org/*'
+usage = "bundled"
+kv_namespaces = [
+    { binding = "POLYRATINGS_TEACHERS", id = "20700dd12582422b9f91a0a1695ace88", preview_id = "20700dd12582422b9f91a0a1695ace88"},
+    { binding = "PROCESSING_QUEUE", id  = "ada7d85a6912462ebaaaed5304f58323", preview_id = "ada7d85a6912462ebaaaed5304f58323"},
+    { binding = "POLYRATINGS_USERS", id = "67f2fa91ef8a4625afdb07bfbbf9e2dd", preview_id = "67f2fa91ef8a4625afdb07bfbbf9e2dd"},
+    { binding = "POLYRATINGS_TEACHER_APPROVAL_QUEUE", id = "133cd03378e64984b5d8afb702dc53d2", preview_id = "133cd03378e64984b5d8afb702dc53d2"},
+    { binding = "POLYRATINGS_REPORTS", id = "3f3235ea2ed3456497e65e0ed980a31a", preview_id = "3f3235ea2ed3456497e65e0ed980a31a"}
+]
+
 [env.beta]
 name = 'polyratings-beta-backend'
 route = 'api-beta.polyratings.org/*'
