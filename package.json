@@ -6,7 +6,6 @@
     "private": true,
     "devDependencies": {
         "@cloudflare/workers-types": "^3.19.0",
-        "@cloudflare/wrangler": "1.21.0",
         "@nx/cypress": "16.6.0",
         "@nx/esbuild": "16.6.0",
         "@nx/eslint-plugin": "16.6.0",
@@ -66,7 +65,8 @@
         "vite": "4.4.7",
         "vite-plugin-eslint": "^1.8.1",
         "vite-tsconfig-paths": "^4.2.0",
-        "vitest": "0.32.4"
+        "vitest": "0.32.4",
+        "wrangler": "^3.4.0"
     },
     "workspaces": ["packages/*"],
     "dependencies": {
