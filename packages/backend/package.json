@@ -16,26 +16,26 @@
     "author": "Addison Tustin <addison@atustin.dev>",
     "license": "GPL-3.0",
     "devDependencies": {
-        "@cloudflare/workers-types": "^3.3.1",
-        "wrangler": "^3.4.0",
-        "@polyratings/eslint-config": "*",
-        "@types/jest": "^27.0.3",
-        "@types/node": "^16.11.1",
+        "@cloudflare/workers-types": "^3.19.0",
+        "@polyratings/eslint-config": "^0.0.1",
+        "@types/jest": "^27.5.2",
+        "@types/node": "^16.18.40",
         "cloudflare-worker-mock": "^1.2.0",
-        "esbuild": "^0.14.13",
+        "esbuild": "^0.14.54",
         "esbuild-visualizer": "^0.3.1",
-        "eslint": "^8.7.0",
-        "jest": "^27.4.3",
-        "jest-environment-miniflare": "^2.2.0",
-        "miniflare": "^2.2.0",
+        "eslint": "^8.46.0",
+        "jest": "^27.5.1",
+        "jest-environment-miniflare": "^2.14.0",
+        "miniflare": "^2.14.0",
         "toml": "^3.0.0",
-        "typescript": "^5.0.4",
-        "type-fest": "^3.8.0"
+        "type-fest": "^3.8.0",
+        "typescript": "^5.1.6",
+        "wrangler": "^3.5.0"
     },
     "dependencies": {
-        "@tsndr/cloudflare-worker-jwt": "^1.1.5",
         "@trpc/server": "10.0.0-rc.8",
-        "toucan-js": "^2.5.0",
-        "zod": "^3.17.10"
+        "@tsndr/cloudflare-worker-jwt": "^1.4.4",
+        "toucan-js": "^2.7.0",
+        "zod": "^3.21.4"
     }
 }

@@ -20,21 +20,20 @@
     "fix": "eslint . --fix"
   },
   "devDependencies": {
-    "@polyratings/eslint-config": "*",
-    "@types/node-fetch": "^2.6.1",
-
-    "@cloudflare/workers-types": "^3.3.1",
-    "dotenv": "^16.0.0",
-    "esbuild": "^0.14.13",
-    "esbuild-visualizer": "^0.3.1",
-    "eslint": "^8.7.0",
-    "node-fetch": "^2.6.7",
+    "@cloudflare/workers-types": "^3.19.0",
+    "@polyratings/eslint-config": "^0.0.1",
+    "@types/node-fetch": "^2.6.4",
     "@types/uuid": "^8.3.4",
-    "typescript": "^5.0.4"
+    "dotenv": "^16.0.0",
+    "esbuild": "^0.14.54",
+    "esbuild-visualizer": "^0.3.1",
+    "eslint": "^8.46.0",
+    "node-fetch": "^2.6.7",
+    "typescript": "^5.1.6"
   },
   "dependencies": {
     "@trpc/client": "10.0.0-rc.8",
     "@trpc/server": "10.0.0-rc.8",
-    "toucan-js": "^2.5.0"
+    "toucan-js": "^2.7.0"
   }
 }
