@@ -1,6 +1,6 @@
 # Polyratings Frontend
 
-Frontend for the polyratings website hosted at http://polyratings.dev
+Frontend for the polyratings website hosted at <http://polyratings.dev>
 
 ## Overview
 
@@ -8,9 +8,9 @@ The frontend was built in react do to the ease of use and do to it currently bei
 
 ## Quick Notes
 
--   Tailwind is used for styling. For those not familiar tailwind is a css framework that allows users to write css inline using shorthand class names. This leads to generally messier markup inside components but greatly increases developer productivity. More information on tailwind can be found in the official docs [here](https://tailwindcss.com/)
--   The module pattern is used throughout. In each subfolder there is a index.ts file that is used to export all of the files in the current folder. This cuts down on the amount of imports per file and keeps code more clean. In order to enforce this `../` is a restricted import pattern by default
--   Trpc is used for communication between the frontend and backend. It provides typesafe interactions and is built on top of tanstack query. To learn more about either you can visit https://trpc.io/ and https://tanstack.com/query/v4
+- Tailwind is used for styling. For those not familiar tailwind is a css framework that allows users to write css inline using shorthand class names. This leads to generally messier markup inside components but greatly increases developer productivity. More information on tailwind can be found in the official docs [here](https://tailwindcss.com/)
+- The module pattern is used throughout. In each subfolder there is a index.ts file that is used to export all of the files in the current folder. This cuts down on the amount of imports per file and keeps code more clean. In order to enforce this `../` is a restricted import pattern by default
+- Trpc is used for communication between the frontend and backend. It provides typesafe interactions and is built on top of tanstack query. To learn more about either you can visit <https://trpc.io/> and <https://tanstack.com/query/v4>
 
 ## Folder Structure
 
@@ -20,9 +20,9 @@ The frontend was built in react do to the ease of use and do to it currently bei
 
 **`/hooks`** - contain custom hooks that are used by the frontend. Some Notable hooks are:
 
--   `useAuth` - returns the user if one or null otherwise
--   `useTailwindBreakpoints` - allows js code to sync to the tailwind breakpoints making responsive design easier
--   `useLocationState` - Similar to use state but is restored if a page is returned to on a navigation event
+- `useAuth` - returns the user if one or null otherwise
+- `useTailwindBreakpoints` - allows js code to sync to the tailwind breakpoints making responsive design easier
+- `useLocationState` - Similar to use state but is restored if a page is returned to on a navigation event
 
 **`/pages`** - Page entry points. One file per url route
 
@@ -38,7 +38,7 @@ Vitest is used for testing. Currently there is only unit tests but there is a de
 
 Run tests with:
 
-```
+```bash
 nx test frontend
 ```
 

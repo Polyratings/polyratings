@@ -82,17 +82,16 @@ export class KVDAO {
         const keys: string[] = [];
         let cursor: string | undefined;
         do {
-            let options = {};
-            if (cursor) {
-                options = { cursor };
-            }
-            // Have to be consecutive
+            const options: KVNamespaceListOptions = cursor ? { cursor } : {};
+
             // eslint-disable-next-line no-await-in-loop
             const result = await namespace.list(options);
-            cursor = result.cursor;
-            result.keys.forEach((key) => {
-                keys.push(key.name);
-            });
+
+            // Push all key names into the keys array
+            keys.push(...result.keys.map((key) => key.name));
+
+            // Update cursor based on list_complete value
+            cursor = result.list_complete === false ? result.cursor : undefined;
         } while (cursor);
 
         return keys;

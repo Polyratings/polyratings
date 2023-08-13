@@ -18,17 +18,17 @@ the site's data-storage solution, primarily for its low-cost and speed.
 
 The backend begins with a single entrypoint in [index.ts](src/index.ts) that sets up the trpc router and surrounding logic
 
--   routers - provide handlers for each module professors, ratings, admin and auth
+- routers - provide handlers for each module professors, ratings, admin and auth
 
--   dao (Data Access Object) - provide an abstraction layer over the data and allow request handlers to have a nice api surface. This includes all interactions with kv. For example adding/removing professors or reviews
+- dao (Data Access Object) - provide an abstraction layer over the data and allow request handlers to have a nice api surface. This includes all interactions with kv. For example adding/removing professors or reviews
 
--   generated - contains generated config files that are consumed by the cron job. These files are just a typescript file that represents the wrangler.toml file. These files are generated whenever the build command is called
+- generated - contains generated config files that are consumed by the cron job. These files are just a typescript file that represents the wrangler.toml file. These files are generated whenever the build command is called
 
--   types - contains kv schema along with supporting type helpers
+- types - contains kv schema along with supporting type helpers
 
 ## Building
 
-To build this package, you simply need to run `nx build backend` and [esbuild](https://esbuild.github.io/) will
+To build this package, you simply need to run `npm run build` and [esbuild](https://esbuild.github.io/) will
 bundle the entire project and its dependencies together. The build artifact from this process can be manually uploaded
 to Cloudflare Workers.
 

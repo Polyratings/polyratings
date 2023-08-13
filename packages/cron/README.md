@@ -4,11 +4,11 @@ Cron job that is run once a day to provide maintenance and sync prod to dev envi
 
 ## Architecture
 
--   worker.ts - cloudflare worker entry point
--   local.ts - local running entry point
--   entry.ts - shared entry that gets called by each specific environment file
--   steps - functions that are called by entry to do specific actions
--   wrappers - api wrappers that make interacting with cloudflare more ergonomic
+- worker.ts - cloudflare worker entry point
+- local.ts - local running entry point
+- entry.ts - shared entry that gets called by each specific environment file
+- steps - functions that are called by entry to do specific actions
+- wrappers - api wrappers that make interacting with cloudflare more ergonomic
 
 ## Running locally
 
@@ -16,12 +16,12 @@ Cron job that is run once a day to provide maintenance and sync prod to dev envi
 
 Build using:
 
-```
+```bash
 nx run cron:build:local
 ```
 
 Run with:
 
-```
+```bash
 nx run cron:run:local
 ```

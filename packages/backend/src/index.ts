@@ -1,5 +1,5 @@
 import { CloudflareEnv, Env } from "@backend/env";
-import Toucan from "toucan-js";
+import { Toucan } from "toucan-js";
 import { fetchRequestHandler } from "@trpc/server/adapters/fetch";
 import { Context } from "toucan-js/dist/types";
 import { t } from "./trpc";
@@ -31,8 +31,10 @@ export default {
         const sentry = new Toucan({
             dsn: "https://a7c07e573f624b40b98f061b54877d9d@o1195960.ingest.sentry.io/6319110",
             context: cloudflareCtx,
-            allowedHeaders: ["user-agent"],
-            allowedSearchParams: /(.*)/,
+            requestDataOptions: {
+                allowedHeaders: ["user-agent"],
+                allowedSearchParams: /(.*)/,
+            },
         });
 
         return fetchRequestHandler({
