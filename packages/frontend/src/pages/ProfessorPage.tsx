@@ -12,8 +12,8 @@ import { z } from "zod";
 import { SubmitHandler, useForm } from "react-hook-form";
 import { toast } from "react-toastify";
 import { inferProcedureOutput } from "@trpc/server";
-import { AppRouter } from "@backend/index";
 import { InView } from "react-intersection-observer";
+import { AppRouter } from "@backend/index";
 import {
     TwoStepEvaluateProfessor,
     TextArea,

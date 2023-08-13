@@ -1,6 +1,6 @@
-import { t } from "@backend/trpc";
 import { z } from "zod";
 import { TRPCError } from "@trpc/server";
+import { t } from "@backend/trpc";
 import { PendingRating, ratingBaseParser, RatingReport, reportParser } from "@backend/types/schema";
 import { DEPARTMENT_LIST } from "@backend/utils/const";
 

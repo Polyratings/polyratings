@@ -1,8 +1,8 @@
 import { useLocation } from "react-router-dom";
 import { useEffect } from "react";
-import { DEPARTMENT_LIST } from "@backend/utils/const";
 import { ArrowLongUpIcon } from "@heroicons/react/24/outline";
 import { inferProcedureOutput } from "@trpc/server";
+import { DEPARTMENT_LIST } from "@backend/utils/const";
 import { AppRouter } from "@backend/index";
 // eslint-disable-next-line import/no-cycle
 import { MinMaxSlider } from "@/components";

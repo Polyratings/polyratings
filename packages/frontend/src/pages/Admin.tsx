@@ -1,7 +1,7 @@
 /* eslint-disable react/no-unstable-nested-components */
 import { Fragment, lazy, Suspense, useEffect, useState } from "react";
-import { Professor, RatingReport } from "@backend/types/schema";
 import { useQueryClient } from "@tanstack/react-query";
+import { Professor, RatingReport } from "@backend/types/schema";
 import { useAuth } from "@/hooks";
 import { trpc } from "@/trpc";
 import { bulkInvalidationKey, useDbValues } from "@/hooks/useDbValues";

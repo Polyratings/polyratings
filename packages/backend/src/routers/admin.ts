@@ -1,5 +1,5 @@
-import { t, protectedProcedure } from "@backend/trpc";
 import { z } from "zod";
+import { t, protectedProcedure } from "@backend/trpc";
 import { addRating } from "@backend/types/schemaHelpers";
 import { bulkKeys, DEPARTMENT_LIST } from "@backend/utils/const";
 

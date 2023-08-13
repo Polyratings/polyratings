@@ -1,5 +1,5 @@
-import { t } from "@backend/trpc";
 import { z } from "zod";
+import { t } from "@backend/trpc";
 import { Professor, ratingBaseParser } from "@backend/types/schema";
 import { addRating } from "@backend/types/schemaHelpers";
 import { DEPARTMENT_LIST } from "@backend/utils/const";

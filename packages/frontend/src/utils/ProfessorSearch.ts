@@ -1,5 +1,5 @@
-import { AppRouter } from "@backend/index";
 import { inferProcedureOutput } from "@trpc/server";
+import { AppRouter } from "@backend/index";
 import { intersectingDbEntities } from "./intersectingDbEntities";
 
 export type ProfessorSearchType = "name" | "department" | "class";

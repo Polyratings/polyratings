@@ -2,6 +2,12 @@
 import { useForm, SubmitHandler, UseFormReturn, Controller } from "react-hook-form";
 import { toast } from "react-toastify";
 import ClipLoader from "react-spinners/ClipLoader";
+import { z } from "zod";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { inferProcedureOutput } from "@trpc/server";
+import { UserIcon } from "@heroicons/react/24/solid";
+import { ReactElement, useState } from "react";
+import { AppRouter } from "@backend/index";
 import {
     GRADE_LEVELS,
     GRADES,
@@ -11,12 +17,6 @@ import {
     PROFESSOR_TAGS,
     MAX_PROFESSOR_TAGS_PER_RATING,
 } from "@backend/utils/const";
-import { z } from "zod";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { inferProcedureOutput } from "@trpc/server";
-import { AppRouter } from "@backend/index";
-import { UserIcon } from "@heroicons/react/24/solid";
-import { ReactElement, useState } from "react";
 import { trpc } from "@/trpc";
 import { useSortedCourses } from "@/hooks";
 import { Select, TextArea } from "./forms";

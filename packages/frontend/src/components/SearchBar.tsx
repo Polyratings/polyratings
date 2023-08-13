@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
-import { DEPARTMENT_LIST } from "@backend/utils/const";
 import { useNavigate } from "react-router-dom";
+import { DEPARTMENT_LIST } from "@backend/utils/const";
 import { trpc } from "@/trpc";
 import { ProfessorSearchType, professorSearch } from "@/utils/ProfessorSearch";
 import { AutoComplete } from "./AutoComplete";

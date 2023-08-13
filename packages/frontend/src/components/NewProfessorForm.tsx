@@ -2,6 +2,10 @@
 import { Controller, useForm, UseFormReturn } from "react-hook-form";
 import { toast } from "react-toastify";
 import { useNavigate } from "react-router";
+import { z } from "zod";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useEffect } from "react";
+import { ClipLoader } from "react-spinners";
 import {
     COURSE_TYPES,
     DEPARTMENT_LIST,
@@ -9,10 +13,6 @@ import {
     GRADE_LEVELS,
     PROFESSOR_TAGS,
 } from "@backend/utils/const";
-import { z } from "zod";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useEffect } from "react";
-import { ClipLoader } from "react-spinners";
 import { trpc } from "@/trpc";
 import { Checkbox, Select, TextArea, TextInput } from "./forms";
 import {

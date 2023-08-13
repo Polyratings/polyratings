@@ -1,11 +1,11 @@
 import type { Toucan } from "toucan-js";
+import { createTRPCProxyClient, httpLink } from "@trpc/client";
 import {
     cloudflareAccountId,
     cloudflareNamespaceInformation,
     PROD_ENV,
 } from "@backend/generated/tomlGenerated";
 import type { AppRouter } from "@backend/index";
-import { createTRPCProxyClient, httpLink } from "@trpc/client";
 // eslint-disable-next-line import/no-cycle
 import { syncKvStore } from "./steps/syncKvStore";
 import { cloudflareKVInit } from "./wrappers/kv-wrapper";
