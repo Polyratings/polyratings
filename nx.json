@@ -1,7 +1,7 @@
 {
   "tasksRunnerOptions": {
     "default": {
-      "runner": "nx/tasks-runners/default",
+      "runner": "nx-cloud",
       "options": {
         "cacheableOperations": [
           "build:fast",
@@ -10,7 +10,8 @@
           "fix",
           "build:local",
           "test"
-        ]
+        ],
+        "accessToken": "YzUxOTYzZmMtOWFiMC00NGEyLThmZWYtYzMyZmJkYTkwYWNlfHJlYWQtd3JpdGU="
       }
     }
   },
