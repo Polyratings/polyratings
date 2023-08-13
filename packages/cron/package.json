@@ -24,16 +24,16 @@
     "@polyratings/eslint-config": "^0.0.1",
     "@types/node-fetch": "^2.6.4",
     "@types/uuid": "^8.3.4",
-    "dotenv": "^16.0.0",
+    "dotenv": "^16.3.1",
     "esbuild": "^0.14.54",
     "esbuild-visualizer": "^0.3.1",
-    "eslint": "^8.46.0",
+    "eslint": "^8.47.0",
     "node-fetch": "^2.6.7",
     "typescript": "^5.1.6"
   },
   "dependencies": {
     "@trpc/client": "10.0.0-rc.8",
     "@trpc/server": "10.0.0-rc.8",
-    "toucan-js": "^2.7.0"
+    "toucan-js": "^3.2.1"
   }
 }

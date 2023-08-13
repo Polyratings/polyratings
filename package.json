@@ -16,6 +16,6 @@
     "deploy:dev": "lerna run deploy:dev --stream"
   },
   "devDependencies": {
-    "lerna": "^7.1.4"
+    "lerna": "^7.1.5"
   }
 }

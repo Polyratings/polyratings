@@ -1,6 +1,6 @@
-import { BulkKey, BulkKeyMap } from "@backend/utils/const";
-import { z } from "zod";
-import { TRPCError } from "@trpc/server";
+import { BulkKey, BulkKeyMap } from '@backend/utils/const';
+import { z } from 'zod';
+import { TRPCError } from '@trpc/server';
 import {
     PendingRating,
     pendingRatingParser,
@@ -12,13 +12,13 @@ import {
     truncatedProfessorParser,
     User,
     userParser,
-} from "@backend/types/schema";
+} from '@backend/types/schema';
 import {
     addRating as addRatingToProfessor,
     professorToTruncatedProfessor,
     removeRating,
-} from "@backend/types/schemaHelpers";
-import { KvWrapper } from "./kv-wrapper";
+} from '@backend/types/schemaHelpers';
+import { KvWrapper } from './kv-wrapper';
 
 const KV_REQUESTS_PER_TRIGGER = 1000;
 const THREE_WEEKS_SECONDS = 60 * 60 * 24 * 7 * 3;
@@ -35,12 +35,12 @@ export class KVDAO {
     async getAllProfessors() {
         const professorList = await this.polyratingsNamespace.safeGet(
             z.array(truncatedProfessorParser),
-            "all",
+            'all',
         );
         if (!professorList.success) {
             throw new TRPCError({
-                code: "INTERNAL_SERVER_ERROR",
-                message: "Could not find any professors.",
+                code: 'INTERNAL_SERVER_ERROR',
+                message: 'Could not find any professors.',
             });
         }
 
@@ -50,7 +50,7 @@ export class KVDAO {
     private async putAllProfessors(professorList: TruncatedProfessor[]) {
         await this.polyratingsNamespace.put(
             z.array(truncatedProfessorParser),
-            "all",
+            'all',
             professorList,
         );
     }
@@ -62,13 +62,13 @@ export class KVDAO {
     getBulkNamespace(bulkKey: BulkKey): { namespace: KvWrapper; parser: z.ZodTypeAny } {
         const namespaceMap: Record<BulkKey, { namespace: KvWrapper; parser: z.ZodTypeAny }> = {
             professors: { namespace: this.polyratingsNamespace, parser: professorParser },
-            "professor-queue": {
+            'professor-queue': {
                 namespace: this.professorApprovalQueueNamespace,
                 parser: professorParser,
             },
             users: { namespace: this.usersNamespace, parser: userParser },
             reports: { namespace: this.reportsNamespace, parser: ratingReportParser },
-            "rating-log": {
+            'rating-log': {
                 namespace: this.ratingsLog,
                 parser: pendingRatingParser,
             },
@@ -82,17 +82,16 @@ export class KVDAO {
         const keys: string[] = [];
         let cursor: string | undefined;
         do {
-            let options = {};
-            if (cursor) {
-                options = { cursor };
-            }
-            // Have to be consecutive
+            const options: KVNamespaceListOptions = cursor ? { cursor } : {};
+
             // eslint-disable-next-line no-await-in-loop
             const result = await namespace.list(options);
-            cursor = result.cursor;
-            result.keys.forEach((key) => {
-                keys.push(key.name);
-            });
+
+            // Push all key names into the keys array
+            keys.push(...result.keys.map((key) => key.name));
+
+            // Update cursor based on list_complete value
+            cursor = result.list_complete === false ? result.cursor : undefined;
         } while (cursor);
 
         return keys;
@@ -101,7 +100,7 @@ export class KVDAO {
     async getBulkValues<T extends BulkKey>(bulkKey: T, keys: string[]): Promise<BulkKeyMap[T]> {
         if (keys.length > KV_REQUESTS_PER_TRIGGER) {
             throw new TRPCError({
-                code: "BAD_REQUEST",
+                code: 'BAD_REQUEST',
                 message: `Can not process more than ${KV_REQUESTS_PER_TRIGGER} keys per request`,
             });
         }
@@ -122,7 +121,7 @@ export class KVDAO {
                 existingProfessor.firstName !== professor.firstName ||
                 existingProfessor.lastName !== professor.lastName
             ) {
-                throw new Error("Possible professor collision detected");
+                throw new Error('Possible professor collision detected');
             }
         }
 
@@ -152,7 +151,7 @@ export class KVDAO {
         const professorIndex = profList.findIndex((t) => t.id === id);
 
         if (professorIndex === -1) {
-            throw new Error("Professor entity existed for removal but not in all professor list");
+            throw new Error('Professor entity existed for removal but not in all professor list');
         }
 
         profList.splice(professorIndex, 1);
@@ -166,8 +165,8 @@ export class KVDAO {
     }
 
     async addRating(newRating: PendingRating) {
-        if (newRating.status !== "Successful") {
-            throw new Error("Cannot add rating to KV that has not been analyzed.");
+        if (newRating.status !== 'Successful') {
+            throw new Error('Cannot add rating to KV that has not been analyzed.');
         }
 
         const professor = await this.getProfessor(newRating.professor);
@@ -191,7 +190,7 @@ export class KVDAO {
             const user = await this.usersNamespace.get(userParser, username);
             return user;
         } catch (e) {
-            throw new TRPCError({ code: "UNAUTHORIZED" });
+            throw new TRPCError({ code: 'UNAUTHORIZED' });
         }
     }
 
