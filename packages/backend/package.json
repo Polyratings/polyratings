@@ -7,9 +7,9 @@
         "build:fast": "esbuild --format=esm --define:this=self --bundle src/index.ts --outdir=dist --metafile=stats/metadata.json",
         "build": "node generateBackendTypes.js && tsc && npm run build:fast",
         "stats": "esbuild-visualizer --metadata ./stats/metadata.json --filename ./stats/stats.html",
-        "deploy:prod": "wrangler publish --env prod",
-        "deploy:beta": "wrangler publish --env beta",
-        "deploy:dev": "wrangler publish --env dev",
+        "deploy:prod": "wrangler deploy --env prod",
+        "deploy:beta": "wrangler deploy --env beta",
+        "deploy:dev": "wrangler deploy --env dev",
         "lint": "eslint --max-warnings=0 .",
         "fix": "eslint . --fix"
     },
@@ -34,7 +34,7 @@
     },
     "dependencies": {
         "@trpc/server": "10.0.0-rc.8",
-        "@tsndr/cloudflare-worker-jwt": "^1.4.4",
+        "@tsndr/cloudflare-worker-jwt": "^2.2.1",
         "toucan-js": "^2.7.0",
         "zod": "^3.21.4"
     }

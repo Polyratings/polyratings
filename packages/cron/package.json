@@ -15,7 +15,7 @@
     "build:fast": "esbuild --format=esm --define:this=self --bundle src/worker.ts --outdir=dist --metafile=stats/metadata.json --loader:.toml=text",
     "build:local": "esbuild --format=cjs --bundle src/local.ts --outdir=dist --platform=node --loader:.toml=text",
     "build": "tsc && npm run build:fast",
-    "deploy:prod": "wrangler publish --env prod",
+    "deploy:prod": "wrangler deploy --env prod",
     "lint": "eslint --max-warnings=0 .",
     "fix": "eslint . --fix"
   },
