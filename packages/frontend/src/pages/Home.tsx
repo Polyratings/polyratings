@@ -30,7 +30,7 @@ export function Home() {
                         Polyratings
                     </h1>
                     <div className="mt-6">
-                        <SearchBar showOnlyInput />
+                        <SearchBar />
                     </div>
                 </div>
                 <img

@@ -3,7 +3,7 @@ import "@/styles/hamburgers.css";
 import AnimateHeight from "react-animate-height";
 import { useEffect, useState } from "react";
 import { useAuth } from "@/hooks";
-import { SearchBar } from "./SearchBar";
+import { TruncatedSearchBar } from "./SearchBar";
 import Logo from "@/assets/Logo.svg";
 import DiscordLogo from "@/assets/Discord-Logo-White.svg";
 import GithubLogo from "@/assets/github.svg";
@@ -26,7 +26,7 @@ export function Navbar() {
         <div
             className={`w-full ${
                 isAuthenticated ? "bg-red-800" : "bg-cal-poly-green"
-            } h-12 flex justify-between px-5 items-center`}
+            } h-14 flex justify-between px-5 items-center`}
         >
             <a className="absolute w-[1px] h-[1px] z-[-1]" href="#main">
                 Skip to main content
@@ -81,7 +81,7 @@ export function Navbar() {
             <div className="text-white hidden md:flex items-center text-lg font-semibold">
                 {showInputBar && (
                     <div className="text-black mr-7 hidden lg:block">
-                        <SearchBar showOnlyInput={false} />
+                        <TruncatedSearchBar />
                     </div>
                 )}
 
