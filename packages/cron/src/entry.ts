@@ -54,7 +54,7 @@ export type CronEnv = Awaited<ReturnType<typeof createRuntimeEnvironment>>;
 async function createRuntimeEnvironment(globalEnv: Record<string, string | undefined>) {
     const polyratingsCIUsername = globalEnv.POLYRATINGS_CI_USERNAME;
     const polyratingsCIPassword = globalEnv.POLYRATINGS_CI_PASSWORD;
-    const cfApiToken = globalEnv.CLOUDFLARE_API_TOKEN;
+    const cfApiToken = globalEnv.CF_API_TOKEN;
 
     // Make sure all keys are defined
     if (!polyratingsCIUsername || !polyratingsCIPassword || !cfApiToken) {
