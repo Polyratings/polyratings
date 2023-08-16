@@ -199,7 +199,7 @@ function SearchBase({
                 filterFn={(_, inputValue) => autoCompleteFilter(inputValue)}
                 label="Professor Auto-complete"
                 initialValue={searchValue}
-                className="xl:w-72 w-[15rem] h-10 font-normal text-lg shadow-2xl"
+                className="2xl:w-96 xl:w-72 w-[15rem] h-10 font-normal text-lg shadow-2xl"
                 disableDropdown={disableAutoComplete ?? false}
             />
             {RightSlot}
