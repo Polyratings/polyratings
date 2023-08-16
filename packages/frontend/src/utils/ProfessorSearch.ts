@@ -2,7 +2,7 @@ import { AppRouter } from "@backend/index";
 import { inferProcedureOutput } from "@trpc/server";
 import { intersectingDbEntities } from "./intersectingDbEntities";
 
-export type ProfessorSearchType = "name" | "department" | "class";
+export type ProfessorSearchType = "name" | "class";
 
 export function professorSearch(
     allProfessors: inferProcedureOutput<AppRouter["professors"]["all"]>,
@@ -26,11 +26,6 @@ export function professorSearch(
             return allProfessors.filter((professor) =>
                 professor.courses.find((course) => course.includes(courseName)),
             );
-        }
-        case "department": {
-            const department = value.toUpperCase();
-            // Use starts with since most times with department you are looking for an exact match
-            return allProfessors.filter((professor) => professor.department.startsWith(department));
         }
         default:
             throw new Error(`Invalid Search Type: ${type}`);

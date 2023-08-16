@@ -57,9 +57,9 @@ export function Search() {
     return (
         <div id="main">
             <SearchBar
+                className="mt-7"
                 initialState={searchState}
                 onChange={setSearchState}
-                showOnlyInput
                 disableAutoComplete
             />
             {(!searchResults.length || !filteredProfessors.length) && (
