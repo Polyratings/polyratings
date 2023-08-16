@@ -1,16 +1,12 @@
-import { BulkKey, BulkKeyMap } from "@backend/utils/const";
 import { z } from "zod";
 import { TRPCError } from "@trpc/server";
+import type { BulkKey, BulkKeyMap } from "@backend/utils/const";
+import type { PendingRating, Professor, RatingReport, TruncatedProfessor, User } from "@backend/types/schema";
 import {
-    PendingRating,
     pendingRatingParser,
-    Professor,
     professorParser,
-    RatingReport,
     ratingReportParser,
-    TruncatedProfessor,
     truncatedProfessorParser,
-    User,
     userParser,
 } from "@backend/types/schema";
 import {
@@ -18,7 +14,7 @@ import {
     professorToTruncatedProfessor,
     removeRating,
 } from "@backend/types/schemaHelpers";
-import { KvWrapper } from "./kv-wrapper";
+import type { KvWrapper } from "./kv-wrapper";
 
 const KV_REQUESTS_PER_TRIGGER = 1000;
 const THREE_WEEKS_SECONDS = 60 * 60 * 24 * 7 * 3;
@@ -33,10 +29,7 @@ export class KVDAO {
     ) {}
 
     async getAllProfessors() {
-        const professorList = await this.polyratingsNamespace.safeGet(
-            z.array(truncatedProfessorParser),
-            "all",
-        );
+        const professorList = await this.polyratingsNamespace.safeGet(z.array(truncatedProfessorParser), "all");
         if (!professorList.success) {
             throw new TRPCError({
                 code: "INTERNAL_SERVER_ERROR",
@@ -48,11 +41,7 @@ export class KVDAO {
     }
 
     private async putAllProfessors(professorList: TruncatedProfessor[]) {
-        await this.polyratingsNamespace.put(
-            z.array(truncatedProfessorParser),
-            "all",
-            professorList,
-        );
+        await this.polyratingsNamespace.put(z.array(truncatedProfessorParser), "all", professorList);
     }
 
     getProfessor(id: string) {
@@ -170,11 +159,7 @@ export class KVDAO {
         }
 
         const professor = await this.getProfessor(newRating.professor);
-        addRatingToProfessor(
-            professor,
-            newRating,
-            `${newRating.department} ${newRating.courseNum}`,
-        );
+        addRatingToProfessor(professor, newRating, `${newRating.department} ${newRating.courseNum}`);
 
         return this.putProfessor(professor);
     }
@@ -219,10 +204,7 @@ export class KVDAO {
     }
 
     async putReport(report: RatingReport): Promise<void> {
-        const existingReport = await this.reportsNamespace.getOptional(
-            ratingReportParser,
-            report.ratingId,
-        );
+        const existingReport = await this.reportsNamespace.getOptional(ratingReportParser, report.ratingId);
 
         if (existingReport) {
             existingReport.reports = existingReport.reports.concat(report.reports);

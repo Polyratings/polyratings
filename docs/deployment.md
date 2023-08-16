@@ -27,12 +27,12 @@ Setting up the different Cloudflare workers requires some manual setup (both thr
 To setup your KVs, navigate to the "Workers" tab from the Cloudflare Dashboard, and the select the "KV" subtab. In the center-right section of the page, you'll see a "Create namespace" button, become familiar with it because you'll need to create at least 4 separate KV namespaces (or more as each deployment environment--prod/beta/dev--requires 4 unique namespaces to operate).
 **Namespaces to create:**
 
-- POLYRATINGS*TEACHERS*`ENV`
-- POLYRATINGS*RATING_QUEUE*`ENV`
-- POLYRATINGS*PROFESSOR_QUEUE*`ENV`
-- POLYRATINGS*USERS*`ENV`
-- POLYRATINGS*REPORTS*`ENV`
-  Take note of the namespace IDs as you'll need them for later configuration.
+-   POLYRATINGS*TEACHERS*`ENV`
+-   POLYRATINGS*RATING_QUEUE*`ENV`
+-   POLYRATINGS*PROFESSOR_QUEUE*`ENV`
+-   POLYRATINGS*USERS*`ENV`
+-   POLYRATINGS*REPORTS*`ENV`
+    Take note of the namespace IDs as you'll need them for later configuration.
 
 ### Workers Usage Model
 
@@ -58,12 +58,12 @@ If you want a better understanding of the syntax and structure of the configurat
 
 **Top Level Declarations:**
 
-- `zone_id` - The Cloudflare Zone that corresponds to the domain of the website (can be found on the right side of that domain's "Overview" Page)
-- `account_id` - Your Cloudflare Account
+-   `zone_id` - The Cloudflare Zone that corresponds to the domain of the website (can be found on the right side of that domain's "Overview" Page)
+-   `account_id` - Your Cloudflare Account
 
 **Environment-Specific Declarations:**
 
-- `route` - The URL that specific environment will listen on. These are the URLS you setup in [URLS and Endpoints](#urls-and-endpoints).
+-   `route` - The URL that specific environment will listen on. These are the URLS you setup in [URLS and Endpoints](#urls-and-endpoints).
 
 ### Backend Worker
 
@@ -71,8 +71,8 @@ In the Backend package, you'll need to modify the `kv_namespaces` field under ea
 
 Additionally, you're going to need to configure some [Secrets using Wrangler.](https://developers.cloudflare.com/workers/platform/environment-variables/#adding-secrets-via-wrangler) Specifically, we need to create the following secrets (they can either be the same per environment, or different so long as they are valid):
 
-- `PERSPECTIVE_API_KEY` - API key received when following [Preliminary Setup](#preliminary-setup)
-- `JWT_SIGNING_KEY` - @mfish33 (if you want to explain how to gen it)
+-   `PERSPECTIVE_API_KEY` - API key received when following [Preliminary Setup](#preliminary-setup)
+-   `JWT_SIGNING_KEY` - @mfish33 (if you want to explain how to gen it)
 
 #### Deploying/Publishing
 
@@ -85,9 +85,9 @@ Note: You **only** need to deploy this worker if you have multiple backend envir
 
 The Cron worker requires the following secrets to function:
 
-- `POLYRATINGS_CI_USERNAME` - The username of a user in the `POLYRATINGS_USERS` KV.
-- `POLYRATINGS_CI_PASSWORD` - The plaintext password of the user above.
-- `CF_API_TOKEN` - A Cloudflare API token that has permission to access the backend workers. You can follow the steps [here](https://developers.cloudflare.com/api/tokens/create/) to generate that token.
+-   `POLYRATINGS_CI_USERNAME` - The username of a user in the `POLYRATINGS_USERS` KV.
+-   `POLYRATINGS_CI_PASSWORD` - The plaintext password of the user above.
+-   `CF_API_TOKEN` - A Cloudflare API token that has permission to access the backend workers. You can follow the steps [here](https://developers.cloudflare.com/api/tokens/create/) to generate that token.
 
 #### Executing Deployment
 
@@ -114,10 +114,10 @@ Navigate to the "Pages" tab from the dashboard to begin and select "Create a Pro
 
 You'll need to fill out the page using the following settings:
 
-- **Project name:** The name you want associated with this Pages project. Note: it **is not** the final URL that will point to your homepage.
-- **Production branch**: This should usually be `master` unless you've changed the default branch of your repository.
-- **Framework preset**: None
-- **Build command**: `npm install && npm run build`. This is because the monorepo is orchestrated by [Lerna](https://lerna.js.org/) so all of the installation, symlinking, and building is handled at the top level.
-- **Build output directory**: `/packages/frontend/dist`
+-   **Project name:** The name you want associated with this Pages project. Note: it **is not** the final URL that will point to your homepage.
+-   **Production branch**: This should usually be `master` unless you've changed the default branch of your repository.
+-   **Framework preset**: None
+-   **Build command**: `npm install && npm run build`. This is because the monorepo is orchestrated by [Lerna](https://lerna.js.org/) so all of the installation, symlinking, and building is handled at the top level.
+-   **Build output directory**: `/packages/frontend/dist`
 
 Then select "Save and Deploy." Your site should automatically deploy to `project-name.pages.dev` though if your project name is identical to another, there will be a unique identifier appended to the end of `project-name`.

@@ -1,4 +1,5 @@
-import { Professor, Rating, ratingParser, TruncatedProfessor } from "./schema";
+import type { Professor, Rating, TruncatedProfessor } from "./schema";
+import { ratingParser } from "./schema";
 
 export function addRating(professor: Professor, reviewUnparsed: Rating, courseName: string) {
     // Ensure that no extraneous keys are present
@@ -28,15 +29,11 @@ export function addRating(professor: Professor, reviewUnparsed: Rating, courseNa
     professor.courses = Object.keys(professor.reviews);
 
     const newMaterial =
-        (professor.materialClear * professor.numEvals + review.presentsMaterialClearly) /
-        (professor.numEvals + 1);
+        (professor.materialClear * professor.numEvals + review.presentsMaterialClearly) / (professor.numEvals + 1);
     const newStudentDiff =
-        (professor.studentDifficulties * professor.numEvals +
-            review.recognizesStudentDifficulties) /
+        (professor.studentDifficulties * professor.numEvals + review.recognizesStudentDifficulties) /
         (professor.numEvals + 1);
-    const newOverall =
-        (professor.overallRating * professor.numEvals + review.overallRating) /
-        (professor.numEvals + 1);
+    const newOverall = (professor.overallRating * professor.numEvals + review.overallRating) / (professor.numEvals + 1);
 
     professor.numEvals += 1;
 
@@ -82,12 +79,10 @@ export function removeRating(professor: Professor, reviewId: string) {
             (professor.materialClear * professor.numEvals - removedRating.presentsMaterialClearly) /
             (professor.numEvals - 1);
         const newStudentDiff =
-            (professor.studentDifficulties * professor.numEvals -
-                removedRating.recognizesStudentDifficulties) /
+            (professor.studentDifficulties * professor.numEvals - removedRating.recognizesStudentDifficulties) /
             (professor.numEvals - 1);
         const newOverall =
-            (professor.overallRating * professor.numEvals - removedRating.overallRating) /
-            (professor.numEvals - 1);
+            (professor.overallRating * professor.numEvals - removedRating.overallRating) / (professor.numEvals - 1);
 
         professor.numEvals -= 1;
 

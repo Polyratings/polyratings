@@ -1,6 +1,6 @@
-import { AppRouter } from "@backend/index";
-import { BulkKey, BulkKeyMap } from "@backend/utils/const";
-import { createTRPCProxyClient } from "@trpc/client";
+import type { AppRouter } from "@backend/index";
+import type { BulkKey, BulkKeyMap } from "@backend/utils/const";
+import type { createTRPCProxyClient } from "@trpc/client";
 import { chunkArray } from "./chunkArray";
 
 const WORKER_RETRIEVAL_CHUNK_SIZE = 100;

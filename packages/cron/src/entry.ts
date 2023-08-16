@@ -1,9 +1,6 @@
 import type { Toucan } from "toucan-js";
-import {
-    cloudflareAccountId,
-    cloudflareNamespaceInformation,
-    PROD_ENV,
-} from "@backend/generated/tomlGenerated";
+import type { cloudflareNamespaceInformation } from "@backend/generated/tomlGenerated";
+import { cloudflareAccountId, PROD_ENV } from "@backend/generated/tomlGenerated";
 import type { AppRouter } from "@backend/index";
 import { createTRPCProxyClient, httpLink } from "@trpc/client";
 import { syncKvStore } from "./steps/syncKvStore";

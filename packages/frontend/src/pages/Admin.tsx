@@ -1,6 +1,6 @@
 /* eslint-disable react/no-unstable-nested-components */
 import { Fragment, lazy, Suspense, useEffect, useState } from "react";
-import { Professor, RatingReport } from "@backend/types/schema";
+import type { Professor, RatingReport } from "@backend/types/schema";
 import { useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/hooks";
 import { trpc } from "@/trpc";
@@ -21,7 +21,7 @@ export function Admin() {
     const { isAuthenticated } = useAuth();
     return isAuthenticated ? (
         <div>
-            <h1 className="text-center text-6xl font-semibold my-4">Polyratings Admin Panel</h1>
+            <h1 className="my-4 text-center text-6xl font-semibold">Polyratings Admin Panel</h1>
             <div className="container m-auto text-lg">
                 <PendingProfessors />
                 <ReportedRatings />
@@ -52,9 +52,7 @@ function ReportedRatings() {
             name: "Professor",
             grow: 0.5,
             selector: (row: RatingReport) => {
-                const professor = professors?.find(
-                    (professor) => professor?.id === row.professorId,
-                );
+                const professor = professors?.find((professor) => professor?.id === row.professorId);
                 return `${professor?.lastName}, ${professor?.firstName}`;
             },
         },
@@ -62,9 +60,7 @@ function ReportedRatings() {
             name: "Department",
             grow: 0.5,
             selector: (row: RatingReport) => {
-                const professor = professors?.find(
-                    (professor) => professor?.id === row.professorId,
-                );
+                const professor = professors?.find((professor) => professor?.id === row.professorId);
                 return professor?.department;
             },
         },
@@ -73,12 +69,12 @@ function ReportedRatings() {
             wrap: true,
             grow: 1.5,
             cell: (row: RatingReport) => (
-                <div className="flex flex-col w-full">
+                <div className="flex w-full flex-col">
                     {row.reports.map((report, idx) => (
                         // Need to use index to help out with making each key unique
                         // eslint-disable-next-line react/no-array-index-key
                         <Fragment key={idx + report.reason + report.email}>
-                            {idx !== 0 && <div className="w-full h-1 bg-black my-2" />}
+                            {idx !== 0 && <div className="my-2 h-1 w-full bg-black" />}
                             {report.email && <div>Email: {report.email}</div>}
                             <div>Reason: {report.reason}</div>
                         </Fragment>
@@ -91,9 +87,7 @@ function ReportedRatings() {
             wrap: true,
             grow: 3,
             selector: (row: RatingReport) => {
-                const professor = professors?.find(
-                    (professor) => professor?.id === row.professorId,
-                );
+                const professor = professors?.find((professor) => professor?.id === row.professorId);
                 return Object.values(professor?.reviews ?? {})
                     .flat()
                     .find((rating) => rating.id === row.ratingId)?.rating;
@@ -254,9 +248,7 @@ function RecentRatings() {
                     })),
             )
             .filter(({ id }) => !removedRatings.has(id))
-            .sort(
-                (ratingA, ratingB) => Date.parse(ratingB.postDate) - Date.parse(ratingA.postDate),
-            ) ?? [];
+            .sort((ratingA, ratingB) => Date.parse(ratingB.postDate) - Date.parse(ratingA.postDate)) ?? [];
 
     const removeRating = async (professorId: string, ratingId: string) => {
         await removeRatingMutation({ ratingId, professorId });
@@ -319,11 +311,7 @@ interface ConfirmationButtonProps {
     buttonClassName: string;
     buttonText: string;
 }
-export function ConfirmationButton({
-    action,
-    buttonClassName,
-    buttonText,
-}: ConfirmationButtonProps) {
+export function ConfirmationButton({ action, buttonClassName, buttonText }: ConfirmationButtonProps) {
     const [confirmationOpen, setConfirmationOpen] = useState(false);
 
     const handleConfirmation = () => {
@@ -333,17 +321,13 @@ export function ConfirmationButton({
 
     return (
         <div className="relative" onBlur={() => setConfirmationOpen(false)}>
-            <button
-                type="button"
-                className={buttonClassName}
-                onClick={() => setConfirmationOpen(true)}
-            >
+            <button type="button" className={buttonClassName} onClick={() => setConfirmationOpen(true)}>
                 {buttonText}
             </button>
             {confirmationOpen && (
-                <div className="absolute p-2 w-28 z-50 bg-white shadow top-0 right-0">
+                <div className="absolute right-0 top-0 z-50 w-28 bg-white p-2 shadow">
                     <div>Are You Sure?</div>
-                    <div className="flex justify-between mt-1">
+                    <div className="mt-1 flex justify-between">
                         <button
                             className="bg-green-500 px-2 py-1 text-white"
                             type="button"

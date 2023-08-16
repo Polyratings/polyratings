@@ -1,7 +1,7 @@
-import { BulkKey, BulkKeyMap } from "@backend/utils/const";
+import type { BulkKey, BulkKeyMap } from "@backend/utils/const";
 import { useQuery } from "@tanstack/react-query";
 import { createTRPCProxyClient } from "@trpc/client";
-import { AppRouter } from "@backend/index";
+import type { AppRouter } from "@backend/index";
 import { trpcClientOptions } from "@/trpc";
 import { useAuth } from "./useAuth";
 
@@ -16,10 +16,7 @@ export function useDbValues<T extends BulkKey>(bulkKey: T) {
         const chunkedKeys = chunkArray(keys, WORKER_RETRIEVAL_CHUNK_SIZE);
         const chunkedValues = await Promise.all(
             chunkedKeys.map((chunk) =>
-                rawTrpcClient.admin.getBulkValues.mutate(
-                    { keys: chunk, bulkKey },
-                    { context: { skipBatch: true } },
-                ),
+                rawTrpcClient.admin.getBulkValues.mutate({ keys: chunk, bulkKey }, { context: { skipBatch: true } }),
             ),
         );
         // Filter for null values in case of data consistency issues. Ex: value deleted after key is gotten

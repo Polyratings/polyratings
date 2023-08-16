@@ -1,26 +1,16 @@
 /* eslint-disable react/no-unstable-nested-components */
-import { Controller, useForm, UseFormReturn } from "react-hook-form";
+import type { UseFormReturn } from "react-hook-form";
+import { Controller, useForm } from "react-hook-form";
 import { toast } from "react-toastify";
 import { useNavigate } from "react-router";
-import {
-    COURSE_TYPES,
-    DEPARTMENT_LIST,
-    GRADES,
-    GRADE_LEVELS,
-    PROFESSOR_TAGS,
-} from "@backend/utils/const";
+import { COURSE_TYPES, DEPARTMENT_LIST, GRADES, GRADE_LEVELS, PROFESSOR_TAGS } from "@backend/utils/const";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useEffect } from "react";
 import { ClipLoader } from "react-spinners";
 import { trpc } from "@/trpc";
 import { Checkbox, Select, TextArea, TextInput } from "./forms";
-import {
-    CLASS_INFORMATION,
-    FormBar,
-    NUMERICAL_RATINGS,
-    TagSelection,
-} from "./EvaluateProfessorForm";
+import { CLASS_INFORMATION, FormBar, NUMERICAL_RATINGS, TagSelection } from "./EvaluateProfessorForm";
 import { Button } from "./forms/Button";
 
 const newProfessorFormParser = z.object({
@@ -49,10 +39,7 @@ export function NewProfessorFormTwoStep() {
     const { hookForm, onSubmit, isLoading, networkError } = useNewProfessorForm();
     const { control, trigger: triggerValidation } = hookForm;
     return (
-        <div
-            className="p-5 opacity-100 rounded relative bg-white shadow-2xl"
-            style={{ width: "40rem" }}
-        >
+        <div className="relative rounded bg-white p-5 opacity-100 shadow-2xl" style={{ width: "40rem" }}>
             <form onSubmit={onSubmit}>
                 <FormBar
                     firstStep={() => <NewProfessorStep {...hookForm} />}
@@ -69,7 +56,7 @@ export function NewProfessorFormTwoStep() {
                     triggerValidation={triggerValidation}
                 />
 
-                <div className="text-red-500 text-sm">{networkError?.message}</div>
+                <div className="text-sm text-red-500">{networkError?.message}</div>
             </form>
         </div>
     );
@@ -79,21 +66,16 @@ export function NewProfessorLinear() {
     const { hookForm, onSubmit, isLoading, networkError } = useNewProfessorForm();
     const { control } = hookForm;
     return (
-        <div
-            className="p-5 opacity-100 rounded relative bg-white shadow-2xl"
-            style={{ width: "40rem" }}
-        >
+        <div className="relative rounded bg-white p-5 opacity-100 shadow-2xl" style={{ width: "40rem" }}>
             <form onSubmit={onSubmit}>
                 <NewProfessorStep {...hookForm} />
 
-                <div className="w-full h-4" />
+                <div className="h-4 w-full" />
 
                 <Controller
                     control={control}
                     name="tags"
-                    render={({ field: { onChange } }) => (
-                        <TagSelection onChange={onChange} variant="mobile-primary" />
-                    )}
+                    render={({ field: { onChange } }) => <TagSelection onChange={onChange} variant="mobile-primary" />}
                 />
 
                 <div className={`flex justify-center ${isLoading ? "hidden" : "block"}`}>
@@ -107,7 +89,7 @@ export function NewProfessorLinear() {
                     <ClipLoader color="white" loading={isLoading} size={34} />
                 </div>
 
-                <div className="text-red-500 text-sm">{networkError?.message}</div>
+                <div className="text-sm text-red-500">{networkError?.message}</div>
             </form>
         </div>
     );
@@ -122,11 +104,7 @@ function useNewProfessorForm() {
         },
     });
 
-    const {
-        mutateAsync: addNewProfessorMutation,
-        isLoading,
-        error: networkError,
-    } = trpc.professors.add.useMutation();
+    const { mutateAsync: addNewProfessorMutation, isLoading, error: networkError } = trpc.professors.add.useMutation();
     const navigate = useNavigate();
 
     const onSubmitHandler = async (data: NewProfessorFormInputs) => {
@@ -148,9 +126,7 @@ function useNewProfessorForm() {
                     tags: data.tags,
                 },
             });
-            toast.success(
-                "Thank you for adding a professor. It will be reviewed manually and will be available soon",
-            );
+            toast.success("Thank you for adding a professor. It will be reviewed manually and will be available soon");
             navigate("/");
         } catch {
             // No need for error will be set by react-query
@@ -165,12 +141,7 @@ function useNewProfessorForm() {
     };
 }
 
-function NewProfessorStep({
-    register,
-    watch,
-    setValue,
-    formState: { errors },
-}: UseFormReturn<NewProfessorFormInputs>) {
+function NewProfessorStep({ register, watch, setValue, formState: { errors } }: UseFormReturn<NewProfessorFormInputs>) {
     const professorDepartment = watch("professorDepartment");
     const sameAsProfessorDepartment = watch("sameDepartment");
 
@@ -185,7 +156,7 @@ function NewProfessorStep({
     return (
         <>
             <h2 className="text-2xl font-bold">Professor</h2>
-            <div className="flex justify-between flex-wrap mt-2">
+            <div className="mt-2 flex flex-wrap justify-between">
                 <TextInput
                     label="First Name"
                     placeholder="First Name"
@@ -209,9 +180,9 @@ function NewProfessorStep({
                 />
             </div>
 
-            <h2 className="text-2xl font-bold my-2">Rating</h2>
+            <h2 className="my-2 text-2xl font-bold">Rating</h2>
 
-            <div className="flex justify-between flex-wrap">
+            <div className="flex flex-wrap justify-between">
                 <Checkbox label="Same Department" {...register("sameDepartment")} />
                 <Select
                     options={DEPARTMENT_LIST.map((d) => ({ label: d, value: d }))}
@@ -228,8 +199,8 @@ function NewProfessorStep({
                     error={errors.courseNum?.message}
                 />
             </div>
-            <div className="flex sm:block justify-between">
-                <div className="mt-2 flex flex-col sm:flex-row gap-3 sm:gap-2 justify-between flex-wrap">
+            <div className="flex justify-between sm:block">
+                <div className="mt-2 flex flex-col flex-wrap justify-between gap-3 sm:flex-row sm:gap-2">
                     {NUMERICAL_RATINGS.map((rating) => (
                         <Select
                             key={rating.label}
@@ -243,7 +214,7 @@ function NewProfessorStep({
                         />
                     ))}
                 </div>
-                <div className="mt-2 flex flex-col sm:flex-row gap-3 sm:gap-2 justify-between flex-wrap">
+                <div className="mt-2 flex flex-col flex-wrap justify-between gap-3 sm:flex-row sm:gap-2">
                     {CLASS_INFORMATION.map((dropdown) => (
                         <Select
                             key={dropdown.label}

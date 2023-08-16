@@ -1,5 +1,5 @@
-import { AppRouter } from "@backend/index";
-import { inferProcedureOutput } from "@trpc/server";
+import type { AppRouter } from "@backend/index";
+import type { inferProcedureOutput } from "@trpc/server";
 import { intersectingDbEntities } from "./intersectingDbEntities";
 
 export type ProfessorSearchType = "name" | "class";
@@ -23,9 +23,7 @@ export function professorSearch(
         case "class": {
             const courseName = value.toUpperCase();
             // use includes to possibly be more lenient
-            return allProfessors.filter((professor) =>
-                professor.courses.find((course) => course.includes(courseName)),
-            );
+            return allProfessors.filter((professor) => professor.courses.find((course) => course.includes(courseName)));
         }
         default:
             throw new Error(`Invalid Search Type: ${type}`);

@@ -1,9 +1,10 @@
 import { useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { ChevronRightIcon, MagnifyingGlassIcon } from "@heroicons/react/24/solid";
-import { AutoComplete } from "./AutoComplete";
 import { trpc } from "@/trpc";
-import { ProfessorSearchType, professorSearch } from "@/utils/ProfessorSearch";
+import type { ProfessorSearchType } from "@/utils/ProfessorSearch";
+import { professorSearch } from "@/utils/ProfessorSearch";
+import { AutoComplete } from "./AutoComplete";
 import { Button } from "./forms/Button";
 
 export interface SearchState {
@@ -26,12 +27,7 @@ export function SearchBar(props: SearchBarProps) {
     );
 }
 
-export function ExtendedSearchBar({
-    initialState,
-    onChange,
-    disableAutoComplete = false,
-    className,
-}: SearchBarProps) {
+export function ExtendedSearchBar({ initialState, onChange, disableAutoComplete = false, className }: SearchBarProps) {
     const [searchType, setSearchType] = useState<ProfessorSearchType>(initialState?.type ?? "name");
 
     const switchSearchType = () => {
@@ -51,20 +47,15 @@ export function ExtendedSearchBar({
             disableAutoComplete={disableAutoComplete}
             LeftSlot={<SearchToggle searchType={searchType} onClick={switchSearchType} />}
             RightSlot={
-                <Button className="!py-1 rounded-l-none rounded-r-full px-1" type="submit">
-                    <ChevronRightIcon className="w-8 h-8" />
+                <Button className="rounded-l-none rounded-r-full !py-1 px-1" type="submit">
+                    <ChevronRightIcon className="h-8 w-8" />
                 </Button>
             }
         />
     );
 }
 
-export function TruncatedSearchBar({
-    onChange,
-    disableAutoComplete = false,
-    className,
-    initialState,
-}: SearchBarProps) {
+export function TruncatedSearchBar({ onChange, disableAutoComplete = false, className, initialState }: SearchBarProps) {
     return (
         <SearchBase
             className={className}
@@ -73,10 +64,10 @@ export function TruncatedSearchBar({
             initialState={initialState}
             disableAutoComplete={disableAutoComplete}
             inputClassName="pl-0"
-            LeftSlot={<div className="w-5 h-10 bg-white rounded-l-full" />}
+            LeftSlot={<div className="h-10 w-5 rounded-l-full bg-white" />}
             RightSlot={
-                <div className="py-1 px-2 text-cal-poly-green rounded-l-none rounded-r-full bg-white">
-                    <MagnifyingGlassIcon className="w-8 h-8" />
+                <div className="rounded-l-none rounded-r-full bg-white px-2 py-1 text-cal-poly-green">
+                    <MagnifyingGlassIcon className="h-8 w-8" />
                 </div>
             }
         />
@@ -90,29 +81,29 @@ function SearchToggle({ searchType, className = "", ...divProps }: SearchToggleP
     const checked = searchType === "class";
     return (
         <div
-            className={`bg-white rounded-l-full cursor-pointer ${className}`}
+            className={`cursor-pointer rounded-l-full bg-white ${className}`}
             {...divProps}
             role="checkbox"
             aria-checked={checked}
         >
-            <div className="flex items-center relative border-cal-poly-green border-2 rounded-full h-10">
+            <div className="relative flex h-10 items-center rounded-full border-2 border-cal-poly-green">
                 <span
-                    className={`w-28 h-10 rounded-full bg-cal-poly-green absolute left-0 transition-all ${
+                    className={`absolute left-0 h-10 w-28 rounded-full bg-cal-poly-green transition-all ${
                         checked ? "translate-x-full" : "translate-x-0"
                     }`}
                 />
 
                 <span
-                    className={`w-28 text-center select-none ${
+                    className={`w-28 select-none text-center ${
                         checked ? "text-cal-poly-green" : "text-white"
-                    } transition-all z-10`}
+                    } z-10 transition-all`}
                 >
                     Professor
                 </span>
                 <span
-                    className={`w-28 text-center select-none ${
+                    className={`w-28 select-none text-center ${
                         checked ? "text-white" : "text-cal-poly-green"
-                    }  transition-all z-10`}
+                    }  z-10 transition-all`}
                 >
                     Course
                 </span>
@@ -204,7 +195,7 @@ function SearchBase({
                 filterFn={(_, inputValue) => autoCompleteFilter(inputValue)}
                 label="Professor Auto-complete"
                 initialValue={searchValue}
-                className="2xl:w-96 xl:w-72 w-[15rem] h-10 font-normal text-lg shadow-2xl"
+                className="h-10 w-[15rem] text-lg font-normal shadow-2xl xl:w-72 2xl:w-96"
                 disableDropdown={disableAutoComplete ?? false}
             />
             {RightSlot}

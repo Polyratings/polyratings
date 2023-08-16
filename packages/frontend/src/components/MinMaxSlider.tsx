@@ -1,4 +1,5 @@
-import Slider, { SliderProps } from "rc-slider";
+import type { SliderProps } from "rc-slider";
+import Slider from "rc-slider";
 import "rc-slider/assets/index.css";
 import { cloneElement } from "react";
 
@@ -39,7 +40,7 @@ export function MinMaxSlider({
         height: "0.875rem",
     };
     return (
-        <div className="w-full h-10">
+        <div className="h-10 w-full">
             <style>{overrideHoverCss}</style>
             <Slider
                 range
@@ -65,15 +66,13 @@ const handleRender: SliderProps["handleRender"] = (handle, sliderProps) => {
         <div
             // Have to set key since it is force inserted as a child to an element
             key="custom-slider-popup-key"
-            className={`absolute flex flex-col items-center	bottom-[0.6rem] left-[0.3rem] transform -translate-x-1/2 ${
+            className={`absolute bottom-[0.6rem] left-[0.3rem] flex	-translate-x-1/2 transform flex-col items-center ${
                 dragging ? "opacity-1" : "opacity-0"
             }`}
         >
-            <div className=" bg-gray-900 text-white p-1 text-sm rounded min-w-[1.5rem] text-center">
-                {value}
-            </div>
-            <div className="w-3 overflow-hidden inline-block">
-                <div className=" h-2 w-2 bg-gray-900 -rotate-45 transform origin-top-left" />
+            <div className=" min-w-[1.5rem] rounded bg-gray-900 p-1 text-center text-sm text-white">{value}</div>
+            <div className="inline-block w-3 overflow-hidden">
+                <div className=" h-2 w-2 origin-top-left -rotate-45 transform bg-gray-900" />
             </div>
         </div>
     );

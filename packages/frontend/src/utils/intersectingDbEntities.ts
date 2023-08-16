@@ -2,9 +2,7 @@ interface HasId {
     id: string;
 }
 
-export function intersectingDbEntities<T extends HasId>(
-    arrays: T[][],
-): { intersect: T[]; nonIntersect: T[] } {
+export function intersectingDbEntities<T extends HasId>(arrays: T[][]): { intersect: T[]; nonIntersect: T[] } {
     if (arrays.length === 1) {
         return {
             intersect: arrays[0],

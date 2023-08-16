@@ -1,6 +1,6 @@
-import { AppRouter } from "@backend/index";
-import { inferProcedureOutput } from "@trpc/server";
-import { ValueOf } from "type-fest";
+import type { AppRouter } from "@backend/index";
+import type { inferProcedureOutput } from "@trpc/server";
+import type { ValueOf } from "type-fest";
 import { trpc } from "@/trpc";
 
 export interface CourseRatings {

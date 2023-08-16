@@ -2,9 +2,9 @@ import { useLocation } from "react-router-dom";
 import { useEffect } from "react";
 import { DEPARTMENT_LIST } from "@backend/utils/const";
 import { ArrowLongUpIcon } from "@heroicons/react/24/outline";
-import { inferProcedureOutput } from "@trpc/server";
-import { AppRouter } from "@backend/index";
-import { MinMaxSlider } from "@/components";
+import type { inferProcedureOutput } from "@trpc/server";
+import type { AppRouter } from "@backend/index";
+import { MinMaxSlider } from "@/components/MinMaxSlider";
 import { trpc } from "@/trpc";
 import { useLocationState } from "@/hooks/useLocationState";
 
@@ -49,55 +49,41 @@ export function Filters({ unfilteredProfessors, onUpdate, className }: FilterPro
     const location = useLocation();
     const previousState = location.state as FilterState | undefined;
     // Component State
-    const [departmentFilters, setDepartmentFilters] = useLocationState<
-        { name: string; state: boolean }[]
-    >(
-        previousState?.departmentFilters ??
-            DEPARTMENT_LIST.map((department) => ({ name: department, state: false })),
+    const [departmentFilters, setDepartmentFilters] = useLocationState<{ name: string; state: boolean }[]>(
+        previousState?.departmentFilters ?? DEPARTMENT_LIST.map((department) => ({ name: department, state: false })),
         "departmentFilters",
     );
     const [avgRatingFilter, setAvgRatingFilter] = useLocationState<[number, number]>(
         previousState?.avgRatingFilter ?? [0, 4],
         "avgRatingFilter",
     );
-    const [studentDifficultyFilter, setStudentDifficultyFilter] = useLocationState<
-        [number, number]
-    >(previousState?.studentDifficultyFilter ?? [0, 4], "studentDifficultyFilter");
+    const [studentDifficultyFilter, setStudentDifficultyFilter] = useLocationState<[number, number]>(
+        previousState?.studentDifficultyFilter ?? [0, 4],
+        "studentDifficultyFilter",
+    );
     const [materialClearFilter, setMaterialClearFilter] = useLocationState<[number, number]>(
         previousState?.materialClearFilter ?? [0, 4],
         "materialClearFilter",
     );
-    const [numberOfEvaluationsFilter, setNumberOfEvaluationsFilter] = useLocationState<
-        [number, number]
-    >(
+    const [numberOfEvaluationsFilter, setNumberOfEvaluationsFilter] = useLocationState<[number, number]>(
         previousState?.numberOfEvaluationsFilter ?? getEvaluationDomain(),
         "numberOfEvaluationsFilter",
     );
-    const [reverseFilter, setReverseFilter] = useLocationState(
-        previousState?.reverseFilter ?? false,
-        "reverseFilter",
-    );
-    const [sortBy, setSortBy] = useLocationState<SortingOptions>(
-        previousState?.sortBy ?? "relevant",
-        "sortBy",
-    );
+    const [reverseFilter, setReverseFilter] = useLocationState(previousState?.reverseFilter ?? false, "reverseFilter");
+    const [sortBy, setSortBy] = useLocationState<SortingOptions>(previousState?.sortBy ?? "relevant", "sortBy");
 
     const professorFilterFunctions: ((professor: Professor) => boolean)[] = [
-        (professor) =>
-            professor.overallRating >= avgRatingFilter[0] &&
-            professor.overallRating <= avgRatingFilter[1],
+        (professor) => professor.overallRating >= avgRatingFilter[0] && professor.overallRating <= avgRatingFilter[1],
 
         (professor) =>
             professor.studentDifficulties >= studentDifficultyFilter[0] &&
             professor.studentDifficulties <= studentDifficultyFilter[1],
 
         (professor) =>
-            professor.materialClear >= materialClearFilter[0] &&
-            professor.materialClear <= materialClearFilter[1],
+            professor.materialClear >= materialClearFilter[0] && professor.materialClear <= materialClearFilter[1],
 
         (professor) =>
-            professor.numEvals >= numberOfEvaluationsFilter[0] &&
-            professor.numEvals <= numberOfEvaluationsFilter[1],
+            professor.numEvals >= numberOfEvaluationsFilter[0] && professor.numEvals <= numberOfEvaluationsFilter[1],
     ];
 
     const sortingMap: { [key in SortingOptions]: (a: Professor, b: Professor) => number } = {
@@ -141,17 +127,11 @@ export function Filters({ unfilteredProfessors, onUpdate, className }: FilterPro
             filteredResult.reverse();
         }
 
-        const selectedDepartments = departmentFilters.filter(
-            (departmentFilter) => departmentFilter.state,
-        );
+        const selectedDepartments = departmentFilters.filter((departmentFilter) => departmentFilter.state);
 
         if (selectedDepartments.length) {
-            const departmentSet = new Set(
-                selectedDepartments.map((departmentFilter) => departmentFilter.name),
-            );
-            const postDepartmentFilter = filteredResult.filter((professor) =>
-                departmentSet.has(professor.department),
-            );
+            const departmentSet = new Set(selectedDepartments.map((departmentFilter) => departmentFilter.name));
+            const postDepartmentFilter = filteredResult.filter((professor) => departmentSet.has(professor.department));
             onUpdate(postDepartmentFilter);
         } else {
             onUpdate(filteredResult);
@@ -168,37 +148,35 @@ export function Filters({ unfilteredProfessors, onUpdate, className }: FilterPro
 
     return (
         <div className={className ?? ""}>
-            <h2 className="text-xl font-bold transform -translate-x-4 pb-1">Sort by:</h2>
+            <h2 className="-translate-x-4 transform pb-1 text-xl font-bold">Sort by:</h2>
             <div className="flex items-center">
                 <select
-                    className="block w-[106%] mt-1 h-7 border-2 border-black rounded-md transform -translate-x-2"
+                    className="mt-1 block h-7 w-[106%] -translate-x-2 transform rounded-md border-2 border-black"
                     value={sortBy}
                     onChange={(e) => setSortBy(e.target.value as SortingOptions)}
                 >
                     <option value="relevant">Relevant</option>
                     <option value="alphabetical">Alphabetical</option>
                     <option value="overallRating">Overall Rating</option>
-                    <option value="recognizesStudentDifficulties">
-                        Recognizes Student Difficulty
-                    </option>
+                    <option value="recognizesStudentDifficulties">Recognizes Student Difficulty</option>
                     <option value="presentsMaterialClearly">Presents Material Clearly</option>
                 </select>
                 {/* Sorting Arrow */}
                 <button type="button" onClick={() => setReverseFilter(!reverseFilter)}>
                     <ArrowLongUpIcon
-                        className={`h-5 w-5 hover:text-cal-poly-green transform transition-all ${
+                        className={`h-5 w-5 transform transition-all hover:text-cal-poly-green ${
                             reverseFilter ? "rotate-180" : ""
                         }`}
                     />
                 </button>
             </div>
 
-            <h2 className="text-xl font-bold transform -translate-x-4 py-1">Filters:</h2>
+            <h2 className="-translate-x-4 transform py-1 text-xl font-bold">Filters:</h2>
 
-            <div className="block xl:hidden mb-2">
+            <div className="mb-2 block xl:hidden">
                 <h3>Department:</h3>
                 <select
-                    className="w-[106%] mt-1 h-7 border-2 border-black rounded-md transform -translate-x-2"
+                    className="mt-1 h-7 w-[106%] -translate-x-2 transform rounded-md border-2 border-black"
                     onChange={(e) => {
                         const value = parseInt(e.target.value, 10);
                         const newDepartmentFilters = [...departmentFilters].map(({ name }) => ({

@@ -1,6 +1,7 @@
-import { t } from "@backend/trpc";
 import { z } from "zod";
-import { Professor, ratingBaseParser } from "@backend/types/schema";
+import { t } from "@backend/trpc";
+import type { Professor } from "@backend/types/schema";
+import { ratingBaseParser } from "@backend/types/schema";
 import { addRating } from "@backend/types/schemaHelpers";
 import { DEPARTMENT_LIST } from "@backend/utils/const";
 
@@ -11,9 +12,7 @@ export const professorRouter = t.router({
         .query(({ input, ctx }) => ctx.env.kvDao.getProfessor(input.id)),
     getMany: t.procedure
         .input(z.object({ ids: z.array(z.string().uuid()) }))
-        .query(({ input, ctx }) =>
-            Promise.all(input.ids.map((id) => ctx.env.kvDao.getProfessor(id))),
-        ),
+        .query(({ input, ctx }) => Promise.all(input.ids.map((id) => ctx.env.kvDao.getProfessor(id)))),
     add: t.procedure
         .input(
             z.object({
@@ -56,8 +55,7 @@ export const professorRouter = t.router({
 
             const existingPendingProfessors = await ctx.env.kvDao.getAllPendingProfessors();
             const duplicateProfessor = existingPendingProfessors.find(
-                (prof) =>
-                    prof.firstName === professor.firstName && prof.lastName === professor.lastName,
+                (prof) => prof.firstName === professor.firstName && prof.lastName === professor.lastName,
             );
 
             if (duplicateProfessor) {

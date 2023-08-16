@@ -13,5 +13,7 @@ afterEach(() => {
 });
 
 // Define to stop tests from erroring
+// eslint-disable-next-line @typescript-eslint/no-empty-function
 window.scrollTo = () => {};
+// eslint-disable-next-line @typescript-eslint/no-empty-function
 window.scroll = () => {};

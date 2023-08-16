@@ -50,9 +50,9 @@ export function cloudflareKVInit(apiToken: string, accountId: string) {
             const chunks = chunkArray(values, chunkSize);
             for (const [i, chunk] of chunks.entries()) {
                 Logger.info(
-                    `Uploading chunk ${i * chunkSize} - ${(i + 1) * chunkSize} / ${
-                        values.length
-                    } to ${this.namespaceId}`,
+                    `Uploading chunk ${i * chunkSize} - ${(i + 1) * chunkSize} / ${values.length} to ${
+                        this.namespaceId
+                    }`,
                 );
                 await this.cloudflareFetch(
                     `${CLOUDFLARE_API_BASE_URL}accounts/${accountId}/storage/kv/namespaces/${this.namespaceId}/bulk`,
