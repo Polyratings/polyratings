@@ -1,21 +1,21 @@
 {
-  "compilerOptions": {
-      "target": "ESNext",
-      "module": "ESNext",
-      "lib": ["ESNext"],
-      "types": ["@cloudflare/workers-types"],
-      "moduleResolution": "Node",
-      "experimentalDecorators": true,
-      "strictPropertyInitialization": false,
-      "strict": true,
-      "baseUrl": "./",
-      "paths": {
-        "@backend/*": ["../backend/src/*"]
-      },
-      "declaration": true,
-      "noEmit": true,
-      "skipLibCheck": true,
-      "noEmitHelpers": true,
-  },
-  "include": ["src/**/*"]
+    "compilerOptions": {
+        "target": "ESNext",
+        "module": "ESNext",
+        "lib": ["ESNext"],
+        "types": ["@cloudflare/workers-types"],
+        "moduleResolution": "Node",
+        "experimentalDecorators": true,
+        "strictPropertyInitialization": false,
+        "strict": true,
+        "baseUrl": "./",
+        "paths": {
+            "@backend/*": ["../backend/src/*"]
+        },
+        "declaration": true,
+        "noEmit": true,
+        "skipLibCheck": true,
+        "noEmitHelpers": true
+    },
+    "include": ["src/**/*"]
 }

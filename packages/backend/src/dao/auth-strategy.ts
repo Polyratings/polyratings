@@ -1,6 +1,6 @@
 /* eslint-disable class-methods-use-this */
 import * as jwt from "@tsndr/cloudflare-worker-jwt";
-import { User } from "@backend/types/schema";
+import type { User } from "@backend/types/schema";
 
 const HEX_BYTES_PER_CHAR = 2;
 

@@ -1,6 +1,6 @@
 import { TRPCError } from "@trpc/server";
-import { t, protectedProcedure } from "@backend/trpc";
 import { z } from "zod";
+import { t, protectedProcedure } from "@backend/trpc";
 
 export const authRouter = t.router({
     login: t.procedure

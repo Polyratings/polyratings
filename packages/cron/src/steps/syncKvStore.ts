@@ -1,7 +1,7 @@
-import { BulkKey } from "@backend/utils/const";
+import type { BulkKey } from "@backend/utils/const";
 import { cloudflareNamespaceInformation } from "@backend/generated/tomlGenerated";
 import { bulkRecord } from "src/utils/bulkRecord";
-import { CronEnv, KvName } from "../entry";
+import type { CronEnv, KvName } from "../entry";
 import { Logger } from "../logger";
 
 export function syncKvStore(bulkKey: BulkKey, kvName: KvName, excludeKeys?: Set<string>) {

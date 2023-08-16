@@ -10,17 +10,13 @@ export interface SelectProps extends React.ComponentProps<"select"> {
 
 export const Select = forwardRef<HTMLSelectElement, SelectProps>(
     ({ options, name, label, error, wrapperClassName = "", ...rest }, ref) => (
-        <div
-            className={`w-[10.5rem] flex flex-col ${
-                error ? "text-red-500" : "text-inherit"
-            } ${wrapperClassName}`}
-        >
-            <label className="text-xs whitespace-nowrap" htmlFor={name}>
+        <div className={`flex w-[10.5rem] flex-col ${error ? "text-red-500" : "text-inherit"} ${wrapperClassName}`}>
+            <label className="whitespace-nowrap text-xs" htmlFor={name}>
                 {label}
             </label>
             <div className="relative text-[#465967]">
                 <select
-                    className={`w-full py-2 pl-4 pr-10 rounded  ${
+                    className={`w-full rounded py-2 pl-4 pr-10  ${
                         rest.disabled ? "cursor-not-allowed" : "cursor-pointer"
                     } appearance-none border-[1px] ${
                         error ? "border-red-500 bg-red-50" : "border-[#c3cdd5] bg-[#f2f5f8]"
@@ -38,7 +34,7 @@ export const Select = forwardRef<HTMLSelectElement, SelectProps>(
                 </select>
                 <ChevronDownIcon
                     strokeWidth={1.5}
-                    className="w-6 h-6 absolute top-1/2 right-3 transform -translate-y-1/2 pointer-events-none"
+                    className="pointer-events-none absolute right-3 top-1/2 h-6 w-6 -translate-y-1/2 transform"
                 />
             </div>
             {error && <p className="text-sm text-red-500">{error}</p>}

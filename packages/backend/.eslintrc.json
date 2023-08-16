@@ -1,0 +1,7 @@
+{
+    "extends": ["../../.eslintrc.json"],
+    "ignorePatterns": ["!**/*"],
+    "rules": {
+        "no-restricted-syntax": "off"
+    }
+}

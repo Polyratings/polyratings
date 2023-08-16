@@ -10,19 +10,15 @@ export type TextAreaProps = {
 };
 export const TextArea = forwardRef<HTMLTextAreaElement, TextAreaProps>(
     ({ name, label, error, wrapperClassName = "", className = "", ...rest }, ref) => (
-        <div
-            className={`flex flex-col ${
-                error ? "text-red-500" : "text-inherit"
-            } ${wrapperClassName}`}
-        >
-            <label className="text-xs whitespace-nowrap" htmlFor={name}>
+        <div className={`flex flex-col ${error ? "text-red-500" : "text-inherit"} ${wrapperClassName}`}>
+            <label className="whitespace-nowrap text-xs" htmlFor={name}>
                 {label}
             </label>
             <textarea
                 id={name}
                 ref={ref}
                 name={name}
-                className={`w-full h-48 rounded text-black p-2 border-[#c3cdd5] bg-[#f2f5f8] active:bg-[#f2feff] border-[1px] ${className}`}
+                className={`h-48 w-full rounded border-[1px] border-[#c3cdd5] bg-[#f2f5f8] p-2 text-black active:bg-[#f2feff] ${className}`}
                 {...rest}
             />
             {error && <p className="text-sm text-red-500">{error}</p>}

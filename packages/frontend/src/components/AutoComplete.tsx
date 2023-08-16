@@ -34,12 +34,10 @@ export function AutoComplete<T, U>({
     const [filteredItems, setFilteredItems] = useState(filterFn(items, ""));
     const listRef = useRef(undefined as unknown as HTMLElement);
 
-    const remMultiplier =
-        parseFloat(window.getComputedStyle(document.body).getPropertyValue("font-size") || "16") /
-        16;
+    const remMultiplier = parseFloat(window.getComputedStyle(document.body).getPropertyValue("font-size") || "16") / 16;
 
     const rowVirtualizer = useVirtualizer({
-        estimateSize: useCallback(() => 28 * remMultiplier, []),
+        estimateSize: useCallback(() => 28 * remMultiplier, [remMultiplier]),
         count: filteredItems.length,
         getScrollElement: () => listRef.current,
         overscan: 2,
@@ -48,14 +46,7 @@ export function AutoComplete<T, U>({
     // Disable autocomplete on small devices
     const deviceSupportsDropdown = useTailwindBreakpoint({ md: true }, false);
 
-    const {
-        isOpen,
-        getMenuProps,
-        getInputProps,
-        getComboboxProps,
-        highlightedIndex,
-        getItemProps,
-    } = useCombobox({
+    const { isOpen, getMenuProps, getInputProps, getComboboxProps, highlightedIndex, getItemProps } = useCombobox({
         onInputValueChange({ inputValue }) {
             const filteredItems = filterFn(items, inputValue ?? "");
             setFilteredItems(filteredItems);
@@ -84,7 +75,7 @@ export function AutoComplete<T, U>({
         <div className={`relative ${className}`} {...getComboboxProps()}>
             <input
                 aria-label={label}
-                className={`p-2 w-full h-full outline-none ${inputClassName}`}
+                className={`h-full w-full p-2 outline-none ${inputClassName}`}
                 type="text"
                 placeholder={placeholder}
                 {...getInputProps()}
@@ -92,10 +83,8 @@ export function AutoComplete<T, U>({
 
             <ul
                 {...getMenuProps({ ref: listRef })}
-                className={`absolute top-full left-0 w-full bg-white shadow-xl max-h-28 overflow-y-auto ${
-                    isOpen && !disableDropdown && deviceSupportsDropdown
-                        ? "border border-black"
-                        : "border-none"
+                className={`absolute left-0 top-full max-h-28 w-full overflow-y-auto bg-white shadow-xl ${
+                    isOpen && !disableDropdown && deviceSupportsDropdown ? "border border-black" : "border-none"
                 }`}
             >
                 {isOpen && !disableDropdown && deviceSupportsDropdown && (
@@ -105,10 +94,8 @@ export function AutoComplete<T, U>({
                             return (
                                 <li
                                     key={`${item.label}${item.value}`}
-                                    className={`pl-1 absolute top-0 left-0 w-full ${
-                                        highlightedIndex === virtualElement.index
-                                            ? "bg-gray-300"
-                                            : ""
+                                    className={`absolute left-0 top-0 w-full pl-1 ${
+                                        highlightedIndex === virtualElement.index ? "bg-gray-300" : ""
                                     }`}
                                     style={{
                                         height: `${virtualElement.size}px`,

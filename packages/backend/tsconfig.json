@@ -3,7 +3,7 @@
         "target": "ESNext",
         "module": "ESNext",
         "lib": ["ESNext"],
-        "types": ["@cloudflare/workers-types"],
+        "types": ["node", "@cloudflare/workers-types"],
         "outDir": "dist",
         "moduleResolution": "Node",
         "experimentalDecorators": true,

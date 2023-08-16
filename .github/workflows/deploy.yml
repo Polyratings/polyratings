@@ -1,60 +1,63 @@
 name: Continuous Integration and Deployment
 
 on:
-  pull_request:
-  push:
-    branches:
-      - master
-      - beta
+    pull_request:
+    push:
+        branches:
+            - master
+            - beta
 
 env:
-  NX_BRANCH: ${{ github.event.number || github.ref_name }}
-  NX_CLOUD_ACCESS_TOKEN: ${{ secrets.NX_CLOUD_ACCESS_TOKEN }}
+    NX_BRANCH: ${{ github.event.number || github.ref_name }}
+    NX_CLOUD_ACCESS_TOKEN: ${{ secrets.NX_CLOUD_ACCESS_TOKEN }}
 
 jobs:
-  Integration_And_Deployment:
-    runs-on: ubuntu-latest
+    Integration_And_Deployment:
+        runs-on: ubuntu-latest
 
-    steps:
-      - name: Checkout Code
-        uses: actions/checkout@v3
+        steps:
+            - name: Checkout Code
+              uses: actions/checkout@v3
 
-      # Set node/npm/yarn versions using volta
-      - uses: volta-cli/action@v4
-        with:
-          package-json-path: "${{ github.workspace }}/package.json"
+            # Set node/npm/yarn versions using volta
+            - uses: volta-cli/action@v4
+              with:
+                  package-json-path: "${{ github.workspace }}/package.json"
 
-      - name: Use the package manager cache if available
-        uses: actions/cache@v3
-        with:
-          path: ~/.npm
-          key: ${{ runner.os }}-${{ hashFiles('**/package-lock.json') }}
-          restore-keys: |
-            ${{ runner.os }}-
+            - name: Use the package manager cache if available
+              uses: actions/cache@v3
+              with:
+                  path: ~/.npm
+                  key: ${{ runner.os }}-${{ hashFiles('**/package-lock.json') }}
+                  restore-keys: |
+                      ${{ runner.os }}-
 
-      - name: Install dependencies
-        run: npm ci
+            - name: Install dependencies
+              run: npm ci
 
-      - name: Install Top Level Dependencies
-        run: npm ci
+            - name: Install Top Level Dependencies
+              run: npm ci
 
-      - name: Lint packages
-        run: npm run lint
+            - name: Check formatting
+              run: npm run format:check
 
-      - name: Build Packages
-        run: npm run build
+            - name: Lint packages
+              run: npm run lint
 
-      - name: Test Packages
-        run: npm run test
+            - name: Build Packages
+              run: npm run build
 
-      - name: Deploy Prod
-        if: github.ref == 'refs/heads/master'
-        env:
-          CLOUDFLARE_API_TOKEN: ${{ secrets.CF_API_TOKEN }}
-        run: NX_CLOUD_DISTRIBUTED_EXECUTION=false npm run deploy:prod
+            - name: Test Packages
+              run: npm run test
 
-      - name: Deploy Beta
-        if: github.ref == 'refs/heads/beta'
-        env:
-          CLOUDFLARE_API_TOKEN: ${{ secrets.CF_API_TOKEN }}
-        run: NX_CLOUD_DISTRIBUTED_EXECUTION=false npm run deploy:beta
+            - name: Deploy Prod
+              if: github.ref == 'refs/heads/master'
+              env:
+                  CLOUDFLARE_API_TOKEN: ${{ secrets.CF_API_TOKEN }}
+              run: NX_CLOUD_DISTRIBUTED_EXECUTION=false npm run deploy:prod
+
+            - name: Deploy Beta
+              if: github.ref == 'refs/heads/beta'
+              env:
+                  CLOUDFLARE_API_TOKEN: ${{ secrets.CF_API_TOKEN }}
+              run: NX_CLOUD_DISTRIBUTED_EXECUTION=false npm run deploy:beta

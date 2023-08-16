@@ -1,9 +1,11 @@
-import { renderHook, RenderResult } from "@testing-library/react-hooks";
+import type { RenderResult } from "@testing-library/react-hooks";
+import { renderHook } from "@testing-library/react-hooks";
 import { act } from "react-dom/test-utils";
 import { waitFor } from "@testing-library/dom";
 import { describe, test, beforeEach, expect } from "vitest";
 import { setWindowSize } from "@/test-utils";
-import { useWindowSize, Size } from "./useWindowSize";
+import type { Size } from "./useWindowSize";
+import { useWindowSize } from "./useWindowSize";
 
 let result: RenderResult<Size>;
 describe("UseWindowSize", () => {

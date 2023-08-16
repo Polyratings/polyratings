@@ -1,4 +1,4 @@
-import { PendingRating, PerspectiveAttributeScore } from "@backend/types/schema";
+import type { PendingRating, PerspectiveAttributeScore } from "@backend/types/schema";
 
 const ANALYZE_COMMENT_URL = "https://commentanalyzer.googleapis.com/v1alpha1/comments:analyze";
 
@@ -28,9 +28,7 @@ export class PerspectiveDAO {
         });
 
         if (!httpResponse.ok) {
-            throw new Error(
-                JSON.stringify({ status: httpResponse.status, message: httpResponse.statusText }),
-            );
+            throw new Error(JSON.stringify({ status: httpResponse.status, message: httpResponse.statusText }));
         }
 
         const response = (await httpResponse.json()) as AnalyzeCommentResponse;
@@ -51,9 +49,7 @@ interface AnalyzeCommentRequest {
     communityId?: string;
 }
 
-type PerspectiveAttributeNames =
-    | PerspectiveProductionAttributeNames
-    | PerspectiveExperimentalAttributeNames;
+type PerspectiveAttributeNames = PerspectiveProductionAttributeNames | PerspectiveExperimentalAttributeNames;
 
 type PerspectiveProductionAttributeNames =
     | "TOXICITY"

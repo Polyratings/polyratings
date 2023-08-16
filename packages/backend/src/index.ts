@@ -1,7 +1,8 @@
-import { CloudflareEnv, Env } from "@backend/env";
 import { Toucan } from "toucan-js";
 import { fetchRequestHandler } from "@trpc/server/adapters/fetch";
-import { Context } from "toucan-js/dist/types";
+import type { Context } from "toucan-js/dist/types";
+import { Env } from "@backend/env";
+import type { CloudflareEnv } from "@backend/env";
 import { t } from "./trpc";
 import { professorRouter } from "./routers/professor";
 import { ratingsRouter } from "./routers/rating";

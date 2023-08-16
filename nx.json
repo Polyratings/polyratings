@@ -1,51 +1,47 @@
 {
-  "tasksRunnerOptions": {
-    "default": {
-      "runner": "nx-cloud",
-      "options": {
-        "cacheableOperations": [
-          "build:fast",
-          "build",
-          "lint",
-          "fix",
-          "build:local",
-          "test"
-        ],
-        "accessToken": "MmQ1ODQwODQtZTg3Ni00OWY4LTg4MGYtNTczMjFiMTMyZDVkfHJlYWQ=="
-      }
+    "tasksRunnerOptions": {
+        "default": {
+            "runner": "nx-cloud",
+            "options": {
+                "cacheableOperations": [
+                    "format",
+                    "format:check",
+                    "build:fast",
+                    "build",
+                    "lint",
+                    "fix",
+                    "build:local",
+                    "test"
+                ],
+                "accessToken": "MmQ1ODQwODQtZTg3Ni00OWY4LTg4MGYtNTczMjFiMTMyZDVkfHJlYWQ=="
+            }
+        }
+    },
+    "namedInputs": {
+        "default": ["{projectRoot}/**/*"],
+        "production": [
+            "default",
+            "!{projectRoot}/**/*.spec.ts",
+            "!{projectRoot}/**/*.md",
+            "!{projectRoot}/vitest-setup.js",
+            "!{projectRoot}/.eslintrc.json"
+        ]
+    },
+    "targetDefaults": {
+        "build:fast": {
+            "inputs": ["production", "^production"],
+            "outputs": ["{projectRoot}/dist"]
+        },
+        "build": {
+            "inputs": ["production", "^production"],
+            "outputs": ["{projectRoot}/dist"]
+        },
+        "build:local": {
+            "inputs": ["production", "^production"],
+            "outputs": ["{projectRoot}/dist"]
+        },
+        "test": {
+            "inputs": ["default", "^production"]
+        }
     }
-  },
-  "namedInputs": {
-    "default": ["{projectRoot}/**/*"],
-    "production": [
-      "default",
-      "!{projectRoot}/**/*.spec.ts",
-      "!{projectRoot}/**/*.md",
-      "!{projectRoot}/vitest-setup.js",
-      "!{projectRoot}/.eslintrc.json"
-    ]
-  },
-  "targetDefaults": {
-    "build:fast": {
-      "inputs": ["production", "^production"],
-      "outputs": [
-        "{projectRoot}/dist"
-      ]
-    },
-    "build": {
-      "inputs": ["production", "^production"],
-      "outputs": [
-        "{projectRoot}/dist"
-      ]
-    },
-    "build:local": {
-      "inputs": ["production", "^production"],
-      "outputs": [
-        "{projectRoot}/dist"
-      ]
-    },
-    "test": {
-      "inputs": ["default", "^production"]
-    }
-  }
 }

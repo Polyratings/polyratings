@@ -1,7 +1,8 @@
-import { t } from "@backend/trpc";
 import { z } from "zod";
 import { TRPCError } from "@trpc/server";
-import { PendingRating, ratingBaseParser, RatingReport, reportParser } from "@backend/types/schema";
+import { t } from "@backend/trpc";
+import type { PendingRating, RatingReport } from "@backend/types/schema";
+import { ratingBaseParser, reportParser } from "@backend/types/schema";
 import { DEPARTMENT_LIST } from "@backend/utils/const";
 
 export const ratingsRouter = t.router({
@@ -51,8 +52,7 @@ export const ratingsRouter = t.router({
 
                 throw new TRPCError({
                     code: "PRECONDITION_FAILED",
-                    message:
-                        "Rating failed sentiment analysis, please contact dev@polyratings.org for assistance",
+                    message: "Rating failed sentiment analysis, please contact dev@polyratings.org for assistance",
                 });
             }
 
@@ -66,11 +66,7 @@ export const ratingsRouter = t.router({
             return updatedProfessor;
         }),
     report: t.procedure
-        .input(
-            reportParser.merge(
-                z.object({ ratingId: z.string().uuid(), professorId: z.string().uuid() }),
-            ),
-        )
+        .input(reportParser.merge(z.object({ ratingId: z.string().uuid(), professorId: z.string().uuid() })))
         .mutation(async ({ ctx, input }) => {
             const ratingReport: RatingReport = {
                 ratingId: input.ratingId,

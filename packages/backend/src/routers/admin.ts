@@ -1,5 +1,5 @@
-import { t, protectedProcedure } from "@backend/trpc";
 import { z } from "zod";
+import { t, protectedProcedure } from "@backend/trpc";
 import { addRating } from "@backend/types/schemaHelpers";
 import { bulkKeys, DEPARTMENT_LIST } from "@backend/utils/const";
 
@@ -9,27 +9,19 @@ export const adminRouter = t.router({
         .mutation(async ({ ctx, input: { professorId, ratingId } }) => {
             await ctx.env.kvDao.removeRating(professorId, ratingId);
         }),
-    getPendingProfessors: protectedProcedure.query(({ ctx }) =>
-        ctx.env.kvDao.getAllPendingProfessors(),
-    ),
-    approvePendingProfessor: protectedProcedure
-        .input(z.string().uuid())
-        .mutation(async ({ ctx, input }) => {
-            const pendingProfessor = await ctx.env.kvDao.getPendingProfessor(input);
+    getPendingProfessors: protectedProcedure.query(({ ctx }) => ctx.env.kvDao.getAllPendingProfessors()),
+    approvePendingProfessor: protectedProcedure.input(z.string().uuid()).mutation(async ({ ctx, input }) => {
+        const pendingProfessor = await ctx.env.kvDao.getPendingProfessor(input);
 
-            await ctx.env.kvDao.putProfessor(pendingProfessor);
-            await ctx.env.kvDao.removePendingProfessor(input);
-        }),
-    rejectPendingProfessor: protectedProcedure
-        .input(z.string().uuid())
-        .mutation(async ({ input, ctx }) => {
-            await ctx.env.kvDao.removePendingProfessor(input);
-        }),
-    removeProfessor: protectedProcedure
-        .input(z.string().uuid())
-        .mutation(async ({ input, ctx }) => {
-            await ctx.env.kvDao.removeProfessor(input);
-        }),
+        await ctx.env.kvDao.putProfessor(pendingProfessor);
+        await ctx.env.kvDao.removePendingProfessor(input);
+    }),
+    rejectPendingProfessor: protectedProcedure.input(z.string().uuid()).mutation(async ({ input, ctx }) => {
+        await ctx.env.kvDao.removePendingProfessor(input);
+    }),
+    removeProfessor: protectedProcedure.input(z.string().uuid()).mutation(async ({ input, ctx }) => {
+        await ctx.env.kvDao.removeProfessor(input);
+    }),
 
     // Takes reviews of target professor and applies them to dest and then removes the target professor
     mergeProfessor: protectedProcedure
@@ -66,15 +58,11 @@ export const adminRouter = t.router({
             professor.lastName = lastName;
             await ctx.env.kvDao.putProfessor(professor, true);
         }),
-    getBulkKeys: protectedProcedure
-        .input(z.enum(bulkKeys))
-        .query(({ input, ctx }) => ctx.env.kvDao.getBulkKeys(input)),
+    getBulkKeys: protectedProcedure.input(z.enum(bulkKeys)).query(({ input, ctx }) => ctx.env.kvDao.getBulkKeys(input)),
     // Mark as mutation to not have url issues
     getBulkValues: protectedProcedure
         .input(z.object({ bulkKey: z.enum(bulkKeys), keys: z.array(z.string()) }))
-        .mutation(async ({ ctx, input: { bulkKey, keys } }) =>
-            ctx.env.kvDao.getBulkValues(bulkKey, keys),
-        ),
+        .mutation(async ({ ctx, input: { bulkKey, keys } }) => ctx.env.kvDao.getBulkValues(bulkKey, keys)),
     removeReport: protectedProcedure.input(z.string().uuid()).mutation(async ({ ctx, input }) => {
         await ctx.env.kvDao.removeReport(input);
     }),

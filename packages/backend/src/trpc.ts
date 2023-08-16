@@ -1,5 +1,5 @@
 import { initTRPC, TRPCError } from "@trpc/server";
-import { Env } from "./env";
+import type { Env } from "./env";
 
 type Context = {
     env: Env;

@@ -1,5 +1,5 @@
 import { get, set, del } from "idb-keyval";
-import { PersistedClient, Persister } from "@tanstack/react-query-persist-client";
+import type { PersistedClient, Persister } from "@tanstack/react-query-persist-client";
 
 // eslint-disable-next-line max-len
 // FROM https://tanstack.com/query/v4/docs/plugins/persistQueryClient?from=reactQueryV3&original=https://react-query-v3.tanstack.com/plugins/persistQueryClient
