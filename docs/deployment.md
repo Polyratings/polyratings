@@ -87,7 +87,7 @@ The Cron worker requires the following secrets to function:
 
 - `POLYRATINGS_CI_USERNAME` - The username of a user in the `POLYRATINGS_USERS` KV.
 - `POLYRATINGS_CI_PASSWORD` - The plaintext password of the user above.
-- `CLOUDFLARE_API_TOKEN` - A Cloudflare API token that has permission to access the backend workers. You can follow the steps [here](https://developers.cloudflare.com/api/tokens/create/) to generate that token.
+- `CF_API_TOKEN` - A Cloudflare API token that has permission to access the backend workers. You can follow the steps [here](https://developers.cloudflare.com/api/tokens/create/) to generate that token.
 
 #### Executing Deployment
 
