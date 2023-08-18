@@ -88,13 +88,13 @@ jobs:
         if: github.ref == 'refs/heads/master'
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CF_API_TOKEN }}
-        run: npm run deploy:prod
+        run: NX_CLOUD_DISTRIBUTED_EXECUTION=false npm run deploy:prod
 
       - name: Deploy Beta
         if: github.ref == 'refs/heads/beta'
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CF_API_TOKEN }}
-        run: npm run deploy:beta
+        run: NX_CLOUD_DISTRIBUTED_EXECUTION=false npm run deploy:beta
 
 
   agents:
