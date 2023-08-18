@@ -1,0 +1,35 @@
+{
+  "tasksRunnerOptions": {
+    "default": {
+      "runner": "nx-cloud",
+      "options": {
+        "cacheableOperations": [
+          "build:fast",
+          "build",
+          "lint",
+          "fix",
+          "build:local",
+          "test"
+        ],
+        "accessToken": "YzUxOTYzZmMtOWFiMC00NGEyLThmZWYtYzMyZmJkYTkwYWNlfHJlYWQtd3JpdGU="
+      }
+    }
+  },
+  "targetDefaults": {
+    "build:fast": {
+      "outputs": [
+        "{projectRoot}/dist"
+      ]
+    },
+    "build": {
+      "outputs": [
+        "{projectRoot}/dist"
+      ]
+    },
+    "build:local": {
+      "outputs": [
+        "{projectRoot}/dist"
+      ]
+    }
+  }
+}

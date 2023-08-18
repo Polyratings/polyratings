@@ -16,6 +16,7 @@
     "deploy:dev": "lerna run deploy:dev --stream"
   },
   "devDependencies": {
-    "lerna": "^7.1.5"
+    "lerna": "^7.1.5",
+    "nx-cloud": "^16.3.0"
   }
 }
