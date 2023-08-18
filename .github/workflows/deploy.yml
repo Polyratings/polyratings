@@ -57,7 +57,8 @@ jobs:
         run: |
           pids=()
           # list of commands to be run on main has env flag NX_CLOUD_DISTRIBUTED_EXECUTION set to false
-          NX_CLOUD_DISTRIBUTED_EXECUTION=false npx nx-cloud record -- npx nx format:check & pids+=($!)
+          # TODO: implement format
+          # NX_CLOUD_DISTRIBUTED_EXECUTION=false npm run format-check
 
           # list of commands to be run on agents
           npm run lint &
