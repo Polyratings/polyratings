@@ -6,6 +6,7 @@ type Context = {
     user?: {
         username: string;
     };
+    anonymizedIdentifier: string;
 };
 
 export const t = initTRPC.context<Context>().create({});

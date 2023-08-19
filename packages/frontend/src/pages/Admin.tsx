@@ -75,6 +75,7 @@ function ReportedRatings() {
                         // eslint-disable-next-line react/no-array-index-key
                         <Fragment key={idx + report.reason + report.email}>
                             {idx !== 0 && <div className="my-2 h-1 w-full bg-black" />}
+                            {report.anonymousIdentifier && <div>Submitted By: {report.anonymousIdentifier}</div>}
                             {report.email && <div>Email: {report.email}</div>}
                             <div>Reason: {report.reason}</div>
                         </Fragment>
