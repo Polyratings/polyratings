@@ -91,6 +91,7 @@ export type User = z.infer<typeof userParser>;
 export const reportParser = z.object({
     email: z.nullable(z.string()),
     reason: z.string(),
+    anonymousIdentifier: z.optional(z.string()),
 });
 export const ratingReportParser = z.object({
     ratingId: z.string().uuid(),

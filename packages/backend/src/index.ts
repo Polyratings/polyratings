@@ -47,8 +47,11 @@ export default {
             createContext: async ({ req }) => {
                 const env = new Env(coudflareEnv);
                 const authHeader = req.headers.get("Authorization");
+                const anonymizedIdentifier = await env.authStrategy.obfuscateIdentifier(
+                    req.headers.get("CF-Connecting-IP"),
+                );
                 const user = await env.authStrategy.verify(authHeader);
-                return { env, user };
+                return { env, anonymizedIdentifier, user };
             },
             responseMeta: () => ({
                 headers: {
