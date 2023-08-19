@@ -48,31 +48,17 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Run commands in parallel
-        run: |
-          pids=()
-          # list of commands to be run on main has env flag NX_CLOUD_DISTRIBUTED_EXECUTION set to false
-          # TODO: implement format
-          # NX_CLOUD_DISTRIBUTED_EXECUTION=false npm run format-check
+      - name: Install Top Level Dependencies
+        run: npm ci
 
-          # list of commands to be run on agents
-          npm run lint &
-          pids+=($!)
+      - name: Lint packages
+        run: npm run lint
 
-          npm run test &
-          pids+=($!)
+      - name: Build Packages
+        run: npm run build
 
-          npm run build &
-          pids+=($!)
-
-          # run all commands in parallel and bail if one of them fails
-          for pid in ${pids[*]}; do
-            if ! wait $pid; then
-              exit 1
-            fi
-          done
-
-          exit 0
+      - name: Test Packages
+        run: npm run test
 
       - name: Deploy Prod
         if: github.ref == 'refs/heads/master'
