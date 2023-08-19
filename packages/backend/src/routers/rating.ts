@@ -29,7 +29,6 @@ export const ratingsRouter = t.router({
 
             const analyzedScores = await ctx.env.ratingAnalyzer.analyzeRaring(pendingRating);
             pendingRating.analyzedScores = analyzedScores;
-            console.log(analyzedScores);
 
             // At least 50% of people would find the text offensive in category
             const PERSPECTIVE_THRESHOLD = 0.5;
