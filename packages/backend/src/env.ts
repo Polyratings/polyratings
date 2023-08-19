@@ -3,7 +3,7 @@ import {
     PassThroughRatingAnalyzer,
     PerspectiveDAO,
     RatingAnalyzer,
-} from "@backend/dao/perspective-dao";
+} from "@backend/dao/rating-analyzer-dao";
 import { AuthStrategy } from "@backend/dao/auth-strategy";
 import {
     DiscordNotificationDAO,

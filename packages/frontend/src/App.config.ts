@@ -40,8 +40,7 @@ const cloudflareBranch = import.meta.env?.CF_PAGES_BRANCH ?? "";
 
 // eslint-disable-next-line import/no-mutable-exports
 let config: AppConfiguration;
-// Have to use a prefix since "local" is not a valid MODE
-if (import.meta.env.MODE === "vite-local") {
+if (import.meta.env.DEV) {
     config = localConfig;
 } else if (branchToConfig[cloudflareBranch]) {
     config = branchToConfig[cloudflareBranch];
