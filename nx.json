@@ -11,25 +11,41 @@
           "build:local",
           "test"
         ],
-        "accessToken": "YzUxOTYzZmMtOWFiMC00NGEyLThmZWYtYzMyZmJkYTkwYWNlfHJlYWQtd3JpdGU="
+        "accessToken": "MmQ1ODQwODQtZTg3Ni00OWY4LTg4MGYtNTczMjFiMTMyZDVkfHJlYWQ=="
       }
     }
   },
+  "namedInputs": {
+    "default": ["{projectRoot}/**/*"],
+    "production": [
+      "default",
+      "!{projectRoot}/**/*.spec.ts",
+      "!{projectRoot}/**/*.md",
+      "!{projectRoot}/vitest-setup.js",
+      "!{projectRoot}/.eslintrc.json"
+    ]
+  },
   "targetDefaults": {
     "build:fast": {
+      "inputs": ["production", "^production"],
       "outputs": [
         "{projectRoot}/dist"
       ]
     },
     "build": {
+      "inputs": ["production", "^production"],
       "outputs": [
         "{projectRoot}/dist"
       ]
     },
     "build:local": {
+      "inputs": ["production", "^production"],
       "outputs": [
         "{projectRoot}/dist"
       ]
+    },
+    "test": {
+      "inputs": ["default", "^production"]
     }
   }
 }
