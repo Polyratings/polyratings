@@ -11,7 +11,7 @@
         "test": "lerna run test --stream",
         "lint": "lerna run lint --stream",
         "fix": "lerna run fix --stream",
-        "format-check": "prettier . --check",
+        "format:check": "prettier . --check",
         "format": "prettier . --write",
         "review": "npm run format && npm run fix && npm run test",
         "deploy:prod": "lerna run deploy:prod --stream",
