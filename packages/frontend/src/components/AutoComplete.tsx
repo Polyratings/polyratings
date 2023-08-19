@@ -49,6 +49,18 @@ export function AutoComplete<T, U>({
     const deviceSupportsDropdown = useTailwindBreakpoint({ md: true }, false);
 
     const { isOpen, getMenuProps, getInputProps, highlightedIndex, getItemProps } = useCombobox({
+        stateReducer(state, actionAndChanges) {
+            const { changes, type } = actionAndChanges;
+            switch (type) {
+                case useCombobox.stateChangeTypes.InputClick:
+                    return {
+                        ...changes,
+                        isOpen: state.isOpen, // do not toggle the menu when input is clicked.
+                    };
+                default:
+                    return changes;
+            }
+        },
         onInputValueChange({ inputValue }) {
             const filteredItems = filterFn(items, inputValue ?? "");
             setFilteredItems(filteredItems);
