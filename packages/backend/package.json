@@ -4,6 +4,8 @@
     "description": "Cloudflare Workers project for the Polyratings site backend",
     "private": true,
     "scripts": {
+        "start:dev": "wrangler dev --env dev --remote",
+        "start:local": "wrangler dev --env local",
         "build:fast": "esbuild --format=esm --define:this=self --bundle src/index.ts --outdir=dist --metafile=stats/metadata.json",
         "build": "node generateBackendTypes.js && tsc && npm run build:fast",
         "stats": "esbuild-visualizer --metadata ./stats/metadata.json --filename ./stats/stats.html",
@@ -26,7 +28,7 @@
         "toml": "^3.0.0",
         "type-fest": "^3.8.0",
         "typescript": "^5.1.6",
-        "wrangler": "^3.5.0"
+        "wrangler": "^3.5.1"
     },
     "dependencies": {
         "@trpc/server": "10.0.0-rc.8",

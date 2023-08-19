@@ -26,7 +26,7 @@ export const ratingsRouter = t.router({
                 sentimentResponse: null,
             };
 
-            const attributeScores = await ctx.env.perspectiveDao.analyzeRaring(pendingRating);
+            const attributeScores = await ctx.env.ratingAnalyzer.analyzeRaring(pendingRating);
             pendingRating.sentimentResponse = attributeScores;
 
             // At least 50% of people would find the text offensive in category
@@ -84,7 +84,7 @@ export const ratingsRouter = t.router({
             };
 
             await ctx.env.kvDao.putReport(ratingReport);
-            await ctx.env.notificationDAO.sendWebhook(
+            await ctx.env.notificationDAO.notify(
                 "Received A Report",
                 `Rating ID: ${ratingReport.ratingId}\n` +
                     `Professor ID: ${ratingReport.professorId}\n` +

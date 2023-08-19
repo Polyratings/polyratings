@@ -7,6 +7,7 @@ import { professorRouter } from "./routers/professor";
 import { ratingsRouter } from "./routers/rating";
 import { adminRouter } from "./routers/admin";
 import { authRouter } from "./routers/auth";
+import { professorParser, truncatedProfessorParser } from "./types/schema";
 
 export const appRouter = t.router({
     professors: professorRouter,
@@ -23,9 +24,15 @@ const CORS_HEADERS = {
 };
 
 export default {
-    async fetch(request: Request, coudflareEnv: CloudflareEnv, cloudflareCtx: Context) {
+    async fetch(request: Request, cloudflareEnv: CloudflareEnv, cloudflareCtx: Context) {
         if (request.method === "OPTIONS") {
             return new Response(null, { headers: CORS_HEADERS });
+        }
+
+        const polyratingsEnv = new Env(cloudflareEnv);
+
+        if (cloudflareEnv.CLOUDFLARE_ENV === "local") {
+            await ensureLocalDb(cloudflareEnv, polyratingsEnv);
         }
 
         const sentry = new Toucan({
@@ -45,10 +52,9 @@ export default {
                 enabled: false,
             },
             createContext: async ({ req }) => {
-                const env = new Env(coudflareEnv);
                 const authHeader = req.headers.get("Authorization");
-                const user = await env.authStrategy.verify(authHeader);
-                return { env, user };
+                const user = await polyratingsEnv.authStrategy.verify(authHeader);
+                return { env: polyratingsEnv, user };
             },
             responseMeta: () => ({
                 headers: {
@@ -66,3 +72,50 @@ export default {
         });
     },
 };
+
+// Allows for singleton execution of ensureLocalDb
+let initPromise: Promise<void>;
+async function ensureLocalDb(cloudflareEnv: CloudflareEnv, polyratingsEnv: Env) {
+    if (initPromise) {
+        return initPromise;
+    }
+    let initPromiseResolver;
+    initPromise = new Promise((resolve) => {
+        initPromiseResolver = resolve;
+    });
+
+    // Check to find the all professor key
+    const allProfessorKey = await cloudflareEnv.POLYRATINGS_TEACHERS.get("all");
+    if (allProfessorKey) {
+        // It will be defined. Typescript does not understand promise escaping
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+        initPromiseResolver!();
+        return initPromise;
+    }
+
+    const reqUrl =
+        "https://raw.githubusercontent.com/Polyratings/polyratings-data/data/professor-dump.json";
+    // eslint-disable-next-line no-console
+    console.log(`Retrieving professor data from ${reqUrl}`);
+    const githubReq = await fetch(reqUrl);
+    const githubJson = await githubReq.json();
+    // Verify that professors are formed correctly
+    const parsedProfessors = professorParser.array().parse(githubJson);
+    const truncatedProfessors = truncatedProfessorParser.array().parse(parsedProfessors);
+    await cloudflareEnv.POLYRATINGS_TEACHERS.put("all", JSON.stringify(truncatedProfessors));
+    for (const professor of parsedProfessors) {
+        // eslint-disable-next-line no-await-in-loop
+        await cloudflareEnv.POLYRATINGS_TEACHERS.put(professor.id, JSON.stringify(professor));
+    }
+
+    const password = await polyratingsEnv.authStrategy.hashPassword("password");
+    polyratingsEnv.kvDao.putUser({
+        username: "local",
+        password,
+    });
+
+    // It will be defined. Typescript does not understand promise escaping
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+    initPromiseResolver!();
+    return initPromise;
+}
