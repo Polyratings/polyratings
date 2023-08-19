@@ -28,11 +28,14 @@ export default {
         if (request.method === "OPTIONS") {
             return new Response(null, { headers: CORS_HEADERS });
         }
+        // In actually deployed instances (including `wrangler dev`) Cloudflare includes the CF-Ray header
+        // this does not get populated in Miniflare during actual local instances.
+        const isDeployed = request.headers.get("CF-Ray") != null;
 
-        const cloudflareEnv = getCloudflareEnv(rawEnv);
+        const cloudflareEnv = getCloudflareEnv({ IS_DEPLOYED: isDeployed, ...rawEnv });
         const polyratingsEnv = new Env(cloudflareEnv);
 
-        if (cloudflareEnv.CLOUDFLARE_ENV === "local") {
+        if (!cloudflareEnv.IS_DEPLOYED) {
             await ensureLocalDb(cloudflareEnv, polyratingsEnv);
         }
 

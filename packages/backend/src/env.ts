@@ -14,7 +14,7 @@ import { z } from "zod";
 import { KvWrapper } from "./dao/kv-wrapper";
 
 export function getCloudflareEnv(rawEnv: Record<string, unknown>): CloudflareEnv {
-    if (rawEnv?.CLOUDFLARE_ENV === "local") {
+    if (!rawEnv?.IS_DEPLOYED) {
         // Set empty default values that will cause dep injection to replace with no-ops
         return cloudflareEnvParser.parse({
             JWT_SIGNING_KEY: "TEST_SIGNING_SECRET",
@@ -43,14 +43,14 @@ export class Env {
             new KvWrapper(env.POLYRATINGS_TEACHER_APPROVAL_QUEUE),
             new KvWrapper(env.POLYRATINGS_REPORTS),
         );
-        if (env.CLOUDFLARE_ENV === "local" && !env.PERSPECTIVE_API_KEY) {
+        if (!env.IS_DEPLOYED && !env.PERSPECTIVE_API_KEY) {
             // eslint-disable-next-line no-console
             console.warn("Not using Perspective API. Please set PERSPECTIVE_API_KEY to enable");
             this.ratingAnalyzer = new PassThroughRatingAnalyzer();
         } else {
             this.ratingAnalyzer = new PerspectiveDAO(env.PERSPECTIVE_API_KEY);
         }
-        if (env.CLOUDFLARE_ENV === "local" && !env.DISCORD_WEBHOOK_URL) {
+        if (!env.IS_DEPLOYED && !env.DISCORD_WEBHOOK_URL) {
             // eslint-disable-next-line no-console
             console.warn("Not using Discord Notifier. Please set DISCORD_WEBHOOK_URL to enable");
             this.notificationDAO = new NoOpNotificationDao();
@@ -76,5 +76,5 @@ const cloudflareEnvParser = z.object({
     JWT_SIGNING_KEY: z.string(),
     PERSPECTIVE_API_KEY: z.string(),
     DISCORD_WEBHOOK_URL: z.string(),
-    CLOUDFLARE_ENV: z.enum(["local", "dev", "beta", "prod"]),
+    IS_DEPLOYED: z.boolean(),
 });
