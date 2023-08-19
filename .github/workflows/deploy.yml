@@ -14,7 +14,7 @@ env:
   NX_CLOUD_ACCESS_TOKEN: ${{ secrets.NX_CLOUD_ACCESS_TOKEN }}
 
 jobs:
-  main:
+  Integration_And_Deployment:
     name: Nx Cloud - Main Job
     runs-on: ubuntu-latest
     steps:
@@ -37,7 +37,7 @@ jobs:
       # Set node/npm/yarn versions using volta
       - uses: volta-cli/action@v4
         with:
-          package-json-path: '${{ github.workspace }}/package.json'
+          package-json-path: "${{ github.workspace }}/package.json"
 
       - name: Use the package manager cache if available
         uses: actions/cache@v3
@@ -96,7 +96,6 @@ jobs:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CF_API_TOKEN }}
         run: NX_CLOUD_DISTRIBUTED_EXECUTION=false npm run deploy:beta
 
-
   agents:
     name: Agent ${{ matrix.agent }}
     runs-on: ubuntu-latest
@@ -110,7 +109,7 @@ jobs:
       # Set node/npm/yarn versions using volta
       - uses: volta-cli/action@v4
         with:
-          package-json-path: '${{ github.workspace }}/package.json'
+          package-json-path: "${{ github.workspace }}/package.json"
 
       - name: Use the package manager cache if available
         uses: actions/cache@v3

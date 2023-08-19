@@ -7,7 +7,7 @@
   "scripts": {
     "bootstrap": "npm install",
     "build": "lerna run build",
-    "start:dev": "lerna run start:dev --parallel",
+    "start:dev": "lerna run start:dev",
     "test": "lerna run test --stream",
     "lint": "lerna run lint --stream",
     "fix": "lerna run fix --stream",
