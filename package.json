@@ -1,10 +1,13 @@
 {
   "name": "root",
   "private": true,
+  "workspaces": [
+    "packages/*"
+  ],
   "scripts": {
-    "bootstrap": "lerna bootstrap --hoist -- -f",
+    "bootstrap": "npm install",
     "build": "lerna run build",
-    "start:dev": "lerna run start:dev --parallel",
+    "start:dev": "lerna run start:dev",
     "test": "lerna run test --stream",
     "lint": "lerna run lint --stream",
     "fix": "lerna run fix --stream",
@@ -13,6 +16,7 @@
     "deploy:dev": "lerna run deploy:dev --stream"
   },
   "devDependencies": {
-    "lerna": "^4.0.0"
+    "lerna": "^7.1.5",
+    "nx-cloud": "^16.3.0"
   }
 }

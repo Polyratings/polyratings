@@ -26,11 +26,11 @@ export function Home() {
                 className="relative h-screenWoNav lg:h-screen3/5 min-h-[30rem]"
             >
                 <div className="flex flex-col w-full h-2/3 lg:h-80 justify-center justify-items-center">
-                    <h1 className="text-6xl md:text-9xl text-white text-center font-semibold drop-shadow-lg">
+                    <h1 className="text-6xl md:text-9xl 2xl:text-[9rem] text-white text-center font-semibold drop-shadow-lg">
                         Polyratings
                     </h1>
-                    <div className="mt-6">
-                        <SearchBar showOnlyInput />
+                    <div className="mt-6 2xl:mt-9">
+                        <SearchBar />
                     </div>
                 </div>
                 <img

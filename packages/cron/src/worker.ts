@@ -1,4 +1,4 @@
-import Toucan from "toucan-js";
+import { Toucan } from "toucan-js";
 import { main } from "./entry";
 
 interface CloudflareContext {
@@ -20,8 +20,10 @@ export default {
         const sentry = new Toucan({
             dsn: "https://f6740da514844eb2b1e6892fa31ec688@o1195960.ingest.sentry.io/6319111",
             context: ctx,
-            allowedHeaders: ["user-agent"],
-            allowedSearchParams: /(.*)/,
+            requestDataOptions: {
+                allowedHeaders: ["user-agent"],
+                allowedSearchParams: /(.*)/,
+            },
         });
 
         ctx.waitUntil(main(env, sentry));

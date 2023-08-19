@@ -1,7 +1,6 @@
 import { useCallback, useRef, useState } from "react";
 import { useCombobox } from "downshift";
 import { useVirtualizer } from "@tanstack/react-virtual";
-import { MagnifyingGlassIcon } from "@heroicons/react/24/outline";
 import { useTailwindBreakpoint } from "@/hooks";
 
 export interface AutoCompleteOption<U> {
@@ -17,6 +16,7 @@ export interface AutoCompleteProps<T, U> {
     label: string;
     initialValue: string;
     className?: string;
+    inputClassName?: string;
     disableDropdown: boolean;
 }
 
@@ -26,6 +26,7 @@ export function AutoComplete<T, U>({
     items,
     onChange: parentOnChange,
     className = "",
+    inputClassName = "",
     disableDropdown,
     label,
     initialValue,
@@ -81,14 +82,9 @@ export function AutoComplete<T, U>({
     });
     return (
         <div className={`relative ${className}`} {...getComboboxProps()}>
-            <MagnifyingGlassIcon
-                className="py-1 h-full absolute right-2 top-1/2 transform -translate-y-1/2"
-                strokeWidth={2}
-            />
-
             <input
                 aria-label={label}
-                className="border-2 border-black p-2 w-full h-full rounded"
+                className={`p-2 w-full h-full outline-none ${inputClassName}`}
                 type="text"
                 placeholder={placeholder}
                 {...getInputProps()}
@@ -96,7 +92,11 @@ export function AutoComplete<T, U>({
 
             <ul
                 {...getMenuProps({ ref: listRef })}
-                className="absolute top-full left-0 w-full bg-white shadow-xl max-h-28 overflow-y-auto"
+                className={`absolute top-full left-0 w-full bg-white shadow-xl max-h-28 overflow-y-auto ${
+                    isOpen && !disableDropdown && deviceSupportsDropdown
+                        ? "border border-black"
+                        : "border-none"
+                }`}
             >
                 {isOpen && !disableDropdown && deviceSupportsDropdown && (
                     <div style={{ height: `${rowVirtualizer.getTotalSize()}px` }}>

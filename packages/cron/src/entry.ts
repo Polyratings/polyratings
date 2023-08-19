@@ -1,4 +1,4 @@
-import Toucan from "toucan-js";
+import type { Toucan } from "toucan-js";
 import {
     cloudflareAccountId,
     cloudflareNamespaceInformation,

@@ -15,26 +15,26 @@
     "build:fast": "esbuild --format=esm --define:this=self --bundle src/worker.ts --outdir=dist --metafile=stats/metadata.json --loader:.toml=text",
     "build:local": "esbuild --format=cjs --bundle src/local.ts --outdir=dist --platform=node --loader:.toml=text",
     "build": "tsc && npm run build:fast",
-    "deploy:prod": "wrangler publish --env prod",
+    "deploy:prod": "wrangler deploy --env prod",
     "lint": "eslint --max-warnings=0 .",
     "fix": "eslint . --fix"
   },
   "devDependencies": {
-    "@polyratings/eslint-config": "*",
-    "@types/node-fetch": "^2.6.1",
-
-    "@cloudflare/workers-types": "^3.3.1",
-    "dotenv": "^16.0.0",
-    "esbuild": "^0.14.13",
-    "esbuild-visualizer": "^0.3.1",
-    "eslint": "^8.7.0",
-    "node-fetch": "^2.6.7",
+    "@cloudflare/workers-types": "^3.19.0",
+    "@polyratings/eslint-config": "^0.0.1",
+    "@types/node-fetch": "^2.6.4",
     "@types/uuid": "^8.3.4",
-    "typescript": "^5.0.4"
+    "dotenv": "^16.3.1",
+    "esbuild": "^0.14.54",
+    "esbuild-visualizer": "^0.3.1",
+    "eslint": "^8.47.0",
+    "node-fetch": "^2.6.7",
+    "typescript": "^5.1.6"
   },
   "dependencies": {
+    "@polyratings/backend": "*",
     "@trpc/client": "10.0.0-rc.8",
     "@trpc/server": "10.0.0-rc.8",
-    "toucan-js": "^2.5.0"
+    "toucan-js": "^3.2.1"
   }
 }

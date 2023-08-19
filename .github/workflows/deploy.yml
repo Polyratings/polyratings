@@ -3,9 +3,13 @@ name: Continuous Integration and Deployment
 on:
   pull_request:
   push:
-      branches:
-        - master
-        - beta
+    branches:
+      - master
+      - beta
+
+env:
+  NX_BRANCH: ${{ github.event.number || github.ref_name }}
+  NX_CLOUD_ACCESS_TOKEN: ${{ secrets.NX_CLOUD_ACCESS_TOKEN }}
 
 jobs:
   Integration_And_Deployment:
@@ -15,23 +19,30 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v3
 
-      - name: Setup Node
-        uses: actions/setup-node@v3
+      # Set node/npm/yarn versions using volta
+      - uses: volta-cli/action@v4
         with:
-          node-version: 16
-          cache: "npm"
+          package-json-path: "${{ github.workspace }}/package.json"
+
+      - name: Use the package manager cache if available
+        uses: actions/cache@v3
+        with:
+          path: ~/.npm
+          key: ${{ runner.os }}-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-
+
+      - name: Install dependencies
+        run: npm ci
 
       - name: Install Top Level Dependencies
         run: npm ci
-
-      - name: Install Dependencies
-        run: npm run bootstrap
 
       - name: Lint packages
         run: npm run lint
 
       - name: Build Packages
-        run:  npm run build
+        run: npm run build
 
       - name: Test Packages
         run: npm run test
@@ -39,11 +50,11 @@ jobs:
       - name: Deploy Prod
         if: github.ref == 'refs/heads/master'
         env:
-          CF_API_TOKEN: ${{ secrets.CF_API_TOKEN }}
-        run: npm run deploy:prod
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CF_API_TOKEN }}
+        run: NX_CLOUD_DISTRIBUTED_EXECUTION=false npm run deploy:prod
 
       - name: Deploy Beta
         if: github.ref == 'refs/heads/beta'
         env:
-          CF_API_TOKEN: ${{ secrets.CF_API_TOKEN }}
-        run: npm run deploy:beta
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CF_API_TOKEN }}
+        run: NX_CLOUD_DISTRIBUTED_EXECUTION=false npm run deploy:beta
