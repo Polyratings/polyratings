@@ -13,10 +13,10 @@
     "dependencies": {
         "@heroicons/react": "^2.0.18",
         "@hookform/resolvers": "^2.9.11",
-        "@polyratings/backend": "^0.1.0",
+        "@polyratings/backend": "*",
         "@sentry/browser": "^7.64.0",
-        "@tanstack/react-query": "^4.32.6",
-        "@tanstack/react-query-persist-client": "^4.32.6",
+        "@tanstack/react-query": "^4.33.0",
+        "@tanstack/react-query-persist-client": "^4.33.0",
         "@tanstack/react-virtual": "3.0.0-beta.13",
         "@trpc/client": "10.0.0-rc.8",
         "@trpc/react-query": "10.0.0-rc.8",
