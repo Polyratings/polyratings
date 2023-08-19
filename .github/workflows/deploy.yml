@@ -62,3 +62,4 @@ jobs:
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CF_API_TOKEN }}
         run: npm run deploy:beta
+ 
