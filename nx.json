@@ -21,7 +21,7 @@
       "default",
       "!{projectRoot}/**/*.spec.ts",
       "!{projectRoot}/**/*.md",
-      "!{projectRoot}/jest.config.ts",
+      "!{projectRoot}/vitest-setup.js",
       "!{projectRoot}/.eslintrc.json"
     ]
   },
@@ -45,7 +45,7 @@
       ]
     },
     "test": {
-      "inputs": ["default", "^production", "{workspaceRoot}/jest.preset.js"]
+      "inputs": ["default", "^production"]
     }
   }
 }
