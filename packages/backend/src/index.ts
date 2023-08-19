@@ -54,8 +54,12 @@ export default {
             },
             createContext: async ({ req }) => {
                 const authHeader = req.headers.get("Authorization");
+
+                const anonymizedIdentifier = await polyratingsEnv.authStrategy.obfuscateIdentifier(
+                    req.headers.get("CF-Connecting-IP"),
+                );
                 const user = await polyratingsEnv.authStrategy.verify(authHeader);
-                return { env: polyratingsEnv, user };
+                return { env: polyratingsEnv, anonymizedIdentifier, user };
             },
             responseMeta: () => ({
                 headers: {

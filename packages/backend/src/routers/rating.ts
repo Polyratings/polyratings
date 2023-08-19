@@ -75,6 +75,7 @@ export const ratingsRouter = t.router({
                     {
                         email: input.email,
                         reason: input.reason,
+                        anonymousIdentifier: ctx.anonymizedIdentifier,
                     },
                 ],
             };
@@ -83,6 +84,7 @@ export const ratingsRouter = t.router({
             await ctx.env.notificationDAO.notify(
                 "Received A Report",
                 `Rating ID: ${ratingReport.ratingId}\n` +
+                    `Submitter: ${ratingReport.reports[0].anonymousIdentifier}` +
                     `Professor ID: ${ratingReport.professorId}\n` +
                     `Reason: ${ratingReport.reports[0].reason}`,
             );
