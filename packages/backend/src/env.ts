@@ -13,6 +13,19 @@ import {
 import { z } from "zod";
 import { KvWrapper } from "./dao/kv-wrapper";
 
+export function getCloudflareEnv(rawEnv: Record<string, unknown>): CloudflareEnv {
+    if (rawEnv?.CLOUDFLARE_ENV === "local") {
+        // Set empty default values that will cause dep injection to replace with no-ops
+        return cloudflareEnvParser.parse({
+            JWT_SIGNING_KEY: "TEST_SIGNING_SECRET",
+            PERSPECTIVE_API_KEY: "",
+            DISCORD_WEBHOOK_URL: "",
+            ...rawEnv,
+        });
+    }
+    return cloudflareEnvParser.parse(rawEnv);
+}
+
 export class Env {
     kvDao: KVDAO;
 
@@ -22,20 +35,7 @@ export class Env {
 
     notificationDAO: NotificationDAO;
 
-    constructor(rawEnv: Record<string, unknown>) {
-        let env: z.infer<typeof cloudflareEnvParser>;
-        if (rawEnv?.CLOUDFLARE_ENV === "local") {
-            // Set empty default values that will cause dep injection to replace with no-ops
-            env = cloudflareEnvParser.parse({
-                JWT_SIGNING_KEY: "TEST_SIGNING_SECRET",
-                PERSPECTIVE_API_KEY: "",
-                DISCORD_WEBHOOK_URL: "",
-                ...rawEnv,
-            });
-        } else {
-            env = cloudflareEnvParser.parse(rawEnv);
-        }
-
+    constructor(env: CloudflareEnv) {
         this.kvDao = new KVDAO(
             new KvWrapper(env.POLYRATINGS_TEACHERS),
             new KvWrapper(env.POLYRATINGS_USERS),

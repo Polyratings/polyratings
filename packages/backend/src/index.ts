@@ -1,4 +1,4 @@
-import { CloudflareEnv, Env } from "@backend/env";
+import { CloudflareEnv, Env, getCloudflareEnv } from "@backend/env";
 import { Toucan } from "toucan-js";
 import { fetchRequestHandler } from "@trpc/server/adapters/fetch";
 import { Context } from "toucan-js/dist/types";
@@ -24,11 +24,12 @@ const CORS_HEADERS = {
 };
 
 export default {
-    async fetch(request: Request, cloudflareEnv: CloudflareEnv, cloudflareCtx: Context) {
+    async fetch(request: Request, rawEnv: Record<string, unknown>, cloudflareCtx: Context) {
         if (request.method === "OPTIONS") {
             return new Response(null, { headers: CORS_HEADERS });
         }
 
+        const cloudflareEnv = getCloudflareEnv(rawEnv);
         const polyratingsEnv = new Env(cloudflareEnv);
 
         if (cloudflareEnv.CLOUDFLARE_ENV === "local") {
