@@ -13,6 +13,9 @@ export const BETA_ENV: PolyratingsAPIEnv = {
 export const PROD_ENV: PolyratingsAPIEnv = {
     url: "https://api-prod.polyratings.org",
 };
+export const LOCAL_ENV: PolyratingsAPIEnv = {
+    url: "http://localhost:3001",
+};
 
 export const cloudflareNamespaceInformation = {
     POLYRATINGS_TEACHERS: {

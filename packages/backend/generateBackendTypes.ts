@@ -66,6 +66,9 @@ ${Object.entries(parsedToml.env)
 };`,
     )
     .join("\n")}
+export const LOCAL_ENV: PolyratingsAPIEnv = {
+    url: "http://${parsedToml.dev.ip}:${parsedToml.dev.port}",
+};
 
 export const cloudflareNamespaceInformation = ${objToString(nameSpaceDefinitions)} as const;
 
