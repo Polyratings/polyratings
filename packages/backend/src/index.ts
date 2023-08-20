@@ -1,8 +1,8 @@
 import { Toucan } from "toucan-js";
 import { fetchRequestHandler } from "@trpc/server/adapters/fetch";
 import type { Context } from "toucan-js/dist/types";
-import { Env, getCloudflareEnv } from "./env"
-import type { CloudflareEnv} from "./env";
+import { Env, getCloudflareEnv } from "./env";
+import type { CloudflareEnv } from "./env";
 import { t } from "./trpc";
 import { professorRouter } from "./routers/professor";
 import { ratingsRouter } from "./routers/rating";
@@ -102,8 +102,7 @@ async function ensureLocalDb(cloudflareEnv: CloudflareEnv, polyratingsEnv: Env) 
         return initPromise;
     }
 
-    const reqUrl =
-        "https://raw.githubusercontent.com/Polyratings/polyratings-data/data/professor-dump.json";
+    const reqUrl = "https://raw.githubusercontent.com/Polyratings/polyratings-data/data/professor-dump.json";
     // eslint-disable-next-line no-console
     console.log(`Retrieving professor data from ${reqUrl}`);
     const githubReq = await fetch(reqUrl);

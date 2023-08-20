@@ -16,8 +16,7 @@ Install top level JS dependencies
 npm install
 ```
 
-This will install lerna and all of the dependencies for all of the sub packages and sym link dependent packages. 
-
+This will install lerna and all of the dependencies for all of the sub packages and sym link dependent packages.
 
 Then run:
 
@@ -26,9 +25,11 @@ npm run build
 ```
 
 Finally:
+
 ```bash
 npm run start:local
 ```
-> Note you can run `npm run start:dev` if you have access to the cloudflare account to use data stored in the dev KV 
+
+> Note you can run `npm run start:dev` if you have access to the cloudflare account to use data stored in the dev KV
 
 This will start the local hot reload server for the frontend and backend. Follow the individual package READMEs for specific package information.

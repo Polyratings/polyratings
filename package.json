@@ -7,11 +7,13 @@
   "scripts": {
     "bootstrap": "npm install",
     "build": "lerna run build",
-    "start:dev": "lerna run start:dev --stream",
-    "start:local": "lerna run start:local --stream",
+    "start:dev": "lerna run start:dev",
     "test": "lerna run test --stream",
     "lint": "lerna run lint --stream",
     "fix": "lerna run fix --stream",
+    "format:check": "prettier . --check",
+    "format": "prettier . --write",
+    "review": "npm run format && npm run fix && npm run test",
     "deploy:prod": "lerna run deploy:prod --stream",
     "deploy:beta": "lerna run deploy:beta --stream",
     "deploy:dev": "lerna run deploy:dev --stream"

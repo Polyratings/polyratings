@@ -1,17 +1,9 @@
 import { KVDAO } from "@backend/dao/kv-dao";
-import type {
-    RatingAnalyzer} from "@backend/dao/rating-analyzer-dao";
-import {
-    PassThroughRatingAnalyzer,
-    PerspectiveDAO
-} from "@backend/dao/rating-analyzer-dao";
+import type { RatingAnalyzer } from "@backend/dao/rating-analyzer-dao";
+import { PassThroughRatingAnalyzer, PerspectiveDAO } from "@backend/dao/rating-analyzer-dao";
 import { AuthStrategy } from "@backend/dao/auth-strategy";
-import type {
-    NotificationDAO} from "@backend/dao/discord-notification-dao";
-import {
-    DiscordNotificationDAO,
-    NoOpNotificationDao
-} from "@backend/dao/discord-notification-dao";
+import type { NotificationDAO } from "@backend/dao/discord-notification-dao";
+import { DiscordNotificationDAO, NoOpNotificationDao } from "@backend/dao/discord-notification-dao";
 import { z } from "zod";
 import { KvWrapper } from "./dao/kv-wrapper";
 
