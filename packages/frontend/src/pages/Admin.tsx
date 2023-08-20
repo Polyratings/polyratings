@@ -109,10 +109,10 @@ function ReportedRatings() {
                 const professor = professors?.find(
                     (professor) => professor?.id === row.professorId,
                 );
-                
+
                 return Object.values(professor?.reviews ?? {})
                     .flat()
-                    .find((rating) => rating.id === row.ratingId)?.anonymousIdentifier 
+                    .find((rating) => rating.id === row.ratingId)?.anonymousIdentifier;
             },
         },
         {

@@ -18,7 +18,7 @@ export const ratingBaseParser = z.object({
     recognizesStudentDifficulties: z.number().min(0).max(4),
     rating: z.string(),
     tags: z.enum(PROFESSOR_TAGS).array().max(MAX_PROFESSOR_TAGS_PER_RATING).optional(),
-    anonymousIdentifier: z.optional(z.string())
+    anonymousIdentifier: z.optional(z.string()),
 });
 export type RatingBase = z.infer<typeof ratingBaseParser>;
 
