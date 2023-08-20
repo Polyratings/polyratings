@@ -33,7 +33,6 @@ watch_dir = [
 [env.dev]
 name = 'polyratings-dev-backend'
 route = 'api-dev.polyratings.org/*'
-usage_model = "bundled"
 kv_namespaces = [
     { binding = "POLYRATINGS_TEACHERS", id = "20700dd12582422b9f91a0a1695ace88", preview_id = "20700dd12582422b9f91a0a1695ace88"},
     { binding = "PROCESSING_QUEUE", id  = "ada7d85a6912462ebaaaed5304f58323", preview_id = "ada7d85a6912462ebaaaed5304f58323"},
@@ -45,7 +44,6 @@ kv_namespaces = [
 [env.beta]
 name = 'polyratings-beta-backend'
 route = 'api-beta.polyratings.org/*'
-usage_model = "bundled"
 kv_namespaces = [
     { binding = "POLYRATINGS_TEACHERS", id = "3a5904587fe943679bf97e59d95b7632" },
     { binding = "PROCESSING_QUEUE", id = "a25ee370718a4d0e86aeba48f7156618" },
@@ -57,7 +55,6 @@ kv_namespaces = [
 [env.prod]
 name = "polyratings-prod-backend"
 route = "api-prod.polyratings.org/*"
-usage_model = "bundled"
 kv_namespaces = [
     { binding = "POLYRATINGS_TEACHERS", id = "c6bf2730306a4e65bb8aa7412ae6f250" },
     { binding = "PROCESSING_QUEUE", id  = "845ba14e564c411fa52543408e15c53e" },

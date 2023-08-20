@@ -22,15 +22,6 @@ function objToString(obj, ndeep = 1) {
     }
 }
 
-function envToUrl(envKey, route) {
-    // Special case local since there is no certificate on localhost
-    if(envKey === "local") {
-        return `http://${route.slice(0, -2)}`
-
-    }
-    return `https://${route.slice(0, -2)}`
-}
-
 const workerToml = fs.readFileSync(path.resolve(__dirname, "./wrangler.toml"), "utf-8");
 const parsedToml = toml.parse(workerToml);
 
@@ -62,7 +53,7 @@ export interface PolyratingsAPIEnv {
 }
 ${Object.entries(parsedToml.env).map(([envKey, envData]) =>
 `export const ${envKey.toUpperCase()}_ENV: PolyratingsAPIEnv = {
-    url: "${envToUrl(envKey, envData.route)}",
+    url: "https://${envData.route.slice(0, -2)}",
 };`,
 ).join("\n")}
 export const LOCAL_ENV: PolyratingsAPIEnv = {
