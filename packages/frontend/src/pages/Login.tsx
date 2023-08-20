@@ -34,11 +34,11 @@ export function Login() {
             setJwt(jwt);
             navigate("/admin");
         }
-    }, [jwt]);
+    }, [jwt, setJwt, navigate]);
 
     return (
         <div
-            className="flex h-screenWoNav items-center justify-center"
+            className="h-screenWoNav flex items-center justify-center"
             style={{
                 backgroundImage: `url(${loginBackground})`,
                 backgroundRepeat: "no-repeat",

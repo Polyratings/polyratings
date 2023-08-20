@@ -64,7 +64,7 @@ export const professorRouter = t.router({
                 await ctx.env.kvDao.putPendingProfessor(duplicateProfessor);
             } else {
                 await ctx.env.kvDao.putPendingProfessor(professor);
-                await ctx.env.notificationDAO.sendWebhook(
+                await ctx.env.notificationDAO.notify(
                     "Pending Professor Notification",
                     `Professor ${professor.firstName} ${professor.lastName} ` +
                         `with id: ${professor.id} is waiting for approval!`,

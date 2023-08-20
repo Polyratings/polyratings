@@ -8,18 +8,7 @@ Lerna monorepo to contain all polyratings related code
 -   [backend](./packages/backend/) - Backend typescript app deployed on Cloudflare Workers
 -   [cron](./packages/cron/) - nightly job that syncs data between environments as well as backs up the professor list to a separate git [repo](TODO://PROVIDE_URL)
 
-## Getting Ready for development
-
-If you are not interested in developing the backend or cron packages you can skip to [setup](#setup)
-
-In order to set up for development you have one of two options:
-
-1. Following the instructions [here](./docs/deployment.md) to deploy polyratings to your personal cloudflare account. This will then allow you to do test deployments of your changes in an isolated environment.
-2. Reaching out to `user@domain.com` to receive credentials to the cloudflare account in order to be able to publish to the official dev environment. This option should only be taken if you are interested in working on polyratings in the long term and have demonstrated an interest through multiple previous code contributions.
-
 ## Setup
-
-Since this repository is organized using lerna setup is a little different than standard js projects.
 
 Install top level JS dependencies
 
@@ -27,12 +16,19 @@ Install top level JS dependencies
 npm install
 ```
 
-This will install lerna and all of the dependencies for all of the sub packages and sym link dependent packages. Finally run:
+This will install lerna and all of the dependencies for all of the sub packages and sym link dependent packages. 
+
+
+Then run:
 
 ```bash
 npm run build
 ```
 
-This will build all of the projects and put shared files where they are supposed to be.
+Finally:
+```bash
+npm run start:local
+```
+> Note you can run `npm run start:dev` if you have access to the cloudflare account to use data stored in the dev KV 
 
-You can now start developing in your desired package. Follow the README in the specific package for specific information.
+This will start the local hot reload server for the frontend and backend. Follow the individual package READMEs for specific package information.

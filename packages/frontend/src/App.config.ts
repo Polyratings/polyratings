@@ -1,10 +1,21 @@
-import type { PolyratingsAPIEnv } from "@backend/generated/tomlGenerated";
-import { BETA_ENV, DEV_ENV, PROD_ENV } from "@backend/generated/tomlGenerated";
+import type {
+    PolyratingsAPIEnv} from "@backend/generated/tomlGenerated";
+import {
+    BETA_ENV,
+    DEV_ENV,
+    LOCAL_ENV,
+    PROD_ENV,
+} from "@backend/generated/tomlGenerated";
 
 interface AppConfiguration {
     clientEnv: PolyratingsAPIEnv;
     base: string;
 }
+
+const localConfig: AppConfiguration = {
+    clientEnv: LOCAL_ENV,
+    base: "/",
+};
 
 const devConfig: AppConfiguration = {
     clientEnv: DEV_ENV,
@@ -21,6 +32,21 @@ const betaConfig: AppConfiguration = {
     base: "/",
 };
 
-const liveConfig = window.location.href.includes("beta.") ? betaConfig : prodConfig;
+const branchToConfig: Record<string, AppConfiguration> = {
+    master: prodConfig,
+    beta: betaConfig,
+};
 
-export const config = process.env.NODE_ENV === "development" ? devConfig : liveConfig;
+const cloudflareBranch = import.meta.env?.CF_PAGES_BRANCH ?? "";
+
+// eslint-disable-next-line import/no-mutable-exports
+let config: AppConfiguration;
+if (import.meta.env.DEV) {
+    config = localConfig;
+} else if (branchToConfig[cloudflareBranch]) {
+    config = branchToConfig[cloudflareBranch];
+} else {
+    config = devConfig;
+}
+
+export { config };

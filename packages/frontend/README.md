@@ -42,38 +42,5 @@ Run tests with:
 npm t
 ```
 
-## Developing locally
-
-First, complete the global setup instructions located [here](../../README.md/#setup). If you are not using the default dev backend, configure it in `App.config.ts`.
-
-Change the remote url to a custom dev domain
-
-```ts
-// From
-const devConfig: AppConfiguration = {
-    clientEnv: DEV_ENV,
-    base: "/",
-};
-
-// To
-const devConfig: AppConfiguration = {
-    clientEnv: {
-        url: "https://YOUR-DOMAIN-HERE",
-    },
-    base: "/",
-};
-```
-
-start the dev server:
-
-```bash
-npm run start:dev
-```
-
-Building the bundle:
-
-```bash
-npm run build
-```
-
-Building the bundle outputs a stats.html that can be used to debug the bundle size
+## Bundle Info
+When `npm run build` is run, vite will output the bundle stats to `{project_root}/stats/stats.json`

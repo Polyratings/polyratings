@@ -1,5 +1,5 @@
-import type { RenderResult } from "@testing-library/react-hooks";
-import { renderHook } from "@testing-library/react-hooks";
+import type { RenderHookResult } from "@testing-library/react";
+import { renderHook } from "@testing-library/react";
 import { act } from "react-dom/test-utils";
 import { waitFor } from "@testing-library/dom";
 import { describe, test, beforeEach, expect } from "vitest";
@@ -10,10 +10,10 @@ const DEFAULT_VALUE = 1;
 const SM_VALUE = 2;
 const XL_VALUE = 3;
 
-let result: RenderResult<number>;
+let result: RenderHookResult<number, unknown>;
 describe("UseTailwindBreakpoints", () => {
     beforeEach(() => {
-        ({ result } = renderHook(() =>
+        result = renderHook(() =>
             useTailwindBreakpoint(
                 {
                     sm: SM_VALUE,
@@ -21,7 +21,7 @@ describe("UseTailwindBreakpoints", () => {
                 },
                 DEFAULT_VALUE,
             ),
-        ));
+        );
     });
 
     test("sends default value if small", async () => {
@@ -29,7 +29,7 @@ describe("UseTailwindBreakpoints", () => {
             setWindowSize(100, window.innerHeight);
         });
         await waitFor(() => {
-            expect(result.current).toBe(DEFAULT_VALUE);
+            expect(result.result.current).toBe(DEFAULT_VALUE);
         });
     });
 
@@ -38,7 +38,7 @@ describe("UseTailwindBreakpoints", () => {
             setWindowSize(650, window.innerWidth);
         });
         await waitFor(() => {
-            expect(result.current).toBe(SM_VALUE);
+            expect(result.result.current).toBe(SM_VALUE);
         });
     });
 
@@ -47,7 +47,7 @@ describe("UseTailwindBreakpoints", () => {
             setWindowSize(2000, window.innerWidth);
         });
         await waitFor(() => {
-            expect(result.current).toBe(XL_VALUE);
+            expect(result.result.current).toBe(XL_VALUE);
         });
     });
 });

@@ -1,39 +1,39 @@
 {
-    "name": "@polyratings/cron",
-    "version": "0.0.1",
-    "description": "> TODO: description",
-    "author": "mfish33 <maxmfishernj@gmail.com>",
-    "homepage": "https://github.com/Polyratings/polyratings#readme",
-    "license": "ISC",
-    "private": true,
-    "repository": {
-        "type": "git",
-        "url": "git+https://github.com/Polyratings/polyratings.git"
-    },
-    "scripts": {
-        "run:local": "node dist/local",
-        "build:fast": "esbuild --format=esm --define:this=self --bundle src/worker.ts --outdir=dist --metafile=stats/metadata.json --loader:.toml=text",
-        "build:local": "esbuild --format=cjs --bundle src/local.ts --outdir=dist --platform=node --loader:.toml=text",
-        "build": "tsc && npm run build:fast",
-        "deploy:prod": "wrangler deploy --env prod",
-        "lint": "eslint .",
-        "fix": "eslint . --fix"
-    },
-    "devDependencies": {
-        "@cloudflare/workers-types": "^3.19.0",
-        "@types/node-fetch": "^2.6.4",
-        "@types/uuid": "^8.3.4",
-        "dotenv": "^16.3.1",
-        "esbuild": "^0.14.54",
-        "esbuild-visualizer": "^0.3.1",
-        "eslint": "^8.47.0",
-        "node-fetch": "^2.6.13",
-        "typescript": "^5.1.6"
-    },
-    "dependencies": {
-        "@polyratings/backend": "*",
-        "@trpc/client": "10.0.0-rc.8",
-        "@trpc/server": "10.0.0-rc.8",
-        "toucan-js": "^3.2.2"
-    }
+  "name": "@polyratings/cron",
+  "version": "0.0.1",
+  "description": "> TODO: description",
+  "author": "mfish33 <maxmfishernj@gmail.com>",
+  "homepage": "https://github.com/Polyratings/polyratings#readme",
+  "license": "ISC",
+  "private": true,
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Polyratings/polyratings.git"
+  },
+  "scripts": {
+    "run:local": "node dist/local",
+    "build:fast": "esbuild --format=esm --define:this=self --bundle src/worker.ts --outdir=dist --metafile=stats/metadata.json --loader:.toml=text",
+    "build:local": "esbuild --format=cjs --bundle src/local.ts --outdir=dist --platform=node --loader:.toml=text",
+    "build": "tsc && npm run build:fast",
+    "deploy:prod": "wrangler deploy --env prod",
+    "lint": "eslint --max-warnings=0 .",
+    "fix": "eslint . --fix"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^4.20230814.0",
+    "@types/node-fetch": "^2.6.4",
+    "dotenv": "^16.3.1",
+    "esbuild": "^0.19.2",
+    "esbuild-visualizer": "^0.4.1",
+    "eslint": "^8.47.0",
+    "node-fetch": "^3.3.2",
+    "typescript": "^5.1.6",
+    "wrangler": "^3.5.1"
+  },
+  "dependencies": {
+    "@polyratings/backend": "^0.1.0",
+    "@trpc/client": "10.37.1",
+    "@trpc/server": "10.37.1",
+    "toucan-js": "^3.2.2"
+  }
 }

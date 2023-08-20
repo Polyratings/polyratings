@@ -3,12 +3,16 @@ interface WebhookBody {
     username?: string; // overrides webhook's default username
 }
 
-type DiscordUsername = "Pending Professor Notification" | "Received A Report";
+type NotificationEvent = "Pending Professor Notification" | "Received A Report";
 
-export class DiscordNotificationDAO {
+export type NotificationDAO = {
+    notify(username: NotificationEvent, content: string): Promise<void>;
+};
+
+export class DiscordNotificationDAO implements NotificationDAO {
     constructor(private webhookURL: string) {}
 
-    public async sendWebhook(username: DiscordUsername, content: string) {
+    public async notify(username: NotificationEvent, content: string) {
         const webhookBody: WebhookBody = {
             content,
             username,
@@ -23,4 +27,9 @@ export class DiscordNotificationDAO {
             },
         });
     }
+}
+
+export class NoOpNotificationDao implements NotificationDAO {
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars, class-methods-use-this, @typescript-eslint/no-empty-function
+    public async notify(_username: NotificationEvent, _content: string): Promise<void> {}
 }

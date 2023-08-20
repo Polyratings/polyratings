@@ -1,10 +1,11 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/no-var-requires */
 const fs = require("fs");
 const path = require("path");
 const toml = require("toml");
 
 // From https://stackoverflow.com/questions/5612787/converting-an-object-to-a-string
-function objToString(obj: any, ndeep = 1): string {
+function objToString(obj: unknown, ndeep = 1): string {
     if (obj == null) {
         return String(obj);
     }

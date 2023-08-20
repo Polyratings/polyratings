@@ -195,6 +195,11 @@ function ProcessedRatings() {
     const { data: processedRatings } = useDbValues("rating-log");
     type PendingRating = NonNullable<typeof processedRatings>[0];
 
+    const sortedProcessedRatings =
+        (processedRatings ?? []).sort(
+            (ratingA, ratingB) => Date.parse(ratingB.postDate) - Date.parse(ratingA.postDate),
+        ) ?? [];
+
     const columns = [
         {
             name: "Status",
@@ -206,9 +211,9 @@ function ProcessedRatings() {
             grow: 1.5,
             cell: (row: PendingRating) => (
                 <div className="flex flex-col">
-                    {Object.entries(row.sentimentResponse ?? {}).map(([name, score]) => (
+                    {Object.entries(row.analyzedScores ?? {}).map(([name, score]) => (
                         <div key={name}>
-                            {name}: {score.summaryScore.value}
+                            {name}: {score}
                         </div>
                     ))}
                 </div>
@@ -225,7 +230,7 @@ function ProcessedRatings() {
     return (
         <div className="mt-4">
             <h2 className="ml-1">Processed Ratings:</h2>
-            <DataTable columns={columns} data={processedRatings ?? []} pagination />
+            <DataTable columns={columns} data={sortedProcessedRatings} pagination />
         </div>
     );
 }
@@ -264,7 +269,7 @@ function RecentRatings() {
                 queryClient.invalidateQueries(bulkInvalidationKey("professors"));
             }
         },
-        [],
+        [queryClient, removedRatings.size],
     );
 
     type ConnectedRating = (typeof ratings)[0];

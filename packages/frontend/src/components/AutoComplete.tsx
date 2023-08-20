@@ -32,7 +32,7 @@ export function AutoComplete<T, U>({
     initialValue,
 }: AutoCompleteProps<T, U>) {
     const [filteredItems, setFilteredItems] = useState(filterFn(items, ""));
-    const listRef = useRef(undefined as unknown as HTMLElement);
+    const listRef = useRef<HTMLUListElement | null>(null);
 
     const remMultiplier = parseFloat(window.getComputedStyle(document.body).getPropertyValue("font-size") || "16") / 16;
 
@@ -46,7 +46,19 @@ export function AutoComplete<T, U>({
     // Disable autocomplete on small devices
     const deviceSupportsDropdown = useTailwindBreakpoint({ md: true }, false);
 
-    const { isOpen, getMenuProps, getInputProps, getComboboxProps, highlightedIndex, getItemProps } = useCombobox({
+    const { isOpen, getMenuProps, getInputProps, highlightedIndex, getItemProps } = useCombobox({
+        stateReducer(state, actionAndChanges) {
+            const { changes, type } = actionAndChanges;
+            switch (type) {
+                case useCombobox.stateChangeTypes.InputClick:
+                    return {
+                        ...changes,
+                        isOpen: state.isOpen, // do not toggle the menu when input is clicked.
+                    };
+                default:
+                    return changes;
+            }
+        },
         onInputValueChange({ inputValue }) {
             const filteredItems = filterFn(items, inputValue ?? "");
             setFilteredItems(filteredItems);
@@ -72,7 +84,7 @@ export function AutoComplete<T, U>({
         initialInputValue: initialValue,
     });
     return (
-        <div className={`relative ${className}`} {...getComboboxProps()}>
+        <div className={`relative ${className}`}>
             <input
                 aria-label={label}
                 className={`h-full w-full p-2 outline-none ${inputClassName}`}
