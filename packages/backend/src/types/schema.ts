@@ -54,7 +54,9 @@ export const pendingRatingParser = ratingParser.merge(
     z.object({
         status: z.enum(PENDING_RATING_STATUSES),
         error: z.nullable(z.string()),
+        // TODO: Deprecate field completely
         sentimentResponse: z.nullable(z.record(perspectiveAttributeScoreParser)),
+        analyzedScores: z.nullable(z.record(z.number())),
         courseNum: z.number().min(100).max(599),
         department: z.enum(DEPARTMENT_LIST),
     }),

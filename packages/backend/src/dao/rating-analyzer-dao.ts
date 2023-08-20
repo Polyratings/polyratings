@@ -2,10 +2,15 @@ import { PendingRating, PerspectiveAttributeScore } from "@backend/types/schema"
 
 const ANALYZE_COMMENT_URL = "https://commentanalyzer.googleapis.com/v1alpha1/comments:analyze";
 
-export class PerspectiveDAO {
+export type AnalyzedRating = Record<string, number>;
+export type RatingAnalyzer = {
+    analyzeRaring(rating: PendingRating): Promise<AnalyzedRating>;
+};
+
+export class PerspectiveDAO implements RatingAnalyzer {
     constructor(private readonly apiKey: string) {}
 
-    async analyzeRaring(rating: PendingRating): Promise<AnalyzeCommentResponse["attributeScores"]> {
+    async analyzeRaring(rating: PendingRating): Promise<AnalyzedRating> {
         // TODO: Perhaps we should define a default request?
         const requestBody: AnalyzeCommentRequest = {
             comment: {
@@ -34,7 +39,23 @@ export class PerspectiveDAO {
         }
 
         const response = (await httpResponse.json()) as AnalyzeCommentResponse;
-        return response.attributeScores;
+        return Object.fromEntries(
+            Object.entries(response.attributeScores).map(
+                ([
+                    key,
+                    {
+                        summaryScore: { value },
+                    },
+                ]) => [key, value],
+            ),
+        );
+    }
+}
+
+export class PassThroughRatingAnalyzer implements RatingAnalyzer {
+    // eslint-disable-next-line class-methods-use-this, @typescript-eslint/no-unused-vars
+    async analyzeRaring(rating: PendingRating): Promise<AnalyzedRating> {
+        return {};
     }
 }
 
