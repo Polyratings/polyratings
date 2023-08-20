@@ -176,6 +176,8 @@ export const PROFESSOR_TAGS = [
     "No Breaks During Lecture",
 ] as const;
 
+export const ALL_PROFESSOR_KEY = "all";
+
 type TypeEqual = IsEqual<BulkKey, keyof BulkKeyMap> extends true ? true : never;
 // Error will be generated here if the BulkKey union does not match the keys of BulkKeyMap
 // eslint-disable-next-line @typescript-eslint/no-unused-vars

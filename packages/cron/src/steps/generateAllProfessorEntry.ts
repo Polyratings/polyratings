@@ -2,6 +2,7 @@ import { cloudflareNamespaceInformation } from "@backend/generated/tomlGenerated
 import { truncatedProfessorParser } from "@backend/types/schema";
 import { bulkRecord } from "src/utils/bulkRecord";
 import { z } from "zod";
+import { ALL_PROFESSOR_KEY } from "@backend/utils/const";
 import { CronEnv } from "../entry";
 import { Logger } from "../logger";
 
@@ -26,7 +27,13 @@ export async function generateAllProfessorEntry(env: CronEnv) {
         cloudflareNamespaceInformation.POLYRATINGS_TEACHERS.dev,
     );
 
-    prodProfessors.putValues([{ key: "all", value: JSON.stringify(truncatedProfessorList) }]);
-    betaProfessors.putValues([{ key: "all", value: JSON.stringify(truncatedProfessorList) }]);
-    devProfessors.putValues([{ key: "all", value: JSON.stringify(truncatedProfessorList) }]);
+    prodProfessors.putValues([
+        { key: ALL_PROFESSOR_KEY, value: JSON.stringify(truncatedProfessorList) },
+    ]);
+    betaProfessors.putValues([
+        { key: ALL_PROFESSOR_KEY, value: JSON.stringify(truncatedProfessorList) },
+    ]);
+    devProfessors.putValues([
+        { key: ALL_PROFESSOR_KEY, value: JSON.stringify(truncatedProfessorList) },
+    ]);
 }
