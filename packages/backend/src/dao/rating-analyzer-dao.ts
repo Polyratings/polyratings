@@ -1,4 +1,4 @@
-import { PendingRating, PerspectiveAttributeScore, perspectiveAttributeScoreParser } from "@backend/types/schema";
+import { PendingRating, perspectiveAttributeScoreParser } from "@backend/types/schema";
 import { z } from "zod";
 
 const ANALYZE_COMMENT_URL = "https://commentanalyzer.googleapis.com/v1alpha1/comments:analyze";
@@ -105,4 +105,4 @@ const analyzeCommentResponseParser = z.object({
     attributeScores: z.record(perspectiveAttributeScoreParser),
     languages: z.string().array(),
     clientToken: z.string(),
-})
+});
