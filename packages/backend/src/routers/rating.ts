@@ -68,7 +68,7 @@ export const ratingsRouter = t.router({
             ),
         )
         .mutation(async ({ ctx, input }) => {
-            const anonymousIdentifier = await ctx.env.anonymousIdDao.getIdentifier()
+            const anonymousIdentifier = await ctx.env.anonymousIdDao.getIdentifier();
             const ratingReport: RatingReport = {
                 ratingId: input.ratingId,
                 professorId: input.professorId,
@@ -76,7 +76,7 @@ export const ratingsRouter = t.router({
                     {
                         email: input.email,
                         reason: input.reason,
-                        anonymousIdentifier
+                        anonymousIdentifier,
                     },
                 ],
             };

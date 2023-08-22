@@ -34,7 +34,7 @@ export default {
         const isDeployed = request.headers.get("CF-Ray") != null;
 
         const HASHED_IP = await AnonymousIdDao.hashIp(
-            request.headers.get("CF-Connecting-IP") ?? ""
+            request.headers.get("CF-Connecting-IP") ?? "",
         );
 
         const cloudflareEnv = getCloudflareEnv({ HASHED_IP, IS_DEPLOYED: isDeployed, ...rawEnv });

@@ -36,7 +36,7 @@ export class Env {
 
     notificationDAO: NotificationDAO;
 
-    anonymousIdDao: AnonymousIdDao
+    anonymousIdDao: AnonymousIdDao;
 
     constructor(env: CloudflareEnv) {
         this.kvDao = new KVDAO(
@@ -63,7 +63,7 @@ export class Env {
 
         this.authStrategy = new AuthStrategy(env.JWT_SIGNING_KEY);
 
-        this.anonymousIdDao = new AnonymousIdDao(env.HASHED_IP, env.POLYRATINGS_SESSIONS)
+        this.anonymousIdDao = new AnonymousIdDao(env.HASHED_IP, env.POLYRATINGS_SESSIONS);
     }
 }
 
@@ -83,5 +83,5 @@ const cloudflareEnvParser = z.object({
     PERSPECTIVE_API_KEY: z.string(),
     DISCORD_WEBHOOK_URL: z.string(),
     IS_DEPLOYED: z.boolean(),
-    HASHED_IP: z.string()
+    HASHED_IP: z.string(),
 });
