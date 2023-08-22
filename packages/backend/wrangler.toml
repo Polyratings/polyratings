@@ -52,6 +52,7 @@ kv_namespaces = [
     { binding = "POLYRATINGS_USERS", id = "37ebe11fcc9e4a96b502e8bb9f52513f" },
     { binding = "POLYRATINGS_TEACHER_APPROVAL_QUEUE", id = "69bc139b671b4ac08c6fe7e594dad512" },
     { binding = "POLYRATINGS_REPORTS", id = "ad342efbc164446fb20125d7c135625f" },
+    { binding = "POLYRATINGS_SESSIONS", id = "3f1960ed2db04d71ab8a560b86cee81f"}
 ]
 
 [env.prod]
