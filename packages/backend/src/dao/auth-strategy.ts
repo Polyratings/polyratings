@@ -67,14 +67,6 @@ export class AuthStrategy {
         return jwt.sign(payload, secret);
     }
 
-    async obfuscateIdentifier(id: string | null) {
-        const hashBuffer = await crypto.subtle.digest(
-            "SHA-256",
-            new TextEncoder().encode(id || ""),
-        );
-        return this.toHexString(new Uint8Array(hashBuffer)).substring(0, 16);
-    }
-
     // From: https://stackoverflow.com/questions/34309988/byte-array-to-hex-string-conversion-in-javascript
     private toHexString(byteArray: Uint8Array): string {
         return Array.from(byteArray, (byte) => `0${(byte & 0xff).toString(16)}`.slice(-2)).join("");

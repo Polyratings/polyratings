@@ -12,6 +12,7 @@ import {
 } from "@backend/dao/discord-notification-dao";
 import { z } from "zod";
 import { KvWrapper } from "./dao/kv-wrapper";
+import { AnonymousIdDao } from "./dao/anonymous-id-dao";
 
 export function getCloudflareEnv(rawEnv: Record<string, unknown>): CloudflareEnv {
     if (!rawEnv?.IS_DEPLOYED) {
@@ -34,6 +35,8 @@ export class Env {
     authStrategy: AuthStrategy;
 
     notificationDAO: NotificationDAO;
+
+    anonymousIdDao: AnonymousIdDao
 
     constructor(env: CloudflareEnv) {
         this.kvDao = new KVDAO(
@@ -59,6 +62,8 @@ export class Env {
         }
 
         this.authStrategy = new AuthStrategy(env.JWT_SIGNING_KEY);
+
+        this.anonymousIdDao = new AnonymousIdDao(env.HASHED_IP, env.POLYRATINGS_SESSIONS)
     }
 }
 
@@ -73,8 +78,10 @@ const cloudflareEnvParser = z.object({
     POLYRATINGS_USERS: kvNamespaceParser,
     POLYRATINGS_TEACHER_APPROVAL_QUEUE: kvNamespaceParser,
     POLYRATINGS_REPORTS: kvNamespaceParser,
+    POLYRATINGS_SESSIONS: kvNamespaceParser,
     JWT_SIGNING_KEY: z.string(),
     PERSPECTIVE_API_KEY: z.string(),
     DISCORD_WEBHOOK_URL: z.string(),
     IS_DEPLOYED: z.boolean(),
+    HASHED_IP: z.string()
 });
