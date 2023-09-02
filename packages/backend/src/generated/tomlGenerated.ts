@@ -43,6 +43,11 @@ export const cloudflareNamespaceInformation = {
         beta: "ad342efbc164446fb20125d7c135625f",
         prod: "e7cdc104b5c047f498c0cc702a487bdf",
     },
+    POLYRATINGS_SESSIONS: {
+        dev: "62feb12023254effb0d2b7842e74589f",
+        beta: "3f1960ed2db04d71ab8a560b86cee81f",
+        prod: "d9cd467978be4b46b90d82b081b95cb9",
+    },
 } as const;
 
 export const cloudflareAccountId = "4b59b59a6058dce1832781075d4fde9d";

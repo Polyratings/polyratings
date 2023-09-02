@@ -13,7 +13,8 @@ kv_namespaces = [
     { binding = "PROCESSING_QUEUE", id  = "ada7d85a6912462ebaaaed5304f58323", preview_id = "ada7d85a6912462ebaaaed5304f58323"},
     { binding = "POLYRATINGS_USERS", id = "67f2fa91ef8a4625afdb07bfbbf9e2dd", preview_id = "67f2fa91ef8a4625afdb07bfbbf9e2dd"},
     { binding = "POLYRATINGS_TEACHER_APPROVAL_QUEUE", id = "133cd03378e64984b5d8afb702dc53d2", preview_id = "133cd03378e64984b5d8afb702dc53d2"},
-    { binding = "POLYRATINGS_REPORTS", id = "3f3235ea2ed3456497e65e0ed980a31a", preview_id = "3f3235ea2ed3456497e65e0ed980a31a"}
+    { binding = "POLYRATINGS_REPORTS", id = "3f3235ea2ed3456497e65e0ed980a31a", preview_id = "3f3235ea2ed3456497e65e0ed980a31a"},
+    { binding = "POLYRATINGS_SESSIONS", id = "62feb12023254effb0d2b7842e74589f", preview_id = "62feb12023254effb0d2b7842e74589f"}
 ]
 
 [build]
@@ -38,7 +39,8 @@ kv_namespaces = [
     { binding = "PROCESSING_QUEUE", id  = "ada7d85a6912462ebaaaed5304f58323", preview_id = "ada7d85a6912462ebaaaed5304f58323"},
     { binding = "POLYRATINGS_USERS", id = "67f2fa91ef8a4625afdb07bfbbf9e2dd", preview_id = "67f2fa91ef8a4625afdb07bfbbf9e2dd"},
     { binding = "POLYRATINGS_TEACHER_APPROVAL_QUEUE", id = "133cd03378e64984b5d8afb702dc53d2", preview_id = "133cd03378e64984b5d8afb702dc53d2"},
-    { binding = "POLYRATINGS_REPORTS", id = "3f3235ea2ed3456497e65e0ed980a31a", preview_id = "3f3235ea2ed3456497e65e0ed980a31a"}
+    { binding = "POLYRATINGS_REPORTS", id = "3f3235ea2ed3456497e65e0ed980a31a", preview_id = "3f3235ea2ed3456497e65e0ed980a31a"},
+    { binding = "POLYRATINGS_SESSIONS", id = "62feb12023254effb0d2b7842e74589f", preview_id = "62feb12023254effb0d2b7842e74589f"}
 ]
 
 [env.beta]
@@ -49,7 +51,8 @@ kv_namespaces = [
     { binding = "PROCESSING_QUEUE", id = "a25ee370718a4d0e86aeba48f7156618" },
     { binding = "POLYRATINGS_USERS", id = "37ebe11fcc9e4a96b502e8bb9f52513f" },
     { binding = "POLYRATINGS_TEACHER_APPROVAL_QUEUE", id = "69bc139b671b4ac08c6fe7e594dad512" },
-    { binding = "POLYRATINGS_REPORTS", id = "ad342efbc164446fb20125d7c135625f" }
+    { binding = "POLYRATINGS_REPORTS", id = "ad342efbc164446fb20125d7c135625f" },
+    { binding = "POLYRATINGS_SESSIONS", id = "3f1960ed2db04d71ab8a560b86cee81f"}
 ]
 
 [env.prod]
@@ -60,7 +63,8 @@ kv_namespaces = [
     { binding = "PROCESSING_QUEUE", id  = "845ba14e564c411fa52543408e15c53e" },
     { binding = "POLYRATINGS_USERS", id = "a23f7444e3c34913b7f04223fd1920d3" },
     { binding = "POLYRATINGS_TEACHER_APPROVAL_QUEUE", id = "6adc0bac1438487f82de330b94684e73" },
-    { binding = "POLYRATINGS_REPORTS", id = "e7cdc104b5c047f498c0cc702a487bdf" }
+    { binding = "POLYRATINGS_REPORTS", id = "e7cdc104b5c047f498c0cc702a487bdf" },
+    { binding = "POLYRATINGS_SESSIONS", id = "d9cd467978be4b46b90d82b081b95cb9"}
 ]
 
 [dev]
