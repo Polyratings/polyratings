@@ -40,7 +40,7 @@ const cloudflareBranch = import.meta.env?.CF_PAGES_BRANCH ?? "";
 
 // eslint-disable-next-line import/no-mutable-exports
 let config: AppConfiguration;
-if (import.meta.env.DEV) {
+if (import.meta.env.MODE === 'local') {
     config = localConfig;
 } else if (branchToConfig[cloudflareBranch]) {
     config = branchToConfig[cloudflareBranch];
