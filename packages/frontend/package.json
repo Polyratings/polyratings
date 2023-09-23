@@ -5,7 +5,7 @@
     "scripts": {
         "start:dev": "vite --mode dev",
         "start:local": "vite --mode local-dev",
-        "build": "tsc && vite build",
+        "build": "tsc && vite build --mode ${CF_PAGES_BRANCH:=production}",
         "serve": "vite preview",
         "test": "vitest run",
         "lint": "eslint --max-warnings=0 .",
