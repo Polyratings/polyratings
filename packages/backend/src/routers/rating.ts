@@ -23,8 +23,8 @@ export const ratingsRouter = t.router({
                 postDate: new Date().toString(),
                 status: "Failed",
                 error: null,
-                sentimentResponse: null,
                 analyzedScores: null,
+                anonymousIdentifier: await ctx.env.anonymousIdDao.getIdentifier(),
             };
 
             const analyzedScores = await ctx.env.ratingAnalyzer.analyzeRaring(pendingRating);

@@ -8,6 +8,7 @@ import { ratingsRouter } from "./routers/rating";
 import { adminRouter } from "./routers/admin";
 import { authRouter } from "./routers/auth";
 import { professorParser, truncatedProfessorParser } from "./types/schema";
+import { ALL_PROFESSOR_KEY } from "./utils/const";
 import { AnonymousIdDao } from "./dao/anonymous-id-dao";
 
 export const appRouter = t.router({
@@ -94,7 +95,7 @@ async function ensureLocalDb(cloudflareEnv: CloudflareEnv, polyratingsEnv: Env) 
     });
 
     // Check to find the all professor key
-    const allProfessorKey = await cloudflareEnv.POLYRATINGS_TEACHERS.get("all");
+    const allProfessorKey = await cloudflareEnv.POLYRATINGS_TEACHERS.get(ALL_PROFESSOR_KEY);
     if (allProfessorKey) {
         // It will be defined. Typescript does not understand promise escaping
         // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
@@ -111,7 +112,10 @@ async function ensureLocalDb(cloudflareEnv: CloudflareEnv, polyratingsEnv: Env) 
     // Verify that professors are formed correctly
     const parsedProfessors = professorParser.array().parse(githubJson);
     const truncatedProfessors = truncatedProfessorParser.array().parse(parsedProfessors);
-    await cloudflareEnv.POLYRATINGS_TEACHERS.put("all", JSON.stringify(truncatedProfessors));
+    await cloudflareEnv.POLYRATINGS_TEACHERS.put(
+        ALL_PROFESSOR_KEY,
+        JSON.stringify(truncatedProfessors),
+    );
     for (const professor of parsedProfessors) {
         // eslint-disable-next-line no-await-in-loop
         await cloudflareEnv.POLYRATINGS_TEACHERS.put(professor.id, JSON.stringify(professor));

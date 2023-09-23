@@ -103,7 +103,20 @@ function ReportedRatings() {
             },
         },
         {
-            name: "Keep Rating",
+            name: "Rating By",
+            grow: 0.5,
+            selector: (row: RatingReport) => {
+                const professor = professors?.find(
+                    (professor) => professor?.id === row.professorId,
+                );
+
+                return Object.values(professor?.reviews ?? {})
+                    .flat()
+                    .find((rating) => rating.id === row.ratingId)?.anonymousIdentifier;
+            },
+        },
+        {
+            name: "Keep",
             cell: (row: RatingReport) => (
                 <ConfirmationButton
                     action={() => removeReport(row.ratingId)}
@@ -115,7 +128,7 @@ function ReportedRatings() {
             grow: 0,
         },
         {
-            name: "Remove Rating",
+            name: "Remove",
             cell: (row: RatingReport) => (
                 <ConfirmationButton
                     action={() => actOnReport(row.ratingId)}
@@ -292,6 +305,11 @@ function RecentRatings() {
         {
             name: "Date",
             selector: (row: ConnectedRating) => new Date(row.postDate).toLocaleDateString(),
+            grow: 0.5,
+        },
+        {
+            name: "Submitted by",
+            selector: (row: ConnectedRating) => row.anonymousIdentifier ?? "",
             grow: 0.5,
         },
         {
