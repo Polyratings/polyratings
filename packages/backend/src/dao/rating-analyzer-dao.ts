@@ -1,11 +1,17 @@
-import { PendingRating, PerspectiveAttributeScore } from "@backend/types/schema";
+import { PendingRating, perspectiveAttributeScoreParser } from "@backend/types/schema";
+import { z } from "zod";
 
 const ANALYZE_COMMENT_URL = "https://commentanalyzer.googleapis.com/v1alpha1/comments:analyze";
 
-export class PerspectiveDAO {
+export type AnalyzedRating = Record<string, number>;
+export type RatingAnalyzer = {
+    analyzeRaring(rating: PendingRating): Promise<AnalyzedRating>;
+};
+
+export class PerspectiveDAO implements RatingAnalyzer {
     constructor(private readonly apiKey: string) {}
 
-    async analyzeRaring(rating: PendingRating): Promise<AnalyzeCommentResponse["attributeScores"]> {
+    async analyzeRaring(rating: PendingRating): Promise<AnalyzedRating> {
         // TODO: Perhaps we should define a default request?
         const requestBody: AnalyzeCommentRequest = {
             comment: {
@@ -33,8 +39,25 @@ export class PerspectiveDAO {
             );
         }
 
-        const response = (await httpResponse.json()) as AnalyzeCommentResponse;
-        return response.attributeScores;
+        const response = analyzeCommentResponseParser.parse(await httpResponse.json());
+
+        return Object.fromEntries(
+            Object.entries(response.attributeScores).map(
+                ([
+                    key,
+                    {
+                        summaryScore: { value },
+                    },
+                ]) => [key, value],
+            ),
+        );
+    }
+}
+
+export class PassThroughRatingAnalyzer implements RatingAnalyzer {
+    // eslint-disable-next-line class-methods-use-this, @typescript-eslint/no-unused-vars
+    async analyzeRaring(rating: PendingRating): Promise<AnalyzedRating> {
+        return {};
     }
 }
 
@@ -78,8 +101,8 @@ interface PerspectiveRequestedAttribute {
     scoreThreshold?: number; // needs to be between 0 and 1
 }
 
-interface AnalyzeCommentResponse {
-    attributeScores: Partial<Record<PerspectiveAttributeNames, PerspectiveAttributeScore>>;
-    languages: string[];
-    clientToken: string;
-}
+const analyzeCommentResponseParser = z.object({
+    attributeScores: z.record(perspectiveAttributeScoreParser),
+    languages: z.string().array(),
+    clientToken: z.string(),
+});

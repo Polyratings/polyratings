@@ -79,6 +79,9 @@ function ReportedRatings() {
                         // eslint-disable-next-line react/no-array-index-key
                         <Fragment key={idx + report.reason + report.email}>
                             {idx !== 0 && <div className="w-full h-1 bg-black my-2" />}
+                            {report.anonymousIdentifier && (
+                                <div>Submitted By: {report.anonymousIdentifier}</div>
+                            )}
                             {report.email && <div>Email: {report.email}</div>}
                             <div>Reason: {report.reason}</div>
                         </Fragment>
@@ -100,7 +103,20 @@ function ReportedRatings() {
             },
         },
         {
-            name: "Keep Rating",
+            name: "Rating By",
+            grow: 0.5,
+            selector: (row: RatingReport) => {
+                const professor = professors?.find(
+                    (professor) => professor?.id === row.professorId,
+                );
+
+                return Object.values(professor?.reviews ?? {})
+                    .flat()
+                    .find((rating) => rating.id === row.ratingId)?.anonymousIdentifier;
+            },
+        },
+        {
+            name: "Keep",
             cell: (row: RatingReport) => (
                 <ConfirmationButton
                     action={() => removeReport(row.ratingId)}
@@ -112,7 +128,7 @@ function ReportedRatings() {
             grow: 0,
         },
         {
-            name: "Remove Rating",
+            name: "Remove",
             cell: (row: RatingReport) => (
                 <ConfirmationButton
                     action={() => actOnReport(row.ratingId)}
@@ -200,6 +216,11 @@ function ProcessedRatings() {
     const { data: processedRatings } = useDbValues("rating-log");
     type PendingRating = NonNullable<typeof processedRatings>[0];
 
+    const sortedProcessedRatings =
+        (processedRatings ?? []).sort(
+            (ratingA, ratingB) => Date.parse(ratingB.postDate) - Date.parse(ratingA.postDate),
+        ) ?? [];
+
     const columns = [
         {
             name: "Status",
@@ -211,9 +232,9 @@ function ProcessedRatings() {
             grow: 1.5,
             cell: (row: PendingRating) => (
                 <div className="flex flex-col">
-                    {Object.entries(row.sentimentResponse ?? {}).map(([name, score]) => (
+                    {Object.entries(row.analyzedScores ?? {}).map(([name, score]) => (
                         <div key={name}>
-                            {name}: {score.summaryScore.value}
+                            {name}: {score}
                         </div>
                     ))}
                 </div>
@@ -230,7 +251,7 @@ function ProcessedRatings() {
     return (
         <div className="mt-4">
             <h2 className="ml-1">Processed Ratings:</h2>
-            <DataTable columns={columns} data={processedRatings ?? []} pagination />
+            <DataTable columns={columns} data={sortedProcessedRatings} pagination />
         </div>
     );
 }
@@ -284,6 +305,11 @@ function RecentRatings() {
         {
             name: "Date",
             selector: (row: ConnectedRating) => new Date(row.postDate).toLocaleDateString(),
+            grow: 0.5,
+        },
+        {
+            name: "Submitted by",
+            selector: (row: ConnectedRating) => row.anonymousIdentifier ?? "",
             grow: 0.5,
         },
         {

@@ -18,6 +18,7 @@ export const ratingBaseParser = z.object({
     recognizesStudentDifficulties: z.number().min(0).max(4),
     rating: z.string(),
     tags: z.enum(PROFESSOR_TAGS).array().max(MAX_PROFESSOR_TAGS_PER_RATING).optional(),
+    anonymousIdentifier: z.optional(z.string()),
 });
 export type RatingBase = z.infer<typeof ratingBaseParser>;
 
@@ -54,7 +55,7 @@ export const pendingRatingParser = ratingParser.merge(
     z.object({
         status: z.enum(PENDING_RATING_STATUSES),
         error: z.nullable(z.string()),
-        sentimentResponse: z.nullable(z.record(perspectiveAttributeScoreParser)),
+        analyzedScores: z.nullable(z.record(z.number())),
         courseNum: z.number().min(100).max(599),
         department: z.enum(DEPARTMENT_LIST),
     }),
@@ -91,6 +92,7 @@ export type User = z.infer<typeof userParser>;
 export const reportParser = z.object({
     email: z.nullable(z.string()),
     reason: z.string(),
+    anonymousIdentifier: z.optional(z.string()),
 });
 export const ratingReportParser = z.object({
     ratingId: z.string().uuid(),

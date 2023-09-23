@@ -1,4 +1,4 @@
-import { BulkKey, BulkKeyMap } from "@backend/utils/const";
+import { ALL_PROFESSOR_KEY, BulkKey, BulkKeyMap } from "@backend/utils/const";
 import { z } from "zod";
 import { TRPCError } from "@trpc/server";
 import {
@@ -35,7 +35,7 @@ export class KVDAO {
     async getAllProfessors() {
         const professorList = await this.polyratingsNamespace.safeGet(
             z.array(truncatedProfessorParser),
-            "all",
+            ALL_PROFESSOR_KEY,
         );
         if (!professorList.success) {
             throw new TRPCError({
@@ -50,7 +50,7 @@ export class KVDAO {
     private async putAllProfessors(professorList: TruncatedProfessor[]) {
         await this.polyratingsNamespace.put(
             z.array(truncatedProfessorParser),
-            "all",
+            ALL_PROFESSOR_KEY,
             professorList,
         );
     }

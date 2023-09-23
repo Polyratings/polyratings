@@ -1,9 +1,20 @@
-import { BETA_ENV, DEV_ENV, PolyratingsAPIEnv, PROD_ENV } from "@backend/generated/tomlGenerated";
+import {
+    BETA_ENV,
+    DEV_ENV,
+    LOCAL_ENV,
+    PolyratingsAPIEnv,
+    PROD_ENV,
+} from "@backend/generated/tomlGenerated";
 
 interface AppConfiguration {
     clientEnv: PolyratingsAPIEnv;
     base: string;
 }
+
+const localConfig: AppConfiguration = {
+    clientEnv: LOCAL_ENV,
+    base: "/",
+};
 
 const devConfig: AppConfiguration = {
     clientEnv: DEV_ENV,
@@ -20,6 +31,21 @@ const betaConfig: AppConfiguration = {
     base: "/",
 };
 
-const liveConfig = window.location.href.includes("beta.") ? betaConfig : prodConfig;
+const modeToConfig: Record<string, AppConfiguration> = {
+    master: prodConfig,
+    beta: betaConfig,
+    dev: devConfig,
+    fallback: devConfig,
+};
 
-export const config = process.env.NODE_ENV === "development" ? devConfig : liveConfig;
+const deploymentMode = import.meta.env.MODE ?? "fallback";
+
+// eslint-disable-next-line import/no-mutable-exports
+let config: AppConfiguration;
+if (deploymentMode === "local-dev") {
+    config = localConfig;
+} else {
+    config = modeToConfig[deploymentMode] ?? modeToConfig.fallback;
+}
+
+export { config };

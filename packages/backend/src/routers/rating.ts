@@ -23,21 +23,17 @@ export const ratingsRouter = t.router({
                 postDate: new Date().toString(),
                 status: "Failed",
                 error: null,
-                sentimentResponse: null,
+                analyzedScores: null,
+                anonymousIdentifier: await ctx.env.anonymousIdDao.getIdentifier(),
             };
 
-            const attributeScores = await ctx.env.perspectiveDao.analyzeRaring(pendingRating);
-            pendingRating.sentimentResponse = attributeScores;
+            const analyzedScores = await ctx.env.ratingAnalyzer.analyzeRaring(pendingRating);
+            pendingRating.analyzedScores = analyzedScores;
 
             // At least 50% of people would find the text offensive in category
             const PERSPECTIVE_THRESHOLD = 0.5;
 
-            const passedAnalysis = [
-                attributeScores.SEVERE_TOXICITY?.summaryScore.value,
-                attributeScores.IDENTITY_ATTACK?.summaryScore?.value,
-                attributeScores.THREAT?.summaryScore?.value,
-                attributeScores.SEXUALLY_EXPLICIT?.summaryScore?.value,
-            ].reduce((acc, num) => {
+            const passedAnalysis = Object.values(analyzedScores).reduce((acc, num) => {
                 if (num === undefined) {
                     throw new Error("Not all of perspective summery scores were received");
                 }
@@ -72,6 +68,7 @@ export const ratingsRouter = t.router({
             ),
         )
         .mutation(async ({ ctx, input }) => {
+            const anonymousIdentifier = await ctx.env.anonymousIdDao.getIdentifier();
             const ratingReport: RatingReport = {
                 ratingId: input.ratingId,
                 professorId: input.professorId,
@@ -79,14 +76,16 @@ export const ratingsRouter = t.router({
                     {
                         email: input.email,
                         reason: input.reason,
+                        anonymousIdentifier,
                     },
                 ],
             };
 
             await ctx.env.kvDao.putReport(ratingReport);
-            await ctx.env.notificationDAO.sendWebhook(
+            await ctx.env.notificationDAO.notify(
                 "Received A Report",
                 `Rating ID: ${ratingReport.ratingId}\n` +
+                    `Submitter: ${ratingReport.reports[0].anonymousIdentifier}` +
                     `Professor ID: ${ratingReport.professorId}\n` +
                     `Reason: ${ratingReport.reports[0].reason}`,
             );
