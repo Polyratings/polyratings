@@ -75,7 +75,9 @@ function ReportedRatings() {
                         // eslint-disable-next-line react/no-array-index-key
                         <Fragment key={idx + report.reason + report.email}>
                             {idx !== 0 && <div className="my-2 h-1 w-full bg-black" />}
-                            {report.anonymousIdentifier && <div>Submitted By: {report.anonymousIdentifier}</div>}
+                            {report.anonymousIdentifier && (
+                                <div>Submitted By: {report.anonymousIdentifier}</div>
+                            )}
                             {report.email && <div>Email: {report.email}</div>}
                             <div>Reason: {report.reason}</div>
                         </Fragment>
@@ -95,7 +97,20 @@ function ReportedRatings() {
             },
         },
         {
-            name: "Keep Rating",
+            name: "Rating By",
+            grow: 0.5,
+            selector: (row: RatingReport) => {
+                const professor = professors?.find(
+                    (professor) => professor?.id === row.professorId,
+                );
+
+                return Object.values(professor?.reviews ?? {})
+                    .flat()
+                    .find((rating) => rating.id === row.ratingId)?.anonymousIdentifier;
+            },
+        },
+        {
+            name: "Keep",
             cell: (row: RatingReport) => (
                 <ConfirmationButton
                     action={() => removeReport(row.ratingId)}
@@ -107,7 +122,7 @@ function ReportedRatings() {
             grow: 0,
         },
         {
-            name: "Remove Rating",
+            name: "Remove",
             cell: (row: RatingReport) => (
                 <ConfirmationButton
                     action={() => actOnReport(row.ratingId)}
@@ -282,6 +297,11 @@ function RecentRatings() {
         {
             name: "Date",
             selector: (row: ConnectedRating) => new Date(row.postDate).toLocaleDateString(),
+            grow: 0.5,
+        },
+        {
+            name: "Submitted by",
+            selector: (row: ConnectedRating) => row.anonymousIdentifier ?? "",
             grow: 0.5,
         },
         {

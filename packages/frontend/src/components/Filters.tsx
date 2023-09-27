@@ -164,7 +164,7 @@ export function Filters({ unfilteredProfessors, onUpdate, className }: FilterPro
                 {/* Sorting Arrow */}
                 <button type="button" onClick={() => setReverseFilter(!reverseFilter)}>
                     <ArrowLongUpIcon
-                        className={`hover:text-cal-poly-green h-5 w-5 transform transition-all ${
+                        className={`h-5 w-5 transform transition-all hover:text-cal-poly-green ${
                             reverseFilter ? "rotate-180" : ""
                         }`}
                     />

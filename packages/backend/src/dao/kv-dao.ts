@@ -1,6 +1,7 @@
+import { ALL_PROFESSOR_KEY } from "@backend/utils/const";
 import { z } from "zod";
 import { TRPCError } from "@trpc/server";
-import type { BulkKey, BulkKeyMap } from "@backend/utils/const";
+import type { BulkKey, BulkKeyMap , BulkKey, BulkKeyMap } from "@backend/utils/const";
 import type { PendingRating, Professor, RatingReport, TruncatedProfessor, User } from "@backend/types/schema";
 import {
     pendingRatingParser,
@@ -29,7 +30,10 @@ export class KVDAO {
     ) {}
 
     async getAllProfessors() {
-        const professorList = await this.polyratingsNamespace.safeGet(z.array(truncatedProfessorParser), "all");
+        const professorList = await this.polyratingsNamespace.safeGet(
+            z.array(truncatedProfessorParser),
+            ALL_PROFESSOR_KEY,
+        );
         if (!professorList.success) {
             throw new TRPCError({
                 code: "INTERNAL_SERVER_ERROR",
@@ -41,7 +45,11 @@ export class KVDAO {
     }
 
     private async putAllProfessors(professorList: TruncatedProfessor[]) {
-        await this.polyratingsNamespace.put(z.array(truncatedProfessorParser), "all", professorList);
+        await this.polyratingsNamespace.put(
+            z.array(truncatedProfessorParser),
+            ALL_PROFESSOR_KEY,
+            professorList,
+        );
     }
 
     getProfessor(id: string) {

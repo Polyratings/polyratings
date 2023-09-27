@@ -38,7 +38,7 @@ export function Login() {
 
     return (
         <div
-            className="h-screenWoNav flex items-center justify-center"
+            className="flex h-screenWoNav items-center justify-center"
             style={{
                 backgroundImage: `url(${loginBackground})`,
                 backgroundRepeat: "no-repeat",

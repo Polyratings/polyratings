@@ -1,5 +1,11 @@
-import type { PolyratingsAPIEnv } from "@backend/generated/tomlGenerated";
-import { BETA_ENV, DEV_ENV, LOCAL_ENV, PROD_ENV } from "@backend/generated/tomlGenerated";
+import type {
+    PolyratingsAPIEnv} from "@backend/generated/tomlGenerated";
+import {
+    BETA_ENV,
+    DEV_ENV,
+    LOCAL_ENV,
+    PROD_ENV,
+} from "@backend/generated/tomlGenerated";
 
 interface AppConfiguration {
     clientEnv: PolyratingsAPIEnv;
@@ -26,21 +32,21 @@ const betaConfig: AppConfiguration = {
     base: "/",
 };
 
-const branchToConfig: Record<string, AppConfiguration> = {
+const modeToConfig: Record<string, AppConfiguration> = {
     master: prodConfig,
     beta: betaConfig,
+    dev: devConfig,
+    fallback: devConfig,
 };
 
-const cloudflareBranch = import.meta.env?.CF_PAGES_BRANCH ?? "";
+const deploymentMode = import.meta.env.MODE ?? "fallback";
 
 // eslint-disable-next-line import/no-mutable-exports
 let config: AppConfiguration;
-if (import.meta.env.DEV) {
+if (deploymentMode === "local-dev") {
     config = localConfig;
-} else if (branchToConfig[cloudflareBranch]) {
-    config = branchToConfig[cloudflareBranch];
 } else {
-    config = devConfig;
+    config = modeToConfig[deploymentMode] ?? modeToConfig.fallback;
 }
 
 export { config };

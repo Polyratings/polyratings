@@ -24,8 +24,8 @@ export const ratingsRouter = t.router({
                 postDate: new Date().toString(),
                 status: "Failed",
                 error: null,
-                sentimentResponse: null,
                 analyzedScores: null,
+                anonymousIdentifier: await ctx.env.anonymousIdDao.getIdentifier(),
             };
 
             const analyzedScores = await ctx.env.ratingAnalyzer.analyzeRaring(pendingRating);
@@ -64,6 +64,7 @@ export const ratingsRouter = t.router({
     report: t.procedure
         .input(reportParser.merge(z.object({ ratingId: z.string().uuid(), professorId: z.string().uuid() })))
         .mutation(async ({ ctx, input }) => {
+            const anonymousIdentifier = await ctx.env.anonymousIdDao.getIdentifier();
             const ratingReport: RatingReport = {
                 ratingId: input.ratingId,
                 professorId: input.professorId,
@@ -71,7 +72,7 @@ export const ratingsRouter = t.router({
                     {
                         email: input.email,
                         reason: input.reason,
-                        anonymousIdentifier: ctx.anonymizedIdentifier,
+                        anonymousIdentifier,
                     },
                 ],
             };

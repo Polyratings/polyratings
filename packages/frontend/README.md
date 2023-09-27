@@ -43,5 +43,4 @@ npm t
 ```
 
 ## Bundle Info
-
 When `npm run build` is run, vite will output the bundle stats to `{project_root}/stats/stats.json`

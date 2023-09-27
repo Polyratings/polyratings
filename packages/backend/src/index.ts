@@ -1,14 +1,16 @@
+import type { CloudflareEnv} from "@backend/env";
+import { Env, getCloudflareEnv } from "@backend/env";
 import { Toucan } from "toucan-js";
 import { fetchRequestHandler } from "@trpc/server/adapters/fetch";
 import type { Context } from "toucan-js/dist/types";
-import { Env, getCloudflareEnv } from "./env";
-import type { CloudflareEnv } from "./env";
 import { t } from "./trpc";
 import { professorRouter } from "./routers/professor";
 import { ratingsRouter } from "./routers/rating";
 import { adminRouter } from "./routers/admin";
 import { authRouter } from "./routers/auth";
 import { professorParser, truncatedProfessorParser } from "./types/schema";
+import { ALL_PROFESSOR_KEY } from "./utils/const";
+import { AnonymousIdDao } from "./dao/anonymous-id-dao";
 
 export const appRouter = t.router({
     professors: professorRouter,
@@ -33,7 +35,11 @@ export default {
         // this does not get populated in Miniflare during actual local instances.
         const isDeployed = request.headers.get("CF-Ray") != null;
 
-        const cloudflareEnv = getCloudflareEnv({ IS_DEPLOYED: isDeployed, ...rawEnv });
+        const HASHED_IP = await AnonymousIdDao.hashIp(
+            request.headers.get("CF-Connecting-IP") ?? "",
+        );
+
+        const cloudflareEnv = getCloudflareEnv({ HASHED_IP, IS_DEPLOYED: isDeployed, ...rawEnv });
         const polyratingsEnv = new Env(cloudflareEnv);
 
         if (!cloudflareEnv.IS_DEPLOYED) {
@@ -58,12 +64,8 @@ export default {
             },
             createContext: async ({ req }) => {
                 const authHeader = req.headers.get("Authorization");
-
-                const anonymizedIdentifier = await polyratingsEnv.authStrategy.obfuscateIdentifier(
-                    req.headers.get("CF-Connecting-IP"),
-                );
                 const user = await polyratingsEnv.authStrategy.verify(authHeader);
-                return { env: polyratingsEnv, anonymizedIdentifier, user };
+                return { env: polyratingsEnv, user };
             },
             responseMeta: () => ({
                 headers: {
@@ -94,7 +96,7 @@ async function ensureLocalDb(cloudflareEnv: CloudflareEnv, polyratingsEnv: Env) 
     });
 
     // Check to find the all professor key
-    const allProfessorKey = await cloudflareEnv.POLYRATINGS_TEACHERS.get("all");
+    const allProfessorKey = await cloudflareEnv.POLYRATINGS_TEACHERS.get(ALL_PROFESSOR_KEY);
     if (allProfessorKey) {
         // It will be defined. Typescript does not understand promise escaping
         // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
@@ -102,7 +104,8 @@ async function ensureLocalDb(cloudflareEnv: CloudflareEnv, polyratingsEnv: Env) 
         return initPromise;
     }
 
-    const reqUrl = "https://raw.githubusercontent.com/Polyratings/polyratings-data/data/professor-dump.json";
+    const reqUrl =
+        "https://raw.githubusercontent.com/Polyratings/polyratings-data/data/professor-dump.json";
     // eslint-disable-next-line no-console
     console.log(`Retrieving professor data from ${reqUrl}`);
     const githubReq = await fetch(reqUrl);
@@ -110,7 +113,10 @@ async function ensureLocalDb(cloudflareEnv: CloudflareEnv, polyratingsEnv: Env) 
     // Verify that professors are formed correctly
     const parsedProfessors = professorParser.array().parse(githubJson);
     const truncatedProfessors = truncatedProfessorParser.array().parse(parsedProfessors);
-    await cloudflareEnv.POLYRATINGS_TEACHERS.put("all", JSON.stringify(truncatedProfessors));
+    await cloudflareEnv.POLYRATINGS_TEACHERS.put(
+        ALL_PROFESSOR_KEY,
+        JSON.stringify(truncatedProfessors),
+    );
     for (const professor of parsedProfessors) {
         // eslint-disable-next-line no-await-in-loop
         await cloudflareEnv.POLYRATINGS_TEACHERS.put(professor.id, JSON.stringify(professor));

@@ -3,9 +3,9 @@
     "version": "0.0.1",
     "private": true,
     "scripts": {
-        "start:dev": "vite",
-        "start:local": "vite",
-        "build": "tsc && vite build",
+        "start:dev": "vite --mode dev",
+        "start:local": "vite --mode local-dev",
+        "build": "tsc && vite build --mode ${CF_PAGES_BRANCH:=production}",
         "serve": "vite preview",
         "test": "vitest run",
         "lint": "eslint .",

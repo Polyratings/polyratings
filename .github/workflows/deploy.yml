@@ -53,10 +53,16 @@ jobs:
                   CLOUDFLARE_API_TOKEN: ${{ secrets.CF_API_TOKEN }}
               run: NX_CLOUD_DISTRIBUTED_EXECUTION=false npm run deploy:beta
 
-            # We will deploy to dev so that cloudflare preview urls will point to the backend
-            # This will be a problem with multiple PRs, but hey we at least tried :)
-            - name: Deploy Dev
-              if: github.ref != 'refs/heads/beta' && github.ref != 'refs/heads/master'
-              env:
-                  CLOUDFLARE_API_TOKEN: ${{ secrets.CF_API_TOKEN }}
-              run: NX_CLOUD_DISTRIBUTED_EXECUTION=false npm run deploy:dev
+          - name: Deploy Beta
+            if: github.ref == 'refs/heads/beta'
+            env:
+              CLOUDFLARE_API_TOKEN: ${{ secrets.CF_API_TOKEN }}
+            run: NX_CLOUD_DISTRIBUTED_EXECUTION=false npm run deploy:beta
+
+          # We will deploy to dev so that cloudflare preview urls will point to the backend
+          # This will be a problem with multiple PRs, but hey we at least tried :)
+          - name: Deploy Dev
+            if: github.ref != 'refs/heads/beta' && github.ref != 'refs/heads/master'
+            env:
+              CLOUDFLARE_API_TOKEN: ${{ secrets.CF_API_TOKEN }}
+            run: NX_CLOUD_DISTRIBUTED_EXECUTION=false npm run deploy:dev

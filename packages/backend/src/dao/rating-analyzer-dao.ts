@@ -1,4 +1,6 @@
-import type { PendingRating, PerspectiveAttributeScore } from "@backend/types/schema";
+import type { PendingRating} from "@backend/types/schema";
+import { perspectiveAttributeScoreParser } from "@backend/types/schema";
+import { z } from "zod";
 
 const ANALYZE_COMMENT_URL = "https://commentanalyzer.googleapis.com/v1alpha1/comments:analyze";
 
@@ -36,7 +38,8 @@ export class PerspectiveDAO implements RatingAnalyzer {
             throw new Error(JSON.stringify({ status: httpResponse.status, message: httpResponse.statusText }));
         }
 
-        const response = (await httpResponse.json()) as AnalyzeCommentResponse;
+        const response = analyzeCommentResponseParser.parse(await httpResponse.json());
+
         return Object.fromEntries(
             Object.entries(response.attributeScores).map(
                 ([
@@ -95,8 +98,8 @@ interface PerspectiveRequestedAttribute {
     scoreThreshold?: number; // needs to be between 0 and 1
 }
 
-interface AnalyzeCommentResponse {
-    attributeScores: Partial<Record<PerspectiveAttributeNames, PerspectiveAttributeScore>>;
-    languages: string[];
-    clientToken: string;
-}
+const analyzeCommentResponseParser = z.object({
+    attributeScores: z.record(perspectiveAttributeScoreParser),
+    languages: z.string().array(),
+    clientToken: z.string(),
+});
