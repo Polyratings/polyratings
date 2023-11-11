@@ -18,6 +18,7 @@ export interface AutoCompleteProps<T, U> {
     className?: string;
     inputClassName?: string;
     disableDropdown: boolean;
+    search: (inputValue: string) => void;
 }
 
 export function AutoComplete<T, U>({
@@ -30,6 +31,7 @@ export function AutoComplete<T, U>({
     disableDropdown,
     label,
     initialValue,
+    search,
 }: AutoCompleteProps<T, U>) {
     const [filteredItems, setFilteredItems] = useState(filterFn(items, ""));
     const listRef = useRef<HTMLUListElement | null>(null);
@@ -57,6 +59,19 @@ export function AutoComplete<T, U>({
                         ...changes,
                         isOpen: state.isOpen, // do not toggle the menu when input is clicked.
                     };
+                // if the user clicks enter, close the menu and search for what they typed.
+                case useCombobox.stateChangeTypes.InputKeyDownEnter:
+                    if (state.inputValue) {
+                        parentOnChange({
+                            inputValue: state.inputValue,
+                        });
+                        search(state.inputValue);
+                        return {
+                            ...changes,
+                            isOpen: false,
+                        };
+                    }
+                    return changes;
                 default:
                     return changes;
             }

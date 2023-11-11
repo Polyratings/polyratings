@@ -152,6 +152,14 @@ function SearchBase({
         navigate(`/search/${searchType}?term=${encodeURIComponent(searchValue)}`);
     };
 
+    const onSearch = (inputValue: string) => {
+        const fakeEvent = {
+            preventDefault: () => {},
+        } as React.FormEvent<HTMLFormElement>;
+        setSearchValue(inputValue);
+        onFormSubmit(fakeEvent);
+    };
+
     const onAutoCompleteChange = ({
         inputValue,
         selection,
@@ -204,6 +212,7 @@ function SearchBase({
                 filterFn={(_, inputValue) => autoCompleteFilter(inputValue)}
                 label="Professor Auto-complete"
                 initialValue={searchValue}
+                search={onSearch}
                 className="2xl:w-96 xl:w-72 w-[15rem] h-10 font-normal text-lg shadow-2xl"
                 disableDropdown={disableAutoComplete ?? false}
             />
