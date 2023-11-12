@@ -145,20 +145,10 @@ function SearchBase({
     const formRef = useRef<HTMLFormElement>(null);
     const { data: allProfessors } = trpc.professors.all.useQuery();
     const navigate = useNavigate();
-    const [lastSearch, setLastSearch] = useState({ value: "", time: 0 });
-    useEffect(() => {
-        if (lastSearch.value) {
-            navigate(`/search/${searchType}?term=${encodeURIComponent(lastSearch.value)}`);
-        }
-    }, [lastSearch]);
 
     const onFormSubmit = (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
-        const now = Date.now();
-        if (searchValue === lastSearch.value && now - lastSearch.time < 200) {
-            return;
-        }
-        setLastSearch({ value: searchValue, time: now });
+        navigate(`/search/${searchType}?term=${encodeURIComponent(searchValue)}`);
     };
 
     const onSearch = (inputValue: string) => {

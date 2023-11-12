@@ -59,12 +59,6 @@ export function AutoComplete<T, U>({
                         ...changes,
                         isOpen: state.isOpen, // do not toggle the menu when input is clicked.
                     };
-                case useCombobox.stateChangeTypes.InputKeyDownEnter:
-                    search(state.inputValue);
-                    return {
-                        ...changes,
-                        isOpen: false,
-                    };
                 default:
                     return changes;
             }
@@ -100,7 +94,14 @@ export function AutoComplete<T, U>({
                 className={`p-2 w-full h-full outline-none ${inputClassName}`}
                 type="text"
                 placeholder={placeholder}
-                {...getInputProps()}
+                {...getInputProps({
+                    onKeyDown: (event) => {
+                        if (event.key === "Enter") {
+                            search(event.currentTarget.value);
+                            event.preventDefault();
+                        }
+                    },
+                })}
             />
 
             <ul
