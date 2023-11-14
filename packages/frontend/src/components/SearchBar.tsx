@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { ChevronRightIcon, MagnifyingGlassIcon } from "@heroicons/react/24/solid";
 import { AutoComplete } from "./AutoComplete";
