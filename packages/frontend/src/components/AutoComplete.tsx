@@ -3,6 +3,12 @@ import { useCombobox } from "downshift";
 import { useVirtualizer } from "@tanstack/react-virtual";
 import { useTailwindBreakpoint } from "@/hooks";
 
+declare global {
+    interface KeyboardEvent {
+        preventDownshiftDefault?: boolean;
+    }
+}
+
 export interface AutoCompleteOption<U> {
     label: string;
     value: U;
@@ -18,7 +24,6 @@ export interface AutoCompleteProps<T, U> {
     className?: string;
     inputClassName?: string;
     disableDropdown: boolean;
-    search: (inputValue: string) => void;
 }
 
 export function AutoComplete<T, U>({
@@ -31,7 +36,6 @@ export function AutoComplete<T, U>({
     disableDropdown,
     label,
     initialValue,
-    search,
 }: AutoCompleteProps<T, U>) {
     const [filteredItems, setFilteredItems] = useState(filterFn(items, ""));
     const listRef = useRef<HTMLUListElement | null>(null);
@@ -97,8 +101,10 @@ export function AutoComplete<T, U>({
                 {...getInputProps({
                     onKeyDown: (event) => {
                         if (event.key === "Enter") {
-                            search(event.currentTarget.value);
-                            event.preventDefault();
+                            if (highlightedIndex !== null && filteredItems[highlightedIndex]) {
+                                window.location.href = `/professor/${filteredItems[highlightedIndex].value}`;
+                            }
+                            event.nativeEvent.preventDownshiftDefault = true;
                         }
                     },
                 })}
