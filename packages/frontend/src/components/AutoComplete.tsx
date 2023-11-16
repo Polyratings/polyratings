@@ -95,6 +95,7 @@ export function AutoComplete<T, U>({
                 {...getInputProps({
                     onKeyDown: (event) => {
                         if (event.key === "Enter" && highlightedIndex === -1) {
+                            // eslint-disable-next-line @typescript-eslint/no-explicit-any
                             (event.nativeEvent as any).preventDownshiftDefault = true;
                         }
                     },
