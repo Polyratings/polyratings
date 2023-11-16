@@ -38,6 +38,7 @@ export function Navbar() {
 
             <button
                 onClick={triggerMobileNav}
+                aria-label="Open Navbar"
                 className={`hamburger hamburger--slider block md:hidden  ${
                     mobileNavOpen ? "is-active hamburgerTurn" : ""
                 }`}

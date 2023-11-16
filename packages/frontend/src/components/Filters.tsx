@@ -162,7 +162,11 @@ export function Filters({ unfilteredProfessors, onUpdate, className }: FilterPro
                     <option value="presentsMaterialClearly">Presents Material Clearly</option>
                 </select>
                 {/* Sorting Arrow */}
-                <button type="button" onClick={() => setReverseFilter(!reverseFilter)}>
+                <button
+                    aria-label="Reverse Order"
+                    type="button"
+                    onClick={() => setReverseFilter(!reverseFilter)}
+                >
                     <ArrowLongUpIcon
                         className={`h-5 w-5 transform transition-all hover:text-cal-poly-green ${
                             reverseFilter ? "rotate-180" : ""

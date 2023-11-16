@@ -73,7 +73,8 @@ export function Search() {
                                 type="button"
                                 onClick={() => setMobileFiltersOpened(!mobileFiltersOpened)}
                                 data-testid="mobile-filters"
-                                className={`absolute -right-8 h-12 w-8 bg-gray-400 transition-all
+                                aria-label="Open Filters"
+                                className={`bg-gray-400 w-8 h-12 absolute -right-8 transition-all
                   ${
                       mobileFiltersOpened ? "top-0 rounded-r-none" : "top-14 rounded-r"
                   } flex items-center justify-center`}
