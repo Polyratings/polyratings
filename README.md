@@ -11,7 +11,7 @@ Lerna monorepo to contain all polyratings related code
 
 ## Setup
 
-Install top level JS dependencies
+Install top level JS dependencies 
 
 ```bash
 npm install
