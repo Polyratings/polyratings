@@ -93,6 +93,7 @@ export function Search() {
                                 type="button"
                                 onClick={() => setMobileFiltersOpened(!mobileFiltersOpened)}
                                 data-testid="mobile-filters"
+                                aria-label="Open Filters"
                                 className={`bg-gray-400 w-8 h-12 absolute -right-8 transition-all
                   ${
                       mobileFiltersOpened ? "top-0 rounded-r-none" : "top-14 rounded-r"
