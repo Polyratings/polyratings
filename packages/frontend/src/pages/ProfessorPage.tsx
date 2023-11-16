@@ -396,7 +396,7 @@ function ReportButton({ professorId, ratingId, className = "" }: ReportButtonPro
                 </div>
             </Modal>
 
-            <button type="button" onClick={() => setFormShown(true)}>
+            <button aria-label="Report Rating" type="button" onClick={() => setFormShown(true)}>
                 <FlagIcon className="h-6 w-6 m-auto mt-1 text-gray-500 hover:text-red-500 transition-all cursor-pointer" />
             </button>
         </div>
