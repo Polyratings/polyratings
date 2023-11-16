@@ -92,7 +92,14 @@ export function AutoComplete<T, U>({
                 className={`p-2 w-full h-full outline-none ${inputClassName}`}
                 type="text"
                 placeholder={placeholder}
-                {...getInputProps()}
+                {...getInputProps({
+                    onKeyDown: (event) => {
+                        if (event.key === "Enter" && highlightedIndex === -1) {
+                            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                            (event.nativeEvent as any).preventDownshiftDefault = true;
+                        }
+                    },
+                })}
             />
 
             <ul

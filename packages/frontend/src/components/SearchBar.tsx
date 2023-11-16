@@ -144,7 +144,6 @@ function SearchBase({
     const [searchValue, setSearchValue] = useState(initialState?.searchValue ?? "");
     const formRef = useRef<HTMLFormElement>(null);
     const { data: allProfessors } = trpc.professors.all.useQuery();
-
     const navigate = useNavigate();
 
     const onFormSubmit = (e: React.FormEvent<HTMLFormElement>) => {
