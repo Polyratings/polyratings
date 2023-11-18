@@ -18,22 +18,22 @@
     "author": "Addison Tustin <addison@atustin.dev>",
     "license": "GPL-3.0",
     "devDependencies": {
-        "@cloudflare/workers-types": "^4.20230814.0",
+        "@cloudflare/workers-types": "^4.20230922.0",
         "@polyratings/eslint-config": "^0.0.1",
-        "@types/node": "^20.5.1",
+        "@types/node": "^20.7.1",
         "cloudflare-worker-mock": "^1.2.0",
-        "esbuild": "^0.19.2",
+        "esbuild": "^0.19.3",
         "esbuild-visualizer": "^0.4.1",
-        "eslint": "^8.47.0",
+        "eslint": "^8.50.0",
         "toml": "^3.0.0",
         "type-fest": "^4.2.0",
-        "typescript": "^5.1.6",
-        "wrangler": "^3.5.1"
+        "typescript": "^5.2.2",
+        "wrangler": "^3.10.0"
     },
     "dependencies": {
-        "@trpc/server": "10.37.1",
-        "@tsndr/cloudflare-worker-jwt": "^2.2.1",
-        "toucan-js": "^3.2.2",
+        "@trpc/server": "10.38.4",
+        "@tsndr/cloudflare-worker-jwt": "^2.2.2",
+        "toucan-js": "^3.3.0",
         "zod": "^3.22.2"
     }
 }
