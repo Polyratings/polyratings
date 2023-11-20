@@ -32,7 +32,7 @@
     },
     "dependencies": {
         "@trpc/server": "10.38.4",
-        "@tsndr/cloudflare-worker-jwt": "^2.2.2",
+        "@tsndr/cloudflare-worker-jwt": "^2.3.2",
         "toucan-js": "^3.3.0",
         "zod": "^3.22.2"
     }
