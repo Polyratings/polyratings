@@ -17,7 +17,7 @@ export function cloudflareKVInit(apiToken: string, accountId: string) {
                 options.headers["Content-Type"] = "application/json";
             }
 
-            const res = await fetch(url, options);
+            const res = (await fetch(url, options)) as unknown as Response;
 
             if (res.status !== 200) {
                 throw new Error(res.statusText);

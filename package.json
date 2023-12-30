@@ -17,8 +17,8 @@
     "deploy:dev": "lerna run deploy:dev --stream"
   },
   "devDependencies": {
-    "@types/isomorphic-fetch": "^0.0.37",
-    "lerna": "^7.3.0",
+    "@types/isomorphic-fetch": "^0.0.39",
+    "lerna": "^7.4.2",
     "nx-cloud": "^16.3.0"
   }
 }
