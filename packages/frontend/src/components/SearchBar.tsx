@@ -1,4 +1,3 @@
-import { useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { ChevronRightIcon, MagnifyingGlassIcon } from "@heroicons/react/24/solid";
 import { AutoComplete } from "./AutoComplete";
@@ -12,8 +11,8 @@ export interface SearchState {
 }
 
 export interface SearchBarProps {
-    initialState?: SearchState;
-    onChange?: (value: SearchState) => void | Promise<void>;
+    value: SearchState;
+    onChange: (value: SearchState) => void | Promise<void>;
     disableAutoComplete?: boolean;
     className?: string;
 }
@@ -27,29 +26,27 @@ export function SearchBar(props: SearchBarProps) {
 }
 
 export function ExtendedSearchBar({
-    initialState,
+    value,
     onChange,
     disableAutoComplete = false,
     className,
 }: SearchBarProps) {
-    const [searchType, setSearchType] = useState<ProfessorSearchType>(initialState?.type ?? "name");
-
-    const switchSearchType = () => {
-        if (searchType === "class") {
-            setSearchType("name");
+    const toggleSearchType = () => {
+        if (value.type === "class") {
+            onChange({ type: "name", searchValue: value.searchValue });
         } else {
-            setSearchType("class");
+            onChange({ type: "class", searchValue: value.searchValue });
         }
     };
 
     return (
         <SearchBase
             className={className}
-            searchType={searchType}
-            initialState={initialState}
+            searchType={value.type}
+            value={value}
             onChange={onChange}
             disableAutoComplete={disableAutoComplete}
-            LeftSlot={<SearchToggle searchType={searchType} onClick={switchSearchType} />}
+            LeftSlot={<SearchToggle searchType={value.type} onClick={toggleSearchType} />}
             RightSlot={
                 <Button className="!py-1 rounded-l-none rounded-r-full px-1" type="submit">
                     <ChevronRightIcon className="w-8 h-8" />
@@ -63,14 +60,14 @@ export function TruncatedSearchBar({
     onChange,
     disableAutoComplete = false,
     className,
-    initialState,
+    value,
 }: SearchBarProps) {
     return (
         <SearchBase
             className={className}
             searchType="name"
             onChange={onChange}
-            initialState={initialState}
+            value={value}
             disableAutoComplete={disableAutoComplete}
             inputClassName="pl-0"
             LeftSlot={<div className="w-5 h-10 bg-white rounded-l-full" />}
@@ -122,7 +119,7 @@ function SearchToggle({ searchType, className = "", ...divProps }: SearchToggleP
 }
 
 interface SearchBaseProps {
-    initialState?: SearchState;
+    value: SearchState;
     onChange?: (value: SearchState) => void | Promise<void>;
     disableAutoComplete?: boolean;
     searchType: ProfessorSearchType;
@@ -132,7 +129,7 @@ interface SearchBaseProps {
     inputClassName?: string;
 }
 function SearchBase({
-    initialState,
+    value,
     onChange,
     disableAutoComplete,
     searchType,
@@ -141,14 +138,12 @@ function SearchBase({
     className = "",
     inputClassName = "",
 }: SearchBaseProps) {
-    const [searchValue, setSearchValue] = useState(initialState?.searchValue ?? "");
-    const formRef = useRef<HTMLFormElement>(null);
     const { data: allProfessors } = trpc.professors.all.useQuery();
     const navigate = useNavigate();
 
     const onFormSubmit = (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
-        navigate(`/search/${searchType}?term=${encodeURIComponent(searchValue)}`);
+        navigate(`/search/${searchType}?term=${encodeURIComponent(value.searchValue)}`);
     };
 
     const onAutoCompleteChange = ({
@@ -159,9 +154,8 @@ function SearchBase({
         // Using unknown since it should be a string but the generic is not being inferred
         selection?: string;
     }) => {
-        setSearchValue(inputValue);
         if (onChange) {
-            onChange({ type: searchType, searchValue });
+            onChange({ type: searchType, searchValue: inputValue });
         }
         if (selection) {
             if (searchType === "name") {
@@ -193,7 +187,7 @@ function SearchBase({
     const placeholderText = searchType === "name" ? "Professor Name" : "Course Number";
 
     return (
-        <form className={`flex justify-center ${className}`} onSubmit={onFormSubmit} ref={formRef}>
+        <form className={`flex justify-center ${className}`} onSubmit={onFormSubmit}>
             {LeftSlot}
             <AutoComplete<NonNullable<typeof allProfessors>[0], string>
                 onChange={(change) => onAutoCompleteChange(change)}
@@ -202,7 +196,7 @@ function SearchBase({
                 items={allProfessors ?? []}
                 filterFn={(_, inputValue) => autoCompleteFilter(inputValue)}
                 label="Professor Auto-complete"
-                initialValue={searchValue}
+                inputValue={value.searchValue}
                 className="2xl:w-96 xl:w-72 w-[15rem] h-10 font-normal text-lg shadow-2xl"
                 disableDropdown={disableAutoComplete ?? false}
             />
