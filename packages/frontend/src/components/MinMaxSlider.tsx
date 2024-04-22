@@ -79,7 +79,6 @@ const handleRender: SliderProps["handleRender"] = (handle, sliderProps) => {
     );
     const modifiedHandle = cloneElement(handle, {
         ...handle.props,
-        // @ts-expect-error Clone element does not like me explicity setting class name and children
         className: `${handle.props.className ?? ""} relative`,
         children: [popup],
     });
