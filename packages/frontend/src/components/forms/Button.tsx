@@ -12,11 +12,17 @@ const variantMap: Record<NonNullable<ButtonProps["variant"]>, string> = {
 };
 
 export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
-    ({ variant = "primary", className = "", children, type = "submit", ...rest }, ref) => (
+    (
+        { variant = "primary", className = "", children, type = "submit", disabled, ...rest },
+        ref,
+    ) => (
         <button
-            className={`px-5 py-2 shadow rounded-md font-medium ${variantMap[variant]} ${className}`}
+            className={`px-5 py-2 shadow rounded-md font-medium ${variantMap[variant]} ${
+                disabled === true ? "bg-gray-600" : ""
+            } ${className}`}
             ref={ref}
             type={type}
+            disabled={disabled}
             {...rest}
         >
             {children}

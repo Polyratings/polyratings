@@ -1,18 +1,21 @@
 import { inferProcedureOutput } from "@trpc/server";
 import { AppRouter } from "@backend/index";
+import { useState } from "react";
 import { getRandomSubarray } from "@/utils";
 import homeHeader from "@/assets/home-header.webp";
 import homeCurveTransition from "@/assets/home-curve-transition.svg";
 import homeTags from "@/assets/home-tags.svg";
 import homeProfessorSummary from "@/assets/home-professor-summary.svg";
 import worstOfWorstBackground from "@/assets/worst-of-worst-background.webp";
-import { SearchBar, ProfessorCard } from "@/components";
+import { SearchBar, ProfessorCard, SearchState } from "@/components";
 import { trpc } from "@/trpc";
 
 export function Home() {
     const { data: allProfessors } = trpc.professors.all.useQuery();
 
     const bestOfTheBest = allProfessors ? getBestProfessors(allProfessors) : [];
+
+    const [searchState, setSearchState] = useState<SearchState>({ searchValue: "", type: "name" });
 
     return (
         <div>
@@ -30,7 +33,7 @@ export function Home() {
                         Polyratings
                     </h1>
                     <div className="mt-6 2xl:mt-9">
-                        <SearchBar />
+                        <SearchBar value={searchState} onChange={setSearchState} />
                     </div>
                 </div>
                 <img

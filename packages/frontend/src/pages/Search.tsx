@@ -58,7 +58,7 @@ export function Search() {
         <div id="main">
             <SearchBar
                 className="mt-7"
-                initialState={searchState}
+                value={searchState}
                 onChange={setSearchState}
                 disableAutoComplete
             />

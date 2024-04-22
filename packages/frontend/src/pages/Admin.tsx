@@ -1,18 +1,25 @@
+/* eslint-disable no-restricted-syntax */
 /* eslint-disable react/no-unstable-nested-components */
-import { Fragment, lazy, Suspense, useEffect, useState } from "react";
-import { Professor, RatingReport } from "@backend/types/schema";
+import { Fragment, lazy, Suspense, useState } from "react";
+import { Professor, RatingReport, TruncatedProfessor } from "@backend/types/schema";
 import { useQueryClient } from "@tanstack/react-query";
+import { ExpanderComponentProps, TableProps } from "react-data-table-component";
+import { Department, DEPARTMENT_LIST } from "@backend/utils/const";
+import { ArrowTopRightOnSquareIcon } from "@heroicons/react/24/solid";
 import { useAuth } from "@/hooks";
 import { trpc } from "@/trpc";
 import { bulkInvalidationKey, useDbValues } from "@/hooks/useDbValues";
+import { Button } from "@/components/forms/Button";
+import { AutoComplete, Select, TextInput } from "@/components";
+import { professorSearch } from "@/utils/ProfessorSearch";
 
 const DataTableLazy = lazy(() => import("react-data-table-component"));
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-function DataTable({ ...rest }: any) {
+function DataTable<T>({ ...rest }: TableProps<T>) {
     return (
         <Suspense fallback={<>Data Table is Loading</>}>
-            <DataTableLazy {...rest} />
+            {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
+            <DataTableLazy {...(rest as any)} />
         </Suspense>
     );
 }
@@ -26,7 +33,6 @@ export function Admin() {
                 <PendingProfessors />
                 <ReportedRatings />
                 <ProcessedRatings />
-                <RecentRatings />
             </div>
         </div>
     ) : (
@@ -51,7 +57,7 @@ function ReportedRatings() {
         {
             name: "Professor",
             grow: 0.5,
-            selector: (row: RatingReport) => {
+            cell: (row: RatingReport) => {
                 const professor = professors?.find(
                     (professor) => professor?.id === row.professorId,
                 );
@@ -65,7 +71,7 @@ function ReportedRatings() {
                 const professor = professors?.find(
                     (professor) => professor?.id === row.professorId,
                 );
-                return professor?.department;
+                return professor?.department ?? "";
             },
         },
         {
@@ -97,9 +103,11 @@ function ReportedRatings() {
                 const professor = professors?.find(
                     (professor) => professor?.id === row.professorId,
                 );
-                return Object.values(professor?.reviews ?? {})
-                    .flat()
-                    .find((rating) => rating.id === row.ratingId)?.rating;
+                return (
+                    Object.values(professor?.reviews ?? {})
+                        .flat()
+                        .find((rating) => rating.id === row.ratingId)?.rating ?? ""
+                );
             },
         },
         {
@@ -110,9 +118,11 @@ function ReportedRatings() {
                     (professor) => professor?.id === row.professorId,
                 );
 
-                return Object.values(professor?.reviews ?? {})
-                    .flat()
-                    .find((rating) => rating.id === row.ratingId)?.anonymousIdentifier;
+                return (
+                    Object.values(professor?.reviews ?? {})
+                        .flat()
+                        .find((rating) => rating.id === row.ratingId)?.anonymousIdentifier ?? ""
+                );
             },
         },
         {
@@ -124,7 +134,6 @@ function ReportedRatings() {
                     buttonText="K"
                 />
             ),
-            center: true,
             grow: 0,
         },
         {
@@ -136,7 +145,6 @@ function ReportedRatings() {
                     buttonText="R"
                 />
             ),
-            center: true,
             grow: 0,
         },
     ];
@@ -162,7 +170,16 @@ function PendingProfessors() {
     const columns = [
         {
             name: "Professor",
-            selector: (row: Professor) => `${row.lastName}, ${row.firstName}`,
+            cell: (row: Professor) => (
+                <a
+                    href={`http://www.google.com/search?q=${row.lastName}+${row.firstName}+Cal+Poly`}
+                    className="underline text-blue-600 hover:text-blue-800 visited:text-purple-600"
+                    target="_blank"
+                    rel="noreferrer"
+                >
+                    {row.lastName}, {row.firstName}
+                </a>
+            ),
         },
         {
             name: "Department",
@@ -187,7 +204,6 @@ function PendingProfessors() {
                     buttonText="✓"
                 />
             ),
-            center: true,
             grow: 0,
         },
         {
@@ -199,7 +215,6 @@ function PendingProfessors() {
                     buttonText="X"
                 />
             ),
-            center: true,
             grow: 0,
         },
     ];
@@ -207,7 +222,190 @@ function PendingProfessors() {
     return (
         <div className="mt-4">
             <h2 className="ml-1">Pending Professors:</h2>
-            <DataTable columns={columns} data={pendingProfessors ?? []} pagination />
+            <DataTable
+                expandableRows
+                expandableRowsComponent={PendingProfessorActions}
+                columns={columns}
+                data={pendingProfessors ?? []}
+                pagination
+            />
+        </div>
+    );
+}
+
+function PendingProfessorActions({ data: professor }: ExpanderComponentProps<Professor>) {
+    return (
+        <div className="flex flex-col gap-2 pl-2 pt-4">
+            <SubmitUnderAction professor={professor} />
+            <ChangeNameAction professor={professor} />
+            <ChangeNameDepartment professor={professor} />
+        </div>
+    );
+}
+
+type PendingProfessorAction = {
+    professor: Professor;
+};
+
+function SubmitUnderAction({ professor }: PendingProfessorAction) {
+    const [destProfessor, setDestProfessor] = useState<TruncatedProfessor | undefined>(undefined);
+    const [searchValue, setSearchValue] = useState("");
+
+    const { data: allProfessors } = trpc.professors.all.useQuery();
+    const { mutateAsync: submitRating, isLoading: loadingSubmitRating } =
+        trpc.ratings.add.useMutation();
+
+    const queryClient = useQueryClient();
+    const { mutateAsync: removePending, isLoading: loadingRemovePending } =
+        trpc.admin.rejectPendingProfessor.useMutation({
+            onSuccess: () => queryClient.invalidateQueries(bulkInvalidationKey("professor-queue")),
+        });
+
+    const isLoading = loadingSubmitRating || loadingRemovePending;
+
+    const submit = async () => {
+        if (!destProfessor) {
+            return;
+        }
+
+        for (const [course, ratings] of Object.entries(professor.reviews)) {
+            const [dep, num] = course.split(" ");
+            for (const rating of ratings) {
+                // eslint-disable-next-line no-await-in-loop
+                await submitRating({
+                    ...rating,
+                    professor: destProfessor.id,
+                    department: dep as Department,
+                    courseNum: parseFloat(num),
+                });
+            }
+        }
+
+        await removePending(professor.id);
+    };
+
+    return (
+        <div className="flex gap-2 items-center">
+            <div className="text-sm">
+                <span>Submit under </span>
+                <span className="font-bold">
+                    {destProfessor
+                        ? `${destProfessor.lastName}, ${destProfessor.firstName}`
+                        : "undefined"}
+                </span>
+            </div>
+            <AutoComplete
+                className="w-80 z-50"
+                inputClassName="border border-black"
+                items={allProfessors ?? []}
+                filterFn={(items, inputValue) =>
+                    professorSearch(items, "name", inputValue).map((t) => ({
+                        label: `${t.lastName}, ${t.firstName}`,
+                        value: t.id,
+                    }))
+                }
+                inputValue={searchValue}
+                onChange={({ selection, inputValue }) => {
+                    setSearchValue(inputValue);
+                    if (selection) {
+                        setDestProfessor(allProfessors?.find((p) => p.id === selection));
+                    }
+                }}
+                label="Submit To:"
+                placeholder="Professor Name"
+                disableDropdown={false}
+            />
+            <Button
+                onClick={() => submit()}
+                disabled={!destProfessor || isLoading}
+                className="text-sm"
+            >
+                Submit
+            </Button>
+        </div>
+    );
+}
+
+function ChangeNameAction({ professor }: PendingProfessorAction) {
+    const [first, setFirst] = useState(professor.firstName);
+    const [last, setLast] = useState(professor.lastName);
+
+    const queryClient = useQueryClient();
+    const {
+        mutate: setName,
+        isLoading,
+        error,
+    } = trpc.admin.changePendingProfessorName.useMutation({
+        onSuccess: () => queryClient.invalidateQueries(bulkInvalidationKey("professor-queue")),
+    });
+
+    return (
+        <div className="flex gap-2 items-center text-sm">
+            <span>Change Name</span>
+            <TextInput
+                className="w-40"
+                label=""
+                placeholder="Last"
+                value={last}
+                onChange={(e) => setLast(e.target.value)}
+            />
+            <TextInput
+                className="w-40"
+                label=""
+                placeholder="First"
+                value={first}
+                onChange={(e) => setFirst(e.target.value)}
+            />
+            <Button
+                disabled={isLoading}
+                onClick={() =>
+                    setName({
+                        professorId: professor.id,
+                        firstName: first,
+                        lastName: last,
+                    })
+                }
+            >
+                Submit
+            </Button>
+            {error?.message && <span className="text-red text-sm">{error.message}</span>}
+        </div>
+    );
+}
+
+function ChangeNameDepartment({ professor }: PendingProfessorAction) {
+    const [department, setDepartment] = useState(professor.department);
+
+    const queryClient = useQueryClient();
+    const {
+        mutate: setProfessorDepartment,
+        isLoading,
+        error,
+    } = trpc.admin.changePendingProfessorDepartment.useMutation({
+        onSuccess: () => queryClient.invalidateQueries(bulkInvalidationKey("professor-queue")),
+    });
+
+    return (
+        <div className="flex gap-2 items-center text-sm">
+            <span>Change Department</span>
+            <Select
+                label=""
+                options={DEPARTMENT_LIST.map((dep) => ({ label: dep, value: dep }))}
+                value={department}
+                onChange={(e) => setDepartment(e.target.value as Department)}
+            />
+            <Button
+                disabled={isLoading}
+                onClick={() =>
+                    setProfessorDepartment({
+                        professorId: professor.id,
+                        department,
+                    })
+                }
+            >
+                Submit
+            </Button>
+            {error?.message && <span className="text-red text-sm">{error.message}</span>}
         </div>
     );
 }
@@ -246,96 +444,23 @@ function ProcessedRatings() {
             grow: 3,
             selector: (row: PendingRating) => row.rating,
         },
+        {
+            name: "Open",
+            grow: 0.5,
+            cell: (row: PendingRating) => (
+                <Button
+                    onClick={() => window.open(`/professor/${row.professor}`, "_blank")?.focus()}
+                >
+                    <ArrowTopRightOnSquareIcon className="text-white w-6 h-6" />
+                </Button>
+            ),
+        },
     ];
 
     return (
         <div className="mt-4">
             <h2 className="ml-1">Processed Ratings:</h2>
             <DataTable columns={columns} data={sortedProcessedRatings} pagination />
-        </div>
-    );
-}
-
-function RecentRatings() {
-    const queryClient = useQueryClient();
-    const { data: professors } = useDbValues("professors");
-    const { mutateAsync: removeRatingMutation } = trpc.admin.removeRating.useMutation();
-
-    const [removedRatings, setRemovedRatings] = useState(new Set<string>());
-
-    const ratings =
-        professors
-            ?.flatMap((professor) =>
-                Object.values(professor.reviews ?? [])
-                    .flat()
-                    .map((rating) => ({
-                        professorId: professor.id,
-                        professorName: `${professor.lastName}, ${professor.firstName}`,
-                        ...rating,
-                    })),
-            )
-            .filter(({ id }) => !removedRatings.has(id))
-            .sort(
-                (ratingA, ratingB) => Date.parse(ratingB.postDate) - Date.parse(ratingA.postDate),
-            ) ?? [];
-
-    const removeRating = async (professorId: string, ratingId: string) => {
-        await removeRatingMutation({ ratingId, professorId });
-        setRemovedRatings(new Set<string>(...removedRatings).add(ratingId));
-    };
-
-    // On unmount check if the user removed ratings
-    useEffect(
-        () => () => {
-            if (removedRatings.size) {
-                // Invalidate to allow refetch if ratings have been deleted
-                queryClient.invalidateQueries(bulkInvalidationKey("professors"));
-            }
-        },
-        [],
-    );
-
-    type ConnectedRating = (typeof ratings)[0];
-    const columns = [
-        {
-            name: "Professor",
-            selector: (row: ConnectedRating) => row.professorName,
-            grow: 0.5,
-        },
-        {
-            name: "Date",
-            selector: (row: ConnectedRating) => new Date(row.postDate).toLocaleDateString(),
-            grow: 0.5,
-        },
-        {
-            name: "Submitted by",
-            selector: (row: ConnectedRating) => row.anonymousIdentifier ?? "",
-            grow: 0.5,
-        },
-        {
-            name: "Rating",
-            wrap: true,
-            grow: 3,
-            selector: (row: ConnectedRating) => row.rating,
-        },
-        {
-            name: "Remove",
-            cell: (row: ConnectedRating) => (
-                <ConfirmationButton
-                    action={() => removeRating(row.professorId, row.id)}
-                    buttonClassName="p-2 bg-red-500 text-white rounded"
-                    buttonText="X"
-                />
-            ),
-            center: true,
-            grow: 0,
-        },
-    ];
-
-    return (
-        <div className="mt-4">
-            <h2 className="ml-1">Recent Ratings:</h2>
-            <DataTable columns={columns} data={ratings} pagination />
         </div>
     );
 }

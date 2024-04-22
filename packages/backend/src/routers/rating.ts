@@ -82,12 +82,20 @@ export const ratingsRouter = t.router({
             };
 
             await ctx.env.kvDao.putReport(ratingReport);
+
+            // Get the rating in question
+            const professor = await ctx.env.kvDao.getProfessor(ratingReport.professorId);
+            const rating = Object.values(professor.reviews)
+                .flat()
+                .find((rating) => rating.id === ratingReport.ratingId);
+
             await ctx.env.notificationDAO.notify(
                 "Received A Report",
                 `Rating ID: ${ratingReport.ratingId}\n` +
                     `Submitter: ${ratingReport.reports[0].anonymousIdentifier}` +
                     `Professor ID: ${ratingReport.professorId}\n` +
-                    `Reason: ${ratingReport.reports[0].reason}`,
+                    `Reason: ${ratingReport.reports[0].reason}\n` +
+                    `Rating: ${rating?.rating ?? "ERROR-RATING-NOT-FOUND"}`,
             );
         }),
 });

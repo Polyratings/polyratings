@@ -3,6 +3,17 @@ import { z } from "zod";
 import { addRating } from "@backend/types/schemaHelpers";
 import { bulkKeys, DEPARTMENT_LIST } from "@backend/utils/const";
 
+const changeDepartmentParser = z.object({
+    professorId: z.string().uuid(),
+    department: z.enum(DEPARTMENT_LIST),
+});
+
+const changeNameParser = z.object({
+    professorId: z.string().uuid(),
+    firstName: z.string(),
+    lastName: z.string(),
+});
+
 export const adminRouter = t.router({
     removeRating: protectedProcedure
         .input(z.object({ professorId: z.string(), ratingId: z.string() }))
@@ -46,25 +57,34 @@ export const adminRouter = t.router({
             await ctx.env.kvDao.removeProfessor(sourceProfessor.id);
         }),
     changeProfessorDepartment: protectedProcedure
-        .input(z.object({ professorId: z.string().uuid(), department: z.enum(DEPARTMENT_LIST) }))
+        .input(changeDepartmentParser)
         .mutation(async ({ ctx, input: { professorId, department } }) => {
             const professor = await ctx.env.kvDao.getProfessor(professorId);
             professor.department = department;
             await ctx.env.kvDao.putProfessor(professor);
         }),
+    changePendingProfessorDepartment: protectedProcedure
+        .input(changeDepartmentParser)
+        .mutation(async ({ ctx, input: { professorId, department } }) => {
+            const professor = await ctx.env.kvDao.getPendingProfessor(professorId);
+            professor.department = department;
+            await ctx.env.kvDao.putPendingProfessor(professor);
+        }),
     changeProfessorName: protectedProcedure
-        .input(
-            z.object({
-                professorId: z.string().uuid(),
-                firstName: z.string(),
-                lastName: z.string(),
-            }),
-        )
+        .input(changeNameParser)
         .mutation(async ({ ctx, input: { professorId, firstName, lastName } }) => {
             const professor = await ctx.env.kvDao.getProfessor(professorId);
             professor.firstName = firstName;
             professor.lastName = lastName;
             await ctx.env.kvDao.putProfessor(professor, true);
+        }),
+    changePendingProfessorName: protectedProcedure
+        .input(changeNameParser)
+        .mutation(async ({ ctx, input: { professorId, firstName, lastName } }) => {
+            const professor = await ctx.env.kvDao.getPendingProfessor(professorId);
+            professor.firstName = firstName;
+            professor.lastName = lastName;
+            await ctx.env.kvDao.putPendingProfessor(professor);
         }),
     getBulkKeys: protectedProcedure
         .input(z.enum(bulkKeys))
