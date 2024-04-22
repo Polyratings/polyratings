@@ -3,7 +3,7 @@ import "@/styles/hamburgers.css";
 import AnimateHeight from "react-animate-height";
 import { useEffect, useState } from "react";
 import { useAuth } from "@/hooks";
-import { TruncatedSearchBar } from "./SearchBar";
+import { SearchState, TruncatedSearchBar } from "./SearchBar";
 import Logo from "@/assets/Logo.svg";
 import DiscordLogo from "@/assets/Discord-Logo-White.svg";
 import GithubLogo from "@/assets/github.svg";
@@ -21,6 +21,8 @@ export function Navbar() {
         const matchingRoute = HIDE_SEARCH_BAR_ROUTES.find((route) => location.pathname === route);
         setShowInputBar(!matchingRoute);
     }, [location]);
+
+    const [searchState, setSearchState] = useState<SearchState>({ searchValue: "", type: "name" });
 
     return (
         <div
@@ -82,7 +84,7 @@ export function Navbar() {
             <div className="text-white hidden md:flex items-center text-lg font-semibold">
                 {showInputBar && (
                     <div className="text-black mr-7 hidden lg:block">
-                        <TruncatedSearchBar />
+                        <TruncatedSearchBar value={searchState} onChange={setSearchState} />
                     </div>
                 )}
 
