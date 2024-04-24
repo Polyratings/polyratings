@@ -92,10 +92,11 @@ export const ratingsRouter = t.router({
             await ctx.env.notificationDAO.notify(
                 "Received A Report",
                 `Rating ID: ${ratingReport.ratingId}\n` +
-                    `Submitter: ${ratingReport.reports[0].anonymousIdentifier}` +
-                    `Professor ID: ${ratingReport.professorId}\n` +
+                    `Submitter: ${ratingReport.reports[0].anonymousIdentifier}\n` +
+                    `Professor: [${professor.firstName} ${professor.lastName}]` +
+                    `(https://polyratings.dev/professor/${professor.id})\n` +
                     `Reason: ${ratingReport.reports[0].reason}\n` +
-                    `Rating: ${rating?.rating ?? "ERROR-RATING-NOT-FOUND"}`,
+                    `Rating: ${rating?.rating ?? "ERROR-RATING-NOT-FOUND"}`
             );
         }),
 });
