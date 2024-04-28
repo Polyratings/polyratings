@@ -118,7 +118,8 @@ export const adminRouter = t.router({
                 const professor = await ctx.env.kvDao.getProfessor(profId);
                 for (const [course, ratings] of Object.entries(professor.reviews)) {
                     professor.reviews[course] = ratings.map((rating) => {
-                        rating.rating = rating.rating.replaceAll("\\", "");
+                        // eslint-disable-next-line
+                        rating.rating = rating.rating.replaceAll("\\'", "'").replaceAll('\\"', '"');
                         return rating;
                     });
                 }
