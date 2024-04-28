@@ -14,6 +14,13 @@ const changeNameParser = z.object({
     lastName: z.string(),
 });
 
+const fixEscapedCharsParser = z.object({
+    professors: z
+        .array(z.string().uuid())
+        .min(1)
+        .max(250, "Separate your request into batches of 250 professors."),
+});
+
 export const adminRouter = t.router({
     removeRating: protectedProcedure
         .input(z.object({ professorId: z.string(), ratingId: z.string() }))
@@ -103,4 +110,21 @@ export const adminRouter = t.router({
         await ctx.env.kvDao.removeRating(report.professorId, report.ratingId);
         await ctx.env.kvDao.removeReport(input);
     }),
+    fixEscapedChars: protectedProcedure
+        .input(fixEscapedCharsParser)
+        .mutation(async ({ ctx, input }) => {
+            for (const profId of input.professors) {
+                // eslint-disable-next-line no-await-in-loop
+                const professor = await ctx.env.kvDao.getProfessor(profId);
+                for (const [course, ratings] of Object.entries(professor.reviews)) {
+                    professor.reviews[course] = ratings.map((rating) => {
+                        rating.rating = rating.rating.replaceAll("\\", "");
+                        return rating;
+                    });
+                }
+
+                // eslint-disable-next-line no-await-in-loop
+                await ctx.env.kvDao.putProfessor(professor, true);
+            }
+        }),
 });
