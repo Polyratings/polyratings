@@ -36,9 +36,6 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Install Top Level Dependencies
-        run: npm ci
-
       - name: Lint packages
         run: npm run lint
 
