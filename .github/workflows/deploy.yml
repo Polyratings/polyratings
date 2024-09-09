@@ -18,20 +18,12 @@ jobs:
       OUTSIDE_CONTRIB: ${{ secrets.CF_API_TOKEN == '' }}
     steps:
       - name: Checkout Code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
-      # Set node/npm/yarn versions using volta
-      - uses: volta-cli/action@v4
+      - uses: actions/setup-node@v4
         with:
-          package-json-path: "${{ github.workspace }}/package.json"
-
-      - name: Use the package manager cache if available
-        uses: actions/cache@v3
-        with:
-          path: ~/.npm
-          key: ${{ runner.os }}-${{ hashFiles('**/package-lock.json') }}
-          restore-keys: |
-            ${{ runner.os }}-
+          node-version: 20
+          cache: "npm"
 
       - name: Install dependencies
         run: npm ci
