@@ -150,7 +150,10 @@ export function Filters({ unfilteredProfessors, onUpdate, className }: FilterPro
                 selectedCoursePrefixs.map((coursePrefixFilter) => coursePrefixFilter.name),
             );
             const postCoursePrefixFilter = filteredResult.filter((professor) =>
-                professor.courses.some((course) => coursePrefixSet.has(course)),
+                professor.courses.some((course) => {
+                    const prefix = course.split(" ")[0];
+                    return coursePrefixSet.has(prefix);
+                }),
             );
             onUpdate(postCoursePrefixFilter);
         } else {
