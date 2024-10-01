@@ -28,7 +28,7 @@ export interface FilterHandle {
 }
 
 export interface FilterState {
-    departmentFilters: { name: string; state: boolean }[];
+    coursePrefixFilters: { name: string; state: boolean }[];
     avgRatingFilter: [number, number];
     studentDifficultyFilter: [number, number];
     materialClearFilter: [number, number];
@@ -49,12 +49,12 @@ export function Filters({ unfilteredProfessors, onUpdate, className }: FilterPro
     const location = useLocation();
     const previousState = location.state as FilterState | undefined;
     // Component State
-    const [departmentFilters, setDepartmentFilters] = useLocationState<
+    const [coursePrefixFilters, setCoursePrefixFilters] = useLocationState<
         { name: string; state: boolean }[]
     >(
-        previousState?.departmentFilters ??
-            DEPARTMENT_LIST.map((department) => ({ name: department, state: false })),
-        "departmentFilters",
+        previousState?.coursePrefixFilters ??
+            DEPARTMENT_LIST.map((coursePrefix) => ({ name: coursePrefix, state: false })),
+        "coursePrefixFilters",
     );
     const [avgRatingFilter, setAvgRatingFilter] = useLocationState<[number, number]>(
         previousState?.avgRatingFilter ?? [0, 4],
@@ -141,23 +141,23 @@ export function Filters({ unfilteredProfessors, onUpdate, className }: FilterPro
             filteredResult.reverse();
         }
 
-        const selectedDepartments = departmentFilters.filter(
-            (departmentFilter) => departmentFilter.state,
+        const selectedCoursePrefixs = coursePrefixFilters.filter(
+            (coursePrefixFilter) => coursePrefixFilter.state,
         );
 
-        if (selectedDepartments.length) {
-            const departmentSet = new Set(
-                selectedDepartments.map((departmentFilter) => departmentFilter.name),
+        if (selectedCoursePrefixs.length) {
+            const coursePrefixSet = new Set(
+                selectedCoursePrefixs.map((coursePrefixFilter) => coursePrefixFilter.name),
             );
-            const postDepartmentFilter = filteredResult.filter((professor) =>
-                departmentSet.has(professor.department),
+            const postCoursePrefixFilter = filteredResult.filter((professor) =>
+                professor.courses.some((course) => coursePrefixSet.has(course)),
             );
-            onUpdate(postDepartmentFilter);
+            onUpdate(postCoursePrefixFilter);
         } else {
             onUpdate(filteredResult);
         }
     }, [
-        departmentFilters,
+        coursePrefixFilters,
         avgRatingFilter,
         studentDifficultyFilter,
         materialClearFilter,
@@ -200,23 +200,23 @@ export function Filters({ unfilteredProfessors, onUpdate, className }: FilterPro
             <h2 className="text-xl font-bold transform -translate-x-4 py-1">Filters:</h2>
 
             <div className="block xl:hidden mb-2">
-                <h3>Department:</h3>
+                <h3>CoursePrefix:</h3>
                 <select
                     className="w-[106%] mt-1 h-7 border-2 border-black rounded-md transform -translate-x-2"
                     onChange={(e) => {
                         const value = parseInt(e.target.value, 10);
-                        const newDepartmentFilters = [...departmentFilters].map(({ name }) => ({
+                        const newCoursePrefixFilters = [...coursePrefixFilters].map(({ name }) => ({
                             name,
                             state: false,
                         }));
                         if (value !== -1) {
-                            newDepartmentFilters[value].state = true;
+                            newCoursePrefixFilters[value].state = true;
                         }
-                        setDepartmentFilters(newDepartmentFilters);
+                        setCoursePrefixFilters(newCoursePrefixFilters);
                     }}
                 >
                     <option value="-1">Any</option>
-                    {departmentFilters.map(({ name }, i) => (
+                    {coursePrefixFilters.map(({ name }, i) => (
                         <option value={i} key={name}>
                             {name}
                         </option>
@@ -257,9 +257,9 @@ export function Filters({ unfilteredProfessors, onUpdate, className }: FilterPro
             </div>
 
             <div className="hidden xl:block">
-                <h3>Department:</h3>
+                <h3>Course Prefix:</h3>
                 <div className="grid grid-cols-2 gap-x-2">
-                    {departmentFilters.map(({ name, state }, i) => (
+                    {coursePrefixFilters.map(({ name, state }, i) => (
                         <label htmlFor={name} key={name} className="mt-1 flex items-center">
                             <input
                                 type="checkbox"
@@ -267,9 +267,9 @@ export function Filters({ unfilteredProfessors, onUpdate, className }: FilterPro
                                 id={name}
                                 className="h-5 w-5"
                                 onChange={(e) => {
-                                    const updatedDepartmentFilters = [...departmentFilters];
-                                    updatedDepartmentFilters[i].state = e.target.checked;
-                                    setDepartmentFilters(updatedDepartmentFilters);
+                                    const updatedCoursePrefixFilters = [...coursePrefixFilters];
+                                    updatedCoursePrefixFilters[i].state = e.target.checked;
+                                    setCoursePrefixFilters(updatedCoursePrefixFilters);
                                 }}
                             />
                             <span className="ml-2 text-gray-700">{name}</span>
