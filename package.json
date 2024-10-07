@@ -18,7 +18,7 @@
   },
   "devDependencies": {
     "@types/isomorphic-fetch": "^0.0.39",
-    "lerna": "^8.1.2",
-    "nx-cloud": "^18.0.0"
+    "lerna": "^8.1.8",
+    "nx-cloud": "^19.1.0"
   }
 }
