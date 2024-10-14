@@ -98,8 +98,6 @@ export function ProfessorPage() {
 
             <div className="lg:max-w-5xl w-full mx-auto flex justify-center md:justify-between pt-4 md:pt-10 pb-3 px-2">
                 <div className="flex flex-col">
-                    <h2 className="text-lg font-semibold">{professorData?.department} Professor</h2>
-
                     <h1 className="text-5xl font-bold">
                         {professorData?.lastName}, {professorData?.firstName}
                     </h1>

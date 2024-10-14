@@ -21,7 +21,6 @@ export function ProfessorCard({ professor }: ProfessorCardProps) {
                     {professor?.lastName}, {professor?.firstName}
                 </h3>
                 <div className="text-right text-xl pr-3 font-medium flex-shrink-0">
-                    <div>{professor?.department}</div>
                     <div className="flex items-center justify-end">
                         <img className="pr-1 h-4" src={star} alt="" />
                         <div>{professor?.overallRating.toFixed(2)}</div>

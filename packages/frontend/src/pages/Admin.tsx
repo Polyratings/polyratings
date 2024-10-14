@@ -4,13 +4,13 @@ import { Fragment, lazy, Suspense, useState } from "react";
 import { Professor, RatingReport, TruncatedProfessor } from "@backend/types/schema";
 import { useQueryClient } from "@tanstack/react-query";
 import { ExpanderComponentProps, TableProps } from "react-data-table-component";
-import { Department, DEPARTMENT_LIST } from "@backend/utils/const";
+import { Department } from "@backend/utils/const";
 import { ArrowTopRightOnSquareIcon } from "@heroicons/react/24/solid";
 import { useAuth } from "@/hooks";
 import { trpc } from "@/trpc";
 import { bulkInvalidationKey, useDbValues } from "@/hooks/useDbValues";
 import { Button } from "@/components/forms/Button";
-import { AutoComplete, Select, TextInput } from "@/components";
+import { AutoComplete, TextInput } from "@/components";
 import { professorSearch } from "@/utils/ProfessorSearch";
 
 const DataTableLazy = lazy(() => import("react-data-table-component"));
@@ -62,16 +62,6 @@ function ReportedRatings() {
                     (professor) => professor?.id === row.professorId,
                 );
                 return `${professor?.lastName}, ${professor?.firstName}`;
-            },
-        },
-        {
-            name: "Department",
-            grow: 0.5,
-            selector: (row: RatingReport) => {
-                const professor = professors?.find(
-                    (professor) => professor?.id === row.professorId,
-                );
-                return professor?.department ?? "";
             },
         },
         {
@@ -182,10 +172,6 @@ function PendingProfessors() {
             ),
         },
         {
-            name: "Department",
-            selector: (row: Professor) => row.department,
-        },
-        {
             name: "Rating Course",
             selector: (row: Professor) => Object.keys(row.reviews ?? {})[0],
         },
@@ -238,7 +224,6 @@ function PendingProfessorActions({ data: professor }: ExpanderComponentProps<Pro
         <div className="flex flex-col gap-2 pl-2 pt-4">
             <SubmitUnderAction professor={professor} />
             <ChangeNameAction professor={professor} />
-            <ChangeNameDepartment professor={professor} />
         </div>
     );
 }
@@ -363,43 +348,6 @@ function ChangeNameAction({ professor }: PendingProfessorAction) {
                         professorId: professor.id,
                         firstName: first,
                         lastName: last,
-                    })
-                }
-            >
-                Submit
-            </Button>
-            {error?.message && <span className="text-red text-sm">{error.message}</span>}
-        </div>
-    );
-}
-
-function ChangeNameDepartment({ professor }: PendingProfessorAction) {
-    const [department, setDepartment] = useState(professor.department);
-
-    const queryClient = useQueryClient();
-    const {
-        mutate: setProfessorDepartment,
-        isLoading,
-        error,
-    } = trpc.admin.changePendingProfessorDepartment.useMutation({
-        onSuccess: () => queryClient.invalidateQueries(bulkInvalidationKey("professor-queue")),
-    });
-
-    return (
-        <div className="flex gap-2 items-center text-sm">
-            <span>Change Department</span>
-            <Select
-                label=""
-                options={DEPARTMENT_LIST.map((dep) => ({ label: dep, value: dep }))}
-                value={department}
-                onChange={(e) => setDepartment(e.target.value as Department)}
-            />
-            <Button
-                disabled={isLoading}
-                onClick={() =>
-                    setProfessorDepartment({
-                        professorId: professor.id,
-                        department,
                     })
                 }
             >

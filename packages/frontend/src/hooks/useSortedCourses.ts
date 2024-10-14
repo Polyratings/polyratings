@@ -13,41 +13,40 @@ export function useSortedCourses(professorId: string | undefined) {
         id: professorId ?? "",
     });
 
-    // Put classes for professors primary department first. This is to cut down on rating spamming
-    // of other departments. It is possible for a professor to teach outside of the department but
-    // it is ok if those ratings come after the primary department
+    // Sort by the most common department and then by course number
 
-    // Sort Into Departments
+    // Group ratings by department and count occurrences in one pass
     const professorByDepartments = Object.entries(professorData?.reviews || {}).reduce(
         (acc, [course, ratings]) => {
             const obj: CourseRatings = { courseName: course, ratings };
             const [department] = course.split(" ");
-            if (acc[department]) {
-                acc[department].push(obj);
-            } else {
-                acc[department] = [obj];
+
+            if (!acc[department]) {
+                acc[department] = { ratings: [], count: 0 };
             }
+
+            acc[department].ratings.push(obj);
+            acc[department].count += obj.ratings.length;
+
             return acc;
         },
-        {} as { [department: string]: CourseRatings[] },
+        {} as { [department: string]: { ratings: CourseRatings[]; count: number } },
     );
 
-    // Sort departments by class number
-    Object.values(professorByDepartments).forEach((department) =>
-        department.sort((a, b) => {
-            const [, aNumber] = a.courseName.split(" ");
-            const [, bNumber] = b.courseName.split(" ");
-            return parseInt(aNumber, 10) - parseInt(bNumber, 10);
-        }),
-    );
+    // Sort departments by frequency of ratings and within departments by course number
+    const sortedProfessorCourses = Object.entries(professorByDepartments)
+        .sort(([, a], [, b]) => b.count - a.count) // Sort departments by count (most common first)
+        .map(([, { ratings }]) =>
+            ratings.sort((a, b) => {
+                const [, aNumber] = a.courseName.split(" ");
+                const [, bNumber] = b.courseName.split(" ");
+                return parseInt(aNumber, 10) - parseInt(bNumber, 10);
+            }),
+        );
 
-    const primaryClasses = professorByDepartments[professorData?.department ?? ""] ?? [];
-    const otherClasses = Object.entries(professorByDepartments)
-        .filter(([department]) => department !== professorData?.department)
-        .flatMap(([, courseRatings]) => courseRatings);
-
-    const sortedCourseRatings = [...primaryClasses, ...otherClasses].map((courseRating) => {
-        // Be carful the array is sorted in place. This is fine here but if moved could cause issues.
+    // Flatten sorted departments into a single array of course ratings
+    const sortedCourseRatings = sortedProfessorCourses.flat().map((courseRating) => {
+        // Sort ratings by post date within each course
         courseRating.ratings.sort((a, b) => Date.parse(b.postDate) - Date.parse(a.postDate));
         return courseRating;
     });
