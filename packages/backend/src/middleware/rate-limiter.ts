@@ -1,4 +1,3 @@
-import { Env } from "@backend/env";
 import { t } from "@backend/trpc";
 import { TRPCError } from "@trpc/server";
 
