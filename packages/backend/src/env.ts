@@ -17,14 +17,33 @@ import { AnonymousIdDao } from "./dao/anonymous-id-dao";
 export function getCloudflareEnv(rawEnv: Record<string, unknown>): CloudflareEnv {
     if (!rawEnv?.IS_DEPLOYED) {
         // Set empty default values that will cause dep injection to replace with no-ops
-        return cloudflareEnvParser.parse({
-            JWT_SIGNING_KEY: "TEST_SIGNING_SECRET",
-            PERSPECTIVE_API_KEY: "",
-            DISCORD_WEBHOOK_URL: "",
-            ...rawEnv,
-        });
+        return {
+            ...cloudflareEnvParser.parse({
+                JWT_SIGNING_KEY: "TEST_SIGNING_SECRET",
+                PERSPECTIVE_API_KEY: "",
+                DISCORD_WEBHOOK_URL: "",
+                ...rawEnv,
+            }),
+            ADD_RATING_LIMITER: {
+                limit: async () => ({ success: true }),
+            },
+        };
     }
-    return cloudflareEnvParser.parse(rawEnv);
+
+    // Perform a basic check for ADD_RATING_LIMITER
+    const rateLimiter = rawEnv.ADD_RATING_LIMITER;
+    if (
+        typeof rateLimiter !== "object" ||
+        rateLimiter === null || // Check if rateLimiter is null
+        typeof (rateLimiter as Env["ADD_RATING_LIMITER"]).limit !== "function"
+    ) {
+        throw new Error("Invalid ADD_RATING_LIMITER object");
+    }
+
+    return {
+        ...cloudflareEnvParser.parse(rawEnv),
+        ADD_RATING_LIMITER: rateLimiter as Env["ADD_RATING_LIMITER"],
+    };
 }
 
 export class Env {
@@ -37,6 +56,8 @@ export class Env {
     notificationDAO: NotificationDAO;
 
     anonymousIdDao: AnonymousIdDao;
+
+    ADD_RATING_LIMITER: RateLimit;
 
     constructor(env: CloudflareEnv) {
         this.kvDao = new KVDAO(
@@ -64,10 +85,14 @@ export class Env {
         this.authStrategy = new AuthStrategy(env.JWT_SIGNING_KEY);
 
         this.anonymousIdDao = new AnonymousIdDao(env.HASHED_IP, env.POLYRATINGS_SESSIONS);
+
+        this.ADD_RATING_LIMITER = env.ADD_RATING_LIMITER;
     }
 }
 
-export type CloudflareEnv = z.infer<typeof cloudflareEnvParser>;
+export type CloudflareEnv = z.infer<typeof cloudflareEnvParser> & {
+    ADD_RATING_LIMITER: Env["ADD_RATING_LIMITER"];
+};
 
 // Can not really verify that the env is actually of type `KVNamespace`
 // The least we can do is see if it is a non null object

@@ -3,9 +3,11 @@ import { z } from "zod";
 import { TRPCError } from "@trpc/server";
 import { PendingRating, ratingBaseParser, RatingReport, reportParser } from "@backend/types/schema";
 import { DEPARTMENT_LIST } from "@backend/utils/const";
+import { getRateLimiter } from "@backend/middleware/rate-limiter";
 
 export const ratingsRouter = t.router({
     add: t.procedure
+        .use(getRateLimiter("ADD_RATING_LIMITER"))
         .input(
             ratingBaseParser.merge(
                 z.object({
@@ -27,7 +29,27 @@ export const ratingsRouter = t.router({
                 anonymousIdentifier: await ctx.env.anonymousIdDao.getIdentifier(),
             };
 
-            const analyzedScores = await ctx.env.ratingAnalyzer.analyzeRaring(pendingRating);
+            // Abuse protection: Check if the same rating text has already been submitted for the same professor
+            const professor = await ctx.env.kvDao.getProfessor(input.professor);
+
+            const existingRating = Object.values(professor.reviews)
+                .flat()
+                .find(
+                    (rating) =>
+                        rating.rating === pendingRating.rating &&
+                        rating.anonymousIdentifier === pendingRating.anonymousIdentifier,
+                );
+
+            if (existingRating) {
+                throw new TRPCError({
+                    code: "PRECONDITION_FAILED",
+                    message:
+                        "This review has already been submitted, please contact dev@polyratings.org for assistance",
+                });
+            }
+
+            // Run sentiment analysis on rating
+            const analyzedScores = await ctx.env.ratingAnalyzer.analyzeRating(pendingRating);
             pendingRating.analyzedScores = analyzedScores;
 
             // At least 50% of people would find the text offensive in category
