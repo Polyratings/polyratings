@@ -7,7 +7,7 @@ import { getRateLimiter } from "@backend/middleware/rate-limiter";
 
 export const ratingsRouter = t.router({
     add: t.procedure
-        .use(getRateLimiter("ADD_RATING_LIMITER"))
+        .use(getRateLimiter("addRating"))
         .input(
             ratingBaseParser.merge(
                 z.object({

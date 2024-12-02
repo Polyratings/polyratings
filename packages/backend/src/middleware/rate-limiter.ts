@@ -1,4 +1,4 @@
-import { RateLimiters } from "@backend/env";
+import { Env } from "@backend/env";
 import { t } from "@backend/trpc";
 import { TRPCError } from "@trpc/server";
 
@@ -10,7 +10,7 @@ import { TRPCError } from "@trpc/server";
  * @returns A promise that resolves to the result of the next middleware function.
  * @throws TRPCError with code 'TOO_MANY_REQUESTS' if the rate limit is exceeded.
  */
-export const getRateLimiter = (rateLimiterName: RateLimiters) =>
+export const getRateLimiter = (rateLimiterName: keyof Env["rateLimiters"]) =>
     t.middleware(async (opts) => {
         const { ctx, path } = opts;
 
