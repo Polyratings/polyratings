@@ -24,14 +24,17 @@ import {
 import { Button } from "./forms/Button";
 
 const newProfessorFormParser = z.object({
-    professorFirstName: z.string().min(1),
-    professorLastName: z.string().min(1),
+    professorFirstName: z.string().trim().min(1),
+    professorLastName: z.string().trim().min(1),
     professorDepartment: z.enum(DEPARTMENT_LIST),
     sameDepartment: z.boolean(),
     overallRating: z.string().transform(Number),
     recognizesStudentDifficulties: z.string().transform(Number),
     presentsMaterialClearly: z.string().transform(Number),
-    ratingText: z.string().min(20, { message: "Rating text must be at least 20 characters long" }),
+    ratingText: z
+        .string()
+        .trim()
+        .min(20, { message: "Rating text must be at least 20 characters long" }),
     courseDepartment: z.enum(DEPARTMENT_LIST),
     courseNum: z.preprocess(
         (val) => parseInt(z.string().parse(val), 10),

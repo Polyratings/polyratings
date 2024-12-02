@@ -34,11 +34,7 @@ export const ratingsRouter = t.router({
 
             const existingRating = Object.values(professor.reviews)
                 .flat()
-                .find(
-                    (rating) =>
-                        rating.rating === pendingRating.rating &&
-                        rating.anonymousIdentifier === pendingRating.anonymousIdentifier,
-                );
+                .find((rating) => rating.rating.trim() === pendingRating.rating);
 
             if (existingRating) {
                 throw new TRPCError({

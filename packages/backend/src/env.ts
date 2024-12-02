@@ -35,16 +35,18 @@ export function getCloudflareEnv(rawEnv: Record<string, unknown>): CloudflareEnv
     if (
         typeof rateLimiter !== "object" ||
         rateLimiter === null || // Check if rateLimiter is null
-        typeof (rateLimiter as Env["ADD_RATING_LIMITER"]).limit !== "function"
+        typeof (rateLimiter as RateLimit).limit !== "function"
     ) {
         throw new Error("Invalid ADD_RATING_LIMITER object");
     }
 
     return {
         ...cloudflareEnvParser.parse(rawEnv),
-        ADD_RATING_LIMITER: rateLimiter as Env["ADD_RATING_LIMITER"],
+        ADD_RATING_LIMITER: rateLimiter as RateLimit,
     };
 }
+
+export type RateLimiters = "ADD_RATING_LIMITER";
 
 export class Env {
     kvDao: KVDAO;
@@ -57,7 +59,7 @@ export class Env {
 
     anonymousIdDao: AnonymousIdDao;
 
-    ADD_RATING_LIMITER: RateLimit;
+    rateLimiters: Record<RateLimiters, RateLimit>;
 
     constructor(env: CloudflareEnv) {
         this.kvDao = new KVDAO(
@@ -86,12 +88,14 @@ export class Env {
 
         this.anonymousIdDao = new AnonymousIdDao(env.HASHED_IP, env.POLYRATINGS_SESSIONS);
 
-        this.ADD_RATING_LIMITER = env.ADD_RATING_LIMITER;
+        this.rateLimiters = {
+            ADD_RATING_LIMITER: env.ADD_RATING_LIMITER,
+        };
     }
 }
 
 export type CloudflareEnv = z.infer<typeof cloudflareEnvParser> & {
-    ADD_RATING_LIMITER: Env["ADD_RATING_LIMITER"];
+    ADD_RATING_LIMITER: RateLimit;
 };
 
 // Can not really verify that the env is actually of type `KVNamespace`

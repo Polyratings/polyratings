@@ -29,6 +29,12 @@ watch_dir = [
     "src/trpc.ts",
 ]
 
+[[unsafe.bindings]]
+name = "ADD_RATING_LIMITER"
+type = "ratelimit"
+namespace_id = "1000"
+simple = { limit = 20, period = 10 } # 20 requests every 10 seconds
+
 [env.dev]
 name = 'polyratings-dev-backend'
 route = 'api-dev.polyratings.org/*'
@@ -62,7 +68,7 @@ kv_namespaces = [
 [[env.beta.unsafe.bindings]]
 name = "ADD_RATING_LIMITER"
 type = "ratelimit"
-namespace_id = "1001"
+namespace_id = "1002"
 simple = { limit = 2, period = 10 } # 2 requests every 10 seconds
 
 [env.prod]
@@ -80,7 +86,7 @@ kv_namespaces = [
 [[env.prod.unsafe.bindings]]
 name = "ADD_RATING_LIMITER"
 type = "ratelimit"
-namespace_id = "1001"
+namespace_id = "1003"
 simple = { limit = 2, period = 60 } # 2 requests every 60 seconds
 
 [dev]
