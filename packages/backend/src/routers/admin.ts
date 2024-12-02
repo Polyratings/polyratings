@@ -10,8 +10,8 @@ const changeDepartmentParser = z.object({
 
 const changeNameParser = z.object({
     professorId: z.string().uuid(),
-    firstName: z.string(),
-    lastName: z.string(),
+    firstName: z.string().trim(),
+    lastName: z.string().trim(),
 });
 
 const fixEscapedCharsParser = z.object({
