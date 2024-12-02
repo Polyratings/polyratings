@@ -16,7 +16,7 @@ export const ratingBaseParser = z.object({
     overallRating: z.number().min(0).max(4),
     presentsMaterialClearly: z.number().min(0).max(4),
     recognizesStudentDifficulties: z.number().min(0).max(4),
-    rating: z.string(),
+    rating: z.string().trim().min(1),
     tags: z.enum(PROFESSOR_TAGS).array().max(MAX_PROFESSOR_TAGS_PER_RATING).optional(),
     anonymousIdentifier: z.optional(z.string()),
 });
@@ -65,8 +65,8 @@ export type PendingRating = z.infer<typeof pendingRatingParser>;
 export const truncatedProfessorParser = z.object({
     id: z.string().uuid(),
     department: z.enum(DEPARTMENT_LIST),
-    firstName: z.string(),
-    lastName: z.string(),
+    firstName: z.string().trim(),
+    lastName: z.string().trim(),
     numEvals: z.number(),
     overallRating: z.number().min(0).max(4),
     materialClear: z.number().min(0).max(4),
