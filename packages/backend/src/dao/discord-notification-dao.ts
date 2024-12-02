@@ -19,7 +19,7 @@ export class DiscordNotificationDAO implements NotificationDAO {
         };
 
         // wait query-param will block for a response, or just accept a 204
-        await fetch(`${this.webhookURL}?"wait=true"`, {
+        await fetch(`${this.webhookURL}?wait=true`, {
             method: "POST",
             body: JSON.stringify(webhookBody),
             headers: {
