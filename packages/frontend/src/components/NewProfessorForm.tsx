@@ -131,7 +131,7 @@ function useNewProfessorForm() {
 
     const onSubmitHandler = async (data: NewProfessorFormInputs) => {
         try {
-            await addNewProfessorMutation({
+            const successMessage = await addNewProfessorMutation({
                 firstName: data.professorFirstName,
                 lastName: data.professorLastName,
                 department: data.professorDepartment,
@@ -148,9 +148,7 @@ function useNewProfessorForm() {
                     tags: data.tags,
                 },
             });
-            toast.success(
-                "Thank you for adding a professor. It will be reviewed manually and will be available soon",
-            );
+            toast.success(successMessage);
             navigate("/");
         } catch {
             // No need for error will be set by react-query
