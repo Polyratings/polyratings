@@ -24,7 +24,7 @@
     "@polyratings/eslint-config": "^0.0.1",
     "@types/node-fetch": "^2.6.11",
     "dotenv": "^16.4.5",
-    "esbuild": "^0.24.0",
+    "esbuild": "^0.25.0",
     "esbuild-visualizer": "^0.6.0",
     "eslint": "^8.57.1",
     "node-fetch": "^3.3.2",
