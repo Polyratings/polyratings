@@ -129,6 +129,8 @@ function useNewProfessorForm() {
     } = trpc.professors.add.useMutation();
     const navigate = useNavigate();
 
+    const utils = trpc.useUtils();
+
     const onSubmitHandler = async (data: NewProfessorFormInputs) => {
         try {
             const successMessage = await addNewProfessorMutation({
@@ -148,8 +150,14 @@ function useNewProfessorForm() {
                     tags: data.tags,
                 },
             });
-            toast.success(successMessage);
-            navigate("/");
+            toast.success(successMessage.message);
+            if (successMessage.professorId) {
+                utils.professors.get.invalidate({ id: successMessage.professorId });
+                navigate(`/professor/${successMessage.professorId}`);
+            } else {
+                navigate("/");
+            }
+            utils.professors.get.invalidate();
         } catch {
             // No need for error will be set by react-query
         }

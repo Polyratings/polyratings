@@ -40,10 +40,12 @@ export const professorRouter = t.router({
 
             if (existingProfessor) {
                 await addRating({ ...input.rating, professor: existingProfessor.id }, ctx);
-                return (
-                    "Your request for adding a new professor was automatically added under " +
-                    `${existingProfessor.lastName}, ${existingProfessor.firstName}. Please reach out to dev@polyratings.dev if this is incorrect`
-                );
+                return {
+                    professorId: existingProfessor.id,
+                    message:
+                        "Your request for adding a new professor was automatically added to " +
+                        `${existingProfessor.lastName}, ${existingProfessor.firstName}. Please reach out to dev@polyratings.dev if this is incorrect`,
+                };
             }
 
             const professorId = crypto.randomUUID();
@@ -93,6 +95,10 @@ export const professorRouter = t.router({
                 );
             }
 
-            return "Thank you for adding a professor. It will be reviewed manually and will be available soon";
+            return {
+                professorId: null,
+                message:
+                    "Thank you for adding a professor. It will be reviewed manually and will be available soon",
+            };
         }),
 });
