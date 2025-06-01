@@ -1,8 +1,9 @@
 import { t } from "@backend/trpc";
 import { z } from "zod";
 import { Professor, ratingBaseParser } from "@backend/types/schema";
-import { addRating } from "@backend/types/schemaHelpers";
 import { DEPARTMENT_LIST } from "@backend/utils/const";
+import { addRating as addRatingToProfessor } from "@backend/types/schemaHelpers";
+import { addRating } from "./rating";
 
 export const professorRouter = t.router({
     all: t.procedure.query(({ ctx }) => ctx.env.kvDao.getAllProfessors()),
@@ -29,6 +30,24 @@ export const professorRouter = t.router({
             }),
         )
         .mutation(async ({ ctx, input }) => {
+            const allProfessors = await ctx.env.kvDao.getAllProfessors();
+            const existingProfessor = allProfessors.find(
+                ({ firstName, lastName, department }) =>
+                    firstName === input.firstName &&
+                    lastName === input.lastName &&
+                    department === input.department,
+            );
+
+            if (existingProfessor) {
+                await addRating({ ...input.rating, professor: existingProfessor.id }, ctx);
+                return {
+                    professorId: existingProfessor.id,
+                    message:
+                        "Your request for adding a new professor was automatically added to " +
+                        `${existingProfessor.lastName}, ${existingProfessor.firstName}. Please reach out to dev@polyratings.dev if this is incorrect`,
+                };
+            }
+
             const professorId = crypto.randomUUID();
             const tags = Object.fromEntries((input.rating.tags ?? []).map((tag) => [tag, 1]));
             const professor: Professor = {
@@ -55,15 +74,15 @@ export const professorRouter = t.router({
             };
 
             const existingPendingProfessors = await ctx.env.kvDao.getAllPendingProfessors();
-            const duplicateProfessor = existingPendingProfessors.find(
+            const duplicatePendingProfessor = existingPendingProfessors.find(
                 (prof) =>
                     prof.firstName === professor.firstName && prof.lastName === professor.lastName,
             );
 
-            if (duplicateProfessor) {
+            if (duplicatePendingProfessor) {
                 const [[courseName, reviews]] = Object.entries(professor.reviews);
-                addRating(duplicateProfessor, reviews[0], courseName);
-                await ctx.env.kvDao.putPendingProfessor(duplicateProfessor);
+                addRatingToProfessor(duplicatePendingProfessor, reviews[0], courseName);
+                await ctx.env.kvDao.putPendingProfessor(duplicatePendingProfessor);
             } else {
                 await ctx.env.kvDao.putPendingProfessor(professor);
 
@@ -76,6 +95,10 @@ export const professorRouter = t.router({
                 );
             }
 
-            return "The request for the new professor has been accepted and is pending manual approval";
+            return {
+                professorId: null,
+                message:
+                    "Thank you for adding a professor. It will be reviewed manually and will be available soon",
+            };
         }),
 });

@@ -3,82 +3,82 @@ import { z } from "zod";
 import { TRPCError } from "@trpc/server";
 import { PendingRating, ratingBaseParser, RatingReport, reportParser } from "@backend/types/schema";
 import { DEPARTMENT_LIST } from "@backend/utils/const";
-import { getRateLimiter } from "@backend/middleware/rate-limiter";
+import { Env } from "@backend/env";
+
+const addRatingParser = ratingBaseParser.merge(
+    z.object({
+        professor: z.string().uuid(),
+        department: z.enum(DEPARTMENT_LIST),
+        courseNum: z.number().min(100).max(599),
+    }),
+);
+
+export async function addRating(input: z.infer<typeof addRatingParser>, ctx: { env: Env }) {
+    // Input is a string subset of PendingRating
+    const pendingRating: PendingRating = {
+        id: crypto.randomUUID(),
+        ...input,
+        postDate: new Date().toString(),
+        status: "Failed",
+        error: null,
+        analyzedScores: null,
+        anonymousIdentifier: await ctx.env.anonymousIdDao.getIdentifier(),
+    };
+
+    // Abuse protection: Check if the same rating text has already been submitted for the same professor
+    const professor = await ctx.env.kvDao.getProfessor(input.professor);
+
+    const existingRating = Object.values(professor.reviews)
+        .flat()
+        .find((rating) => rating.rating.trim() === pendingRating.rating);
+
+    if (existingRating) {
+        throw new TRPCError({
+            code: "PRECONDITION_FAILED",
+            message:
+                "This review has already been submitted, please contact dev@polyratings.org for assistance",
+        });
+    }
+
+    const analyzedScores = await ctx.env.ratingAnalyzer.analyzeRating(pendingRating);
+    pendingRating.analyzedScores = analyzedScores;
+
+    // At least 50% of people would find the text offensive in category
+    const PERSPECTIVE_THRESHOLD = 0.5;
+
+    const passedAnalysis = Object.values(analyzedScores).reduce((acc, num) => {
+        if (num === undefined) {
+            throw new Error("Not all of perspective summery scores were received");
+        }
+        return num < PERSPECTIVE_THRESHOLD && acc;
+    }, true);
+
+    if (!passedAnalysis) {
+        // Update rating in processing queue
+        pendingRating.status = "Failed";
+        await ctx.env.kvDao.addRatingLog(pendingRating);
+
+        throw new TRPCError({
+            code: "PRECONDITION_FAILED",
+            message:
+                "Rating failed sentiment analysis, please contact dev@polyratings.org for assistance",
+        });
+    }
+
+    // Update rating in processing queue
+    pendingRating.status = "Successful";
+
+    const updatedProfessor = await ctx.env.kvDao.addRating(pendingRating);
+
+    await ctx.env.kvDao.addRatingLog(pendingRating);
+
+    return updatedProfessor;
+}
 
 export const ratingsRouter = t.router({
     add: t.procedure
-        .use(getRateLimiter("addRating"))
-        .input(
-            ratingBaseParser.merge(
-                z.object({
-                    professor: z.string().uuid(),
-                    department: z.enum(DEPARTMENT_LIST),
-                    courseNum: z.number().min(100).max(599),
-                }),
-            ),
-        )
-        .mutation(async ({ ctx, input }) => {
-            // Input is a string subset of PendingRating
-            const pendingRating: PendingRating = {
-                id: crypto.randomUUID(),
-                ...input,
-                postDate: new Date().toString(),
-                status: "Failed",
-                error: null,
-                analyzedScores: null,
-                anonymousIdentifier: await ctx.env.anonymousIdDao.getIdentifier(),
-            };
-
-            // Abuse protection: Check if the same rating text has already been submitted for the same professor
-            const professor = await ctx.env.kvDao.getProfessor(input.professor);
-
-            const existingRating = Object.values(professor.reviews)
-                .flat()
-                .find((rating) => rating.rating.trim() === pendingRating.rating);
-
-            if (existingRating) {
-                throw new TRPCError({
-                    code: "PRECONDITION_FAILED",
-                    message:
-                        "This review has already been submitted, please contact dev@polyratings.org for assistance",
-                });
-            }
-
-            // Run sentiment analysis on rating
-            const analyzedScores = await ctx.env.ratingAnalyzer.analyzeRating(pendingRating);
-            pendingRating.analyzedScores = analyzedScores;
-
-            // At least 50% of people would find the text offensive in category
-            const PERSPECTIVE_THRESHOLD = 0.5;
-
-            const passedAnalysis = Object.values(analyzedScores).reduce((acc, num) => {
-                if (num === undefined) {
-                    throw new Error("Not all of perspective summery scores were received");
-                }
-                return num < PERSPECTIVE_THRESHOLD && acc;
-            }, true);
-
-            if (!passedAnalysis) {
-                // Update rating in processing queue
-                pendingRating.status = "Failed";
-                await ctx.env.kvDao.addRatingLog(pendingRating);
-
-                throw new TRPCError({
-                    code: "PRECONDITION_FAILED",
-                    message:
-                        "Rating failed sentiment analysis, please contact dev@polyratings.org for assistance",
-                });
-            }
-
-            // Update rating in processing queue
-            pendingRating.status = "Successful";
-
-            const updatedProfessor = await ctx.env.kvDao.addRating(pendingRating);
-
-            await ctx.env.kvDao.addRatingLog(pendingRating);
-
-            return updatedProfessor;
-        }),
+        .input(addRatingParser)
+        .mutation(async ({ ctx, input }) => addRating(input, ctx)),
     report: t.procedure
         .input(
             reportParser.merge(

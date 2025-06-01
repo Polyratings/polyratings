@@ -70,6 +70,7 @@ export const DEPARTMENT_LIST = [
     "HNRS",
     "IME",
     "IP",
+    "IS",
     "ISLA",
     "ITAL",
     "ITP",
