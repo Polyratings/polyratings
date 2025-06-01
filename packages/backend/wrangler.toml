@@ -1,5 +1,4 @@
 account_id = "4b59b59a6058dce1832781075d4fde9d"
-usage_model = "bundled"
 workers_dev = false
 compatibility_date = "2022-01-15"
 
