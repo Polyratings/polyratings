@@ -1,12 +1,7 @@
 import { t, protectedProcedure } from "@backend/trpc";
 import { z } from "zod";
 import { addRating } from "@backend/types/schemaHelpers";
-import { bulkKeys, DEPARTMENT_LIST } from "@backend/utils/const";
-
-const changeDepartmentParser = z.object({
-    professorId: z.string().uuid(),
-    department: z.enum(DEPARTMENT_LIST),
-});
+import { bulkKeys } from "@backend/utils/const";
 
 const changeNameParser = z.object({
     professorId: z.string().uuid(),
@@ -62,20 +57,6 @@ export const adminRouter = t.router({
 
             await ctx.env.kvDao.putProfessor(destProfessor);
             await ctx.env.kvDao.removeProfessor(sourceProfessor.id);
-        }),
-    changeProfessorDepartment: protectedProcedure
-        .input(changeDepartmentParser)
-        .mutation(async ({ ctx, input: { professorId, department } }) => {
-            const professor = await ctx.env.kvDao.getProfessor(professorId);
-            professor.department = department;
-            await ctx.env.kvDao.putProfessor(professor);
-        }),
-    changePendingProfessorDepartment: protectedProcedure
-        .input(changeDepartmentParser)
-        .mutation(async ({ ctx, input: { professorId, department } }) => {
-            const professor = await ctx.env.kvDao.getPendingProfessor(professorId);
-            professor.department = department;
-            await ctx.env.kvDao.putPendingProfessor(professor);
         }),
     changeProfessorName: protectedProcedure
         .input(changeNameParser)

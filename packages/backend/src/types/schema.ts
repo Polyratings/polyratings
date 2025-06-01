@@ -64,7 +64,6 @@ export type PendingRating = z.infer<typeof pendingRatingParser>;
 
 export const truncatedProfessorParser = z.object({
     id: z.string().uuid(),
-    department: z.enum(DEPARTMENT_LIST),
     firstName: z.string(),
     lastName: z.string(),
     numEvals: z.number(),

@@ -18,7 +18,6 @@ export const professorRouter = t.router({
     add: t.procedure
         .input(
             z.object({
-                department: z.enum(DEPARTMENT_LIST),
                 firstName: z.string(),
                 lastName: z.string(),
                 rating: ratingBaseParser.merge(
@@ -54,7 +53,6 @@ export const professorRouter = t.router({
                 id: professorId,
                 firstName: input.firstName,
                 lastName: input.lastName,
-                department: input.department,
                 courses: [input.rating.department],
                 numEvals: 1,
                 overallRating: input.rating.overallRating,

@@ -136,7 +136,6 @@ function useNewProfessorForm() {
             const successMessage = await addNewProfessorMutation({
                 firstName: data.professorFirstName,
                 lastName: data.professorLastName,
-                department: data.professorDepartment,
                 rating: {
                     overallRating: data.overallRating,
                     presentsMaterialClearly: data.presentsMaterialClearly,
