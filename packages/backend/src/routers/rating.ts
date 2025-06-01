@@ -25,7 +25,22 @@ export async function addRating(input: z.infer<typeof addRatingParser>, ctx: { e
         anonymousIdentifier: await ctx.env.anonymousIdDao.getIdentifier(),
     };
 
-    const analyzedScores = await ctx.env.ratingAnalyzer.analyzeRaring(pendingRating);
+    // Abuse protection: Check if the same rating text has already been submitted for the same professor
+    const professor = await ctx.env.kvDao.getProfessor(input.professor);
+
+    const existingRating = Object.values(professor.reviews)
+        .flat()
+        .find((rating) => rating.rating.trim() === pendingRating.rating);
+
+    if (existingRating) {
+        throw new TRPCError({
+            code: "PRECONDITION_FAILED",
+            message:
+                "This review has already been submitted, please contact dev@polyratings.org for assistance",
+        });
+    }
+
+    const analyzedScores = await ctx.env.ratingAnalyzer.analyzeRating(pendingRating);
     pendingRating.analyzedScores = analyzedScores;
 
     // At least 50% of people would find the text offensive in category
