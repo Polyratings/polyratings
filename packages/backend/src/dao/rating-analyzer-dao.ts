@@ -102,7 +102,7 @@ interface PerspectiveRequestedAttribute {
 }
 
 const analyzeCommentResponseParser = z.object({
-    attributeScores: z.record(z.string(), perspectiveAttributeScoreParser),
+    attributeScores: z.record(perspectiveAttributeScoreParser),
     languages: z.string().array(),
     clientToken: z.string(),
 });
