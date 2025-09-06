@@ -1,4 +1,6 @@
 name: Continuous Integration and Deployment
+permissions:
+  contents: read
 
 on:
   pull_request:
