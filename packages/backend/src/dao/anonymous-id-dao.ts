@@ -29,7 +29,10 @@ will happen in other daos after the `getIdentifier` function call.
 const ONE_WEEK = 60 * 60 * 24 * 7;
 
 export class AnonymousIdDao {
-    constructor(private hashedIp: string, private sessionTable: KVNamespace) {}
+    constructor(
+        private hashedIp: string,
+        private sessionTable: KVNamespace,
+    ) {}
 
     private session: string | null = null;
 
