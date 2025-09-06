@@ -410,10 +410,10 @@ interface ReportFormProps {
 }
 
 const reportFormParser = z.object({
-    email: z.string().email().optional(),
+    email: z.email().optional(),
     reason: z
         .string()
-        .min(1, { message: "Leaving a reason will help the team make an informed decision" }),
+        .min(1, { error: "Leaving a reason will help the team make an informed decision" }),
 });
 
 type ReportFormInputs = z.infer<typeof reportFormParser>;

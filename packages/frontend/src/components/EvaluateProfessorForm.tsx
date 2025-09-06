@@ -414,12 +414,12 @@ const evaluateProfessorFormParser = z.object({
     overallRating: z.string().transform(Number),
     recognizesStudentDifficulties: z.string().transform(Number),
     presentsMaterialClearly: z.string().transform(Number),
-    ratingText: z.string().min(20, { message: "Rating text must be at least 20 characters long" }),
+    ratingText: z.string().min(20, { error: "Rating text must be at least 20 characters long" }),
     unknownCourseDepartment: z.enum(DEPARTMENT_LIST).optional(),
     unknownCourseNumber: z.coerce
         .number()
-        .min(100, { message: "Invalid" })
-        .max(599, { message: "Invalid" })
+        .min(100, { error: "Invalid" })
+        .max(599, { error: "Invalid" })
         .optional(),
     gradeLevel: z.enum(GRADE_LEVELS),
     grade: z.enum(GRADES),

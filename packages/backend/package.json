@@ -34,6 +34,6 @@
         "@trpc/server": "10.45.2",
         "@tsndr/cloudflare-worker-jwt": "^3.2.0",
         "toucan-js": "^4.1.1",
-        "zod": "^3.25.76"
+        "zod": "^4.1.5"
     }
 }

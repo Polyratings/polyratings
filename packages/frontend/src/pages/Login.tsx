@@ -10,8 +10,8 @@ import { Button } from "@/components/forms/Button";
 import { TextInput } from "@/components";
 
 const loginParser = z.object({
-    username: z.string().min(1, { message: "Required" }),
-    password: z.string().min(1, { message: "Required" }),
+    username: z.string().min(1, { error: "Required" }),
+    password: z.string().min(1, { error: "Required" }),
 });
 type LoginSchema = z.infer<typeof loginParser>;
 

@@ -8,10 +8,10 @@ import { addRating } from "./rating";
 export const professorRouter = t.router({
     all: t.procedure.query(({ ctx }) => ctx.env.kvDao.getAllProfessors()),
     get: t.procedure
-        .input(z.object({ id: z.string().uuid() }))
+        .input(z.object({ id: z.uuid() }))
         .query(({ input, ctx }) => ctx.env.kvDao.getProfessor(input.id)),
     getMany: t.procedure
-        .input(z.object({ ids: z.array(z.string().uuid()) }))
+        .input(z.object({ ids: z.array(z.uuid()) }))
         .query(({ input, ctx }) =>
             Promise.all(input.ids.map((id) => ctx.env.kvDao.getProfessor(id))),
         ),
@@ -60,7 +60,8 @@ export const professorRouter = t.router({
                 overallRating: input.rating.overallRating,
                 materialClear: input.rating.presentsMaterialClearly,
                 studentDifficulties: input.rating.recognizesStudentDifficulties,
-                tags,
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                tags: tags as any,
                 reviews: {
                     [`${input.rating.department} ${input.rating.courseNum}`]: [
                         {
