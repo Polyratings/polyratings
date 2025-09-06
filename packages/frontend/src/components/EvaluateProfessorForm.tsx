@@ -35,7 +35,7 @@ export function TwoStepEvaluateProfessor({ professor, closeForm }: EvaluateProfe
         return <></>;
     }
 
-    const { onSubmit, hookForm, networkError, isLoading } = useEvaluationForm(professor, closeForm);
+    const { onSubmit, hookForm, networkError, isPending } = useEvaluationForm(professor, closeForm);
     const { control, trigger: triggerValidation } = hookForm;
 
     return (
@@ -66,7 +66,7 @@ export function TwoStepEvaluateProfessor({ professor, closeForm }: EvaluateProfe
                         )}
                     />
                 )}
-                isLoading={isLoading}
+                isLoading={isPending}
                 triggerValidation={triggerValidation}
             />
 
@@ -161,7 +161,7 @@ export function EvaluateProfessorFormLinear({ professor, closeForm }: EvaluatePr
     if (!professor) {
         return <div />;
     }
-    const { onSubmit, hookForm, isLoading, networkError } = useEvaluationForm(professor, closeForm);
+    const { onSubmit, hookForm, isPending, networkError } = useEvaluationForm(professor, closeForm);
     const { control } = hookForm;
 
     return (
@@ -176,7 +176,7 @@ export function EvaluateProfessorFormLinear({ professor, closeForm }: EvaluatePr
                 )}
             />
 
-            <div className={`flex justify-center ${isLoading ? "hidden" : "block"}`}>
+            <div className={`flex justify-center ${isPending ? "hidden" : "block"}`}>
                 <Button variant="tertiary" type="submit">
                     Submit
                 </Button>
@@ -184,7 +184,7 @@ export function EvaluateProfessorFormLinear({ professor, closeForm }: EvaluatePr
 
             <div className="flex justify-center">
                 {/* Exact size for no layer shift */}
-                <ClipLoader color="white" loading={isLoading} size={34} />
+                <ClipLoader color="white" loading={isPending} size={34} />
             </div>
             <div className="text-red-500 text-sm">{networkError?.message}</div>
         </form>
@@ -444,7 +444,7 @@ function useEvaluationForm(
     const trpcContext = trpc.useContext();
     const {
         mutate: uploadRating,
-        isLoading,
+        isPending,
         error: networkError,
     } = trpc.ratings.add.useMutation({
         onSuccess: (updatedProfessor) => {
@@ -496,7 +496,7 @@ function useEvaluationForm(
 
     return {
         hookForm,
-        isLoading,
+        isPending,
         networkError,
         onSubmit: hookForm.handleSubmit(onSubmitHandler),
     };

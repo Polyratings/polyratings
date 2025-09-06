@@ -47,10 +47,12 @@ function ReportedRatings() {
     });
     const queryClient = useQueryClient();
     const { mutate: removeReport } = trpc.admin.removeReport.useMutation({
-        onSuccess: () => queryClient.invalidateQueries(bulkInvalidationKey("reports")),
+        onSuccess: () =>
+            queryClient.invalidateQueries({ queryKey: bulkInvalidationKey("reports") }),
     });
     const { mutate: actOnReport } = trpc.admin.actOnReport.useMutation({
-        onSuccess: () => queryClient.invalidateQueries(bulkInvalidationKey("reports")),
+        onSuccess: () =>
+            queryClient.invalidateQueries({ queryKey: bulkInvalidationKey("reports") }),
     });
 
     const columns = [
@@ -161,10 +163,12 @@ function PendingProfessors() {
     const { data: pendingProfessors } = useDbValues("professor-queue");
     const queryClient = useQueryClient();
     const { mutate: approvePendingProfessor } = trpc.admin.approvePendingProfessor.useMutation({
-        onSuccess: () => queryClient.invalidateQueries(bulkInvalidationKey("professor-queue")),
+        onSuccess: () =>
+            queryClient.invalidateQueries({ queryKey: bulkInvalidationKey("professor-queue") }),
     });
     const { mutate: rejectPendingProfessor } = trpc.admin.rejectPendingProfessor.useMutation({
-        onSuccess: () => queryClient.invalidateQueries(bulkInvalidationKey("professor-queue")),
+        onSuccess: () =>
+            queryClient.invalidateQueries({ queryKey: bulkInvalidationKey("professor-queue") }),
     });
 
     const columns = [
@@ -252,13 +256,14 @@ function SubmitUnderAction({ professor }: PendingProfessorAction) {
     const [searchValue, setSearchValue] = useState("");
 
     const { data: allProfessors } = trpc.professors.all.useQuery();
-    const { mutateAsync: submitRating, isLoading: loadingSubmitRating } =
+    const { mutateAsync: submitRating, isPending: loadingSubmitRating } =
         trpc.ratings.add.useMutation();
 
     const queryClient = useQueryClient();
-    const { mutateAsync: removePending, isLoading: loadingRemovePending } =
+    const { mutateAsync: removePending, isPending: loadingRemovePending } =
         trpc.admin.rejectPendingProfessor.useMutation({
-            onSuccess: () => queryClient.invalidateQueries(bulkInvalidationKey("professor-queue")),
+            onSuccess: () =>
+                queryClient.invalidateQueries({ queryKey: bulkInvalidationKey("professor-queue") }),
         });
 
     const isLoading = loadingSubmitRating || loadingRemovePending;
@@ -333,10 +338,11 @@ function ChangeNameAction({ professor }: PendingProfessorAction) {
     const queryClient = useQueryClient();
     const {
         mutate: setName,
-        isLoading,
+        isPending,
         error,
     } = trpc.admin.changePendingProfessorName.useMutation({
-        onSuccess: () => queryClient.invalidateQueries(bulkInvalidationKey("professor-queue")),
+        onSuccess: () =>
+            queryClient.invalidateQueries({ queryKey: bulkInvalidationKey("professor-queue") }),
     });
 
     return (
@@ -357,7 +363,7 @@ function ChangeNameAction({ professor }: PendingProfessorAction) {
                 onChange={(e) => setFirst(e.target.value)}
             />
             <Button
-                disabled={isLoading}
+                disabled={isPending}
                 onClick={() =>
                     setName({
                         professorId: professor.id,
@@ -379,10 +385,11 @@ function ChangeNameDepartment({ professor }: PendingProfessorAction) {
     const queryClient = useQueryClient();
     const {
         mutate: setProfessorDepartment,
-        isLoading,
+        isPending,
         error,
     } = trpc.admin.changePendingProfessorDepartment.useMutation({
-        onSuccess: () => queryClient.invalidateQueries(bulkInvalidationKey("professor-queue")),
+        onSuccess: () =>
+            queryClient.invalidateQueries({ queryKey: bulkInvalidationKey("professor-queue") }),
     });
 
     return (
@@ -395,7 +402,7 @@ function ChangeNameDepartment({ professor }: PendingProfessorAction) {
                 onChange={(e) => setDepartment(e.target.value as Department)}
             />
             <Button
-                disabled={isLoading}
+                disabled={isPending}
                 onClick={() =>
                     setProfessorDepartment({
                         professorId: professor.id,

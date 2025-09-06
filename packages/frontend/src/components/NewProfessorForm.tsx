@@ -127,7 +127,7 @@ function useNewProfessorForm() {
 
     const {
         mutateAsync: addNewProfessorMutation,
-        isLoading,
+        isPending,
         error: networkError,
     } = trpc.professors.add.useMutation();
     const navigate = useNavigate();
@@ -168,7 +168,7 @@ function useNewProfessorForm() {
 
     return {
         hookForm,
-        isLoading,
+        isLoading: isPending,
         networkError,
         onSubmit: hookForm.handleSubmit(onSubmitHandler),
     };

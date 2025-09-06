@@ -57,7 +57,7 @@ export default function App() {
 
     const [queryClient] = useState(() => {
         const queryClient = new QueryClient({
-            defaultOptions: { queries: { staleTime: Infinity, cacheTime: 600000 } },
+            defaultOptions: { queries: { staleTime: Infinity, gcTime: 600000 } },
         });
         persistQueryClient({
             queryClient,
