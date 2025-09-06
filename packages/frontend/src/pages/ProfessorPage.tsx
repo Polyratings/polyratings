@@ -411,7 +411,7 @@ interface ReportFormProps {
 }
 
 const reportFormParser = z.object({
-    email: z.string().email().optional(),
+    email: z.preprocess((val) => (val === "" ? undefined : val), z.string().email().optional()),
     reason: z
         .string()
         .min(1, { message: "Leaving a reason will help the team make an informed decision" }),
@@ -465,6 +465,7 @@ function ReportForm({ closeForm, professorId, ratingId }: ReportFormProps) {
                 placeholder="This Review was offensive and contained inappropriate language."
                 wrapperClassName="mt-2"
                 className="!h-40"
+                error={errors.reason?.message}
                 {...register("reason")}
             />
             <div className="flex justify-center">
