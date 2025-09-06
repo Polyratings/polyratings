@@ -189,7 +189,7 @@ export class KVDAO {
         try {
             const user = await this.usersNamespace.get(userParser, username);
             return user;
-        } catch (e) {
+        } catch {
             throw new TRPCError({ code: "UNAUTHORIZED" });
         }
     }

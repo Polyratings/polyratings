@@ -14,6 +14,7 @@ import { toast } from "react-toastify";
 import { inferProcedureOutput } from "@trpc/server";
 import { AppRouter } from "@backend/index";
 import { InView } from "react-intersection-observer";
+import { zodResolver } from "@hookform/resolvers/zod";
 import {
     TwoStepEvaluateProfessor,
     TextArea,
@@ -423,7 +424,9 @@ function ReportForm({ closeForm, professorId, ratingId }: ReportFormProps) {
         register,
         handleSubmit,
         formState: { errors },
-    } = useForm<ReportFormInputs>();
+    } = useForm<ReportFormInputs>({
+        resolver: zodResolver(reportFormParser),
+    });
 
     const reportMutation = trpc.ratings.report.useMutation();
 

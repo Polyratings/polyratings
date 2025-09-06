@@ -27,7 +27,7 @@ export class KvWrapper {
         try {
             const value = await this.get(parser, key);
             return value;
-        } catch (_) {
+        } catch {
             return undefined;
         }
     }
