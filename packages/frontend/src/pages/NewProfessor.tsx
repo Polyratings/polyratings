@@ -5,7 +5,7 @@ export function NewProfessor() {
     return (
         <div>
             <div
-                className="h-screenWoNav min-h-[55rem] justify-center items-center hidden sm:flex"
+                className="h-screen-wo-nav min-h-220 justify-center items-center hidden sm:flex"
                 style={{
                     backgroundImage: `url(${loginBackground})`,
                     backgroundRepeat: "no-repeat",
@@ -17,7 +17,7 @@ export function NewProfessor() {
                     <NewProfessorFormTwoStep />
                 </div>
             </div>
-            <div className="sm:hidden flex justify-center bg-gray-300 min-h-screenWoNav">
+            <div className="sm:hidden flex justify-center bg-gray-300 min-h-screen-wo-nav">
                 <NewProfessorLinear />
             </div>
         </div>

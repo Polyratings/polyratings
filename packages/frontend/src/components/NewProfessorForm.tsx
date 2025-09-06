@@ -53,7 +53,7 @@ export function NewProfessorFormTwoStep() {
     const { control, trigger: triggerValidation } = hookForm;
     return (
         <div
-            className="p-5 opacity-100 rounded relative bg-white shadow-2xl"
+            className="p-5 opacity-100 rounded-sm relative bg-white shadow-2xl"
             style={{ width: "40rem" }}
         >
             <form onSubmit={onSubmit}>
@@ -83,7 +83,7 @@ export function NewProfessorLinear() {
     const { control } = hookForm;
     return (
         <div
-            className="p-5 opacity-100 rounded relative bg-white shadow-2xl"
+            className="p-5 opacity-100 rounded-sm relative bg-white shadow-2xl"
             style={{ width: "40rem" }}
         >
             <form onSubmit={onSubmit}>

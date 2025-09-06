@@ -106,7 +106,7 @@ export function FormBar({ isLoading, triggerValidation, firstStep, secondStep }:
                         Course Accessibility
                     </div>
                 </div>
-                <div className="h-1 rounded bg-gray-200 relative transition-all">
+                <div className="h-1 rounded-sm bg-gray-200 relative transition-all">
                     <div
                         className={`absolute w-1/2 h-1 rounded bg-cal-poly-green ${
                             formStep === "first" ? "left-0" : "left-1/2"

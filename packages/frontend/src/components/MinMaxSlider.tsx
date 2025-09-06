@@ -69,7 +69,7 @@ const handleRender: SliderProps["handleRender"] = (handle, sliderProps) => {
                 dragging ? "opacity-1" : "opacity-0"
             }`}
         >
-            <div className=" bg-gray-900 text-white p-1 text-sm rounded min-w-[1.5rem] text-center">
+            <div className=" bg-gray-900 text-white p-1 text-sm rounded-sm min-w-6 text-center">
                 {value}
             </div>
             <div className="w-3 overflow-hidden inline-block">

@@ -89,7 +89,7 @@ export function ProfessorPage() {
                 onRequestClose={() => setProfessorEvaluationShownDesktop(false)}
                 style={REACT_MODAL_STYLES}
             >
-                <div className="bg-white opacity-100 rounded shadow p-5 w-[40.5rem]">
+                <div className="bg-white opacity-100 rounded-sm shadow-sm p-5 w-162">
                     <TwoStepEvaluateProfessor
                         professor={professorData}
                         closeForm={() => setProfessorEvaluationShownDesktop(false)}
@@ -209,7 +209,7 @@ export function ProfessorPage() {
             <ClassScroll
                 outerClassName={`${
                     professorEvaluationShownMobile ? "hidden" : "flex"
-                } items-center xl:hidden h-14 fixed bg-cal-poly-green w-full bottom-0 overflow-x-auto scrollbar-hidden`}
+                } items-center xl:hidden h-14 fixed bg-cal-poly-green w-full bottom-0 overflow-x-auto scrollbar-hide`}
                 innerClassName={() =>
                     "text-md font-semibold h-8 bg-cal-poly-gold text-white ml-4 rounded-xl py-1 px-2 whitespace-nowrap"
                 }
@@ -233,7 +233,7 @@ function StatsCard({ professor, className = "" }: StatsCardProps) {
     return (
         // Box shadow taken from figma
         <div
-            className={`flex flex-col shadow-[0_0_50px_rgba(0,0,0,0.15)] rounded-lg gap-1 py-5 px-6 min-w-[22rem] sm:min-w-[27rem] ${className}`}
+            className={`flex flex-col shadow-[0_0_50px_rgba(0,0,0,0.15)] rounded-lg gap-1 py-5 px-6 min-w-88 sm:min-w-108 ${className}`}
         >
             <div className="flex justify-between mb-3 align-bottom">
                 <div className="flex items-center">
@@ -242,7 +242,7 @@ function StatsCard({ professor, className = "" }: StatsCardProps) {
                     </span>
                     <span className="text-4xl font-bold ml-1 hidden sm:block">/4</span>
                 </div>
-                <div className="flex flex-col justify-end gap-[0.125rem]">
+                <div className="flex flex-col justify-end gap-0.5">
                     <p className="text-right text-sm font-medium">
                         {professor?.numEvals} Evaluations
                     </p>
@@ -255,7 +255,7 @@ function StatsCard({ professor, className = "" }: StatsCardProps) {
                     />
                 </div>
             </div>
-            <div className="flex justify-between font-medium bg-gray-200 px-3 py-2 rounded">
+            <div className="flex justify-between font-medium bg-gray-200 px-3 py-2 rounded-sm">
                 <p>Recognizes Difficulties</p>
                 <div className="flex items-center">
                     {/* Hack since star ratings will not items-center properly */}
@@ -273,7 +273,7 @@ function StatsCard({ professor, className = "" }: StatsCardProps) {
                     </span>
                 </div>
             </div>
-            <div className="flex justify-between font-medium bg-gray-200 px-3 py-2 rounded mt-2">
+            <div className="flex justify-between font-medium bg-gray-200 px-3 py-2 rounded-sm mt-2">
                 <p>Presents Clearly</p>
                 <div className="flex items-center">
                     {/* Hack since star ratings will not items-center properly */}
@@ -302,7 +302,7 @@ interface RatingCardProps {
 function RatingCard({ rating, professorId }: RatingCardProps) {
     return (
         <div className="bg-white w-full rounded-3xl py-3 px-6 my-2 border-cal-poly-green border-4 flex flex-col md:flex-row relative">
-            <div className="hidden md:flex flex-col gap-1 flex-shrink-0 mr-4 text-center">
+            <div className="hidden md:flex flex-col gap-1 shrink-0 mr-4 text-center">
                 <div className="mb-2">
                     {/* Only show stars for ratings from the new site */}
                     {new Date(rating.postDate).getFullYear() >= 2022 && (
@@ -337,11 +337,11 @@ function RatingCard({ rating, professorId }: RatingCardProps) {
             </div>
 
             {/* Desktop divider */}
-            <div className="hidden md:flex bg-black w-[0.08rem] mr-4 mt-2 mb-2 flex-shrink-0" />
+            <div className="hidden md:flex bg-black w-[0.08rem] mr-4 mt-2 mb-2 shrink-0" />
             {/* Mobile divider */}
             <div className="flex md:hidden bg-black w-4/5 h-[0.08rem] m-auto my-2" />
 
-            <div className="py-3 flex-grow">
+            <div className="py-3 grow">
                 <p className="text-xl font-semibold mb-2">
                     {new Date(rating.postDate).toLocaleString("en-US", {
                         year: "numeric",
@@ -351,7 +351,7 @@ function RatingCard({ rating, professorId }: RatingCardProps) {
                 <p>{rating.rating}</p>
                 <div className="flex justify-between mt-2">
                     {/* A little hack to get the desired behavior with overflowing line and keeping report at bottom right */}
-                    <div className="pt-[0.125rem]">
+                    <div className="pt-0.5">
                         <div className="flex gap-1 md:gap-3 flex-wrap">
                             {rating.tags
                                 // Attempt to sort tags from small to large to have them on the same line
@@ -388,7 +388,7 @@ function ReportButton({ professorId, ratingId, className = "" }: ReportButtonPro
                 style={REACT_MODAL_STYLES}
                 onRequestClose={() => setFormShown(false)}
             >
-                <div className="bg-white rounded shadow p-5 w-screen sm:w-[35rem]">
+                <div className="bg-white rounded-sm shadow-sm p-5 w-screen sm:w-140">
                     <ReportForm
                         professorId={professorId}
                         ratingId={ratingId}
@@ -454,7 +454,7 @@ function ReportForm({ closeForm, professorId, ratingId }: ReportFormProps) {
             </button>
             <h2 className="text-3xl font-semibold mb-4">Report Rating</h2>
             <TextInput
-                wrapperClassName="!w-full"
+                wrapperClassName="w-full!"
                 label="Email (Optional)"
                 placeholder="name@example.com"
                 error={errors.email?.message}
@@ -464,7 +464,7 @@ function ReportForm({ closeForm, professorId, ratingId }: ReportFormProps) {
                 label="Reason For Reporting"
                 placeholder="This Review was offensive and contained inappropriate language."
                 wrapperClassName="mt-2"
-                className="!h-40"
+                className="h-40!"
                 error={errors.reason?.message}
                 {...register("reason")}
             />
@@ -482,7 +482,7 @@ type ProfessorTagProps = {
 };
 function ProfessorTag({ tagName }: ProfessorTagProps) {
     return (
-        <div className="flex items-center rounded px-2 py-[0.125rem] bg-cal-poly-light-green text-cal-poly-green text-xs md:text-base">
+        <div className="flex items-center rounded-sm px-2 py-0.5 bg-cal-poly-light-green text-cal-poly-green text-xs md:text-base">
             <TagIcon className="w-2 h-2 md:w-3 md:h-3" />
             <span className="font-medium ml-1 md:ml-2">{tagName}</span>
         </div>

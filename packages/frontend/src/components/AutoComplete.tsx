@@ -89,7 +89,7 @@ export function AutoComplete<T, U>({
         <div className={`relative ${className}`}>
             <input
                 aria-label={label}
-                className={`p-2 w-full h-full outline-none ${inputClassName}`}
+                className={`p-2 w-full h-full outline-hidden bg-white ${inputClassName}`}
                 type="text"
                 placeholder={placeholder}
                 {...getInputProps({

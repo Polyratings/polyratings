@@ -56,12 +56,7 @@ export function Search() {
 
     return (
         <div id="main">
-            <SearchBar
-                className="mt-7"
-                value={searchState}
-                onChange={setSearchState}
-                disableAutoComplete
-            />
+            <SearchBar value={searchState} onChange={setSearchState} disableAutoComplete />
             {(!searchResults.length || !filteredProfessors.length) && (
                 <h2 className="text-4xl mt-5 text-center text-cal-poly-green">
                     No Results Found.
@@ -117,7 +112,7 @@ export function Search() {
                         </div>
                     )}
                     <div
-                        className="relative sm:w-[37.5rem] md:w-[42rem] lg:w-[37.5rem] 2xl:w-[42rem] m-auto"
+                        className="relative sm:w-150 md:w-2xl lg:w-150 2xl:w-2xl m-auto"
                         style={{
                             height: `${rowVirtualizer.getTotalSize()}px`,
                         }}

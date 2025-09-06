@@ -26,7 +26,7 @@ export function Home() {
                     backgroundPosition: "center",
                     backgroundSize: "cover",
                 }}
-                className="relative h-screenWoNav lg:h-screen3/5 min-h-[30rem]"
+                className="relative h-screen-wo-nav lg:h-screen3/5 min-h-120"
             >
                 <div className="flex flex-col w-full h-2/3 lg:h-80 justify-center justify-items-center">
                     <h1 className="text-6xl md:text-9xl 2xl:text-[9rem] text-white text-center font-semibold drop-shadow-lg">
@@ -43,7 +43,7 @@ export function Home() {
                 />
             </div>
             <div className="lg:block hidden">
-                <div className="w-[60rem] text-center m-auto z-10 relative">
+                <div className="w-240 text-center m-auto z-10 relative">
                     <p className="absolute text-6xl -left-14 hidden xl:block">🎉</p>
                     <p className="absolute text-6xl -right-14 hidden xl:block">🎉</p>
                     <h3 className="text-5xl font-bold mb-8">
@@ -56,11 +56,11 @@ export function Home() {
                 </div>
                 <div className="flex justify-center items-start gap-16">
                     <img
-                        className="w-[35rem]"
+                        className="w-140"
                         src={homeTags}
                         alt="Accessability tag form to rate professors"
                     />
-                    <div className="text-left w-[31rem]">
+                    <div className="text-left w-124">
                         <img src={homeProfessorSummary} alt="Professor summary with tags" />
                         <ul className="text-xl list-[home-list] mt-4">
                             <li className="ml-7 mb-4">Select tags in Evaluation form</li>
@@ -85,7 +85,7 @@ export function Home() {
                 <h2 className="text-white font-semibold text-8xl xl:text-9xl text-center pt-40">
                     Best of the Best
                 </h2>
-                <div className="grid grid-cols-2 gap-y-14 m-auto mt-20 gap-x-12 xl:gap-x-24 w-[60rem] xl:w-[65rem]">
+                <div className="grid grid-cols-2 gap-y-14 m-auto mt-20 gap-x-12 xl:gap-x-24 w-240 xl:w-260">
                     {bestOfTheBest.map((professor) => (
                         <ProfessorCard key={professor.id} professor={professor} />
                     ))}

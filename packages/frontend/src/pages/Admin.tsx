@@ -132,7 +132,7 @@ function ReportedRatings() {
             cell: (row: RatingReport) => (
                 <ConfirmationButton
                     action={() => removeReport(row.ratingId)}
-                    buttonClassName="p-2 bg-green-500 text-white rounded"
+                    buttonClassName="p-2 bg-green-500 text-white rounded-sm"
                     buttonText="K"
                 />
             ),
@@ -143,7 +143,7 @@ function ReportedRatings() {
             cell: (row: RatingReport) => (
                 <ConfirmationButton
                     action={() => actOnReport(row.ratingId)}
-                    buttonClassName="p-2 bg-red-500 text-white rounded"
+                    buttonClassName="p-2 bg-red-500 text-white rounded-sm"
                     buttonText="R"
                 />
             ),
@@ -204,7 +204,7 @@ function PendingProfessors() {
             cell: (row: Professor) => (
                 <ConfirmationButton
                     action={async () => approvePendingProfessor(row.id)}
-                    buttonClassName="p-2 bg-green-500 text-white rounded"
+                    buttonClassName="p-2 bg-green-500 text-white rounded-sm"
                     buttonText="✓"
                 />
             ),
@@ -215,7 +215,7 @@ function PendingProfessors() {
             cell: (row: Professor) => (
                 <ConfirmationButton
                     action={async () => rejectPendingProfessor(row.id)}
-                    buttonClassName="p-2 bg-red-500 text-white rounded"
+                    buttonClassName="p-2 bg-red-500 text-white rounded-sm"
                     buttonText="X"
                 />
             ),
@@ -499,7 +499,7 @@ export function ConfirmationButton({
                 {buttonText}
             </button>
             {confirmationOpen && (
-                <div className="absolute p-2 w-28 z-50 bg-white shadow top-0 right-0">
+                <div className="absolute p-2 w-28 z-50 bg-white shadow-sm top-0 right-0">
                     <div>Are You Sure?</div>
                     <div className="flex justify-between mt-1">
                         <button

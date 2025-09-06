@@ -38,7 +38,7 @@ export function Login() {
 
     return (
         <div
-            className="h-screenWoNav flex justify-center items-center"
+            className="h-screen-wo-nav flex justify-center items-center"
             style={{
                 backgroundImage: `url(${loginBackground})`,
                 backgroundRepeat: "no-repeat",
@@ -47,17 +47,17 @@ export function Login() {
             }}
         >
             <div className="p-5 transform md:-translate-y-1/4" style={{ width: "500px" }}>
-                <div id="main" className="bg-white shadow-lg rounded p-10">
+                <div id="main" className="bg-white shadow-lg rounded-sm p-10">
                     <h2 className="text-3xl font-bold mb-8">Sign In</h2>
                     <form onSubmit={handleSubmit((data) => login(data))}>
                         <TextInput
-                            wrapperClassName="!w-full"
+                            wrapperClassName="w-full!"
                             label="Username"
                             {...register("username")}
                             error={errors.username?.message}
                         />
                         <TextInput
-                            wrapperClassName="!w-full mt-6 mb-8"
+                            wrapperClassName="w-full! mt-6 mb-8"
                             label="Password"
                             type="password"
                             {...register("password")}

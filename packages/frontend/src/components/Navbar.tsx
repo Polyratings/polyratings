@@ -30,7 +30,7 @@ export function Navbar() {
                 isAuthenticated ? "bg-red-800" : "bg-cal-poly-green"
             } h-14 flex justify-between px-5 items-center`}
         >
-            <a className="absolute w-[1px] h-[1px] z-[-1]" href="#main">
+            <a className="absolute w-px h-px z-[-1]" href="#main">
                 Skip to main content
             </a>
 

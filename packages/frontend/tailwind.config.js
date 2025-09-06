@@ -1,8 +1,6 @@
-/* eslint-disable @typescript-eslint/no-require-imports */
 /* eslint-disable global-require */
 
 module.exports = {
-    content: ["./src/**/*.html", "./src/**/*.tsx"],
     theme: {
         fontFamily: {
             nunito: ["Nunito"],
@@ -20,7 +18,7 @@ module.exports = {
                 "cal-poly-light-green": "#D7EACE",
                 "cal-poly-gold": "#BD8B13",
             },
-            height: () => ({
+            height: {
                 "screen/2": "50vh",
                 "screen/3": "calc(100vh / 3)",
                 "screen/4": "calc(100vh / 4)",
@@ -28,7 +26,7 @@ module.exports = {
                 "screen3/5": "calc(100vh / 5 * 3)",
                 "screen4/5": "calc(100vh / 5 * 4)",
                 screenWoNav: "calc(100vh - 3rem)",
-            }),
+            },
             screens: {
                 m2xl: { max: "1535px" },
                 mxl: { max: "1279px" },
@@ -57,5 +55,4 @@ module.exports = {
             },
         },
     },
-    plugins: [require("tailwind-scrollbar-hide")],
 };

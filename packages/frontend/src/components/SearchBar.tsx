@@ -16,11 +16,11 @@ export interface SearchBarProps {
     disableAutoComplete?: boolean;
     className?: string;
 }
-export function SearchBar(props: SearchBarProps) {
+export function SearchBar(props: Omit<SearchBarProps, "className">) {
     return (
         <>
-            <ExtendedSearchBar className="hidden sm:flex" {...props} />
-            <TruncatedSearchBar {...props} className="flex sm:hidden" />
+            <ExtendedSearchBar {...props} className="hidden sm:flex mt-7" />
+            <TruncatedSearchBar {...props} className="flex sm:hidden mt-7" />
         </>
     );
 }
@@ -48,7 +48,7 @@ export function ExtendedSearchBar({
             disableAutoComplete={disableAutoComplete}
             LeftSlot={<SearchToggle searchType={value.type} onClick={toggleSearchType} />}
             RightSlot={
-                <Button className="!py-1 rounded-l-none rounded-r-full px-1" type="submit">
+                <Button className="py-1! rounded-l-none rounded-r-full px-1" type="submit">
                     <ChevronRightIcon className="w-8 h-8" />
                 </Button>
             }
@@ -123,8 +123,8 @@ interface SearchBaseProps {
     onChange?: (value: SearchState) => void | Promise<void>;
     disableAutoComplete?: boolean;
     searchType: ProfessorSearchType;
-    LeftSlot?: React.ReactChild;
-    RightSlot?: React.ReactChild;
+    LeftSlot?: React.ReactNode;
+    RightSlot?: React.ReactNode;
     className?: string;
     inputClassName?: string;
 }
@@ -180,8 +180,10 @@ function SearchBase({
                     .filter((course) => course.includes(value.toUpperCase()))
                     .map((course) => ({ label: course, value: course }));
             }
+            default: {
+                throw new Error("Not all autocomplete cases handled");
+            }
         }
-        throw new Error("Not all autocomplete cases handled");
     };
 
     const placeholderText = searchType === "name" ? "Professor Name" : "Course Number";
@@ -197,7 +199,7 @@ function SearchBase({
                 filterFn={(_, inputValue) => autoCompleteFilter(inputValue)}
                 label="Professor Auto-complete"
                 inputValue={value.searchValue}
-                className="2xl:w-96 xl:w-72 w-[15rem] h-10 font-normal text-lg shadow-2xl"
+                className="2xl:w-96 xl:w-72 w-60 h-10 font-normal text-lg shadow-2xl"
                 disableDropdown={disableAutoComplete ?? false}
             />
             {RightSlot}
