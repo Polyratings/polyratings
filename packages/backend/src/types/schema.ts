@@ -33,7 +33,9 @@ export type Rating = z.infer<typeof ratingParser>;
 export const pendingRatingParser = ratingParser.extend({
     status: z.enum(PENDING_RATING_STATUSES),
     error: z.nullable(z.string()),
-    analyzedScores: z.custom<Moderation>((mod) => typeof mod === "object").nullable(),
+    analyzedScores: z
+        .custom<Moderation | Record<string, number>>((mod) => typeof mod === "object")
+        .nullable(),
     courseNum: z.number().min(100).max(599),
     department: z.enum(DEPARTMENT_LIST),
 });
