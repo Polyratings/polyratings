@@ -1,108 +1,38 @@
-import { PendingRating, perspectiveAttributeScoreParser } from "@backend/types/schema";
-import { z } from "zod";
+import { PendingRating } from "@backend/types/schema";
+import OpenAI from "openai";
+import type { Moderation } from "openai/resources/moderations";
 
-const ANALYZE_COMMENT_URL = "https://commentanalyzer.googleapis.com/v1alpha1/comments:analyze";
-
-export type AnalyzedRating = Record<string, number>;
 export type RatingAnalyzer = {
-    analyzeRating(rating: PendingRating): Promise<AnalyzedRating>;
+    analyzeRating(rating: PendingRating): Promise<Moderation | null>;
 };
 
-export class PerspectiveDAO implements RatingAnalyzer {
-    constructor(private readonly apiKey: string) {}
+export class OpenAIDAO implements RatingAnalyzer {
+    private openai: OpenAI;
 
-    async analyzeRating(rating: PendingRating): Promise<AnalyzedRating> {
-        // TODO: Perhaps we should define a default request?
-        const requestBody: AnalyzeCommentRequest = {
-            comment: {
-                text: rating.rating,
-                type: "PLAIN_TEXT",
-            },
-            requestedAttributes: {
-                SEVERE_TOXICITY: {},
-                IDENTITY_ATTACK: {},
-                THREAT: {},
-                SEXUALLY_EXPLICIT: {},
-            },
-            languages: ["en"],
-            clientToken: "Polyratings",
-        };
-
-        const httpResponse = await fetch(`${ANALYZE_COMMENT_URL}?key=${this.apiKey}`, {
-            body: JSON.stringify(requestBody),
-            method: "POST",
+    constructor(apiKey: string, accountId: string, gatewayId: string) {
+        this.openai = new OpenAI({
+            apiKey,
+            baseURL: `https://gateway.ai.cloudflare.com/v1/${accountId}/${gatewayId}/openai`,
         });
+    }
 
-        if (!httpResponse.ok) {
-            throw new Error(
-                JSON.stringify({ status: httpResponse.status, message: httpResponse.statusText }),
-            );
+    async analyzeRating(rating: PendingRating) {
+        try {
+            const moderation = await this.openai.moderations.create({
+                model: "omni-moderation-latest",
+                input: rating.rating,
+            });
+
+            return moderation.results[0];
+        } catch {
+            // Don't block submission on OpenAI failures
+            return null;
         }
-
-        const response = analyzeCommentResponseParser.parse(await httpResponse.json());
-
-        return Object.fromEntries(
-            Object.entries(response.attributeScores).map(
-                ([
-                    key,
-                    {
-                        summaryScore: { value },
-                    },
-                ]) => [key, value],
-            ),
-        );
     }
 }
-
 export class PassThroughRatingAnalyzer implements RatingAnalyzer {
     // eslint-disable-next-line class-methods-use-this, @typescript-eslint/no-unused-vars
-    async analyzeRating(rating: PendingRating): Promise<AnalyzedRating> {
-        return {};
+    async analyzeRating(rating: PendingRating) {
+        return null;
     }
 }
-
-interface AnalyzeCommentRequest {
-    comment: {
-        text: string;
-        type: "PLAIN_TEXT";
-    };
-    requestedAttributes: Partial<Record<PerspectiveAttributeNames, PerspectiveRequestedAttribute>>;
-    languages?: string[];
-    doNotStore?: boolean;
-    clientToken?: string;
-    sessionId?: string;
-    communityId?: string;
-}
-
-type PerspectiveAttributeNames =
-    | PerspectiveProductionAttributeNames
-    | PerspectiveExperimentalAttributeNames;
-
-type PerspectiveProductionAttributeNames =
-    | "TOXICITY"
-    | "SEVERE_TOXICITY"
-    | "IDENTITY_ATTACK"
-    | "INSULT"
-    | "PROFANITY"
-    | "THREAT";
-
-type PerspectiveExperimentalAttributeNames =
-    | "TOXICITY_EXPERIMENTAL"
-    | "SEVERE_TOXICITY_EXPERIMENTAL"
-    | "IDENTITY_ATTACK_EXPERIMENTAL"
-    | "INSULT_EXPERIMENTAL"
-    | "PROFANITY_EXPERIMENTAL"
-    | "THREAT_EXPERIMENTAL"
-    | "SEXUALLY_EXPLICIT"
-    | "FLIRTATION";
-
-interface PerspectiveRequestedAttribute {
-    scoreType?: "PROBABILITY";
-    scoreThreshold?: number; // needs to be between 0 and 1
-}
-
-const analyzeCommentResponseParser = z.object({
-    attributeScores: z.record(z.string(), perspectiveAttributeScoreParser),
-    languages: z.string().array(),
-    clientToken: z.string(),
-});
