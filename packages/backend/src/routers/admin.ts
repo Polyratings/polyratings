@@ -127,8 +127,9 @@ export const adminRouter = t.router({
     autoReportDuplicateUsers: protectedProcedure.mutation(async ({ ctx }) => {
         const profs = await ctx.env.kvDao.getAllProfessors();
 
-        // Fetch all professors in parallel
-        const professors = await Promise.all(profs.map((p) => ctx.env.kvDao.getProfessor(p.id)));
+        // Fetch all professors using bulk operations to avoid rate limit
+        const professorIds = profs.map((p) => p.id);
+        const professors = await ctx.env.kvDao.getBulkValues("professors", professorIds);
 
         const reportTasks: Promise<void>[] = [];
 
