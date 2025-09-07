@@ -131,7 +131,6 @@ export const adminRouter = t.router({
             // OpenAI Moderation API limits: 500 RPM, 10,000 RPD, 10,000 TPM
             // Conservative batch size to stay well under limits
             const BATCH_SIZE = 25; // Reduced further to account for moderation API limits
-            const MODERATION_DELAY_MS = 150; // ~400 requests/min to stay under 500 RPM limit
             let duplicatesFound = 0;
             let moderationFlagged = 0;
             let processedCount = 0;
@@ -229,12 +228,6 @@ export const adminRouter = t.router({
 
                             // Only re-analyze if not already analyzed or no scores
                             if (!rating.analyzedScores) {
-                                // Rate limit moderation API calls to stay under 500 RPM
-                                // eslint-disable-next-line no-await-in-loop
-                                await new Promise((resolve) => {
-                                    setTimeout(resolve, MODERATION_DELAY_MS);
-                                });
-
                                 // eslint-disable-next-line no-await-in-loop
                                 const analyzedScores = await ctx.env.ratingAnalyzer.analyzeRating({
                                     ...rating,
