@@ -359,34 +359,36 @@ function ReportedRatings() {
 
                 {/* Progress Display */}
                 {(auditProgress.processedCount > 0 || auditProgress.isRunning) && (
-                    <div className="text-sm space-y-1">
-                        <div>
-                            Progress: {auditProgress.processedCount} /{" "}
-                            {auditProgress.totalProfessors} professors (
-                            {auditProgress.totalProfessors > 0
-                                ? Math.round(
-                                      (auditProgress.processedCount /
-                                          auditProgress.totalProfessors) *
-                                          100,
-                                  )
-                                : 0}
-                            %)
-                        </div>
-                        <div>Duplicates Found: {auditProgress.duplicatesFound}</div>
-                        <div>Moderation Flagged: {auditProgress.moderationFlagged}</div>
-                        {auditProgress.isRunning && (
-                            <div className="w-full bg-gray-200 rounded-full h-2">
-                                <div
-                                    className="bg-blue-600 h-2 rounded-full transition-all duration-300"
-                                    style={{
-                                        // eslint-disable-next-line max-len
-                                        width: `${auditProgress.totalProfessors > 0 ? (auditProgress.processedCount / auditProgress.totalProfessors) * 100 : 0}%`,
-                                    }}
-                                />
+                    (() => {
+                        const progressPercent =
+                            auditProgress.totalProfessors > 0
+                                ? (auditProgress.processedCount / auditProgress.totalProfessors) * 100
+                                : 0;
+                        return (
+                            <div className="text-sm space-y-1">
+                                <div>
+                                    Progress: {auditProgress.processedCount} /{" "}
+                                    {auditProgress.totalProfessors} professors (
+                                    {Math.round(progressPercent)}
+                                    %)
+                                </div>
+                                <div>Duplicates Found: {auditProgress.duplicatesFound}</div>
+                                <div>Moderation Flagged: {auditProgress.moderationFlagged}</div>
+                                {auditProgress.isRunning && (
+                                    <div className="w-full bg-gray-200 rounded-full h-2">
+                                        <div
+                                            className="bg-blue-600 h-2 rounded-full transition-all duration-300"
+                                            style={{
+                                                // eslint-disable-next-line max-len
+                                                width: `${progressPercent}%`,
+                                            }}
+                                        />
+                                    </div>
+                                )}
+                                <div className="text-gray-600">{auditProgress.message}</div>
                             </div>
-                        )}
-                        <div className="text-gray-600">{auditProgress.message}</div>
-                    </div>
+                        );
+                    })()
                 )}
             </div>
 
