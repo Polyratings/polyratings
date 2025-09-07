@@ -32,7 +32,7 @@ export class OpenAIDAO implements RatingAnalyzer {
 }
 export class PassThroughRatingAnalyzer implements RatingAnalyzer {
     // eslint-disable-next-line class-methods-use-this, @typescript-eslint/no-unused-vars
-    async analyzeRating(rating: PendingRating) {
+    async analyzeRating(_: PendingRating) {
         return null;
     }
 }
