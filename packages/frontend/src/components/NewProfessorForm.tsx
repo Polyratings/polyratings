@@ -34,11 +34,11 @@ const newProfessorFormParser = z.object({
     ratingText: z
         .string()
         .trim()
-        .min(20, { message: "Rating text must be at least 20 characters long" }),
+        .min(20, { error: "Rating text must be at least 20 characters long" }),
     courseDepartment: z.enum(DEPARTMENT_LIST),
     courseNum: z.preprocess(
         (val) => parseInt(z.string().parse(val), 10),
-        z.number().min(100, { message: "Invalid" }).max(599, { message: "Invalid" }),
+        z.number().min(100, { error: "Invalid" }).max(599, { error: "Invalid" }),
     ),
     gradeLevel: z.enum(GRADE_LEVELS),
     grade: z.enum(GRADES),

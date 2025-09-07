@@ -43,7 +43,7 @@
         "tailwind-scrollbar-hide": "^4.0.0",
         "tailwindcss": "^4.1.13",
         "type-fest": "^4.41.0",
-        "zod": "^3.25.76"
+        "zod": "^4.1.5"
     },
     "devDependencies": {
         "@cloudflare/workers-types": "^4.20250906.0",

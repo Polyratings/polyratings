@@ -7,7 +7,7 @@ import { Env } from "@backend/env";
 
 const addRatingParser = ratingBaseParser.merge(
     z.object({
-        professor: z.string().uuid(),
+        professor: z.uuid(),
         department: z.enum(DEPARTMENT_LIST),
         courseNum: z.number().min(100).max(599),
     }),
@@ -80,11 +80,7 @@ export const ratingsRouter = t.router({
         .input(addRatingParser)
         .mutation(async ({ ctx, input }) => addRating(input, ctx)),
     report: t.procedure
-        .input(
-            reportParser.merge(
-                z.object({ ratingId: z.string().uuid(), professorId: z.string().uuid() }),
-            ),
-        )
+        .input(reportParser.merge(z.object({ ratingId: z.uuid(), professorId: z.uuid() })))
         .mutation(async ({ ctx, input }) => {
             const anonymousIdentifier = await ctx.env.anonymousIdDao.getIdentifier();
             const ratingReport: RatingReport = {

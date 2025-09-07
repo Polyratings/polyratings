@@ -1,5 +1,5 @@
-import { infer as zodInfer, SafeParseReturnType, ZodTypeAny } from "zod";
 import { TRPCError } from "@trpc/server";
+import type { output, infer as zodInfer, ZodSafeParseResult, ZodTypeAny } from "zod";
 
 export class KvWrapper {
     constructor(private kv: KVNamespace) {}
@@ -15,7 +15,7 @@ export class KvWrapper {
     async safeGet<T extends ZodTypeAny>(
         parser: T,
         key: string,
-    ): Promise<SafeParseReturnType<T, zodInfer<T>>> {
+    ): Promise<ZodSafeParseResult<output<T>>> {
         const json = await this.kv.get(key, "json");
         return parser.safeParse(json);
     }
