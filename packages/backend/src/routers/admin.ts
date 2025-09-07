@@ -122,4 +122,62 @@ export const adminRouter = t.router({
                 await ctx.env.kvDao.putProfessor(professor, true);
             }
         }),
+
+    // Audits
+    autoReportDuplicateUsers: protectedProcedure.mutation(async ({ ctx }) => {
+        const profs = await ctx.env.kvDao.getAllProfessors();
+
+        // Fetch all professors in parallel
+        const professors = await Promise.all(profs.map((p) => ctx.env.kvDao.getProfessor(p.id)));
+
+        const reportTasks: Promise<void>[] = [];
+
+        // Process each professor
+        for (const professor of professors) {
+            const anonymousIdMap = new Map<
+                string,
+                { ratingId: string; postDate: string; course: string }[]
+            >();
+
+            // Collect all ratings by anonymousIdentifier
+            Object.entries(professor.reviews).forEach(([course, ratings]) => {
+                ratings.forEach((rating) => {
+                    if (rating.anonymousIdentifier) {
+                        if (!anonymousIdMap.has(rating.anonymousIdentifier)) {
+                            anonymousIdMap.set(rating.anonymousIdentifier, []);
+                        }
+                        anonymousIdMap.get(rating.anonymousIdentifier)!.push({
+                            ratingId: rating.id,
+                            postDate: rating.postDate,
+                            course,
+                        });
+                    }
+                });
+            });
+
+            for (const [anonymousId, ratings] of anonymousIdMap) {
+                if (ratings.length > 1) {
+                    ratings.forEach((ratingInfo) => {
+                        // eslint-disable-next-line max-len
+                        const reason = `[AUTOMATED] ${ratings.length} ratings submitted by user ${anonymousId} under this professor. This review's timestamp: ${ratingInfo.postDate}`;
+                        const ratingReport = {
+                            ratingId: ratingInfo.ratingId,
+                            professorId: professor.id,
+                            reports: [
+                                {
+                                    email: null,
+                                    reason,
+                                    anonymousIdentifier: anonymousId,
+                                },
+                            ],
+                        };
+                        reportTasks.push(ctx.env.kvDao.putReport(ratingReport));
+                    });
+                }
+            }
+        }
+
+        // Execute all report writes
+        await Promise.all(reportTasks);
+    }),
 });

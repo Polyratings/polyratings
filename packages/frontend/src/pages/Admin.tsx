@@ -54,6 +54,10 @@ function ReportedRatings() {
         onSuccess: () =>
             queryClient.invalidateQueries({ queryKey: bulkInvalidationKey("reports") }),
     });
+    const { mutate: autoReportDuplicateUsers } = trpc.admin.autoReportDuplicateUsers.useMutation({
+        onSuccess: () =>
+            queryClient.invalidateQueries({ queryKey: bulkInvalidationKey("reports") }),
+    });
 
     const columns = [
         {
@@ -154,6 +158,9 @@ function ReportedRatings() {
     return (
         <div className="mt-4">
             <h2 className="ml-1">Reported Ratings:</h2>
+            <Button type="button" onClick={() => autoReportDuplicateUsers()}>
+                Run Audit
+            </Button>
             <DataTable columns={columns} data={ratingReports ?? []} pagination />
         </div>
     );
