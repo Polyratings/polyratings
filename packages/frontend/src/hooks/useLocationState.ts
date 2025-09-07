@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useLocation } from "react-router-dom";
+import { useLocation } from "react-router";
 
 // TODO: Maybe introduce a mechanism to not have a memory leak!
 const storage: Map<string, Map<string, unknown>> = new Map();

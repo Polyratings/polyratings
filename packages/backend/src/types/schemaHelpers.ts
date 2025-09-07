@@ -9,12 +9,13 @@ export function addRating(professor: Professor, reviewUnparsed: Rating, courseNa
     review.professor = professor.id;
 
     // For migration purposes from old schema
-    professor.tags ??= {};
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    professor.tags ??= {} as any;
 
     // Add tags to the professor
     for (const tag of review.tags ?? []) {
-        const current = professor.tags[tag] ?? 0;
-        professor.tags[tag] = current + 1;
+        const current = professor.tags![tag] ?? 0;
+        professor.tags![tag] = current + 1;
     }
 
     const ratings = professor.reviews[courseName];

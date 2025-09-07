@@ -1,4 +1,4 @@
-import { Link } from "react-router-dom";
+import { Link } from "react-router";
 import { inferProcedureOutput } from "@trpc/server";
 import { AppRouter } from "@backend/index";
 import star from "@/assets/star.svg";
@@ -20,7 +20,7 @@ export function ProfessorCard({ professor }: ProfessorCardProps) {
                 <h3 className="text-3xl font-medium pl-3">
                     {professor?.lastName}, {professor?.firstName}
                 </h3>
-                <div className="text-right text-xl pr-3 font-medium flex-shrink-0">
+                <div className="text-right text-xl pr-3 font-medium shrink-0">
                     <div>{professor?.department}</div>
                     <div className="flex items-center justify-end">
                         <img className="pr-1 h-4" src={star} alt="" />

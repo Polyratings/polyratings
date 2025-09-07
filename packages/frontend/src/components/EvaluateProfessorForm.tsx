@@ -35,7 +35,7 @@ export function TwoStepEvaluateProfessor({ professor, closeForm }: EvaluateProfe
         return <></>;
     }
 
-    const { onSubmit, hookForm, networkError, isLoading } = useEvaluationForm(professor, closeForm);
+    const { onSubmit, hookForm, networkError, isPending } = useEvaluationForm(professor, closeForm);
     const { control, trigger: triggerValidation } = hookForm;
 
     return (
@@ -66,7 +66,7 @@ export function TwoStepEvaluateProfessor({ professor, closeForm }: EvaluateProfe
                         )}
                     />
                 )}
-                isLoading={isLoading}
+                isLoading={isPending}
                 triggerValidation={triggerValidation}
             />
 
@@ -106,7 +106,7 @@ export function FormBar({ isLoading, triggerValidation, firstStep, secondStep }:
                         Course Accessibility
                     </div>
                 </div>
-                <div className="h-1 rounded bg-gray-200 relative transition-all">
+                <div className="h-1 rounded-sm bg-gray-200 relative transition-all">
                     <div
                         className={`absolute w-1/2 h-1 rounded bg-cal-poly-green ${
                             formStep === "first" ? "left-0" : "left-1/2"
@@ -161,7 +161,7 @@ export function EvaluateProfessorFormLinear({ professor, closeForm }: EvaluatePr
     if (!professor) {
         return <div />;
     }
-    const { onSubmit, hookForm, isLoading, networkError } = useEvaluationForm(professor, closeForm);
+    const { onSubmit, hookForm, isPending, networkError } = useEvaluationForm(professor, closeForm);
     const { control } = hookForm;
 
     return (
@@ -176,7 +176,7 @@ export function EvaluateProfessorFormLinear({ professor, closeForm }: EvaluatePr
                 )}
             />
 
-            <div className={`flex justify-center ${isLoading ? "hidden" : "block"}`}>
+            <div className={`flex justify-center ${isPending ? "hidden" : "block"}`}>
                 <Button variant="tertiary" type="submit">
                     Submit
                 </Button>
@@ -184,7 +184,7 @@ export function EvaluateProfessorFormLinear({ professor, closeForm }: EvaluatePr
 
             <div className="flex justify-center">
                 {/* Exact size for no layer shift */}
-                <ClipLoader color="white" loading={isLoading} size={34} />
+                <ClipLoader color="white" loading={isPending} size={34} />
             </div>
             <div className="text-red-500 text-sm">{networkError?.message}</div>
         </form>
@@ -220,7 +220,8 @@ function EvaluateProfessorStep({
     register,
     professor,
     formState: { errors },
-}: UseFormReturn<EvaluateProfessorFormInputs> & Pick<EvaluateProfessorFormProps, "professor">) {
+}: UseFormReturn<EvaluateProfessorFormInputs, unknown, EvaluateProfessorFormOutputs> &
+    Pick<EvaluateProfessorFormProps, "professor">) {
     const knownCourseValue = watch("knownCourse");
 
     const sortedCourses = useSortedCourses(professor?.id).map(({ courseName }) => courseName);
@@ -414,12 +415,12 @@ const evaluateProfessorFormParser = z.object({
     overallRating: z.string().transform(Number),
     recognizesStudentDifficulties: z.string().transform(Number),
     presentsMaterialClearly: z.string().transform(Number),
-    ratingText: z.string().min(20, { message: "Rating text must be at least 20 characters long" }),
+    ratingText: z.string().min(20, { error: "Rating text must be at least 20 characters long" }),
     unknownCourseDepartment: z.enum(DEPARTMENT_LIST).optional(),
     unknownCourseNumber: z.coerce
         .number()
-        .min(100, { message: "Invalid" })
-        .max(599, { message: "Invalid" })
+        .min(100, { error: "Invalid" })
+        .max(599, { error: "Invalid" })
         .optional(),
     gradeLevel: z.enum(GRADE_LEVELS),
     grade: z.enum(GRADES),
@@ -427,13 +428,14 @@ const evaluateProfessorFormParser = z.object({
     tags: z.enum(PROFESSOR_TAGS).array().optional(),
 });
 
-type EvaluateProfessorFormInputs = z.infer<typeof evaluateProfessorFormParser>;
+type EvaluateProfessorFormInputs = z.input<typeof evaluateProfessorFormParser>;
+type EvaluateProfessorFormOutputs = z.output<typeof evaluateProfessorFormParser>;
 
 function useEvaluationForm(
     professor: inferProcedureOutput<AppRouter["professors"]["get"]>,
     closeForm: () => void,
 ) {
-    const hookForm = useForm<EvaluateProfessorFormInputs>({
+    const hookForm = useForm<EvaluateProfessorFormInputs, unknown, EvaluateProfessorFormOutputs>({
         resolver: zodResolver(evaluateProfessorFormParser),
         defaultValues: {
             knownCourse: Object.keys(professor.reviews || {})[0],
@@ -441,10 +443,10 @@ function useEvaluationForm(
     });
     const { setError } = hookForm;
 
-    const trpcContext = trpc.useContext();
+    const trpcContext = trpc.useUtils();
     const {
         mutate: uploadRating,
-        isLoading,
+        isPending,
         error: networkError,
     } = trpc.ratings.add.useMutation({
         onSuccess: (updatedProfessor) => {
@@ -458,7 +460,7 @@ function useEvaluationForm(
         },
     });
 
-    const onSubmitHandler: SubmitHandler<EvaluateProfessorFormInputs> = async (formResult) => {
+    const onSubmitHandler: SubmitHandler<EvaluateProfessorFormOutputs> = async (formResult) => {
         const courseNum = formResult.knownCourse
             ? parseInt(formResult.knownCourse.split(" ")[1], 10)
             : formResult.unknownCourseNumber;
@@ -496,7 +498,7 @@ function useEvaluationForm(
 
     return {
         hookForm,
-        isLoading,
+        isPending,
         networkError,
         onSubmit: hookForm.handleSubmit(onSubmitHandler),
     };

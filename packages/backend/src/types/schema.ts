@@ -22,13 +22,11 @@ export const ratingBaseParser = z.object({
 });
 export type RatingBase = z.infer<typeof ratingBaseParser>;
 
-export const ratingParser = ratingBaseParser.merge(
-    z.object({
-        id: z.string().uuid(),
-        professor: z.string().uuid(),
-        postDate: z.string(),
-    }),
-);
+export const ratingParser = ratingBaseParser.extend({
+    id: z.uuid(),
+    professor: z.uuid(),
+    postDate: z.string(),
+});
 export type Rating = z.infer<typeof ratingParser>;
 
 export const perspectiveAttributeScoreParser = z.object({
@@ -51,19 +49,17 @@ export const perspectiveAttributeScoreParser = z.object({
 });
 export type PerspectiveAttributeScore = z.infer<typeof perspectiveAttributeScoreParser>;
 
-export const pendingRatingParser = ratingParser.merge(
-    z.object({
-        status: z.enum(PENDING_RATING_STATUSES),
-        error: z.nullable(z.string()),
-        analyzedScores: z.nullable(z.record(z.number())),
-        courseNum: z.number().min(100).max(599),
-        department: z.enum(DEPARTMENT_LIST),
-    }),
-);
+export const pendingRatingParser = ratingParser.extend({
+    status: z.enum(PENDING_RATING_STATUSES),
+    error: z.nullable(z.string()),
+    analyzedScores: z.nullable(z.record(z.string(), z.number())),
+    courseNum: z.number().min(100).max(599),
+    department: z.enum(DEPARTMENT_LIST),
+});
 export type PendingRating = z.infer<typeof pendingRatingParser>;
 
 export const truncatedProfessorParser = z.object({
-    id: z.string().uuid(),
+    id: z.uuid(),
     department: z.enum(DEPARTMENT_LIST),
     firstName: z.string().trim(),
     lastName: z.string().trim(),
@@ -71,16 +67,14 @@ export const truncatedProfessorParser = z.object({
     overallRating: z.number().min(0).max(4),
     materialClear: z.number().min(0).max(4),
     studentDifficulties: z.number().min(0).max(4),
-    courses: z.array(z.string()),
-    tags: z.record(z.enum(PROFESSOR_TAGS), z.number()).optional(),
+    courses: z.string().array(),
+    tags: z.partialRecord(z.enum(PROFESSOR_TAGS), z.number()).optional(),
 });
 export type TruncatedProfessor = z.infer<typeof truncatedProfessorParser>;
 
-export const professorParser = truncatedProfessorParser.merge(
-    z.object({
-        reviews: z.record(z.array(ratingParser)),
-    }),
-);
+export const professorParser = truncatedProfessorParser.extend({
+    reviews: z.record(z.string(), ratingParser.array()),
+});
 export type Professor = z.infer<typeof professorParser>;
 
 export const userParser = z.object({
@@ -95,9 +89,9 @@ export const reportParser = z.object({
     anonymousIdentifier: z.optional(z.string()),
 });
 export const ratingReportParser = z.object({
-    ratingId: z.string().uuid(),
-    professorId: z.string().uuid(),
-    reports: z.array(reportParser),
+    ratingId: z.uuid(),
+    professorId: z.uuid(),
+    reports: reportParser.array(),
 });
 
 export type RatingReport = z.infer<typeof ratingReportParser>;

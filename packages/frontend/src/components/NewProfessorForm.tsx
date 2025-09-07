@@ -34,11 +34,11 @@ const newProfessorFormParser = z.object({
     ratingText: z
         .string()
         .trim()
-        .min(20, { message: "Rating text must be at least 20 characters long" }),
+        .min(20, { error: "Rating text must be at least 20 characters long" }),
     courseDepartment: z.enum(DEPARTMENT_LIST),
     courseNum: z.preprocess(
         (val) => parseInt(z.string().parse(val), 10),
-        z.number().min(100, { message: "Invalid" }).max(599, { message: "Invalid" }),
+        z.number().min(100, { error: "Invalid" }).max(599, { error: "Invalid" }),
     ),
     gradeLevel: z.enum(GRADE_LEVELS),
     grade: z.enum(GRADES),
@@ -46,14 +46,15 @@ const newProfessorFormParser = z.object({
     tags: z.enum(PROFESSOR_TAGS).array().optional(),
 });
 
-type NewProfessorFormInputs = z.infer<typeof newProfessorFormParser>;
+type NewProfessorFormInputs = z.input<typeof newProfessorFormParser>;
+type NewProfessorFormOutputs = z.output<typeof newProfessorFormParser>;
 
 export function NewProfessorFormTwoStep() {
     const { hookForm, onSubmit, isLoading, networkError } = useNewProfessorForm();
     const { control, trigger: triggerValidation } = hookForm;
     return (
         <div
-            className="p-5 opacity-100 rounded relative bg-white shadow-2xl"
+            className="p-5 opacity-100 rounded-sm relative bg-white shadow-2xl"
             style={{ width: "40rem" }}
         >
             <form onSubmit={onSubmit}>
@@ -83,7 +84,7 @@ export function NewProfessorLinear() {
     const { control } = hookForm;
     return (
         <div
-            className="p-5 opacity-100 rounded relative bg-white shadow-2xl"
+            className="p-5 opacity-100 rounded-sm relative bg-white shadow-2xl"
             style={{ width: "40rem" }}
         >
             <form onSubmit={onSubmit}>
@@ -117,7 +118,7 @@ export function NewProfessorLinear() {
 }
 
 function useNewProfessorForm() {
-    const hookForm = useForm<NewProfessorFormInputs>({
+    const hookForm = useForm<NewProfessorFormInputs, unknown, NewProfessorFormOutputs>({
         resolver: zodResolver(newProfessorFormParser),
         defaultValues: {
             sameDepartment: true,
@@ -127,14 +128,14 @@ function useNewProfessorForm() {
 
     const {
         mutateAsync: addNewProfessorMutation,
-        isLoading,
+        isPending,
         error: networkError,
     } = trpc.professors.add.useMutation();
     const navigate = useNavigate();
 
     const utils = trpc.useUtils();
 
-    const onSubmitHandler = async (data: NewProfessorFormInputs) => {
+    const onSubmitHandler = async (data: NewProfessorFormOutputs) => {
         try {
             const successMessage = await addNewProfessorMutation({
                 firstName: data.professorFirstName,
@@ -168,7 +169,7 @@ function useNewProfessorForm() {
 
     return {
         hookForm,
-        isLoading,
+        isLoading: isPending,
         networkError,
         onSubmit: hookForm.handleSubmit(onSubmitHandler),
     };
@@ -179,7 +180,7 @@ function NewProfessorStep({
     watch,
     setValue,
     formState: { errors },
-}: UseFormReturn<NewProfessorFormInputs>) {
+}: UseFormReturn<NewProfessorFormInputs, unknown, NewProfessorFormOutputs>) {
     const professorDepartment = watch("professorDepartment");
     const sameAsProfessorDepartment = watch("sameDepartment");
 

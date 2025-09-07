@@ -34,7 +34,7 @@ export class KVDAO {
 
     async getAllProfessors() {
         const professorList = await this.polyratingsNamespace.safeGet(
-            z.array(truncatedProfessorParser),
+            truncatedProfessorParser.array(),
             ALL_PROFESSOR_KEY,
         );
         if (!professorList.success) {
@@ -49,7 +49,7 @@ export class KVDAO {
 
     private async putAllProfessors(professorList: TruncatedProfessor[]) {
         await this.polyratingsNamespace.put(
-            z.array(truncatedProfessorParser),
+            truncatedProfessorParser.array(),
             ALL_PROFESSOR_KEY,
             professorList,
         );
@@ -189,7 +189,7 @@ export class KVDAO {
         try {
             const user = await this.usersNamespace.get(userParser, username);
             return user;
-        } catch (e) {
+        } catch {
             throw new TRPCError({ code: "UNAUTHORIZED" });
         }
     }

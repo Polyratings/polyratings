@@ -47,10 +47,12 @@ function ReportedRatings() {
     });
     const queryClient = useQueryClient();
     const { mutate: removeReport } = trpc.admin.removeReport.useMutation({
-        onSuccess: () => queryClient.invalidateQueries(bulkInvalidationKey("reports")),
+        onSuccess: () =>
+            queryClient.invalidateQueries({ queryKey: bulkInvalidationKey("reports") }),
     });
     const { mutate: actOnReport } = trpc.admin.actOnReport.useMutation({
-        onSuccess: () => queryClient.invalidateQueries(bulkInvalidationKey("reports")),
+        onSuccess: () =>
+            queryClient.invalidateQueries({ queryKey: bulkInvalidationKey("reports") }),
     });
 
     const columns = [
@@ -130,7 +132,7 @@ function ReportedRatings() {
             cell: (row: RatingReport) => (
                 <ConfirmationButton
                     action={() => removeReport(row.ratingId)}
-                    buttonClassName="p-2 bg-green-500 text-white rounded"
+                    buttonClassName="p-2 bg-green-500 text-white rounded-sm"
                     buttonText="K"
                 />
             ),
@@ -141,7 +143,7 @@ function ReportedRatings() {
             cell: (row: RatingReport) => (
                 <ConfirmationButton
                     action={() => actOnReport(row.ratingId)}
-                    buttonClassName="p-2 bg-red-500 text-white rounded"
+                    buttonClassName="p-2 bg-red-500 text-white rounded-sm"
                     buttonText="R"
                 />
             ),
@@ -161,10 +163,12 @@ function PendingProfessors() {
     const { data: pendingProfessors } = useDbValues("professor-queue");
     const queryClient = useQueryClient();
     const { mutate: approvePendingProfessor } = trpc.admin.approvePendingProfessor.useMutation({
-        onSuccess: () => queryClient.invalidateQueries(bulkInvalidationKey("professor-queue")),
+        onSuccess: () =>
+            queryClient.invalidateQueries({ queryKey: bulkInvalidationKey("professor-queue") }),
     });
     const { mutate: rejectPendingProfessor } = trpc.admin.rejectPendingProfessor.useMutation({
-        onSuccess: () => queryClient.invalidateQueries(bulkInvalidationKey("professor-queue")),
+        onSuccess: () =>
+            queryClient.invalidateQueries({ queryKey: bulkInvalidationKey("professor-queue") }),
     });
 
     const columns = [
@@ -200,7 +204,7 @@ function PendingProfessors() {
             cell: (row: Professor) => (
                 <ConfirmationButton
                     action={async () => approvePendingProfessor(row.id)}
-                    buttonClassName="p-2 bg-green-500 text-white rounded"
+                    buttonClassName="p-2 bg-green-500 text-white rounded-sm"
                     buttonText="✓"
                 />
             ),
@@ -211,7 +215,7 @@ function PendingProfessors() {
             cell: (row: Professor) => (
                 <ConfirmationButton
                     action={async () => rejectPendingProfessor(row.id)}
-                    buttonClassName="p-2 bg-red-500 text-white rounded"
+                    buttonClassName="p-2 bg-red-500 text-white rounded-sm"
                     buttonText="X"
                 />
             ),
@@ -252,13 +256,14 @@ function SubmitUnderAction({ professor }: PendingProfessorAction) {
     const [searchValue, setSearchValue] = useState("");
 
     const { data: allProfessors } = trpc.professors.all.useQuery();
-    const { mutateAsync: submitRating, isLoading: loadingSubmitRating } =
+    const { mutateAsync: submitRating, isPending: loadingSubmitRating } =
         trpc.ratings.add.useMutation();
 
     const queryClient = useQueryClient();
-    const { mutateAsync: removePending, isLoading: loadingRemovePending } =
+    const { mutateAsync: removePending, isPending: loadingRemovePending } =
         trpc.admin.rejectPendingProfessor.useMutation({
-            onSuccess: () => queryClient.invalidateQueries(bulkInvalidationKey("professor-queue")),
+            onSuccess: () =>
+                queryClient.invalidateQueries({ queryKey: bulkInvalidationKey("professor-queue") }),
         });
 
     const isLoading = loadingSubmitRating || loadingRemovePending;
@@ -333,10 +338,11 @@ function ChangeNameAction({ professor }: PendingProfessorAction) {
     const queryClient = useQueryClient();
     const {
         mutate: setName,
-        isLoading,
+        isPending,
         error,
     } = trpc.admin.changePendingProfessorName.useMutation({
-        onSuccess: () => queryClient.invalidateQueries(bulkInvalidationKey("professor-queue")),
+        onSuccess: () =>
+            queryClient.invalidateQueries({ queryKey: bulkInvalidationKey("professor-queue") }),
     });
 
     return (
@@ -357,7 +363,7 @@ function ChangeNameAction({ professor }: PendingProfessorAction) {
                 onChange={(e) => setFirst(e.target.value)}
             />
             <Button
-                disabled={isLoading}
+                disabled={isPending}
                 onClick={() =>
                     setName({
                         professorId: professor.id,
@@ -379,10 +385,11 @@ function ChangeNameDepartment({ professor }: PendingProfessorAction) {
     const queryClient = useQueryClient();
     const {
         mutate: setProfessorDepartment,
-        isLoading,
+        isPending,
         error,
     } = trpc.admin.changePendingProfessorDepartment.useMutation({
-        onSuccess: () => queryClient.invalidateQueries(bulkInvalidationKey("professor-queue")),
+        onSuccess: () =>
+            queryClient.invalidateQueries({ queryKey: bulkInvalidationKey("professor-queue") }),
     });
 
     return (
@@ -395,7 +402,7 @@ function ChangeNameDepartment({ professor }: PendingProfessorAction) {
                 onChange={(e) => setDepartment(e.target.value as Department)}
             />
             <Button
-                disabled={isLoading}
+                disabled={isPending}
                 onClick={() =>
                     setProfessorDepartment({
                         professorId: professor.id,
@@ -492,7 +499,7 @@ export function ConfirmationButton({
                 {buttonText}
             </button>
             {confirmationOpen && (
-                <div className="absolute p-2 w-28 z-50 bg-white shadow top-0 right-0">
+                <div className="absolute p-2 w-28 z-50 bg-white shadow-sm top-0 right-0">
                     <div>Are You Sure?</div>
                     <div className="flex justify-between mt-1">
                         <button

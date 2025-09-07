@@ -11,7 +11,7 @@ export interface SelectProps extends React.ComponentProps<"select"> {
 export const Select = forwardRef<HTMLSelectElement, SelectProps>(
     ({ options, name, label, error, wrapperClassName = "", ...rest }, ref) => (
         <div
-            className={`w-[10.5rem] flex flex-col ${
+            className={`w-42 flex flex-col ${
                 error ? "text-red-500" : "text-inherit"
             } ${wrapperClassName}`}
         >
@@ -22,7 +22,7 @@ export const Select = forwardRef<HTMLSelectElement, SelectProps>(
                 <select
                     className={`w-full py-2 pl-4 pr-10 rounded  ${
                         rest.disabled ? "cursor-not-allowed" : "cursor-pointer"
-                    } appearance-none border-[1px] ${
+                    } appearance-none border ${
                         error ? "border-red-500 bg-red-50" : "border-[#c3cdd5] bg-[#f2f5f8]"
                     } active:bg-[#f2feff]`}
                     id={name}

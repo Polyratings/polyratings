@@ -4,12 +4,12 @@ import {
     createRoutesFromElements,
     RouterProvider,
     Outlet,
-    useLocation,
-} from "react-router-dom";
+    ScrollRestoration,
+} from "react-router";
 import { ToastContainer } from "react-toastify";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { persistQueryClient } from "@tanstack/react-query-persist-client";
-import { useLayoutEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import {
     Home,
     ProfessorPage,
@@ -57,7 +57,7 @@ export default function App() {
 
     const [queryClient] = useState(() => {
         const queryClient = new QueryClient({
-            defaultOptions: { queries: { staleTime: Infinity, cacheTime: 600000 } },
+            defaultOptions: { queries: { staleTime: Infinity, gcTime: 600000 } },
         });
         persistQueryClient({
             queryClient,
@@ -82,7 +82,7 @@ export default function App() {
 }
 
 function PolyratingsRouter() {
-    const trpcContext = trpc.useContext();
+    const trpcContext = trpc.useUtils();
 
     const router = createBrowserRouter(
         createRoutesFromElements(
@@ -109,21 +109,10 @@ function PolyratingsRouter() {
 function BaseComponent() {
     return (
         <>
-            <ScrollToTop />
+            <ScrollRestoration />
             <ToastContainer />
             <Navbar />
             <Outlet />
         </>
     );
-}
-
-// From https://v5.reactrouter.com/web/guides/scroll-restoration
-function ScrollToTop() {
-    const { pathname } = useLocation();
-
-    useLayoutEffect(() => {
-        window.scrollTo(0, 0);
-    }, [pathname]);
-
-    return null;
 }
