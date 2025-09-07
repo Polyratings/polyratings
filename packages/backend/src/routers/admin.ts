@@ -161,8 +161,9 @@ export const adminRouter = t.router({
                 if (ratings.length > 1) {
                     ratings.forEach((ratingInfo) => {
                         // Reason for report: multiple ratings by same anonymous user
-                        const reason = `[AUTOMATED] ${ratings.length} ratings submitted by user ${anonymousId} `
-                            + `under this professor. This review's timestamp: ${ratingInfo.postDate}`;
+                        const reason =
+                            `[AUTOMATED] ${ratings.length} ratings submitted by user ${anonymousId} ` +
+                            `under this professor. This review's timestamp: ${ratingInfo.postDate}`;
                         const ratingReport = {
                             ratingId: ratingInfo.ratingId,
                             professorId: professor.id,
