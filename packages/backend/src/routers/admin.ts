@@ -2,6 +2,7 @@ import { t, protectedProcedure } from "@backend/trpc";
 import { z } from "zod";
 import { addRating } from "@backend/types/schemaHelpers";
 import { bulkKeys, DEPARTMENT_LIST } from "@backend/utils/const";
+import { PendingRating, Rating } from "@backend/types/schema";
 
 const changeDepartmentParser = z.object({
     professorId: z.uuid(),
@@ -127,9 +128,14 @@ export const adminRouter = t.router({
     autoReportDuplicateUsers: protectedProcedure
         .input(z.object({ cursor: z.string().optional() }).optional())
         .mutation(async ({ ctx, input }) => {
-            const BATCH_SIZE = 100; // Process 100 professors per batch to stay well under KV limits
+            // OpenAI Moderation API limits: 500 RPM, 10,000 RPD, 10,000 TPM
+            // Conservative batch size to stay well under limits
+            const BATCH_SIZE = 25; // Reduced further to account for moderation API limits
+            const MODERATION_DELAY_MS = 150; // ~400 requests/min to stay under 500 RPM limit
             let duplicatesFound = 0;
+            let moderationFlagged = 0;
             let processedCount = 0;
+            const MAX_HARASSMENT = 0.65;
 
             // Get professors using cursor-based pagination
             const profs = await ctx.env.kvDao.getAllProfessors();
@@ -147,8 +153,9 @@ export const adminRouter = t.router({
             const professorIds = batchProfessors.map((p) => p.id);
 
             // Fetch professor data in smaller chunks to avoid KV limits
-            const FETCH_CHUNK_SIZE = 999; // 1000 KV interactions per trigger
+            const FETCH_CHUNK_SIZE = 25; // Reduced chunk size for additional operations
             const reportTasks: Promise<void>[] = [];
+            const professorUpdateTasks: Promise<unknown>[] = [];
 
             for (let i = 0; i < professorIds.length; i += FETCH_CHUNK_SIZE) {
                 const chunk = professorIds.slice(i, i + FETCH_CHUNK_SIZE);
@@ -165,30 +172,36 @@ export const adminRouter = t.router({
 
                     const anonymousIdMap = new Map<
                         string,
-                        { ratingId: string; postDate: string; course: string }[]
+                        {
+                            ratingId: string;
+                            postDate: string;
+                            course: string;
+                            rating: Rating & Partial<PendingRating>;
+                        }[]
                     >();
 
                     // Collect all ratings by anonymousIdentifier
                     Object.entries(professor.reviews).forEach(([course, ratings]) => {
                         ratings.forEach((rating) => {
-                            if (rating.anonymousIdentifier) {
-                                let arr = anonymousIdMap.get(rating.anonymousIdentifier);
-                                if (!arr) {
-                                    arr = [];
-                                    anonymousIdMap.set(rating.anonymousIdentifier, arr);
-                                }
-                                arr.push({
-                                    ratingId: rating.id,
-                                    postDate: rating.postDate,
-                                    course,
-                                });
+                            let arr = anonymousIdMap.get(rating.anonymousIdentifier ?? "unknown");
+                            if (!arr) {
+                                arr = [];
+                                anonymousIdMap.set(rating.anonymousIdentifier ?? "unknown", arr);
                             }
+                            arr.push({
+                                ratingId: rating.id,
+                                postDate: rating.postDate,
+                                course,
+                                rating,
+                            });
                         });
                     });
 
+                    let professorNeedsUpdate = false;
+
                     // Find duplicates and create reports
                     for (const [anonymousId, ratings] of anonymousIdMap) {
-                        if (ratings.length > 1) {
+                        if (anonymousId !== "unknown" && ratings.length > 1) {
                             duplicatesFound += ratings.length;
 
                             ratings.forEach((ratingInfo) => {
@@ -209,7 +222,67 @@ export const adminRouter = t.router({
                                 };
                                 reportTasks.push(ctx.env.kvDao.putReport(ratingReport));
                             });
+                        } else {
+                            // Single rating - run through moderation for non-duplicates
+                            const ratingInfo = ratings[0];
+                            const { rating } = ratingInfo;
+
+                            // Only re-analyze if not already analyzed or no scores
+                            if (!rating.analyzedScores) {
+                                // Rate limit moderation API calls to stay under 500 RPM
+                                // eslint-disable-next-line no-await-in-loop
+                                await new Promise((resolve) => {
+                                    setTimeout(resolve, MODERATION_DELAY_MS);
+                                });
+
+                                // eslint-disable-next-line no-await-in-loop
+                                const analyzedScores = await ctx.env.ratingAnalyzer.analyzeRating({
+                                    ...rating,
+                                    status: rating.status ?? "Successful",
+                                    error: rating.error ?? null,
+                                    analyzedScores: rating.analyzedScores ?? null,
+                                    courseNum: rating.courseNum ?? 0,
+                                    department: rating.department ?? "AEPS",
+                                });
+
+                                if (analyzedScores) {
+                                    // Update the rating with analyzed scores
+                                    rating.analyzedScores = analyzedScores;
+                                    professorNeedsUpdate = true;
+
+                                    // Check if it should be flagged for moderation report
+                                    if (
+                                        analyzedScores.flagged &&
+                                        analyzedScores.categories.harassment &&
+                                        analyzedScores.category_scores.harassment >= MAX_HARASSMENT
+                                    ) {
+                                        moderationFlagged += 1;
+
+                                        const reason =
+                                            "[AUTOMATED] Content moderation flagged this rating. " +
+                                            `Harassment score: ${analyzedScores.category_scores.harassment.toFixed(3)}.`;
+
+                                        const ratingReport = {
+                                            ratingId: rating.id,
+                                            professorId: professor.id,
+                                            reports: [
+                                                {
+                                                    email: null,
+                                                    reason,
+                                                    anonymousIdentifier: rating.anonymousIdentifier,
+                                                },
+                                            ],
+                                        };
+                                        reportTasks.push(ctx.env.kvDao.putReport(ratingReport));
+                                    }
+                                }
+                            }
                         }
+                    }
+
+                    // Queue professor update if any ratings were modified
+                    if (professorNeedsUpdate) {
+                        professorUpdateTasks.push(ctx.env.kvDao.putProfessor(professor, true));
                     }
                 }
             }
@@ -224,12 +297,14 @@ export const adminRouter = t.router({
             return {
                 processedCount,
                 duplicatesFound,
+                moderationFlagged,
                 totalProfessors: profs.length,
                 hasMore,
                 nextCursor,
                 message:
-                    `Processed ${processedCount} professors,` +
-                    `found ${duplicatesFound} duplicate ratings` +
+                    `Processed ${processedCount} professors, ` +
+                    `found ${duplicatesFound} duplicate ratings, ` +
+                    `flagged ${moderationFlagged} for moderation` +
                     `${hasMore ? ". Call again with nextCursor to continue." : ". Audit complete."}`,
             };
         }),
