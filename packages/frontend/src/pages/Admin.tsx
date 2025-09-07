@@ -435,15 +435,25 @@ function ProcessedRatings() {
         {
             name: "Scores",
             grow: 1.5,
-            cell: (row: PendingRating) => (
-                <div className="flex flex-col">
-                    {Object.entries(row.analyzedScores ?? {}).map(([name, score]) => (
-                        <div key={name}>
-                            {name}: {score}
-                        </div>
-                    ))}
-                </div>
-            ),
+            cell: (row: PendingRating) => {
+                let scores;
+
+                if (row.analyzedScores && "category_scores" in row.analyzedScores) {
+                    scores = row.analyzedScores.category_scores;
+                } else {
+                    scores = row.analyzedScores ?? {};
+                }
+
+                return (
+                    <div className="flex flex-col">
+                        {Object.entries(scores).map(([name, score]) => (
+                            <div key={name}>
+                                {name}: {score}
+                            </div>
+                        ))}
+                    </div>
+                );
+            },
         },
         {
             name: "Rating",
