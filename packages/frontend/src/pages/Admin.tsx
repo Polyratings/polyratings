@@ -121,7 +121,8 @@ function ReportedRatings() {
                     return;
                 }
 
-                // eslint-disable-next-line no-await-in-loop -- Sequential processing required to respect API rate limits and prevent overwhelming the server.
+                // Sequential processing required to respect API rate limits and prevent overwhelming the server.
+                // eslint-disable-next-line no-await-in-loop
                 const result = await autoReportDuplicateUsers(cursor ? { cursor } : undefined);
 
                 totalProcessed += result.processedCount;
@@ -358,11 +359,12 @@ function ReportedRatings() {
                 )}
 
                 {/* Progress Display */}
-                {(auditProgress.processedCount > 0 || auditProgress.isRunning) && (
+                {(auditProgress.processedCount > 0 || auditProgress.isRunning) &&
                     (() => {
                         const progressPercent =
                             auditProgress.totalProfessors > 0
-                                ? (auditProgress.processedCount / auditProgress.totalProfessors) * 100
+                                ? (auditProgress.processedCount / auditProgress.totalProfessors) *
+                                  100
                                 : 0;
                         return (
                             <div className="text-sm space-y-1">
@@ -388,8 +390,7 @@ function ReportedRatings() {
                                 <div className="text-gray-600">{auditProgress.message}</div>
                             </div>
                         );
-                    })()
-                )}
+                    })()}
             </div>
 
             <DataTable columns={columns} data={ratingReports ?? []} pagination />
