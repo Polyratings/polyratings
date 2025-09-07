@@ -121,7 +121,7 @@ function ReportedRatings() {
                     return;
                 }
 
-                // eslint-disable-next-line no-await-in-loop
+                // eslint-disable-next-line no-await-in-loop -- Sequential processing required to respect API rate limits and prevent overwhelming the server.
                 const result = await autoReportDuplicateUsers(cursor ? { cursor } : undefined);
 
                 totalProcessed += result.processedCount;
