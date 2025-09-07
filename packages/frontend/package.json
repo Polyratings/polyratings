@@ -13,7 +13,7 @@
     },
     "dependencies": {
         "@heroicons/react": "^2.2.0",
-        "@hookform/resolvers": "^5.2.1",
+        "@hookform/resolvers": "5.2.0",
         "@polyratings/backend": "^0.1.0",
         "@sentry/browser": "^10.10.0",
         "@tailwindcss/vite": "^4.1.13",

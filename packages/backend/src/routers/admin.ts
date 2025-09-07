@@ -92,7 +92,7 @@ export const adminRouter = t.router({
         .query(({ input, ctx }) => ctx.env.kvDao.getBulkKeys(input)),
     // Mark as mutation to not have url issues
     getBulkValues: protectedProcedure
-        .input(z.object({ bulkKey: z.enum(bulkKeys), keys: z.array(z.string()) }))
+        .input(z.object({ bulkKey: z.enum(bulkKeys), keys: z.string().array() }))
         .mutation(async ({ ctx, input: { bulkKey, keys } }) =>
             ctx.env.kvDao.getBulkValues(bulkKey, keys),
         ),

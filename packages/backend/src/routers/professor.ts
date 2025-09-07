@@ -11,7 +11,7 @@ export const professorRouter = t.router({
         .input(z.object({ id: z.uuid() }))
         .query(({ input, ctx }) => ctx.env.kvDao.getProfessor(input.id)),
     getMany: t.procedure
-        .input(z.object({ ids: z.array(z.uuid()) }))
+        .input(z.object({ ids: z.uuid().array() }))
         .query(({ input, ctx }) =>
             Promise.all(input.ids.map((id) => ctx.env.kvDao.getProfessor(id))),
         ),
@@ -21,12 +21,10 @@ export const professorRouter = t.router({
                 department: z.enum(DEPARTMENT_LIST),
                 firstName: z.string(),
                 lastName: z.string(),
-                rating: ratingBaseParser.merge(
-                    z.object({
-                        department: z.enum(DEPARTMENT_LIST),
-                        courseNum: z.number().min(100).max(599),
-                    }),
-                ),
+                rating: ratingBaseParser.extend({
+                    department: z.enum(DEPARTMENT_LIST),
+                    courseNum: z.number().min(100).max(599),
+                }),
             }),
         )
         .mutation(async ({ ctx, input }) => {

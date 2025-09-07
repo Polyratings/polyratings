@@ -443,7 +443,7 @@ function useEvaluationForm(
     });
     const { setError } = hookForm;
 
-    const trpcContext = trpc.useContext();
+    const trpcContext = trpc.useUtils();
     const {
         mutate: uploadRating,
         isPending,
