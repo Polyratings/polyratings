@@ -8,6 +8,7 @@ import {
     PENDING_RATING_STATUSES,
     PROFESSOR_TAGS,
 } from "@backend/utils/const";
+import type { Moderation } from "openai/resources/moderations";
 
 export const ratingBaseParser = z.object({
     grade: z.enum(GRADES),
@@ -29,30 +30,10 @@ export const ratingParser = ratingBaseParser.extend({
 });
 export type Rating = z.infer<typeof ratingParser>;
 
-export const perspectiveAttributeScoreParser = z.object({
-    summaryScore: z.object({
-        value: z.number(),
-        type: z.string(),
-    }),
-    spanScores: z.nullable(
-        z.array(
-            z.object({
-                begin: z.number(),
-                end: z.number(),
-                score: z.object({
-                    value: z.number(),
-                    type: z.string(),
-                }),
-            }),
-        ),
-    ),
-});
-export type PerspectiveAttributeScore = z.infer<typeof perspectiveAttributeScoreParser>;
-
 export const pendingRatingParser = ratingParser.extend({
     status: z.enum(PENDING_RATING_STATUSES),
     error: z.nullable(z.string()),
-    analyzedScores: z.nullable(z.record(z.string(), z.number())),
+    analyzedScores: z.custom<Moderation>((mod) => typeof mod === "object").nullable(),
     courseNum: z.number().min(100).max(599),
     department: z.enum(DEPARTMENT_LIST),
 });

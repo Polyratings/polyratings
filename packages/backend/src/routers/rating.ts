@@ -11,6 +11,8 @@ const addRatingParser = ratingBaseParser.extend({
     courseNum: z.number().min(100).max(599),
 });
 
+const MAX_HARASSMENT = 0.65;
+
 export async function addRating(input: z.infer<typeof addRatingParser>, ctx: { env: Env }) {
     // Input is a string subset of PendingRating
     const pendingRating: PendingRating = {
@@ -41,26 +43,22 @@ export async function addRating(input: z.infer<typeof addRatingParser>, ctx: { e
     const analyzedScores = await ctx.env.ratingAnalyzer.analyzeRating(pendingRating);
     pendingRating.analyzedScores = analyzedScores;
 
-    // At least 50% of people would find the text offensive in category
-    const PERSPECTIVE_THRESHOLD = 0.5;
+    if (analyzedScores?.flagged) {
+        // Strongly negative reviews that aren't necessarily character attacks seem to get flagged too easily
+        if (
+            analyzedScores.categories.harassment &&
+            analyzedScores.category_scores.harassment >= MAX_HARASSMENT
+        ) {
+            // Update rating in processing queue
+            pendingRating.status = "Failed";
+            await ctx.env.kvDao.addRatingLog(pendingRating);
 
-    const passedAnalysis = Object.values(analyzedScores).reduce((acc, num) => {
-        if (num === undefined) {
-            throw new Error("Not all of perspective summery scores were received");
+            throw new TRPCError({
+                code: "PRECONDITION_FAILED",
+                message:
+                    "Sorry, we couldn't accept this review as written. Please keep ratings constructive and respectful.",
+            });
         }
-        return num < PERSPECTIVE_THRESHOLD && acc;
-    }, true);
-
-    if (!passedAnalysis) {
-        // Update rating in processing queue
-        pendingRating.status = "Failed";
-        await ctx.env.kvDao.addRatingLog(pendingRating);
-
-        throw new TRPCError({
-            code: "PRECONDITION_FAILED",
-            message:
-                "Rating failed sentiment analysis, please contact dev@polyratings.org for assistance",
-        });
     }
 
     // Update rating in processing queue
