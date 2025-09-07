@@ -1,6 +1,6 @@
 /* eslint-disable react/no-unstable-nested-components */
 import { Fragment, useState } from "react";
-import { IndexRouteObject, useNavigate, useParams } from "react-router-dom";
+import { IndexRouteObject, useNavigate, useParams } from "react-router";
 import AnimateHeight from "react-animate-height";
 import AnchorLink from "react-anchor-link-smooth-scroll";
 import StarRatings from "react-star-ratings";
@@ -26,7 +26,7 @@ import { REACT_MODAL_STYLES } from "@/constants";
 import { Button } from "@/components/forms/Button";
 import { useSortedCourses } from "@/hooks";
 
-export function professorPageLoaderFactory(trpcContext: ReturnType<(typeof trpc)["useContext"]>) {
+export function professorPageLoaderFactory(trpcContext: ReturnType<(typeof trpc)["useUtils"]>) {
     const professorPageLoader: IndexRouteObject["loader"] = ({ params }) =>
         trpcContext.professors.get.getData({ id: params.id ?? "" }) ??
         trpcContext.professors.get.fetch({ id: params.id ?? "" });

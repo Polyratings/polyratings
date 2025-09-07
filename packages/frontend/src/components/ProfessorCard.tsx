@@ -1,4 +1,4 @@
-import { Link } from "react-router-dom";
+import { Link } from "react-router";
 import { inferProcedureOutput } from "@trpc/server";
 import { AppRouter } from "@backend/index";
 import star from "@/assets/star.svg";

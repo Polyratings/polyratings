@@ -1,4 +1,4 @@
-import { Link, useLocation, useParams, useSearchParams } from "react-router-dom";
+import { Link, useLocation, useParams, useSearchParams } from "react-router";
 import { useState } from "react";
 import { useWindowVirtualizer } from "@tanstack/react-virtual";
 import { ChevronDoubleRightIcon } from "@heroicons/react/24/outline";
