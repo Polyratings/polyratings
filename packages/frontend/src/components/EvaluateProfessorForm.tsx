@@ -220,7 +220,8 @@ function EvaluateProfessorStep({
     register,
     professor,
     formState: { errors },
-}: UseFormReturn<EvaluateProfessorFormInputs> & Pick<EvaluateProfessorFormProps, "professor">) {
+}: UseFormReturn<EvaluateProfessorFormInputs, unknown, EvaluateProfessorFormOutputs> &
+    Pick<EvaluateProfessorFormProps, "professor">) {
     const knownCourseValue = watch("knownCourse");
 
     const sortedCourses = useSortedCourses(professor?.id).map(({ courseName }) => courseName);
@@ -427,13 +428,14 @@ const evaluateProfessorFormParser = z.object({
     tags: z.enum(PROFESSOR_TAGS).array().optional(),
 });
 
-type EvaluateProfessorFormInputs = z.infer<typeof evaluateProfessorFormParser>;
+type EvaluateProfessorFormInputs = z.input<typeof evaluateProfessorFormParser>;
+type EvaluateProfessorFormOutputs = z.output<typeof evaluateProfessorFormParser>;
 
 function useEvaluationForm(
     professor: inferProcedureOutput<AppRouter["professors"]["get"]>,
     closeForm: () => void,
 ) {
-    const hookForm = useForm<EvaluateProfessorFormInputs>({
+    const hookForm = useForm<EvaluateProfessorFormInputs, unknown, EvaluateProfessorFormOutputs>({
         resolver: zodResolver(evaluateProfessorFormParser),
         defaultValues: {
             knownCourse: Object.keys(professor.reviews || {})[0],
@@ -458,7 +460,7 @@ function useEvaluationForm(
         },
     });
 
-    const onSubmitHandler: SubmitHandler<EvaluateProfessorFormInputs> = async (formResult) => {
+    const onSubmitHandler: SubmitHandler<EvaluateProfessorFormOutputs> = async (formResult) => {
         const courseNum = formResult.knownCourse
             ? parseInt(formResult.knownCourse.split(" ")[1], 10)
             : formResult.unknownCourseNumber;

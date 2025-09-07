@@ -46,7 +46,8 @@ const newProfessorFormParser = z.object({
     tags: z.enum(PROFESSOR_TAGS).array().optional(),
 });
 
-type NewProfessorFormInputs = z.infer<typeof newProfessorFormParser>;
+type NewProfessorFormInputs = z.input<typeof newProfessorFormParser>;
+type NewProfessorFormOutputs = z.output<typeof newProfessorFormParser>;
 
 export function NewProfessorFormTwoStep() {
     const { hookForm, onSubmit, isLoading, networkError } = useNewProfessorForm();
@@ -117,7 +118,7 @@ export function NewProfessorLinear() {
 }
 
 function useNewProfessorForm() {
-    const hookForm = useForm<NewProfessorFormInputs>({
+    const hookForm = useForm<NewProfessorFormInputs, unknown, NewProfessorFormOutputs>({
         resolver: zodResolver(newProfessorFormParser),
         defaultValues: {
             sameDepartment: true,
@@ -134,7 +135,7 @@ function useNewProfessorForm() {
 
     const utils = trpc.useUtils();
 
-    const onSubmitHandler = async (data: NewProfessorFormInputs) => {
+    const onSubmitHandler = async (data: NewProfessorFormOutputs) => {
         try {
             const successMessage = await addNewProfessorMutation({
                 firstName: data.professorFirstName,
@@ -179,7 +180,7 @@ function NewProfessorStep({
     watch,
     setValue,
     formState: { errors },
-}: UseFormReturn<NewProfessorFormInputs>) {
+}: UseFormReturn<NewProfessorFormInputs, unknown, NewProfessorFormOutputs>) {
     const professorDepartment = watch("professorDepartment");
     const sameAsProfessorDepartment = watch("sameDepartment");
 
