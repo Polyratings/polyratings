@@ -54,10 +54,84 @@ function ReportedRatings() {
         onSuccess: () =>
             queryClient.invalidateQueries({ queryKey: bulkInvalidationKey("reports") }),
     });
-    const { mutate: autoReportDuplicateUsers } = trpc.admin.autoReportDuplicateUsers.useMutation({
-        onSuccess: () =>
-            queryClient.invalidateQueries({ queryKey: bulkInvalidationKey("reports") }),
+    const { mutateAsync: autoReportDuplicateUsers, isPending: isRunningAudit } =
+        trpc.admin.autoReportDuplicateUsers.useMutation({
+            onSuccess: () =>
+                queryClient.invalidateQueries({ queryKey: bulkInvalidationKey("reports") }),
+        });
+
+    // State for audit progress
+    const [auditProgress, setAuditProgress] = useState<{
+        isRunning: boolean;
+        processedCount: number;
+        totalProfessors: number;
+        duplicatesFound: number;
+        nextCursor: string | null;
+        message: string;
+    }>({
+        isRunning: false,
+        processedCount: 0,
+        totalProfessors: 0,
+        duplicatesFound: 0,
+        nextCursor: null,
+        message: "",
     });
+
+    const runFullAudit = async () => {
+        setAuditProgress((prev) => ({
+            ...prev,
+            isRunning: true,
+            processedCount: 0,
+            duplicatesFound: 0,
+            message: "Starting audit...",
+        }));
+
+        try {
+            let cursor: string | undefined;
+            let totalProcessed = 0;
+            let totalDuplicates = 0;
+            let totalProfessors = 0;
+
+            do {
+                // eslint-disable-next-line no-await-in-loop
+                const result = await autoReportDuplicateUsers(cursor ? { cursor } : undefined);
+
+                totalProcessed += result.processedCount;
+                totalDuplicates += result.duplicatesFound;
+                totalProfessors = result.totalProfessors;
+                cursor = result.nextCursor || undefined;
+
+                setAuditProgress({
+                    isRunning: result.hasMore,
+                    processedCount: totalProcessed,
+                    totalProfessors,
+                    duplicatesFound: totalDuplicates,
+                    nextCursor: result.nextCursor,
+                    message: result.message,
+                });
+
+                // Small delay between batches to prevent overwhelming the server
+                if (result.hasMore) {
+                    // eslint-disable-next-line no-await-in-loop
+                    await new Promise((resolve) => {
+                        setTimeout(resolve, 500);
+                    });
+                }
+            } while (cursor);
+
+            setAuditProgress((prev) => ({
+                ...prev,
+                isRunning: false,
+                message: `✅ Audit complete! Processed ${totalProcessed} professors and found ${totalDuplicates} duplicate ratings.`,
+            }));
+        } catch (error) {
+            setAuditProgress((prev) => ({
+                ...prev,
+                isRunning: false,
+                message: `❌ Error during audit: ${error instanceof Error ? error.message : "Unknown error"}`,
+            }));
+        }
+    };
 
     const columns = [
         {
@@ -158,9 +232,52 @@ function ReportedRatings() {
     return (
         <div className="mt-4">
             <h2 className="ml-1">Reported Ratings:</h2>
-            <Button type="button" onClick={() => autoReportDuplicateUsers()}>
-                Run Audit
-            </Button>
+
+            {/* Audit Controls */}
+            <div className="mb-4 p-4 bg-gray-100 rounded-lg">
+                <div className="flex items-center gap-4 mb-2">
+                    <Button
+                        type="button"
+                        onClick={runFullAudit}
+                        disabled={auditProgress.isRunning || isRunningAudit}
+                        className={auditProgress.isRunning ? "bg-gray-400" : ""}
+                    >
+                        {auditProgress.isRunning ? "Running Audit..." : "Run Full Duplicate Audit"}
+                    </Button>
+                </div>
+
+                {/* Progress Display */}
+                {(auditProgress.processedCount > 0 || auditProgress.isRunning) && (
+                    <div className="text-sm space-y-1">
+                        <div>
+                            Progress: {auditProgress.processedCount} /{" "}
+                            {auditProgress.totalProfessors} professors (
+                            {auditProgress.totalProfessors > 0
+                                ? Math.round(
+                                      (auditProgress.processedCount /
+                                          auditProgress.totalProfessors) *
+                                          100,
+                                  )
+                                : 0}
+                            %)
+                        </div>
+                        <div>Duplicates Found: {auditProgress.duplicatesFound}</div>
+                        {auditProgress.isRunning && (
+                            <div className="w-full bg-gray-200 rounded-full h-2">
+                                <div
+                                    className="bg-blue-600 h-2 rounded-full transition-all duration-300"
+                                    style={{
+                                        // eslint-disable-next-line max-len
+                                        width: `${auditProgress.totalProfessors > 0 ? (auditProgress.processedCount / auditProgress.totalProfessors) * 100 : 0}%`,
+                                    }}
+                                />
+                            </div>
+                        )}
+                        <div className="text-gray-600">{auditProgress.message}</div>
+                    </div>
+                )}
+            </div>
+
             <DataTable columns={columns} data={ratingReports ?? []} pagination />
         </div>
     );

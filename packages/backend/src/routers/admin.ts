@@ -124,65 +124,113 @@ export const adminRouter = t.router({
         }),
 
     // Audits
-    autoReportDuplicateUsers: protectedProcedure.mutation(async ({ ctx }) => {
-        const profs = await ctx.env.kvDao.getAllProfessors();
+    autoReportDuplicateUsers: protectedProcedure
+        .input(z.object({ cursor: z.string().optional() }).optional())
+        .mutation(async ({ ctx, input }) => {
+            const BATCH_SIZE = 100; // Process 100 professors per batch to stay well under KV limits
+            let duplicatesFound = 0;
+            let processedCount = 0;
 
-        // Fetch all professors using bulk operations to avoid rate limit
-        const professorIds = profs.map((p) => p.id);
-        const professors = await ctx.env.kvDao.getBulkValues("professors", professorIds);
+            // Get professors using cursor-based pagination
+            const profs = await ctx.env.kvDao.getAllProfessors();
 
-        const reportTasks: Promise<void>[] = [];
+            // Find starting index based on cursor
+            let startIndex = 0;
+            if (input?.cursor) {
+                const cursorIndex = profs.findIndex((p) => p.id === input.cursor);
+                startIndex = cursorIndex >= 0 ? cursorIndex : 0;
+            }
 
-        // Process each professor
-        for (const professor of professors) {
-            const anonymousIdMap = new Map<
-                string,
-                { ratingId: string; postDate: string; course: string }[]
-            >();
+            // Process batch of professors
+            const endIndex = Math.min(startIndex + BATCH_SIZE, profs.length);
+            const batchProfessors = profs.slice(startIndex, endIndex);
+            const professorIds = batchProfessors.map((p) => p.id);
 
-            // Collect all ratings by anonymousIdentifier
-            Object.entries(professor.reviews).forEach(([course, ratings]) => {
-                ratings.forEach((rating) => {
-                    if (rating.anonymousIdentifier) {
-                        let arr = anonymousIdMap.get(rating.anonymousIdentifier);
-                        if (!arr) {
-                            arr = [];
-                            anonymousIdMap.set(rating.anonymousIdentifier, arr);
-                        }
-                        arr.push({
-                            ratingId: rating.id,
-                            postDate: rating.postDate,
-                            course,
+            // Fetch professor data in smaller chunks to avoid KV limits
+            const FETCH_CHUNK_SIZE = 999; // 1000 KV interactions per trigger
+            const reportTasks: Promise<void>[] = [];
+
+            for (let i = 0; i < professorIds.length; i += FETCH_CHUNK_SIZE) {
+                const chunk = professorIds.slice(i, i + FETCH_CHUNK_SIZE);
+
+                // eslint-disable-next-line no-await-in-loop
+                const professors = await ctx.env.kvDao.getBulkValues("professors", chunk);
+
+                // Process each professor in the chunk
+                for (const professor of professors) {
+                    // eslint-disable-next-line no-continue
+                    if (!professor) continue; // Skip null professors
+
+                    processedCount += 1;
+
+                    const anonymousIdMap = new Map<
+                        string,
+                        { ratingId: string; postDate: string; course: string }[]
+                    >();
+
+                    // Collect all ratings by anonymousIdentifier
+                    Object.entries(professor.reviews).forEach(([course, ratings]) => {
+                        ratings.forEach((rating) => {
+                            if (rating.anonymousIdentifier) {
+                                let arr = anonymousIdMap.get(rating.anonymousIdentifier);
+                                if (!arr) {
+                                    arr = [];
+                                    anonymousIdMap.set(rating.anonymousIdentifier, arr);
+                                }
+                                arr.push({
+                                    ratingId: rating.id,
+                                    postDate: rating.postDate,
+                                    course,
+                                });
+                            }
                         });
-                    }
-                });
-            });
-
-            for (const [anonymousId, ratings] of anonymousIdMap) {
-                if (ratings.length > 1) {
-                    ratings.forEach((ratingInfo) => {
-                        // Reason for report: multiple ratings by same anonymous user
-                        const reason =
-                            `[AUTOMATED] ${ratings.length} ratings submitted by user ${anonymousId} ` +
-                            `under this professor. This review's timestamp: ${ratingInfo.postDate}`;
-                        const ratingReport = {
-                            ratingId: ratingInfo.ratingId,
-                            professorId: professor.id,
-                            reports: [
-                                {
-                                    email: null,
-                                    reason,
-                                    anonymousIdentifier: anonymousId,
-                                },
-                            ],
-                        };
-                        reportTasks.push(ctx.env.kvDao.putReport(ratingReport));
                     });
+
+                    // Find duplicates and create reports
+                    for (const [anonymousId, ratings] of anonymousIdMap) {
+                        if (ratings.length > 1) {
+                            duplicatesFound += ratings.length;
+
+                            ratings.forEach((ratingInfo) => {
+                                // Reason for report: multiple ratings by same anonymous user
+                                const reason =
+                                    `[AUTOMATED] ${ratings.length} ratings submitted by user ${anonymousId} ` +
+                                    `under this professor. This review's timestamp: ${ratingInfo.postDate}`;
+                                const ratingReport = {
+                                    ratingId: ratingInfo.ratingId,
+                                    professorId: professor.id,
+                                    reports: [
+                                        {
+                                            email: null,
+                                            reason,
+                                            anonymousIdentifier: anonymousId,
+                                        },
+                                    ],
+                                };
+                                reportTasks.push(ctx.env.kvDao.putReport(ratingReport));
+                            });
+                        }
+                    }
                 }
             }
-        }
 
-        // Execute all report writes
-        await Promise.all(reportTasks);
-    }),
+            // Execute all report writes for this batch
+            await Promise.all(reportTasks);
+
+            // Determine if there are more professors to process
+            const hasMore = endIndex < profs.length;
+            const nextCursor = hasMore ? profs[endIndex].id : null;
+
+            return {
+                processedCount,
+                duplicatesFound,
+                totalProfessors: profs.length,
+                hasMore,
+                nextCursor,
+                message:
+                    `Processed ${processedCount} professors,` +
+                    `found ${duplicatesFound} duplicate ratings` +
+                    `${hasMore ? ". Call again with nextCursor to continue." : ". Audit complete."}`,
+            };
+        }),
 });
