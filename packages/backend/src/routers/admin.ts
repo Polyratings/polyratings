@@ -290,6 +290,8 @@ export const adminRouter = t.router({
             // Execute all report writes for this batch
             await Promise.all(reportTasks);
 
+            // Execute all professor updates for this batch
+            await Promise.all(professorUpdateTasks);
             // Determine if there are more professors to process
             const hasMore = endIndex < profs.length;
             const nextCursor = hasMore ? profs[endIndex].id : null;
