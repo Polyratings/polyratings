@@ -143,10 +143,12 @@ export const adminRouter = t.router({
             Object.entries(professor.reviews).forEach(([course, ratings]) => {
                 ratings.forEach((rating) => {
                     if (rating.anonymousIdentifier) {
-                        if (!anonymousIdMap.has(rating.anonymousIdentifier)) {
-                            anonymousIdMap.set(rating.anonymousIdentifier, []);
+                        let arr = anonymousIdMap.get(rating.anonymousIdentifier);
+                        if (!arr) {
+                            arr = [];
+                            anonymousIdMap.set(rating.anonymousIdentifier, arr);
                         }
-                        anonymousIdMap.get(rating.anonymousIdentifier)!.push({
+                        arr.push({
                             ratingId: rating.id,
                             postDate: rating.postDate,
                             course,
