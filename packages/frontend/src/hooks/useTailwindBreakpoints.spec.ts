@@ -1,5 +1,4 @@
-import { act, renderHook, RenderHookResult } from "@testing-library/react";
-import { waitFor } from "@testing-library/dom";
+import { act, renderHook, RenderHookResult, waitFor } from "@testing-library/react";
 import { describe, test, beforeEach, expect } from "vitest";
 import { setWindowSize } from "@/test-utils";
 import { useTailwindBreakpoint } from "./useTailwindBreakpoints";

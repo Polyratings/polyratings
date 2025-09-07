@@ -20,8 +20,6 @@
     "devDependencies": {
         "@cloudflare/workers-types": "^4.20250906.0",
         "@polyratings/eslint-config": "^0.0.1",
-        "@types/node": "^24.3.1",
-        "cloudflare-worker-mock": "^1.2.0",
         "esbuild": "^0.25.9",
         "esbuild-visualizer": "^0.7.0",
         "eslint": "^8.57.1",

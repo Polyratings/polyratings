@@ -1,7 +1,7 @@
 import { cloudflareNamespaceInformation } from "@backend/generated/tomlGenerated";
 import { truncatedProfessorParser } from "@backend/types/schema";
-import { bulkRecord } from "src/utils/bulkRecord";
 import { ALL_PROFESSOR_KEY } from "@backend/utils/const";
+import { bulkRecord } from "../utils/bulkRecord";
 import { CronEnv } from "../entry";
 import { Logger } from "../logger";
 
