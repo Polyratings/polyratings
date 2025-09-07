@@ -170,22 +170,24 @@ export const adminRouter = t.router({
                 // Collect all ratings by anonymousIdentifier
                 Object.values(professor.reviews).forEach((ratings) => {
                     ratings.forEach((rating) => {
-                        let arr = anonymousIdMap.get(rating.anonymousIdentifier ?? "unknown");
-                        if (!arr) {
-                            arr = [];
-                            anonymousIdMap.set(rating.anonymousIdentifier ?? "unknown", arr);
+                        if (rating.anonymousIdentifier) {
+                            let arr = anonymousIdMap.get(rating.anonymousIdentifier);
+                            if (!arr) {
+                                arr = [];
+                                anonymousIdMap.set(rating.anonymousIdentifier, arr);
+                            }
+                            arr.push({
+                                ratingId: rating.id,
+                                postDate: rating.postDate,
+                                rating,
+                            });
                         }
-                        arr.push({
-                            ratingId: rating.id,
-                            postDate: rating.postDate,
-                            rating,
-                        });
                     });
                 });
 
                 // Find duplicates and create reports
                 for (const [anonymousId, ratings] of anonymousIdMap) {
-                    if (anonymousId !== "unknown" && ratings.length > 1) {
+                    if (ratings.length > 1) {
                         duplicatesFound += ratings.length;
 
                         ratings.forEach((ratingInfo) => {
