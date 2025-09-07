@@ -128,13 +128,9 @@ export const adminRouter = t.router({
     autoReportDuplicateUsers: protectedProcedure
         .input(z.object({ cursor: z.string().optional() }).optional())
         .mutation(async ({ ctx, input }) => {
-            // OpenAI Moderation API limits: 500 RPM, 10,000 RPD, 10,000 TPM
-            // Conservative batch size to stay well under limits
-            const BATCH_SIZE = 25; // Reduced further to account for moderation API limits
+            const BATCH_PROFESSOR_SIZE = 25;
             let duplicatesFound = 0;
-            let moderationFlagged = 0;
             let processedCount = 0;
-            const MAX_HARASSMENT = 0.65;
 
             // Get professors using cursor-based pagination
             const profs = await ctx.env.kvDao.getAllProfessors();
@@ -147,135 +143,69 @@ export const adminRouter = t.router({
             }
 
             // Process batch of professors
-            const endIndex = Math.min(startIndex + BATCH_SIZE, profs.length);
+            const endIndex = Math.min(startIndex + BATCH_PROFESSOR_SIZE, profs.length);
             const batchProfessors = profs.slice(startIndex, endIndex);
             const professorIds = batchProfessors.map((p) => p.id);
 
-            // Fetch professor data in smaller chunks to avoid KV limits
-            const FETCH_CHUNK_SIZE = 25; // Reduced chunk size for additional operations
             const reportTasks: Promise<void>[] = [];
-            const professorUpdateTasks: Promise<unknown>[] = [];
 
-            for (let i = 0; i < professorIds.length; i += FETCH_CHUNK_SIZE) {
-                const chunk = professorIds.slice(i, i + FETCH_CHUNK_SIZE);
+            const professors = await ctx.env.kvDao.getBulkValues("professors", professorIds);
 
-                // eslint-disable-next-line no-await-in-loop
-                const professors = await ctx.env.kvDao.getBulkValues("professors", chunk);
+            // Process each professor in the chunk
+            for (const professor of professors) {
+                // eslint-disable-next-line no-continue
+                if (!professor) continue; // Skip null professors
 
-                // Process each professor in the chunk
-                for (const professor of professors) {
-                    // eslint-disable-next-line no-continue
-                    if (!professor) continue; // Skip null professors
+                processedCount += 1;
 
-                    processedCount += 1;
+                const anonymousIdMap = new Map<
+                    string,
+                    {
+                        ratingId: string;
+                        postDate: string;
+                        rating: Rating & Partial<PendingRating>;
+                    }[]
+                >();
 
-                    const anonymousIdMap = new Map<
-                        string,
-                        {
-                            ratingId: string;
-                            postDate: string;
-                            course: string;
-                            rating: Rating & Partial<PendingRating>;
-                        }[]
-                    >();
-
-                    // Collect all ratings by anonymousIdentifier
-                    Object.entries(professor.reviews).forEach(([course, ratings]) => {
-                        ratings.forEach((rating) => {
-                            let arr = anonymousIdMap.get(rating.anonymousIdentifier ?? "unknown");
-                            if (!arr) {
-                                arr = [];
-                                anonymousIdMap.set(rating.anonymousIdentifier ?? "unknown", arr);
-                            }
-                            arr.push({
-                                ratingId: rating.id,
-                                postDate: rating.postDate,
-                                course,
-                                rating,
-                            });
+                // Collect all ratings by anonymousIdentifier
+                Object.values(professor.reviews).forEach((ratings) => {
+                    ratings.forEach((rating) => {
+                        let arr = anonymousIdMap.get(rating.anonymousIdentifier ?? "unknown");
+                        if (!arr) {
+                            arr = [];
+                            anonymousIdMap.set(rating.anonymousIdentifier ?? "unknown", arr);
+                        }
+                        arr.push({
+                            ratingId: rating.id,
+                            postDate: rating.postDate,
+                            rating,
                         });
                     });
+                });
 
-                    let professorNeedsUpdate = false;
+                // Find duplicates and create reports
+                for (const [anonymousId, ratings] of anonymousIdMap) {
+                    if (anonymousId !== "unknown" && ratings.length > 1) {
+                        duplicatesFound += ratings.length;
 
-                    // Find duplicates and create reports
-                    for (const [anonymousId, ratings] of anonymousIdMap) {
-                        if (anonymousId !== "unknown" && ratings.length > 1) {
-                            duplicatesFound += ratings.length;
-
-                            ratings.forEach((ratingInfo) => {
-                                // Reason for report: multiple ratings by same anonymous user
-                                const reason =
-                                    `[AUTOMATED] ${ratings.length} ratings submitted by user ${anonymousId} ` +
-                                    `under this professor. This review's timestamp: ${ratingInfo.postDate}`;
-                                const ratingReport = {
-                                    ratingId: ratingInfo.ratingId,
-                                    professorId: professor.id,
-                                    reports: [
-                                        {
-                                            email: null,
-                                            reason,
-                                            anonymousIdentifier: anonymousId,
-                                        },
-                                    ],
-                                };
-                                reportTasks.push(ctx.env.kvDao.putReport(ratingReport));
-                            });
-                        } else {
-                            // Single rating - run through moderation for non-duplicates
-                            const ratingInfo = ratings[0];
-                            const { rating } = ratingInfo;
-
-                            // Only re-analyze if not already analyzed or no scores
-                            if (!rating.analyzedScores) {
-                                // eslint-disable-next-line no-await-in-loop
-                                const analyzedScores = await ctx.env.ratingAnalyzer.analyzeRating({
-                                    ...rating,
-                                    status: rating.status ?? "Successful",
-                                    error: rating.error ?? null,
-                                    analyzedScores: rating.analyzedScores ?? null,
-                                    courseNum: rating.courseNum ?? 0,
-                                    department: rating.department ?? "AEPS",
-                                });
-
-                                if (analyzedScores) {
-                                    // Update the rating with analyzed scores
-                                    rating.analyzedScores = analyzedScores;
-                                    professorNeedsUpdate = true;
-
-                                    // Check if it should be flagged for moderation report
-                                    if (
-                                        analyzedScores.flagged &&
-                                        analyzedScores.categories.harassment &&
-                                        analyzedScores.category_scores.harassment >= MAX_HARASSMENT
-                                    ) {
-                                        moderationFlagged += 1;
-
-                                        const reason =
-                                            "[AUTOMATED] Content moderation flagged this rating. " +
-                                            `Harassment score: ${analyzedScores.category_scores.harassment.toFixed(3)}.`;
-
-                                        const ratingReport = {
-                                            ratingId: rating.id,
-                                            professorId: professor.id,
-                                            reports: [
-                                                {
-                                                    email: null,
-                                                    reason,
-                                                    anonymousIdentifier: rating.anonymousIdentifier,
-                                                },
-                                            ],
-                                        };
-                                        reportTasks.push(ctx.env.kvDao.putReport(ratingReport));
-                                    }
-                                }
-                            }
-                        }
-                    }
-
-                    // Queue professor update if any ratings were modified
-                    if (professorNeedsUpdate) {
-                        professorUpdateTasks.push(ctx.env.kvDao.putProfessor(professor, true));
+                        ratings.forEach((ratingInfo) => {
+                            // Reason for report: multiple ratings by same anonymous user
+                            const reason =
+                                `[AUTOMATED] ${ratings.length} ratings submitted by user ${anonymousId} ` +
+                                `under this professor. This review's timestamp: ${ratingInfo.postDate}`;
+                            const ratingReport = {
+                                ratingId: ratingInfo.ratingId,
+                                professorId: professor.id,
+                                reports: [
+                                    {
+                                        email: null,
+                                        reason,
+                                        anonymousIdentifier: anonymousId,
+                                    },
+                                ],
+                            };
+                            reportTasks.push(ctx.env.kvDao.putReport(ratingReport));
+                        });
                     }
                 }
             }
@@ -283,8 +213,6 @@ export const adminRouter = t.router({
             // Execute all report writes for this batch
             await Promise.all(reportTasks);
 
-            // Execute all professor updates for this batch
-            await Promise.all(professorUpdateTasks);
             // Determine if there are more professors to process
             const hasMore = endIndex < profs.length;
             const nextCursor = hasMore ? profs[endIndex].id : null;
@@ -292,14 +220,123 @@ export const adminRouter = t.router({
             return {
                 processedCount,
                 duplicatesFound,
-                moderationFlagged,
                 totalProfessors: profs.length,
                 hasMore,
                 nextCursor,
                 message:
                     `Processed ${processedCount} professors, ` +
-                    `found ${duplicatesFound} duplicate ratings, ` +
-                    `flagged ${moderationFlagged} for moderation` +
+                    `found ${duplicatesFound} duplicate ratings` +
+                    `${hasMore ? ". Call again with nextCursor to continue." : ". Audit complete."}`,
+            };
+        }),
+    autoReportContentModeration: protectedProcedure
+        .input(z.object({ cursor: z.string().optional() }).optional())
+        .mutation(async ({ ctx, input }) => {
+            const MAX_HARASSMENT = 0.65;
+            // const professorUpdateTasks: Promise<unknown>[] = [];
+
+            const BATCH_PROFESSOR_SIZE = 25;
+            const processedCount = 0;
+
+            // Get professors using cursor-based pagination
+            const profs = await ctx.env.kvDao.getAllProfessors();
+
+            // Find starting index based on cursor
+            let startIndex = 0;
+            if (input?.cursor) {
+                const cursorIndex = profs.findIndex((p) => p.id === input.cursor);
+                startIndex = cursorIndex >= 0 ? cursorIndex : 0;
+            }
+
+            // Process batch of professors
+            const endIndex = Math.min(startIndex + BATCH_PROFESSOR_SIZE, profs.length);
+            const batchProfessors = profs.slice(startIndex, endIndex);
+            const professorIds = batchProfessors.map((p) => p.id);
+
+            const reportTasks: Promise<void>[] = [];
+
+            const professors = await ctx.env.kvDao.getBulkValues("professors", professorIds);
+
+            // Process each professor in the chunk
+            for (const professor of professors) {
+                const ratingMap: Record<string, PendingRating> = {};
+
+                // Collect all ratings by anonymousIdentifier
+                Object.values<(Rating & Partial<PendingRating>)[]>(professor.reviews).forEach(
+                    (ratings) => {
+                        ratings.forEach((rating) => {
+                            if (
+                                !rating.analyzedScores ||
+                                !("category_scores" in rating.analyzedScores)
+                            ) {
+                                ratingMap[rating.id] = {
+                                    ...rating,
+                                    status: rating.status ?? "Successful",
+                                    error: rating.error ?? null,
+                                    analyzedScores: rating.analyzedScores ?? null,
+                                    courseNum: rating.courseNum ?? 0,
+                                    department: rating.department ?? "AEPS",
+                                };
+                            }
+                        });
+                    },
+                );
+
+                // Only re-analyze if not already analyzed or no scores
+                const ratings = Object.values(ratingMap);
+
+                // eslint-disable-next-line no-await-in-loop
+                const analyzedScores = await ctx.env.ratingAnalyzer.analyzeRatings(ratings);
+
+                ratings.forEach((rating, i) => {
+                    const scores = analyzedScores[i];
+
+                    // Check if it should be flagged for moderation report
+                    if (
+                        scores &&
+                        scores.flagged &&
+                        scores.categories.harassment &&
+                        scores.category_scores.harassment >= MAX_HARASSMENT
+                    ) {
+                        const reason =
+                            "[AUTOMATED] Content moderation flagged this rating. " +
+                            `Harassment score: ${scores.category_scores.harassment.toFixed(3)}.`;
+
+                        const ratingReport = {
+                            ratingId: rating.id,
+                            professorId: professor.id,
+                            reports: [
+                                {
+                                    email: null,
+                                    reason,
+                                    anonymousIdentifier: rating.anonymousIdentifier,
+                                },
+                            ],
+                        };
+                        reportTasks.push(ctx.env.kvDao.putReport(ratingReport));
+                    }
+                });
+
+                // TODO: this is probably wrong!
+                // professorUpdateTasks.push(ctx.env.kvDao.putProfessor(professor, true));
+            }
+
+            // Execute all professor updates for this batch
+            // await Promise.all(professorUpdateTasks);
+
+            // Determine if there are more professors to process
+            const hasMore = endIndex < profs.length;
+            const nextCursor = hasMore ? profs[endIndex].id : null;
+
+            return {
+                processedCount,
+                moderationFlagged: reportTasks.length,
+                totalProfessors: profs.length,
+                hasMore,
+                nextCursor,
+                message:
+                    `Processed ${processedCount} professors, ` +
+                    `found ${reportTasks.length} ratings to flag` +
                     `${hasMore ? ". Call again with nextCursor to continue." : ". Audit complete."}`,
             };
         }),

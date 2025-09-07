@@ -4,6 +4,7 @@ import type { Moderation } from "openai/resources/moderations";
 
 export type RatingAnalyzer = {
     analyzeRating(rating: PendingRating): Promise<Moderation | null>;
+    analyzeRatings(rating: PendingRating[]): Promise<(Moderation | null)[]>;
 };
 
 export class OpenAIDAO implements RatingAnalyzer {
@@ -29,10 +30,25 @@ export class OpenAIDAO implements RatingAnalyzer {
             return null;
         }
     }
+
+    async analyzeRatings(ratings: PendingRating[]) {
+        const moderation = await this.openai.moderations.create({
+            model: "omni-moderation-latest",
+            input: ratings.map((r) => r.rating),
+        });
+
+        return moderation.results;
+    }
 }
 export class PassThroughRatingAnalyzer implements RatingAnalyzer {
     // eslint-disable-next-line class-methods-use-this, @typescript-eslint/no-unused-vars
     async analyzeRating(rating: PendingRating) {
         return null;
+    }
+
+    // eslint-disable-next-line class-methods-use-this
+    async analyzeRatings(ratings: PendingRating[]) {
+        const arr: (Moderation | null)[] = [];
+        return arr.fill(null, 0, ratings.length);
     }
 }

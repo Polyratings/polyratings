@@ -67,7 +67,6 @@ function ReportedRatings() {
         processedCount: number;
         totalProfessors: number;
         duplicatesFound: number;
-        moderationFlagged: number;
         nextCursor: string | null;
         message: string;
     }>({
@@ -76,7 +75,6 @@ function ReportedRatings() {
         processedCount: 0,
         totalProfessors: 0,
         duplicatesFound: 0,
-        moderationFlagged: 0,
         nextCursor: null,
         message: "",
     });
@@ -95,7 +93,6 @@ function ReportedRatings() {
             isPaused: false,
             processedCount: startCursor ? prev.processedCount : 0,
             duplicatesFound: startCursor ? prev.duplicatesFound : 0,
-            moderationFlagged: startCursor ? prev.moderationFlagged : 0,
             message: startCursor ? "Resuming audit..." : "Starting audit...",
         }));
 
@@ -103,7 +100,6 @@ function ReportedRatings() {
             let cursor: string | undefined = startCursor;
             let totalProcessed = startCursor ? auditProgress.processedCount : 0;
             let totalDuplicates = startCursor ? auditProgress.duplicatesFound : 0;
-            let totalModerationFlagged = startCursor ? auditProgress.moderationFlagged : 0;
             let totalProfessors = 0;
 
             do {
@@ -127,7 +123,6 @@ function ReportedRatings() {
 
                 totalProcessed += result.processedCount;
                 totalDuplicates += result.duplicatesFound;
-                totalModerationFlagged += result.moderationFlagged || 0;
                 totalProfessors = result.totalProfessors;
                 cursor = result.nextCursor || undefined;
 
@@ -137,7 +132,6 @@ function ReportedRatings() {
                     processedCount: totalProcessed,
                     totalProfessors,
                     duplicatesFound: totalDuplicates,
-                    moderationFlagged: totalModerationFlagged,
                     nextCursor: result.nextCursor,
                     message: result.message,
                 });
@@ -158,7 +152,7 @@ function ReportedRatings() {
                     isPaused: false,
                     message:
                         `✅ Audit complete! Processed ${totalProcessed} professors, found ${totalDuplicates}` +
-                        ` duplicate ratings, and flagged ${totalModerationFlagged} for moderation.`,
+                        " duplicate ratings.",
                 }));
             }
         } catch (error) {
@@ -375,7 +369,6 @@ function ReportedRatings() {
                                     %)
                                 </div>
                                 <div>Duplicates Found: {auditProgress.duplicatesFound}</div>
-                                <div>Moderation Flagged: {auditProgress.moderationFlagged}</div>
                                 {auditProgress.isRunning && (
                                     <div className="w-full bg-gray-200 rounded-full h-2">
                                         <div
