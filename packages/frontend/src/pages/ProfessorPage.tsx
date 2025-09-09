@@ -25,6 +25,7 @@ import { trpc } from "@/trpc";
 import { REACT_MODAL_STYLES } from "@/constants";
 import { Button } from "@/components/forms/Button";
 import { useSortedCourses } from "@/hooks";
+import { getActiveCourseIndex } from "@/utils/getActiveCourseIndex";
 
 export function professorPageLoaderFactory(trpcContext: ReturnType<(typeof trpc)["useUtils"]>) {
     const professorPageLoader: IndexRouteObject["loader"] = ({ params }) =>
@@ -40,14 +41,8 @@ export function ProfessorPage() {
     // Track visibility ratios for each course section to determine which is most visible
     const [courseVisibility, setCourseVisibility] = useState<number[]>([]);
 
-    // Find the most visible course (highest visibility ratio above threshold)
-    const activeCourseIndex = courseVisibility.reduce((maxIndex, ratio, index) => {
-        // Use 0.25 threshold (25% visible) and prefer the course with highest visibility ratio
-        if (ratio >= 0.25 && (maxIndex === -1 || ratio > courseVisibility[maxIndex])) {
-            return index;
-        }
-        return maxIndex;
-    }, -1);
+    // Find the most visible course using threshold-based logic (fixes last section bug)
+    const activeCourseIndex = getActiveCourseIndex(courseVisibility);
 
     const { data: professorData, error: fetchError } = trpc.professors.get.useQuery({
         id: id ?? "",
@@ -179,9 +174,11 @@ export function ProfessorPage() {
                             className="pt-4 relative"
                             id={courseName}
                             threshold={[0, 0.25, 0.5, 0.75, 1]}
+                            // rootMargin accounts for: 64px top nav + 10% bottom buffer for short sections
                             rootMargin="-64px 0px -10% 0px"
                             onChange={(inView, entry) => {
-                                // Calculate visibility ratio based on intersection ratio
+                                // Track intersection ratio (0-1) for each section to determine which is most visible
+                                // This fixes the bug where last sections with insufficient content never activate
                                 const visibilityRatio = entry.intersectionRatio;
                                 const newVisibility = [...courseVisibility];
                                 newVisibility[i] = visibilityRatio;
