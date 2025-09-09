@@ -37,8 +37,17 @@ export function professorPageLoaderFactory(trpcContext: ReturnType<(typeof trpc)
 export function ProfessorPage() {
     const { id } = useParams<{ id: string }>();
 
-    const [courseVisibility, setCourseVisibility] = useState<boolean[]>([]);
-    const firstVisibleCourseIndex = courseVisibility.findIndex(Boolean);
+    // Track visibility ratios for each course section to determine which is most visible
+    const [courseVisibility, setCourseVisibility] = useState<number[]>([]);
+
+    // Find the most visible course (highest visibility ratio above threshold)
+    const activeCourseIndex = courseVisibility.reduce((maxIndex, ratio, index) => {
+        // Use 0.25 threshold (25% visible) and prefer the course with highest visibility ratio
+        if (ratio >= 0.25 && (maxIndex === -1 || ratio > courseVisibility[maxIndex])) {
+            return index;
+        }
+        return maxIndex;
+    }, -1);
 
     const { data: professorData, error: fetchError } = trpc.professors.get.useQuery({
         id: id ?? "",
@@ -169,9 +178,14 @@ export function ProfessorPage() {
                             as="div"
                             className="pt-4 relative"
                             id={courseName}
-                            onChange={(status) => {
-                                courseVisibility[i] = status;
-                                setCourseVisibility([...courseVisibility]);
+                            threshold={[0, 0.25, 0.5, 0.75, 1]}
+                            rootMargin="-64px 0px -10% 0px"
+                            onChange={(inView, entry) => {
+                                // Calculate visibility ratio based on intersection ratio
+                                const visibilityRatio = entry.intersectionRatio;
+                                const newVisibility = [...courseVisibility];
+                                newVisibility[i] = visibilityRatio;
+                                setCourseVisibility(newVisibility);
                             }}
                         >
                             <div className="container md:max-w-5xl flex flex-col m-auto px-2">
@@ -198,7 +212,7 @@ export function ProfessorPage() {
                 outerClassName="hidden xl:flex flex-col fixed ml-4 top-1/2 transform -translate-y-1/2 max-h-10/12 overflow-y-auto"
                 innerClassName={(_, i) =>
                     `text-lg font-semibold mt-2 rounded-xl px-2 py-[0.1rem] text-center ${
-                        firstVisibleCourseIndex === i
+                        activeCourseIndex === i
                             ? "bg-cal-poly-gold text-white"
                             : "text-cal-poly-green"
                     }`
