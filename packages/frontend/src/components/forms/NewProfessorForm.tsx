@@ -14,11 +14,14 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useEffect } from "react";
 import { ClipLoader } from "react-spinners";
 import { trpc } from "@/trpc";
-import { Checkbox, Select, TextArea, TextInput } from "./forms";
+import { Checkbox } from "./Checkbox";
+import { Select } from "./Select";
+import { TextArea } from "./TextArea";
+import { TextInput } from "./TextInput";
 import { CLASS_INFORMATION, NUMERICAL_RATINGS } from "./EvaluateProfessorForm";
 import { FormBar } from "./FormBar";
 import { TagSelection } from "./TagSelection";
-import { Button } from "./forms/Button";
+import { Button } from "./Button";
 
 const newProfessorFormParser = z.object({
     professorFirstName: z.string().trim().min(1),

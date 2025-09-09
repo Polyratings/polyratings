@@ -1,7 +1,7 @@
 import { ReactElement, useState } from "react";
 import { UseFormReturn } from "react-hook-form";
 import ClipLoader from "react-spinners/ClipLoader";
-import { Button } from "./forms/Button";
+import { Button } from "./Button";
 
 export type FormStep = "first" | "second";
 

@@ -1,7 +1,7 @@
 import { ChevronRightIcon } from "@heroicons/react/24/solid";
 import { SearchBarProps, SearchBase } from "./SearchBar";
 import { SearchToggle } from "./SearchToggle";
-import { Button } from "./forms/Button";
+import { Button } from "@/components/forms/Button";
 
 export function ExtendedSearchBar({
     value,
