@@ -10,6 +10,7 @@ import { authRouter } from "./routers/auth";
 import { professorParser, truncatedProfessorParser } from "./types/schema";
 import { ALL_PROFESSOR_KEY } from "./utils/const";
 import { AnonymousIdDao } from "./dao/anonymous-id-dao";
+import { getCookie } from "./utils/cookie-utils";
 
 export const appRouter = t.router({
     professors: professorRouter,
@@ -23,6 +24,7 @@ const CORS_HEADERS = {
     "Access-Control-Allow-Origin": "*",
     "Access-Control-Allow-Methods": "*",
     "Access-Control-Allow-Headers": "*",
+    "Access-Control-Allow-Credentials": "true", // Add credentials support for cookies
 };
 
 export default {
@@ -62,18 +64,39 @@ export default {
                 enabled: false,
             },
             createContext: async ({ req }) => {
-                const authHeader = req.headers.get("Authorization");
-                const user = await polyratingsEnv.authStrategy.verify(authHeader);
-                return { env: polyratingsEnv, user };
+                // First try cookie-based authentication (new method)
+                const cookieHeader = req.headers.get("Cookie");
+                const accessToken = getCookie(cookieHeader, "accessToken");
+                let user = undefined;
+                
+                if (accessToken) {
+                    user = await polyratingsEnv.authStrategy.verifyAccessToken(accessToken);
+                } else {
+                    // Fall back to header-based authentication (legacy support)
+                    const authHeader = req.headers.get("Authorization");
+                    user = await polyratingsEnv.authStrategy.verify(authHeader);
+                }
+                
+                return { env: polyratingsEnv, user, req };
             },
-            responseMeta: () => ({
-                headers: {
+            responseMeta: ({ ctx }) => {
+                const headers = {
                     "Access-Control-Max-Age": "1728000",
                     "Content-Encoding": "gzip",
                     Vary: "Accept-Encoding",
                     ...CORS_HEADERS,
-                },
-            }),
+                };
+                
+                // Add any response headers set by the procedures (like Set-Cookie)
+                if ((ctx as any)?.responseHeaders) {
+                    const responseHeaders = (ctx as any).responseHeaders;
+                    responseHeaders.forEach((value: string, key: string) => {
+                        (headers as any)[key] = value;
+                    });
+                }
+                
+                return { headers };
+            },
             onError: (errorState) => {
                 if (errorState.error.code === "INTERNAL_SERVER_ERROR") {
                     sentry.captureException(errorState.error);

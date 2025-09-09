@@ -7,14 +7,15 @@ import { config } from "./App.config";
 
 export const trpc = createTRPCReact<AppRouter>();
 
-export const trpcClientOptions = (jwt: string | null) => ({
+export const trpcClientOptions = () => ({
     links: [
         httpLink({
             url: config.clientEnv.url,
-            headers() {
-                return {
-                    authorization: jwt ? `Bearer ${jwt}` : "",
-                };
+            fetch(url, options) {
+                return fetch(url, {
+                    ...options,
+                    credentials: 'include', // Include cookies in requests
+                });
             },
         }),
     ],

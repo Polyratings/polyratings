@@ -55,12 +55,81 @@ export class AuthStrategy {
         return payload.payload as UserToken;
     }
 
+    async verifyAccessToken(token: string | null): Promise<UserToken | undefined> {
+        if (!token) {
+            return undefined;
+        }
+
+        const isValid = await jwt.verify(token, this.jwtSigningKey);
+        if (!isValid) {
+            return undefined;
+        }
+
+        const payload = jwt.decode(token);
+        const userToken = payload.payload as UserToken;
+
+        // Additional check to ensure this is an access token (not a refresh token)
+        if (userToken.type !== 'access') {
+            return undefined;
+        }
+
+        return userToken;
+    }
+
+    async verifyRefreshToken(token: string | null): Promise<UserToken | undefined> {
+        if (!token) {
+            return undefined;
+        }
+
+        const isValid = await jwt.verify(token, this.jwtSigningKey);
+        if (!isValid) {
+            return undefined;
+        }
+
+        const payload = jwt.decode(token);
+        const userToken = payload.payload as UserToken;
+
+        // Additional check to ensure this is a refresh token (not an access token)
+        if (userToken.type !== 'refresh') {
+            return undefined;
+        }
+
+        return userToken;
+    }
+
     async createToken(user: User) {
         const { username } = user;
         const payload: UserToken = {
             sub: username,
             username,
             exp: Math.floor(Date.now() / 1000) + 2 * (60 * 60), // Expires: Now + 2h
+            type: 'access', // For backwards compatibility
+        };
+
+        const secret = this.jwtSigningKey;
+        return jwt.sign(payload, secret);
+    }
+
+    async createAccessToken(user: User) {
+        const { username } = user;
+        const payload: UserToken = {
+            sub: username,
+            username,
+            exp: Math.floor(Date.now() / 1000) + 15 * 60, // Expires: Now + 15 minutes
+            type: 'access',
+        };
+
+        const secret = this.jwtSigningKey;
+        return jwt.sign(payload, secret);
+    }
+
+    async createRefreshToken(user: User) {
+        const { username } = user;
+        const payload: UserToken = {
+            sub: username,
+            username,
+            exp: Math.floor(Date.now() / 1000) + 7 * 24 * 60 * 60, // Expires: Now + 7 days
+            type: 'refresh',
         };
 
         const secret = this.jwtSigningKey;
@@ -77,4 +146,5 @@ export type UserToken = {
     sub: string;
     username: string;
     exp: number;
+    type?: 'access' | 'refresh'; // Optional for backwards compatibility
 };

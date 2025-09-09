@@ -24,17 +24,17 @@ export function Login() {
         resolver: zodResolver(loginParser),
     });
 
-    const { setJwt } = useAuth();
+    const { setIsAuthenticated } = useAuth();
     const navigate = useNavigate();
 
-    const { mutateAsync: login, data: jwt, error: networkError } = trpc.auth.login.useMutation();
+    const { mutateAsync: login, data: loginResult, error: networkError } = trpc.auth.login.useMutation();
 
     useEffect(() => {
-        if (jwt) {
-            setJwt(jwt);
+        if (loginResult?.success) {
+            setIsAuthenticated(true);
             navigate("/admin");
         }
-    }, [jwt]);
+    }, [loginResult, setIsAuthenticated, navigate]);
 
     return (
         <div

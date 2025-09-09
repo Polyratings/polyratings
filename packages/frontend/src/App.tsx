@@ -66,8 +66,8 @@ export default function App() {
         return queryClient;
     });
     const trpcClient = useMemo(
-        () => trpc.createClient(trpcClientOptions(authState.jwt)),
-        [authState.jwt],
+        () => trpc.createClient(trpcClientOptions()),
+        [],
     );
 
     return (

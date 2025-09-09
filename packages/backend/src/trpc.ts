@@ -3,6 +3,7 @@ import { Env } from "./env";
 
 type Context = {
     env: Env;
+    req?: Request;
     user?: {
         username: string;
     };
