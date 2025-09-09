@@ -173,9 +173,9 @@ export function ProfessorPage() {
                             as="div"
                             className="pt-4 relative"
                             id={courseName}
-                            threshold={[0, 0.25, 0.5, 0.75, 1]}
-                            // rootMargin accounts for: 64px top nav + 10% bottom buffer for short sections
-                            rootMargin="-64px 0px -10% 0px"
+                            threshold={[0, 0.1, 0.25, 0.5, 0.75, 1]}
+                            // Smaller top margin to account for nav, remove bottom margin for better responsiveness
+                            rootMargin="-64px 0px 0px 0px"
                             onChange={(inView, entry) => {
                                 // Track intersection ratio (0-1) for each section to determine which is most visible
                                 // This fixes the bug where last sections with insufficient content never activate
