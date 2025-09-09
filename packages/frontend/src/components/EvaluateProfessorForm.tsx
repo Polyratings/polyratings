@@ -9,19 +9,20 @@ import {
     COURSE_TYPES,
     Department,
     PROFESSOR_TAGS,
-    MAX_PROFESSOR_TAGS_PER_RATING,
 } from "@backend/utils/const";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { inferProcedureOutput } from "@trpc/server";
 import { AppRouter } from "@backend/index";
 import { UserIcon } from "@heroicons/react/24/solid";
-import { ReactElement, useState } from "react";
+
 import { trpc } from "@/trpc";
 import { Select, TextArea } from "./forms";
 import { TextInput } from "./forms/TextInput";
 import { Button } from "./forms/Button";
 import { useSortedCourses } from "@/hooks";
+import { FormBar } from "./FormBar";
+import { TagSelection } from "./TagSelection";
 
 interface EvaluateProfessorFormProps {
     professor?: inferProcedureOutput<AppRouter["professors"]["get"]>;
@@ -72,87 +73,6 @@ export function TwoStepEvaluateProfessor({ professor, closeForm }: EvaluateProfe
 
             <div className="text-red-500 text-sm">{networkError?.message}</div>
         </form>
-    );
-}
-
-export type FormStep = "first" | "second";
-export type FormBarProps = {
-    isLoading: boolean;
-    // Fine to use any since trigger does not use the type param
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    triggerValidation: UseFormReturn<any>["trigger"];
-    firstStep: () => ReactElement;
-    secondStep: () => ReactElement;
-};
-export function FormBar({ isLoading, triggerValidation, firstStep, secondStep }: FormBarProps) {
-    const [formStep, setFormStep] = useState<FormStep>("first");
-
-    return (
-        <>
-            <div className="w-[24rem] my-4 m-auto">
-                <div className="flex mb-1">
-                    <div
-                        className={`w-1/2 text-center text-sm ${
-                            formStep === "first" ? "font-semibold" : "font-normal"
-                        }`}
-                    >
-                        Write Review
-                    </div>
-                    <div
-                        className={`w-1/2 text-center text-sm ${
-                            formStep === "second" ? "font-semibold" : "font-normal"
-                        }`}
-                    >
-                        Course Accessibility
-                    </div>
-                </div>
-                <div className="h-1 rounded-sm bg-gray-200 relative transition-all">
-                    <div
-                        className={`absolute w-1/2 h-1 rounded bg-cal-poly-green ${
-                            formStep === "first" ? "left-0" : "left-1/2"
-                        }`}
-                    />
-                </div>
-            </div>
-
-            {formStep === "first" && firstStep()}
-            {formStep === "second" && secondStep()}
-
-            <div
-                className={`flex justify-center gap-6 mt-2 ${
-                    isLoading || formStep !== "first" ? "hidden" : "block"
-                } `}
-            >
-                <Button variant="secondary" type="submit">
-                    Skip Course Accessibility
-                </Button>
-                <Button
-                    type="button"
-                    onClick={async () =>
-                        (await triggerValidation(undefined, { shouldFocus: true })) &&
-                        setFormStep("second")
-                    }
-                >
-                    Next
-                </Button>
-            </div>
-
-            <div
-                className={`flex justify-center gap-6 mt-2 ${
-                    isLoading || formStep !== "second" ? "hidden" : "block"
-                } `}
-            >
-                <Button type="button" variant="secondary" onClick={() => setFormStep("first")}>
-                    Back
-                </Button>
-                <Button type="submit">Submit</Button>
-            </div>
-
-            <div className="flex justify-center">
-                {/* Exact size for no layer shift */}
-                <ClipLoader color="#1F4715" loading={isLoading} size={34} />
-            </div>
-        </>
     );
 }
 
@@ -299,114 +219,6 @@ function EvaluateProfessorStep({
                 error={errors.ratingText?.message}
             />
         </>
-    );
-}
-
-type TagSelectionVariant =
-    | "desktop-primary"
-    | "desktop-secondary"
-    | "mobile-primary"
-    | "mobile-secondary";
-
-export type TagSelectionProps = {
-    onChange: (tags: string[]) => void;
-    variant: TagSelectionVariant;
-};
-export function TagSelection({ onChange, variant }: TagSelectionProps) {
-    const [tagState, setTagState] = useState(
-        PROFESSOR_TAGS.map((tagText) => ({ tagText, selected: false })),
-    );
-
-    const selectedTags = tagState.filter(({ selected }) => selected);
-
-    const variantMap: Record<TagSelectionVariant, SelectableTagVariant> = {
-        "mobile-primary": "primary",
-        "mobile-secondary": "secondary",
-        "desktop-primary": "primary",
-        "desktop-secondary": "secondary",
-    };
-
-    return (
-        <>
-            {variant.startsWith("desktop") && (
-                <h2 className="font-bold text-2xl mb-4">
-                    Select up to {MAX_PROFESSOR_TAGS_PER_RATING} tags (Optional)
-                </h2>
-            )}
-            {variant.startsWith("mobile") && (
-                <h3 className="text-xs mb-2">
-                    Select up to {MAX_PROFESSOR_TAGS_PER_RATING} tags (Optional)
-                </h3>
-            )}
-            <div className="flex gap-2 flex-wrap mb-4">
-                {tagState.map((tag, i) => (
-                    <SelectableTag
-                        variant={variantMap[variant]}
-                        key={tag.tagText}
-                        disabled={
-                            selectedTags.length === MAX_PROFESSOR_TAGS_PER_RATING && !tag.selected
-                        }
-                        {...tag}
-                        onClick={() => {
-                            const copy = [...tagState];
-                            copy[i].selected = !copy[i].selected;
-                            onChange(
-                                copy
-                                    .filter(({ selected }) => selected)
-                                    .map(({ tagText }) => tagText),
-                            );
-                            setTagState(copy);
-                        }}
-                    />
-                ))}
-            </div>
-        </>
-    );
-}
-
-type SelectableTagVariant = "primary" | "secondary";
-
-export interface SelectableTagProps extends React.ComponentProps<"button"> {
-    variant: SelectableTagVariant;
-    tagText: string;
-    selected: boolean;
-}
-function SelectableTag({
-    variant,
-    tagText,
-    selected,
-    className: buttonClassName,
-    disabled,
-    ...buttonProps
-}: SelectableTagProps) {
-    const selectedVariantMap = {
-        primary: "bg-cal-poly-light-green border-[0.1rem]",
-        secondary: "border-cal-poly-gold border-2 font-bold bg-white",
-    };
-
-    const unselectedVariantMap = {
-        primary: `${disabled ? "bg-gray-100" : "bg-white"} border-cal-poly-green border-[0.1rem]`,
-        secondary: `${disabled ? "bg-gray-300" : "bg-white"} border-2`,
-    };
-
-    const pseudoExpander =
-        "after:content-[attr(title)] after:block after:font-bold after:h-1 after:text-transparent after:overflow-hidden";
-
-    const className = selected
-        ? `${pseudoExpander} font-semibold ${selectedVariantMap[variant]} ${buttonClassName}`
-        : `${pseudoExpander} font-[350] ${unselectedVariantMap[variant]} ${buttonClassName}`;
-
-    return (
-        <button
-            type="button"
-            {...buttonProps}
-            title={tagText}
-            disabled={disabled && !selected}
-            // Use different y padding to account for weird font height
-            className={`${className} pb-1 pt-[.313rem] px-2 h-9 text-cal-poly-green rounded-lg font-nunito`}
-        >
-            {tagText}
-        </button>
     );
 }
 

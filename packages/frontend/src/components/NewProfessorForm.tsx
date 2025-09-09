@@ -15,12 +15,9 @@ import { useEffect } from "react";
 import { ClipLoader } from "react-spinners";
 import { trpc } from "@/trpc";
 import { Checkbox, Select, TextArea, TextInput } from "./forms";
-import {
-    CLASS_INFORMATION,
-    FormBar,
-    NUMERICAL_RATINGS,
-    TagSelection,
-} from "./EvaluateProfessorForm";
+import { CLASS_INFORMATION, NUMERICAL_RATINGS } from "./EvaluateProfessorForm";
+import { FormBar } from "./FormBar";
+import { TagSelection } from "./TagSelection";
 import { Button } from "./forms/Button";
 
 const newProfessorFormParser = z.object({

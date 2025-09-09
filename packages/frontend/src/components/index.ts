@@ -1,4 +1,6 @@
 export * from "./EvaluateProfessorForm";
+export * from "./FormBar";
+export * from "./TagSelection";
 export * from "./Navbar";
 export * from "./NewProfessorForm";
 export * from "./SearchBar";
