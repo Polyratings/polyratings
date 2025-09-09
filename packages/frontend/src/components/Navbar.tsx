@@ -3,6 +3,7 @@ import "@/styles/hamburgers.css";
 import AnimateHeight from "react-animate-height";
 import { useEffect, useState } from "react";
 import { useAuth } from "@/hooks";
+import { trpc } from "@/trpc";
 import { SearchState, TruncatedSearchBar } from "./SearchBar";
 import Logo from "@/assets/Logo.svg";
 import DiscordLogo from "@/assets/Discord-Logo-White.svg";
@@ -13,9 +14,19 @@ const HIDE_SEARCH_BAR_ROUTES = ["/", "/search/name", "/search/class", "/search/d
 export function Navbar() {
     const [mobileNavOpen, setMobileNav] = useState(false);
     const triggerMobileNav = () => setMobileNav(!mobileNavOpen);
-    const { isAuthenticated, setJwt } = useAuth();
+    const { isAuthenticated, setIsAuthenticated } = useAuth();
     const location = useLocation();
     const [showInputBar, setShowInputBar] = useState(true);
+
+    const { mutateAsync: logout } = trpc.auth.logout.useMutation({
+        onSuccess: () => {
+            setIsAuthenticated(false);
+        },
+    });
+
+    const handleLogout = () => {
+        logout();
+    };
 
     useEffect(() => {
         const matchingRoute = HIDE_SEARCH_BAR_ROUTES.find((route) => location.pathname === route);
@@ -130,7 +141,7 @@ export function Navbar() {
                 )}
                 {isAuthenticated && (
                     <button
-                        onClick={() => setJwt(null)}
+                        onClick={handleLogout}
                         className="rounded-full border-white pl-3 pr-3 border-2 pt-px pb-px cursor-pointer"
                         type="button"
                     >

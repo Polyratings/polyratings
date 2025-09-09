@@ -38,33 +38,77 @@ export class AuthStrategy {
         return storedHash === computedHashStr;
     }
 
-    async verify(authHeader: string | null): Promise<UserToken | undefined> {
-        if (!authHeader) {
+    async verifyAccessToken(token: string | null): Promise<UserToken | undefined> {
+        if (!token) {
             return undefined;
         }
 
-        const token = authHeader.replace("Bearer ", "");
         const isValid = await jwt.verify(token, this.jwtSigningKey);
         if (!isValid) {
             return undefined;
         }
 
-        // If token is valid payload should be as well
         const payload = jwt.decode(token);
+        const userToken = payload.payload as UserToken;
 
-        return payload.payload as UserToken;
+        // Additional check to ensure this is an access token (not a refresh token)
+        if (userToken.type !== 'access') {
+            return undefined;
+        }
+
+        return userToken;
     }
 
-    async createToken(user: User) {
+    async verifyRefreshToken(token: string | null): Promise<UserToken | undefined> {
+        if (!token) {
+            return undefined;
+        }
+
+        const isValid = await jwt.verify(token, this.jwtSigningKey);
+        if (!isValid) {
+            return undefined;
+        }
+
+        const payload = jwt.decode(token);
+        const userToken = payload.payload as UserToken;
+
+        // Additional check to ensure this is a refresh token (not an access token)
+        if (userToken.type !== 'refresh') {
+            return undefined;
+        }
+
+        return userToken;
+    }
+
+    async createAccessToken(user: User): Promise<{ token: string; maxAge: number }> {
         const { username } = user;
+        const maxAge = 15 * 60; // 15 minutes
         const payload: UserToken = {
             sub: username,
             username,
-            exp: Math.floor(Date.now() / 1000) + 2 * (60 * 60), // Expires: Now + 2h
+            exp: Math.floor(Date.now() / 1000) + maxAge,
+            type: 'access',
         };
 
         const secret = this.jwtSigningKey;
-        return jwt.sign(payload, secret);
+        const token = await jwt.sign(payload, secret);
+        return { token, maxAge };
+    }
+
+    async createRefreshToken(user: User): Promise<{ token: string; maxAge: number }> {
+        // TODO: Store refresh tokens in a database for revocation capability
+        const { username } = user;
+        const maxAge = 7 * 24 * 60 * 60; // 7 days
+        const payload: UserToken = {
+            sub: username,
+            username,
+            exp: Math.floor(Date.now() / 1000) + maxAge,
+            type: 'refresh',
+        };
+
+        const secret = this.jwtSigningKey;
+        const token = await jwt.sign(payload, secret);
+        return { token, maxAge };
     }
 
     // From: https://stackoverflow.com/questions/34309988/byte-array-to-hex-string-conversion-in-javascript
@@ -77,4 +121,5 @@ export type UserToken = {
     sub: string;
     username: string;
     exp: number;
+    type: 'access' | 'refresh';
 };
