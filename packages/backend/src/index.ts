@@ -95,6 +95,12 @@ export default {
                     });
                 }
                 
+                // Add cookies set by procedures
+                if ((ctx as any)?.setCookies) {
+                    const cookies = (ctx as any).setCookies as string[];
+                    (headers as any)['Set-Cookie'] = cookies;
+                }
+                
                 return { headers };
             },
             onError: (errorState) => {

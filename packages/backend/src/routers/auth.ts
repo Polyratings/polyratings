@@ -18,17 +18,15 @@ export const authRouter = t.router({
             const accessToken = await ctx.env.authStrategy.createAccessToken(user);
             const refreshToken = await ctx.env.authStrategy.createRefreshToken(user);
 
-            // Set cookies in response headers
-            const response = new Response();
-            response.headers.append('Set-Cookie', setCookie('accessToken', accessToken, {
-                maxAge: 15 * 60, // 15 minutes
-            }));
-            response.headers.append('Set-Cookie', setCookie('refreshToken', refreshToken, {
-                maxAge: 7 * 24 * 60 * 60, // 7 days
-            }));
-
-            // Store response in context for the tRPC adapter to use
-            (ctx as any).responseHeaders = response.headers;
+            // Store cookies to be set in response
+            (ctx as any).setCookies = [
+                setCookie('accessToken', accessToken, {
+                    maxAge: 15 * 60, // 15 minutes
+                }),
+                setCookie('refreshToken', refreshToken, {
+                    maxAge: 7 * 24 * 60 * 60, // 7 days
+                })
+            ];
 
             return { success: true };
         }),
@@ -47,26 +45,22 @@ export const authRouter = t.router({
             const user = await ctx.env.kvDao.getUser(userToken.username);
             const newAccessToken = await ctx.env.authStrategy.createAccessToken(user);
 
-            // Set new access token cookie
-            const response = new Response();
-            response.headers.append('Set-Cookie', setCookie('accessToken', newAccessToken, {
-                maxAge: 15 * 60, // 15 minutes
-            }));
-
-            // Store response in context for the tRPC adapter to use
-            (ctx as any).responseHeaders = response.headers;
+            // Store new access token cookie to be set in response
+            (ctx as any).setCookies = [
+                setCookie('accessToken', newAccessToken, {
+                    maxAge: 15 * 60, // 15 minutes
+                })
+            ];
 
             return { success: true };
         }),
     logout: t.procedure
         .mutation(async ({ ctx }) => {
-            // Clear both cookies
-            const response = new Response();
-            response.headers.append('Set-Cookie', clearCookie('accessToken'));
-            response.headers.append('Set-Cookie', clearCookie('refreshToken'));
-
-            // Store response in context for the tRPC adapter to use
-            (ctx as any).responseHeaders = response.headers;
+            // Store cookies to be cleared in response
+            (ctx as any).setCookies = [
+                clearCookie('accessToken'),
+                clearCookie('refreshToken')
+            ];
 
             return { success: true };
         }),
