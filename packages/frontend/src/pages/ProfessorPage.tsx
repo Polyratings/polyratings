@@ -41,7 +41,7 @@ export function ProfessorPage() {
     // Track visibility ratios for each course section to determine which is most visible
     const [courseVisibility, setCourseVisibility] = useState<number[]>([]);
 
-    // Find the most visible course using threshold-based logic (fixes last section bug)
+    // Find the most visible course (fixes last section bug while maintaining responsive highlighting)
     const activeCourseIndex = getActiveCourseIndex(courseVisibility);
 
     const { data: professorData, error: fetchError } = trpc.professors.get.useQuery({
@@ -173,12 +173,12 @@ export function ProfessorPage() {
                             as="div"
                             className="pt-4 relative"
                             id={courseName}
-                            threshold={[0, 0.1, 0.25, 0.5, 0.75, 1]}
-                            // Smaller top margin to account for nav, remove bottom margin for better responsiveness
+                            threshold={[0, 0.01, 0.05, 0.1, 0.25, 0.5, 0.75, 1]}
+                            // Account for fixed navigation without interfering with scroll behavior
                             rootMargin="-64px 0px 0px 0px"
                             onChange={(inView, entry) => {
                                 // Track intersection ratio (0-1) for each section to determine which is most visible
-                                // This fixes the bug where last sections with insufficient content never activate
+                                // This approach fixes the last section bug while maintaining responsive scroll highlighting
                                 const visibilityRatio = entry.intersectionRatio;
                                 const newVisibility = [...courseVisibility];
                                 newVisibility[i] = visibilityRatio;
