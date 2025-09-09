@@ -38,23 +38,6 @@ export class AuthStrategy {
         return storedHash === computedHashStr;
     }
 
-    async verify(authHeader: string | null): Promise<UserToken | undefined> {
-        if (!authHeader) {
-            return undefined;
-        }
-
-        const token = authHeader.replace("Bearer ", "");
-        const isValid = await jwt.verify(token, this.jwtSigningKey);
-        if (!isValid) {
-            return undefined;
-        }
-
-        // If token is valid payload should be as well
-        const payload = jwt.decode(token);
-
-        return payload.payload as UserToken;
-    }
-
     async verifyAccessToken(token: string | null): Promise<UserToken | undefined> {
         if (!token) {
             return undefined;
@@ -97,43 +80,35 @@ export class AuthStrategy {
         return userToken;
     }
 
-    async createToken(user: User) {
+    async createAccessToken(user: User): Promise<{ token: string; maxAge: number }> {
         const { username } = user;
+        const maxAge = 15 * 60; // 15 minutes
         const payload: UserToken = {
             sub: username,
             username,
-            exp: Math.floor(Date.now() / 1000) + 2 * (60 * 60), // Expires: Now + 2h
-            type: 'access', // For backwards compatibility
-        };
-
-        const secret = this.jwtSigningKey;
-        return jwt.sign(payload, secret);
-    }
-
-    async createAccessToken(user: User) {
-        const { username } = user;
-        const payload: UserToken = {
-            sub: username,
-            username,
-            exp: Math.floor(Date.now() / 1000) + 15 * 60, // Expires: Now + 15 minutes
+            exp: Math.floor(Date.now() / 1000) + maxAge,
             type: 'access',
         };
 
         const secret = this.jwtSigningKey;
-        return jwt.sign(payload, secret);
+        const token = await jwt.sign(payload, secret);
+        return { token, maxAge };
     }
 
-    async createRefreshToken(user: User) {
+    async createRefreshToken(user: User): Promise<{ token: string; maxAge: number }> {
+        // TODO: Store refresh tokens in a database for revocation capability
         const { username } = user;
+        const maxAge = 7 * 24 * 60 * 60; // 7 days
         const payload: UserToken = {
             sub: username,
             username,
-            exp: Math.floor(Date.now() / 1000) + 7 * 24 * 60 * 60, // Expires: Now + 7 days
+            exp: Math.floor(Date.now() / 1000) + maxAge,
             type: 'refresh',
         };
 
         const secret = this.jwtSigningKey;
-        return jwt.sign(payload, secret);
+        const token = await jwt.sign(payload, secret);
+        return { token, maxAge };
     }
 
     // From: https://stackoverflow.com/questions/34309988/byte-array-to-hex-string-conversion-in-javascript
@@ -146,5 +121,5 @@ export type UserToken = {
     sub: string;
     username: string;
     exp: number;
-    type?: 'access' | 'refresh'; // Optional for backwards compatibility
+    type: 'access' | 'refresh';
 };

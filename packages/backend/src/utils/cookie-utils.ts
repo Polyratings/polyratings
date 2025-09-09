@@ -1,7 +1,9 @@
+import { serialize, parse } from 'cookie';
+
 export interface CookieOptions {
     httpOnly?: boolean;
     secure?: boolean;
-    sameSite?: 'Strict' | 'Lax' | 'None';
+    sameSite?: 'strict' | 'lax' | 'none';
     maxAge?: number;
     path?: string;
 }
@@ -14,30 +16,18 @@ export function setCookie(
     const {
         httpOnly = true,
         secure = true,
-        sameSite = 'Strict',
+        sameSite = 'strict',
         maxAge,
         path = '/',
     } = options;
 
-    let cookie = `${name}=${value}; Path=${path}`;
-    
-    if (httpOnly) {
-        cookie += '; HttpOnly';
-    }
-    
-    if (secure) {
-        cookie += '; Secure';
-    }
-    
-    if (sameSite) {
-        cookie += `; SameSite=${sameSite}`;
-    }
-    
-    if (maxAge !== undefined) {
-        cookie += `; Max-Age=${maxAge}`;
-    }
-    
-    return cookie;
+    return serialize(name, value, {
+        httpOnly,
+        secure,
+        sameSite,
+        maxAge,
+        path,
+    });
 }
 
 export function getCookie(cookieHeader: string | null, name: string): string | null {
@@ -45,15 +35,8 @@ export function getCookie(cookieHeader: string | null, name: string): string | n
         return null;
     }
     
-    const cookies = cookieHeader.split(';');
-    for (const cookie of cookies) {
-        const [cookieName, cookieValue] = cookie.trim().split('=');
-        if (cookieName === name) {
-            return cookieValue || null;
-        }
-    }
-    
-    return null;
+    const cookies = parse(cookieHeader);
+    return cookies[name] || null;
 }
 
 export function clearCookie(name: string, path: string = '/'): string {

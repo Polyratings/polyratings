@@ -10,7 +10,7 @@ import { authRouter } from "./routers/auth";
 import { professorParser, truncatedProfessorParser } from "./types/schema";
 import { ALL_PROFESSOR_KEY } from "./utils/const";
 import { AnonymousIdDao } from "./dao/anonymous-id-dao";
-import { getCookie } from "./utils/cookie-utils";
+import { getCookie, setCookie } from "./utils/cookie-utils";
 
 export const appRouter = t.router({
     professors: professorRouter,
@@ -64,20 +64,34 @@ export default {
                 enabled: false,
             },
             createContext: async ({ req }) => {
-                // First try cookie-based authentication (new method)
                 const cookieHeader = req.headers.get("Cookie");
                 const accessToken = getCookie(cookieHeader, "accessToken");
+                const refreshToken = getCookie(cookieHeader, "refreshToken");
+                
                 let user = undefined;
+                let setCookies: string[] | undefined = undefined;
                 
                 if (accessToken) {
+                    // Try to verify the access token
                     user = await polyratingsEnv.authStrategy.verifyAccessToken(accessToken);
-                } else {
-                    // Fall back to header-based authentication (legacy support)
-                    const authHeader = req.headers.get("Authorization");
-                    user = await polyratingsEnv.authStrategy.verify(authHeader);
+                } else if (refreshToken) {
+                    // Access token invalid/expired, try to refresh using refresh token
+                    const refreshUserToken = await polyratingsEnv.authStrategy.verifyRefreshToken(refreshToken);
+                    if (refreshUserToken) {
+                        // Valid refresh token, create new access token
+                        const userData = await polyratingsEnv.kvDao.getUser(refreshUserToken.username);
+                        const newAccessTokenResult = await polyratingsEnv.authStrategy.createAccessToken(userData);
+                        
+                        user = refreshUserToken;
+                        setCookies = [
+                            setCookie('accessToken', newAccessTokenResult.token, {
+                                maxAge: newAccessTokenResult.maxAge,
+                            })
+                        ];
+                    }
                 }
                 
-                return { env: polyratingsEnv, user, req };
+                return { env: polyratingsEnv, user, req, setCookies };
             },
             responseMeta: ({ ctx }) => {
                 const headers = {
@@ -95,10 +109,14 @@ export default {
                     });
                 }
                 
-                // Add cookies set by procedures
+                // Collect cookies from both procedures and context (for automatic refresh)
+                const allCookies: string[] = [];
                 if ((ctx as any)?.setCookies) {
-                    const cookies = (ctx as any).setCookies as string[];
-                    (headers as any)['Set-Cookie'] = cookies;
+                    allCookies.push(...(ctx as any).setCookies);
+                }
+                
+                if (allCookies.length > 0) {
+                    (headers as any)['Set-Cookie'] = allCookies;
                 }
                 
                 return { headers };

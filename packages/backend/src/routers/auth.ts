@@ -3,6 +3,13 @@ import { t, protectedProcedure } from "@backend/trpc";
 import { z } from "zod";
 import { setCookie, getCookie, clearCookie } from "@backend/utils/cookie-utils";
 
+interface AuthContext {
+    env: any;
+    req?: Request;
+    user?: { username: string };
+    setCookies?: string[];
+}
+
 export const authRouter = t.router({
     login: t.procedure
         .input(z.object({ username: z.string(), password: z.string() }))
@@ -15,40 +22,17 @@ export const authRouter = t.router({
             }
 
             // Create access and refresh tokens
-            const accessToken = await ctx.env.authStrategy.createAccessToken(user);
-            const refreshToken = await ctx.env.authStrategy.createRefreshToken(user);
+            const accessTokenResult = await ctx.env.authStrategy.createAccessToken(user);
+            const refreshTokenResult = await ctx.env.authStrategy.createRefreshToken(user);
 
             // Store cookies to be set in response
-            (ctx as any).setCookies = [
-                setCookie('accessToken', accessToken, {
-                    maxAge: 15 * 60, // 15 minutes
+            const authCtx = ctx as AuthContext;
+            authCtx.setCookies = [
+                setCookie('accessToken', accessTokenResult.token, {
+                    maxAge: accessTokenResult.maxAge,
                 }),
-                setCookie('refreshToken', refreshToken, {
-                    maxAge: 7 * 24 * 60 * 60, // 7 days
-                })
-            ];
-
-            return { success: true };
-        }),
-    refresh: t.procedure
-        .mutation(async ({ ctx }) => {
-            const request = (ctx as any).req;
-            const cookieHeader = request.headers.get('Cookie');
-            const refreshToken = getCookie(cookieHeader, 'refreshToken');
-
-            const userToken = await ctx.env.authStrategy.verifyRefreshToken(refreshToken);
-            if (!userToken) {
-                throw new TRPCError({ code: "UNAUTHORIZED" });
-            }
-
-            // Get user and create new access token
-            const user = await ctx.env.kvDao.getUser(userToken.username);
-            const newAccessToken = await ctx.env.authStrategy.createAccessToken(user);
-
-            // Store new access token cookie to be set in response
-            (ctx as any).setCookies = [
-                setCookie('accessToken', newAccessToken, {
-                    maxAge: 15 * 60, // 15 minutes
+                setCookie('refreshToken', refreshTokenResult.token, {
+                    maxAge: refreshTokenResult.maxAge,
                 })
             ];
 
@@ -57,7 +41,8 @@ export const authRouter = t.router({
     logout: t.procedure
         .mutation(async ({ ctx }) => {
             // Store cookies to be cleared in response
-            (ctx as any).setCookies = [
+            const authCtx = ctx as AuthContext;
+            authCtx.setCookies = [
                 clearCookie('accessToken'),
                 clearCookie('refreshToken')
             ];
