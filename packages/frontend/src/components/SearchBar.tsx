@@ -1,9 +1,9 @@
 import { useNavigate } from "react-router";
-import { ChevronRightIcon, MagnifyingGlassIcon } from "@heroicons/react/24/solid";
 import { AutoComplete } from "./AutoComplete";
 import { trpc } from "@/trpc";
 import { ProfessorSearchType, professorSearch } from "@/utils/ProfessorSearch";
-import { Button } from "./forms/Button";
+import { ExtendedSearchBar } from "./ExtendedSearchBar";
+import { TruncatedSearchBar } from "./TruncatedSearchBar";
 
 export interface SearchState {
     type: ProfessorSearchType;
@@ -25,100 +25,7 @@ export function SearchBar(props: Omit<SearchBarProps, "className">) {
     );
 }
 
-export function ExtendedSearchBar({
-    value,
-    onChange,
-    disableAutoComplete = false,
-    className,
-}: SearchBarProps) {
-    const toggleSearchType = () => {
-        if (value.type === "class") {
-            onChange({ type: "name", searchValue: value.searchValue });
-        } else {
-            onChange({ type: "class", searchValue: value.searchValue });
-        }
-    };
-
-    return (
-        <SearchBase
-            className={className}
-            searchType={value.type}
-            value={value}
-            onChange={onChange}
-            disableAutoComplete={disableAutoComplete}
-            LeftSlot={<SearchToggle searchType={value.type} onClick={toggleSearchType} />}
-            RightSlot={
-                <Button className="py-1! rounded-l-none rounded-r-full px-1" type="submit">
-                    <ChevronRightIcon className="w-8 h-8" />
-                </Button>
-            }
-        />
-    );
-}
-
-export function TruncatedSearchBar({
-    onChange,
-    disableAutoComplete = false,
-    className,
-    value,
-}: SearchBarProps) {
-    return (
-        <SearchBase
-            className={className}
-            searchType="name"
-            onChange={onChange}
-            value={value}
-            disableAutoComplete={disableAutoComplete}
-            inputClassName="pl-0"
-            LeftSlot={<div className="w-5 h-10 bg-white rounded-l-full" />}
-            RightSlot={
-                <div className="py-1 px-2 text-cal-poly-green rounded-l-none rounded-r-full bg-white">
-                    <MagnifyingGlassIcon className="w-8 h-8" />
-                </div>
-            }
-        />
-    );
-}
-
-interface SearchToggleProps extends React.ComponentProps<"div"> {
-    searchType: ProfessorSearchType;
-}
-function SearchToggle({ searchType, className = "", ...divProps }: SearchToggleProps) {
-    const checked = searchType === "class";
-    return (
-        <div
-            className={`bg-white rounded-l-full cursor-pointer ${className}`}
-            {...divProps}
-            role="checkbox"
-            aria-checked={checked}
-        >
-            <div className="flex items-center relative border-cal-poly-green border-2 rounded-full h-10">
-                <span
-                    className={`w-28 h-10 rounded-full bg-cal-poly-green absolute left-0 transition-all ${
-                        checked ? "translate-x-full" : "translate-x-0"
-                    }`}
-                />
-
-                <span
-                    className={`w-28 text-center select-none ${
-                        checked ? "text-cal-poly-green" : "text-white"
-                    } transition-all z-10`}
-                >
-                    Professor
-                </span>
-                <span
-                    className={`w-28 text-center select-none ${
-                        checked ? "text-white" : "text-cal-poly-green"
-                    }  transition-all z-10`}
-                >
-                    Course
-                </span>
-            </div>
-        </div>
-    );
-}
-
-interface SearchBaseProps {
+export interface SearchBaseProps {
     value: SearchState;
     onChange?: (value: SearchState) => void | Promise<void>;
     disableAutoComplete?: boolean;
@@ -128,7 +35,7 @@ interface SearchBaseProps {
     className?: string;
     inputClassName?: string;
 }
-function SearchBase({
+export function SearchBase({
     value,
     onChange,
     disableAutoComplete,
