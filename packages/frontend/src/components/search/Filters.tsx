@@ -4,7 +4,7 @@ import { DEPARTMENT_LIST } from "@backend/utils/const";
 import { ArrowLongUpIcon } from "@heroicons/react/24/outline";
 import { inferProcedureOutput } from "@trpc/server";
 import { AppRouter } from "@backend/index";
-import { MinMaxSlider } from "@/components";
+import { MinMaxSlider } from "./internal/MinMaxSlider";
 import { trpc } from "@/trpc";
 import { useLocationState } from "@/hooks/useLocationState";
 

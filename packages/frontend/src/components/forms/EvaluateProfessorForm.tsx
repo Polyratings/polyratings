@@ -17,10 +17,7 @@ import { AppRouter } from "@backend/index";
 import { UserIcon } from "@heroicons/react/24/solid";
 
 import { trpc } from "@/trpc";
-import { Select } from "./Select";
-import { TextArea } from "./TextArea";
-import { TextInput } from "./TextInput";
-import { Button } from "./Button";
+import { Select, TextArea, TextInput, Button } from "@/components";
 import { useSortedCourses } from "@/hooks";
 import { FormBar } from "./FormBar";
 import { TagSelection } from "./TagSelection";

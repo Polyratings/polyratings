@@ -3,7 +3,7 @@ import "@/styles/hamburgers.css";
 import AnimateHeight from "react-animate-height";
 import { useEffect, useState } from "react";
 import { useAuth } from "@/hooks";
-import { SearchState, TruncatedSearchBar } from "@/components/search";
+import { SearchState, TruncatedSearchBar } from "@/components";
 import Logo from "@/assets/Logo.svg";
 import DiscordLogo from "@/assets/Discord-Logo-White.svg";
 import GithubLogo from "@/assets/github.svg";

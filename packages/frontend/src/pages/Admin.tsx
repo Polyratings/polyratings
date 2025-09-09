@@ -9,8 +9,7 @@ import { ArrowTopRightOnSquareIcon } from "@heroicons/react/24/solid";
 import { useAuth } from "@/hooks";
 import { trpc } from "@/trpc";
 import { bulkInvalidationKey, useDbValues } from "@/hooks/useDbValues";
-import { Button } from "@/components/forms/Button";
-import { AutoComplete, Select, TextInput } from "@/components";
+import { Button, AutoComplete, Select, TextInput } from "@/components";
 import { professorSearch } from "@/utils/ProfessorSearch";
 
 const DataTableLazy = lazy(() => import("react-data-table-component"));

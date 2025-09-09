@@ -6,8 +6,7 @@ import { useEffect } from "react";
 import loginBackground from "@/assets/home-header.webp";
 import { trpc } from "@/trpc";
 import { useAuth } from "@/hooks";
-import { Button } from "@/components/forms/Button";
-import { TextInput } from "@/components";
+import { Button, TextInput } from "@/components";
 
 const loginParser = z.object({
     username: z.string().min(1, { error: "Required" }),
