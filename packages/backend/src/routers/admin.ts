@@ -198,33 +198,68 @@ export const adminRouter = t.router({
                 });
 
                 // Find duplicates and create reports
+                // Only report duplicates if timestamps are within 2 days of each other
+                const TWO_DAYS_MS = 2 * 24 * 60 * 60 * 1000;
+
                 for (const [anonymousId, ratings] of anonymousIdMap) {
                     if (ratings.length > 1) {
-                        duplicatesFound += ratings.length;
+                        // Sort ratings by postDate to make comparison easier
+                        const sortedRatings = [...ratings].sort(
+                            (a, b) =>
+                                new Date(a.postDate).getTime() - new Date(b.postDate).getTime(),
+                        );
 
-                        ratings.forEach((ratingInfo) => {
-                            // Skip if this rating already has a report (has been reviewed)
-                            if (existingReportIds.has(ratingInfo.ratingId)) {
-                                return;
+                        // Find ratings that are within 2 days of each other
+                        const duplicateGroups: (typeof ratings)[] = [];
+
+                        for (let i = 0; i < sortedRatings.length; i += 1) {
+                            const currentGroup: typeof ratings = [sortedRatings[i]];
+                            const currentTime = new Date(sortedRatings[i].postDate).getTime();
+
+                            // Check subsequent ratings to see if they're within 2 days
+                            for (let j = i + 1; j < sortedRatings.length; j += 1) {
+                                const compareTime = new Date(sortedRatings[j].postDate).getTime();
+                                if (Math.abs(compareTime - currentTime) <= TWO_DAYS_MS) {
+                                    currentGroup.push(sortedRatings[j]);
+                                }
                             }
 
-                            // Reason for report: multiple ratings by same anonymous user
-                            const reason =
-                                `[AUTOMATED] ${ratings.length} ratings submitted by user ${anonymousId} ` +
-                                `under this professor. This review's timestamp: ${ratingInfo.postDate}`;
-                            const ratingReport = {
-                                ratingId: ratingInfo.ratingId,
-                                professorId: professor.id,
-                                reports: [
-                                    {
-                                        email: null,
-                                        reason,
-                                        anonymousIdentifier: anonymousId,
-                                    },
-                                ],
-                            };
-                            reportTasks.push(ctx.env.kvDao.putReport(ratingReport));
-                        });
+                            // Only add if we found duplicates within the time window
+                            if (currentGroup.length > 1) {
+                                duplicateGroups.push(currentGroup);
+                            }
+                        }
+
+                        // Report each duplicate group
+                        for (const group of duplicateGroups) {
+                            duplicatesFound += group.length;
+
+                            group.forEach((ratingInfo) => {
+                                // Skip if this rating already has a report (has been reviewed)
+                                if (existingReportIds.has(ratingInfo.ratingId)) {
+                                    return;
+                                }
+
+                                // Reason for report: multiple ratings by same anonymous user within 2 days
+                                // List all timestamps in the duplicate group
+                                const allTimestamps = group.map((r) => r.postDate).join("\n");
+                                const reason =
+                                    `[AUTOMATED] ${group.length} ratings submitted by user ${anonymousId} ` +
+                                    `under this professor within 2 days. Timestamps: ${allTimestamps}`;
+                                const ratingReport = {
+                                    ratingId: ratingInfo.ratingId,
+                                    professorId: professor.id,
+                                    reports: [
+                                        {
+                                            email: null,
+                                            reason,
+                                            anonymousIdentifier: anonymousId,
+                                        },
+                                    ],
+                                };
+                                reportTasks.push(ctx.env.kvDao.putReport(ratingReport));
+                            });
+                        }
                     }
                 }
             }
