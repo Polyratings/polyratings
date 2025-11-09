@@ -169,33 +169,24 @@ export const adminRouter = t.router({
 
                 processedCount += 1;
 
-                // Group ratings by both anonymous ID and course to avoid false positives
-                // (multiple reviews for different courses by the same user is not necessarily abuse)
-                const anonymousIdCourseMap = new Map<
+                // Group ratings by anonymous ID
+                const anonymousIdMap = new Map<
                     string,
-                    Map<
-                        string,
-                        {
-                            ratingId: string;
-                            postDate: string;
-                            rating: Rating & Partial<PendingRating>;
-                        }[]
-                    >
+                    {
+                        ratingId: string;
+                        postDate: string;
+                        rating: Rating & Partial<PendingRating>;
+                    }[]
                 >();
 
-                // Collect all ratings by anonymousIdentifier and course
-                Object.entries(professor.reviews).forEach(([course, ratings]) => {
+                // Collect all ratings by anonymousIdentifier
+                Object.values(professor.reviews).forEach((ratings) => {
                     ratings.forEach((rating) => {
                         if (rating.anonymousIdentifier) {
-                            let courseMap = anonymousIdCourseMap.get(rating.anonymousIdentifier);
-                            if (!courseMap) {
-                                courseMap = new Map();
-                                anonymousIdCourseMap.set(rating.anonymousIdentifier, courseMap);
-                            }
-                            let arr = courseMap.get(course);
+                            let arr = anonymousIdMap.get(rating.anonymousIdentifier);
                             if (!arr) {
                                 arr = [];
-                                courseMap.set(course, arr);
+                                anonymousIdMap.set(rating.anonymousIdentifier, arr);
                             }
                             arr.push({
                                 ratingId: rating.id,
@@ -206,37 +197,34 @@ export const adminRouter = t.router({
                     });
                 });
 
-                // Find duplicates and create reports (only for same course duplicates)
-                for (const [anonymousId, courseMap] of anonymousIdCourseMap) {
-                    for (const [course, ratings] of courseMap) {
-                        // Only report if there are multiple ratings for the same course
-                        if (ratings.length > 1) {
-                            duplicatesFound += ratings.length;
+                // Find duplicates and create reports
+                for (const [anonymousId, ratings] of anonymousIdMap) {
+                    if (ratings.length > 1) {
+                        duplicatesFound += ratings.length;
 
-                            ratings.forEach((ratingInfo) => {
-                                // Skip if this rating already has a report (has been reviewed)
-                                if (existingReportIds.has(ratingInfo.ratingId)) {
-                                    return;
-                                }
+                        ratings.forEach((ratingInfo) => {
+                            // Skip if this rating already has a report (has been reviewed)
+                            if (existingReportIds.has(ratingInfo.ratingId)) {
+                                return;
+                            }
 
-                                // Reason for report: multiple ratings by same anonymous user
-                                const reason =
-                                    `[AUTOMATED] ${ratings.length} ratings submitted by user ${anonymousId} ` +
-                                    `for course ${course}. This review's timestamp: ${ratingInfo.postDate}`;
-                                const ratingReport = {
-                                    ratingId: ratingInfo.ratingId,
-                                    professorId: professor.id,
-                                    reports: [
-                                        {
-                                            email: null,
-                                            reason,
-                                            anonymousIdentifier: anonymousId,
-                                        },
-                                    ],
-                                };
-                                reportTasks.push(ctx.env.kvDao.putReport(ratingReport));
-                            });
-                        }
+                            // Reason for report: multiple ratings by same anonymous user
+                            const reason =
+                                `[AUTOMATED] ${ratings.length} ratings submitted by user ${anonymousId} ` +
+                                `under this professor. This review's timestamp: ${ratingInfo.postDate}`;
+                            const ratingReport = {
+                                ratingId: ratingInfo.ratingId,
+                                professorId: professor.id,
+                                reports: [
+                                    {
+                                        email: null,
+                                        reason,
+                                        anonymousIdentifier: anonymousId,
+                                    },
+                                ],
+                            };
+                            reportTasks.push(ctx.env.kvDao.putReport(ratingReport));
+                        });
                     }
                 }
             }
