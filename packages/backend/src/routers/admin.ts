@@ -133,6 +133,10 @@ export const adminRouter = t.router({
             let processedCount = 0;
 
             // Get professors using cursor-based pagination
+            // Note: The getAllProfessors list could become out of sync if there are concurrent
+            // writes to the database (e.g., new professors added or removed) between when we fetch
+            // the list and when we process individual batches. This is acceptable for this audit
+            // use case since we're running a point-in-time scan.
             const profs = await ctx.env.kvDao.getAllProfessors();
 
             // Find starting index based on cursor
@@ -151,6 +155,10 @@ export const adminRouter = t.router({
 
             const professors = await ctx.env.kvDao.getBulkValues("professors", professorIds);
 
+            // Get all existing reports to avoid re-reporting already reviewed ratings
+            const allReports = await ctx.env.kvDao.getAllReports();
+            const existingReportIds = new Set(allReports.map((r) => r.ratingId));
+
             // Process each professor in the chunk
             for (const professor of professors) {
                 // eslint-disable-next-line no-continue
@@ -158,23 +166,33 @@ export const adminRouter = t.router({
 
                 processedCount += 1;
 
-                const anonymousIdMap = new Map<
+                // Group ratings by both anonymous ID and course to avoid false positives
+                // (multiple reviews for different courses by the same user is not necessarily abuse)
+                const anonymousIdCourseMap = new Map<
                     string,
-                    {
-                        ratingId: string;
-                        postDate: string;
-                        rating: Rating & Partial<PendingRating>;
-                    }[]
+                    Map<
+                        string,
+                        {
+                            ratingId: string;
+                            postDate: string;
+                            rating: Rating & Partial<PendingRating>;
+                        }[]
+                    >
                 >();
 
-                // Collect all ratings by anonymousIdentifier
-                Object.values(professor.reviews).forEach((ratings) => {
+                // Collect all ratings by anonymousIdentifier and course
+                Object.entries(professor.reviews).forEach(([course, ratings]) => {
                     ratings.forEach((rating) => {
                         if (rating.anonymousIdentifier) {
-                            let arr = anonymousIdMap.get(rating.anonymousIdentifier);
+                            let courseMap = anonymousIdCourseMap.get(rating.anonymousIdentifier);
+                            if (!courseMap) {
+                                courseMap = new Map();
+                                anonymousIdCourseMap.set(rating.anonymousIdentifier, courseMap);
+                            }
+                            let arr = courseMap.get(course);
                             if (!arr) {
                                 arr = [];
-                                anonymousIdMap.set(rating.anonymousIdentifier, arr);
+                                courseMap.set(course, arr);
                             }
                             arr.push({
                                 ratingId: rating.id,
@@ -185,29 +203,37 @@ export const adminRouter = t.router({
                     });
                 });
 
-                // Find duplicates and create reports
-                for (const [anonymousId, ratings] of anonymousIdMap) {
-                    if (ratings.length > 1) {
-                        duplicatesFound += ratings.length;
+                // Find duplicates and create reports (only for same course duplicates)
+                for (const [anonymousId, courseMap] of anonymousIdCourseMap) {
+                    for (const [course, ratings] of courseMap) {
+                        // Only report if there are multiple ratings for the same course
+                        if (ratings.length > 1) {
+                            duplicatesFound += ratings.length;
 
-                        ratings.forEach((ratingInfo) => {
-                            // Reason for report: multiple ratings by same anonymous user
-                            const reason =
-                                `[AUTOMATED] ${ratings.length} ratings submitted by user ${anonymousId} ` +
-                                `under this professor. This review's timestamp: ${ratingInfo.postDate}`;
-                            const ratingReport = {
-                                ratingId: ratingInfo.ratingId,
-                                professorId: professor.id,
-                                reports: [
-                                    {
-                                        email: null,
-                                        reason,
-                                        anonymousIdentifier: anonymousId,
-                                    },
-                                ],
-                            };
-                            reportTasks.push(ctx.env.kvDao.putReport(ratingReport));
-                        });
+                            ratings.forEach((ratingInfo) => {
+                                // Skip if this rating already has a report (has been reviewed)
+                                if (existingReportIds.has(ratingInfo.ratingId)) {
+                                    return;
+                                }
+
+                                // Reason for report: multiple ratings by same anonymous user
+                                const reason =
+                                    `[AUTOMATED] ${ratings.length} ratings submitted by user ${anonymousId} ` +
+                                    `for course ${course}. This review's timestamp: ${ratingInfo.postDate}`;
+                                const ratingReport = {
+                                    ratingId: ratingInfo.ratingId,
+                                    professorId: professor.id,
+                                    reports: [
+                                        {
+                                            email: null,
+                                            reason,
+                                            anonymousIdentifier: anonymousId,
+                                        },
+                                    ],
+                                };
+                                reportTasks.push(ctx.env.kvDao.putReport(ratingReport));
+                            });
+                        }
                     }
                 }
             }
@@ -235,8 +261,6 @@ export const adminRouter = t.router({
         .input(z.object({ cursor: z.string().optional() }).optional())
         .mutation(async ({ ctx, input }) => {
             const MAX_HARASSMENT = 0.65;
-            // const professorUpdateTasks: Promise<unknown>[] = [];
-
             const BATCH_PROFESSOR_SIZE = 25;
             const processedCount = 0;
 
@@ -318,13 +342,10 @@ export const adminRouter = t.router({
                         reportTasks.push(ctx.env.kvDao.putReport(ratingReport));
                     }
                 });
-
-                // TODO: this is probably wrong!
-                // professorUpdateTasks.push(ctx.env.kvDao.putProfessor(professor, true));
             }
 
-            // Execute all professor updates for this batch
-            // await Promise.all(professorUpdateTasks);
+            // Execute all report writes for this batch
+            await Promise.all(reportTasks);
 
             // Determine if there are more professors to process
             const hasMore = endIndex < profs.length;
