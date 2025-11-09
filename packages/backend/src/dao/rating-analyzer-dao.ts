@@ -20,8 +20,10 @@ export class OpenAIDAO implements RatingAnalyzer {
     async analyzeRating(rating: PendingRating) {
         try {
             return (await this.analyzeRatings([rating]))[0];
-        } catch {
+        } catch (err) {
             // Don't block submission on OpenAI failures
+            // eslint-disable-next-line no-console
+            console.error("OpenAI moderation API error:", err);
             return undefined;
         }
     }
