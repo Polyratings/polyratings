@@ -133,6 +133,10 @@ export const adminRouter = t.router({
             let processedCount = 0;
 
             // Get professors using cursor-based pagination
+            // Note: The getAllProfessors list could become out of sync if there are concurrent
+            // writes to the database (e.g., new professors added or removed) between when we fetch
+            // the list and when we process individual batches. This is acceptable for this audit
+            // use case since we're running a point-in-time scan.
             const profs = await ctx.env.kvDao.getAllProfessors();
 
             // Find starting index based on cursor
@@ -151,6 +155,13 @@ export const adminRouter = t.router({
 
             const professors = await ctx.env.kvDao.getBulkValues("professors", professorIds);
 
+            // Get all existing reports to avoid re-reporting already reviewed ratings
+            const reportKeys = await ctx.env.kvDao.getBulkKeys("reports");
+            const allReports = await ctx.env.kvDao.getBulkValues("reports", reportKeys);
+            const existingReportIds = new Set(
+                allReports.filter((r) => r !== null).map((r) => r.ratingId),
+            );
+
             // Process each professor in the chunk
             for (const professor of professors) {
                 // eslint-disable-next-line no-continue
@@ -158,6 +169,7 @@ export const adminRouter = t.router({
 
                 processedCount += 1;
 
+                // Group ratings by anonymous ID
                 const anonymousIdMap = new Map<
                     string,
                     {
@@ -191,6 +203,11 @@ export const adminRouter = t.router({
                         duplicatesFound += ratings.length;
 
                         ratings.forEach((ratingInfo) => {
+                            // Skip if this rating already has a report (has been reviewed)
+                            if (existingReportIds.has(ratingInfo.ratingId)) {
+                                return;
+                            }
+
                             // Reason for report: multiple ratings by same anonymous user
                             const reason =
                                 `[AUTOMATED] ${ratings.length} ratings submitted by user ${anonymousId} ` +
@@ -235,8 +252,6 @@ export const adminRouter = t.router({
         .input(z.object({ cursor: z.string().optional() }).optional())
         .mutation(async ({ ctx, input }) => {
             const MAX_HARASSMENT = 0.65;
-            // const professorUpdateTasks: Promise<unknown>[] = [];
-
             const BATCH_PROFESSOR_SIZE = 25;
             const processedCount = 0;
 
@@ -318,13 +333,10 @@ export const adminRouter = t.router({
                         reportTasks.push(ctx.env.kvDao.putReport(ratingReport));
                     }
                 });
-
-                // TODO: this is probably wrong!
-                // professorUpdateTasks.push(ctx.env.kvDao.putProfessor(professor, true));
             }
 
-            // Execute all professor updates for this batch
-            // await Promise.all(professorUpdateTasks);
+            // Execute all report writes for this batch
+            await Promise.all(reportTasks);
 
             // Determine if there are more professors to process
             const hasMore = endIndex < profs.length;

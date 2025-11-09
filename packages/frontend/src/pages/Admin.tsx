@@ -79,9 +79,6 @@ function ReportedRatings() {
         message: "",
     });
 
-    // Manual cursor input for resuming
-    const [resumeCursor, setResumeCursor] = useState("");
-
     // Flag to request pause
     const [pauseRequested, setPauseRequested] = useState(false);
 
@@ -167,13 +164,6 @@ function ReportedRatings() {
 
     const pauseAudit = () => {
         setPauseRequested(true);
-    };
-
-    const resumeFromCursor = () => {
-        if (resumeCursor.trim()) {
-            runFullAudit(resumeCursor.trim());
-            setResumeCursor("");
-        }
     };
 
     const columns = [
@@ -309,84 +299,54 @@ function ReportedRatings() {
                     )}
                 </div>
 
-                {/* Manual Resume Section */}
-                {(auditProgress.isPaused || auditProgress.nextCursor) && (
-                    <div className="mb-4 p-3 bg-yellow-50 border border-yellow-200 rounded">
-                        <h4 className="font-medium mb-2">Resume from Cursor:</h4>
-                        <div className="flex items-center gap-2 mb-2">
-                            <input
-                                type="text"
-                                value={resumeCursor}
-                                onChange={(e) => setResumeCursor(e.target.value)}
-                                placeholder="Enter cursor to resume from..."
-                                className="flex-1 px-3 py-2 border border-gray-300 rounded text-sm"
-                            />
-                            <Button
-                                type="button"
-                                onClick={resumeFromCursor}
-                                disabled={!resumeCursor.trim()}
-                                className="bg-blue-500 hover:bg-blue-600"
-                            >
-                                Resume
-                            </Button>
-                        </div>
-                        {auditProgress.nextCursor && (
-                            <div className="text-sm">
-                                <p className="text-gray-600 mb-1">Current cursor:</p>
-                                <code className="bg-gray-100 px-2 py-1 rounded text-xs break-all">
-                                    {auditProgress.nextCursor}
-                                </code>
-                                <button
-                                    type="button"
-                                    onClick={() => {
-                                        navigator.clipboard.writeText(
-                                            auditProgress.nextCursor || "",
-                                        );
-                                    }}
-                                    className="ml-2 text-blue-500 hover:text-blue-700 text-xs"
-                                >
-                                    Copy
-                                </button>
-                            </div>
-                        )}
-                    </div>
-                )}
-
                 {/* Progress Display */}
-                {(auditProgress.processedCount > 0 || auditProgress.isRunning) &&
-                    (() => {
-                        const progressPercent =
-                            auditProgress.totalProfessors > 0
-                                ? (auditProgress.processedCount / auditProgress.totalProfessors) *
-                                  100
-                                : 0;
-                        return (
-                            <div className="text-sm space-y-1">
-                                <div>
-                                    Progress: {auditProgress.processedCount} /{" "}
-                                    {auditProgress.totalProfessors} professors (
-                                    {Math.round(progressPercent)}
-                                    %)
-                                </div>
-                                <div>Duplicates Found: {auditProgress.duplicatesFound}</div>
-                                {auditProgress.isRunning && (
-                                    <div className="w-full bg-gray-200 rounded-full h-2">
-                                        <div
-                                            className="bg-blue-600 h-2 rounded-full transition-all duration-300"
-                                            style={{
-                                                // eslint-disable-next-line max-len
-                                                width: `${progressPercent}%`,
-                                            }}
-                                        />
-                                    </div>
-                                )}
-                                <div className="text-gray-600">{auditProgress.message}</div>
-                            </div>
-                        );
-                    })()}
+                {(auditProgress.processedCount > 0 || auditProgress.isRunning) && (
+                    <AuditProgressDisplay
+                        processedCount={auditProgress.processedCount}
+                        totalProfessors={auditProgress.totalProfessors}
+                        duplicatesFound={auditProgress.duplicatesFound}
+                        isRunning={auditProgress.isRunning}
+                        message={auditProgress.message}
+                    />
+                )}
             </div>
 
             <DataTable columns={columns} data={ratingReports ?? []} pagination />
+        </div>
+    );
+}
+
+function AuditProgressDisplay({
+    processedCount,
+    totalProfessors,
+    duplicatesFound,
+    isRunning,
+    message,
+}: {
+    processedCount: number;
+    totalProfessors: number;
+    duplicatesFound: number;
+    isRunning: boolean;
+    message: string;
+}) {
+    const progressPercent =
+        totalProfessors > 0 ? (processedCount / totalProfessors) * 100 : 0;
+
+    return (
+        <div className="text-sm space-y-1">
+            <div>
+                Progress: {processedCount} / {totalProfessors} professors ({Math.round(progressPercent)}%)
+            </div>
+            <div>Duplicates Found: {duplicatesFound}</div>
+            {isRunning && (
+                <div className="w-full bg-gray-200 rounded-full h-2">
+                    <div
+                        className="bg-blue-600 h-2 rounded-full transition-all duration-300"
+                        style={{ width: `${progressPercent}%` }}
+                    />
+                </div>
+            )}
+            <div className="text-gray-600">{message}</div>
         </div>
     );
 }
