@@ -1,6 +1,6 @@
 /* eslint-disable no-restricted-syntax */
 /* eslint-disable react/no-unstable-nested-components */
-import { Fragment, lazy, Suspense, useState } from "react";
+import { Fragment, lazy, Suspense, useState, useRef } from "react";
 import { Professor, RatingReport, TruncatedProfessor } from "@backend/types/schema";
 import { useQueryClient } from "@tanstack/react-query";
 import { ExpanderComponentProps, TableProps } from "react-data-table-component";
@@ -80,10 +80,10 @@ function ReportedRatings() {
     });
 
     // Flag to request pause
-    const [pauseRequested, setPauseRequested] = useState(false);
+    const pauseRequestedRef = useRef(false);
 
     const runFullAudit = async (startCursor?: string) => {
-        setPauseRequested(false);
+        pauseRequestedRef.current = false;
         setAuditProgress((prev) => ({
             ...prev,
             isRunning: true,
@@ -101,7 +101,7 @@ function ReportedRatings() {
 
             do {
                 // Check if pause was requested
-                if (pauseRequested) {
+                if (pauseRequestedRef.current) {
                     const pauseMessage = `⏸️ Audit paused. Processed ${totalProcessed} professors. Use cursor below to resume.`;
                     const pauseCursor = cursor || null;
                     setAuditProgress((prev) => ({
@@ -134,15 +134,15 @@ function ReportedRatings() {
                 });
 
                 // Small delay between batches to prevent overwhelming the server
-                if (result.hasMore && !pauseRequested) {
+                if (result.hasMore && !pauseRequestedRef.current) {
                     // eslint-disable-next-line no-await-in-loop
                     await new Promise((resolve) => {
                         setTimeout(resolve, 500);
                     });
                 }
-            } while (cursor && !pauseRequested);
+            } while (cursor && !pauseRequestedRef.current);
 
-            if (!pauseRequested) {
+            if (!pauseRequestedRef.current) {
                 setAuditProgress((prev) => ({
                     ...prev,
                     isRunning: false,
@@ -163,7 +163,7 @@ function ReportedRatings() {
     };
 
     const pauseAudit = () => {
-        setPauseRequested(true);
+        pauseRequestedRef.current = true;
     };
 
     const columns = [
