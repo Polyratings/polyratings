@@ -12,7 +12,7 @@ You can follow the the [steps here](https://support.cloudflare.com/hc/en-us/arti
 
 ## Acquiring Access to OpenAI
 
-OpenAI Moderation API is used to perform sentiment analysis on new ratings as students enter them, and is an integral part to the operation of the site. You can follow the learn more [here](https://platform.openai.com/docs/guides/moderation).
+OpenAI Moderation API is used to perform sentiment analysis on new ratings as students enter them, and is an integral part to the operation of the site. You can learn more [here](https://platform.openai.com/docs/guides/moderation).
 
 # Cloudflare Workers
 

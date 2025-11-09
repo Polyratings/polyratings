@@ -3,8 +3,8 @@ import OpenAI from "openai";
 import type { Moderation } from "openai/resources/moderations";
 
 export type RatingAnalyzer = {
-    analyzeRating(rating: PendingRating): Promise<Moderation | null>;
-    analyzeRatings(rating: PendingRating[]): Promise<(Moderation | null)[]>;
+    analyzeRating(rating: PendingRating): Promise<Moderation | undefined>;
+    analyzeRatings(rating: PendingRating[]): Promise<(Moderation | undefined)[]>;
 };
 
 export class OpenAIDAO implements RatingAnalyzer {
@@ -22,7 +22,7 @@ export class OpenAIDAO implements RatingAnalyzer {
             return (await this.analyzeRatings([rating]))[0];
         } catch {
             // Don't block submission on OpenAI failures
-            return null;
+            return undefined;
         }
     }
 
@@ -38,12 +38,12 @@ export class OpenAIDAO implements RatingAnalyzer {
 export class PassThroughRatingAnalyzer implements RatingAnalyzer {
     // eslint-disable-next-line class-methods-use-this, @typescript-eslint/no-unused-vars
     async analyzeRating(_: PendingRating) {
-        return null;
+        return undefined;
     }
 
     // eslint-disable-next-line class-methods-use-this
     async analyzeRatings(ratings: PendingRating[]) {
-        const arr: (Moderation | null)[] = [];
-        return arr.fill(null, 0, ratings.length);
+        const arr: (Moderation | undefined)[] = [];
+        return arr.fill(undefined, 0, ratings.length);
     }
 }

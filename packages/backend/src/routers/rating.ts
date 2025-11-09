@@ -11,6 +11,9 @@ const addRatingParser = ratingBaseParser.extend({
     courseNum: z.number().min(100).max(599),
 });
 
+// The MAX_HARASSMENT threshold (0.65) was empirically chosen to balance false positives and false negatives
+// in content moderation. Ratings with a harassment score above this value are flagged for review.
+// Lower values increase sensitivity (more false positives), while higher values may miss harmful content.
 const MAX_HARASSMENT = 0.65;
 
 export async function addRating(input: z.infer<typeof addRatingParser>, ctx: { env: Env }) {
@@ -46,6 +49,7 @@ export async function addRating(input: z.infer<typeof addRatingParser>, ctx: { e
         pendingRating.analyzedScores = analysis.category_scores;
         if (analysis.flagged) {
             // Strongly negative reviews that aren't necessarily character attacks seem to get flagged too easily
+            // categories.harassment is the boolean flag for OpenAI's threshold, but we will check against our own level after
             if (
                 analysis.categories.harassment &&
                 analysis.category_scores.harassment >= MAX_HARASSMENT
