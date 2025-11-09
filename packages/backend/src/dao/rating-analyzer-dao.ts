@@ -1,6 +1,6 @@
-import { PendingRating } from '@backend/types/schema';
-import OpenAI from 'openai';
-import type { Moderation } from 'openai/resources/moderations';
+import { PendingRating } from "@backend/types/schema";
+import OpenAI from "openai";
+import type { Moderation } from "openai/resources/moderations";
 
 export type RatingAnalyzer = {
     analyzeRating(rating: PendingRating): Promise<Moderation | null>;
@@ -28,7 +28,7 @@ export class OpenAIDAO implements RatingAnalyzer {
 
     async analyzeRatings(ratings: PendingRating[]) {
         const moderation = await this.openai.moderations.create({
-            model: 'omni-moderation-latest',
+            model: "omni-moderation-latest",
             input: ratings.map((r) => r.rating),
         });
 

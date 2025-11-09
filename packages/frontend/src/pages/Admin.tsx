@@ -329,13 +329,13 @@ function AuditProgressDisplay({
     isRunning: boolean;
     message: string;
 }) {
-    const progressPercent =
-        totalProfessors > 0 ? (processedCount / totalProfessors) * 100 : 0;
+    const progressPercent = totalProfessors > 0 ? (processedCount / totalProfessors) * 100 : 0;
 
     return (
         <div className="text-sm space-y-1">
             <div>
-                Progress: {processedCount} / {totalProfessors} professors ({Math.round(progressPercent)}%)
+                Progress: {processedCount} / {totalProfessors} professors (
+                {Math.round(progressPercent)}%)
             </div>
             <div>Duplicates Found: {duplicatesFound}</div>
             {isRunning && (

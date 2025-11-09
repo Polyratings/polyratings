@@ -1,4 +1,4 @@
-import { z } from 'zod';
+import { z } from "zod";
 import {
     COURSE_TYPES,
     DEPARTMENT_LIST,
@@ -7,8 +7,8 @@ import {
     MAX_PROFESSOR_TAGS_PER_RATING,
     PENDING_RATING_STATUSES,
     PROFESSOR_TAGS,
-} from '@backend/utils/const';
-import type { Moderation } from 'openai/resources/moderations';
+} from "@backend/utils/const";
+import type { Moderation } from "openai/resources/moderations";
 
 export const ratingBaseParser = z.object({
     grade: z.enum(GRADES),
@@ -36,7 +36,7 @@ export const pendingRatingParser = ratingParser.extend({
     analyzedScores: z
         .custom<
             Moderation.CategoryScores | Record<string, number>
-        >((mod) => typeof mod === 'object')
+        >((mod) => typeof mod === "object")
         .nullable(),
     courseNum: z.number().min(100).max(599),
     department: z.enum(DEPARTMENT_LIST),
