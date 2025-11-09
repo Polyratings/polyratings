@@ -19,12 +19,7 @@ export class OpenAIDAO implements RatingAnalyzer {
 
     async analyzeRating(rating: PendingRating) {
         try {
-            const moderation = await this.openai.moderations.create({
-                model: 'omni-moderation-latest',
-                input: rating.rating,
-            });
-
-            return moderation.results[0];
+            return (await this.analyzeRatings([rating]))[0];
         } catch {
             // Don't block submission on OpenAI failures
             return null;
@@ -42,7 +37,7 @@ export class OpenAIDAO implements RatingAnalyzer {
 }
 export class PassThroughRatingAnalyzer implements RatingAnalyzer {
     // eslint-disable-next-line class-methods-use-this, @typescript-eslint/no-unused-vars
-    async analyzeRating(rating: PendingRating) {
+    async analyzeRating(_: PendingRating) {
         return null;
     }
 

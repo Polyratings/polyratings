@@ -40,24 +40,26 @@ export async function addRating(input: z.infer<typeof addRatingParser>, ctx: { e
         });
     }
 
-    const analyzedScores = await ctx.env.ratingAnalyzer.analyzeRating(pendingRating);
-    pendingRating.analyzedScores = analyzedScores;
+    const analysis = await ctx.env.ratingAnalyzer.analyzeRating(pendingRating);
 
-    if (analyzedScores?.flagged) {
-        // Strongly negative reviews that aren't necessarily character attacks seem to get flagged too easily
-        if (
-            analyzedScores.categories.harassment &&
-            analyzedScores.category_scores.harassment >= MAX_HARASSMENT
-        ) {
-            // Update rating in processing queue
-            pendingRating.status = 'Failed';
-            await ctx.env.kvDao.addRatingLog(pendingRating);
+    if (analysis) {
+        pendingRating.analyzedScores = analysis.category_scores;
+        if (analysis.flagged) {
+            // Strongly negative reviews that aren't necessarily character attacks seem to get flagged too easily
+            if (
+                analysis.categories.harassment &&
+                analysis.category_scores.harassment >= MAX_HARASSMENT
+            ) {
+                // Update rating in processing queue
+                pendingRating.status = 'Failed';
+                await ctx.env.kvDao.addRatingLog(pendingRating);
 
-            throw new TRPCError({
-                code: 'PRECONDITION_FAILED',
-                message:
-                    "Sorry, we couldn't accept this review as written. Please keep ratings constructive and respectful.",
-            });
+                throw new TRPCError({
+                    code: 'PRECONDITION_FAILED',
+                    message:
+                        "Sorry, we couldn't accept this review as written. Please keep ratings constructive and respectful.",
+                });
+            }
         }
     }
 
