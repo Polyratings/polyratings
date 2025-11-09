@@ -156,8 +156,11 @@ export const adminRouter = t.router({
             const professors = await ctx.env.kvDao.getBulkValues("professors", professorIds);
 
             // Get all existing reports to avoid re-reporting already reviewed ratings
-            const allReports = await ctx.env.kvDao.getAllReports();
-            const existingReportIds = new Set(allReports.map((r) => r.ratingId));
+            const reportKeys = await ctx.env.kvDao.getBulkKeys("reports");
+            const allReports = await ctx.env.kvDao.getBulkValues("reports", reportKeys);
+            const existingReportIds = new Set(
+                allReports.filter((r) => r !== null).map((r) => r.ratingId),
+            );
 
             // Process each professor in the chunk
             for (const professor of professors) {
