@@ -100,15 +100,21 @@ function ReportedRatings() {
             let totalProfessors = 0;
 
             do {
-                // Check if pause was requested
+                // Check if pause was requested BEFORE making API call
                 if (pauseRequestedRef.current) {
-                    const pauseMessage = `⏸️ Audit paused. Processed ${totalProcessed} professors. Use cursor below to resume.`;
                     const pauseCursor = cursor || null;
+                    const snapshotProcessed = totalProcessed;
+                    const snapshotDuplicates = totalDuplicates;
+                    const snapshotTotal = totalProfessors;
+                    const pauseMessage = `⏸️ Audit paused. Processed ${snapshotProcessed} professors. Click Resume to continue.`;
                     setAuditProgress((prev) => ({
                         ...prev,
                         isRunning: false,
                         isPaused: true,
                         nextCursor: pauseCursor,
+                        processedCount: snapshotProcessed,
+                        duplicatesFound: snapshotDuplicates,
+                        totalProfessors: snapshotTotal,
                         message: pauseMessage,
                     }));
                     return;
@@ -133,14 +139,34 @@ function ReportedRatings() {
                     message: result.message,
                 });
 
+                // Check for pause again after API call and before delay
+                if (pauseRequestedRef.current) {
+                    const pauseCursor = cursor ?? null;
+                    const snapshotProcessed = totalProcessed;
+                    const snapshotDuplicates = totalDuplicates;
+                    const snapshotTotal = totalProfessors;
+                    const pauseMessage = `⏸️ Audit paused. Processed ${snapshotProcessed} professors. Click Resume to continue.`;
+                    setAuditProgress((prev) => ({
+                        ...prev,
+                        isRunning: false,
+                        isPaused: true,
+                        nextCursor: pauseCursor,
+                        processedCount: snapshotProcessed,
+                        duplicatesFound: snapshotDuplicates,
+                        totalProfessors: snapshotTotal,
+                        message: pauseMessage,
+                    }));
+                    return;
+                }
+
                 // Small delay between batches to prevent overwhelming the server
-                if (result.hasMore && !pauseRequestedRef.current) {
+                if (result.hasMore) {
                     // eslint-disable-next-line no-await-in-loop
                     await new Promise((resolve) => {
                         setTimeout(resolve, 500);
                     });
                 }
-            } while (cursor && !pauseRequestedRef.current);
+            } while (cursor);
 
             if (!pauseRequestedRef.current) {
                 setAuditProgress((prev) => ({
@@ -272,8 +298,12 @@ function ReportedRatings() {
                     <Button
                         type="button"
                         onClick={() => runFullAudit()}
-                        disabled={auditProgress.isRunning || isRunningAudit}
-                        className={auditProgress.isRunning ? "bg-gray-400" : ""}
+                        disabled={
+                            auditProgress.isRunning || auditProgress.isPaused || isRunningAudit
+                        }
+                        className={
+                            auditProgress.isRunning || auditProgress.isPaused ? "bg-gray-400" : ""
+                        }
                     >
                         {auditProgress.isRunning ? "Running Audit..." : "Run Full Duplicate Audit"}
                     </Button>

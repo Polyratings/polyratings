@@ -280,7 +280,7 @@ export const adminRouter = t.router({
                 message:
                     `Processed ${processedCount} professors, ` +
                     `found ${duplicatesFound} duplicate ratings` +
-                    `${hasMore ? ". Call again with nextCursor to continue." : ". Audit complete."}`,
+                    `${hasMore ? "." : ". Audit complete."}`,
             };
         }),
     autoReportContentModeration: protectedProcedure
@@ -386,7 +386,7 @@ export const adminRouter = t.router({
                 message:
                     `Processed ${processedCount} professors, ` +
                     `found ${reportTasks.length} ratings to flag` +
-                    `${hasMore ? ". Call again with nextCursor to continue." : ". Audit complete."}`,
+                    `${hasMore ? "." : ". Audit complete."}`,
             };
         }),
 });
