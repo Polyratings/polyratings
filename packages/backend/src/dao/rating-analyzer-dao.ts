@@ -1,9 +1,9 @@
-import { PendingRating } from "@backend/types/schema";
-import OpenAI from "openai";
-import type { Moderation } from "openai/resources/moderations";
+import { PendingRating } from '@backend/types/schema';
+import OpenAI from 'openai';
+import type { Moderation } from 'openai/resources/moderations';
 
 export type RatingAnalyzer = {
-    analyzeRating(rating: PendingRating): Promise<Moderation | null>;
+    analyzeRating(rating: PendingRating): Promise<Moderation | undefined>;
 };
 
 export class OpenAIDAO implements RatingAnalyzer {
@@ -19,20 +19,21 @@ export class OpenAIDAO implements RatingAnalyzer {
     async analyzeRating(rating: PendingRating) {
         try {
             const moderation = await this.openai.moderations.create({
-                model: "omni-moderation-latest",
+                model: 'omni-moderation-latest',
                 input: rating.rating,
             });
 
             return moderation.results[0];
-        } catch {
-            // Don't block submission on OpenAI failures
-            return null;
+        } catch (err) {
+            // Don't block submission on OpenAI failures, but log the error for monitoring
+            console.error('OpenAI moderation API error:', err);
+            return undefined;
         }
     }
 }
 export class PassThroughRatingAnalyzer implements RatingAnalyzer {
     // eslint-disable-next-line class-methods-use-this, @typescript-eslint/no-unused-vars
     async analyzeRating(_: PendingRating) {
-        return null;
+        return undefined;
     }
 }
