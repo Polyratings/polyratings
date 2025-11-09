@@ -244,7 +244,7 @@ export const adminRouter = t.router({
                 nextCursor,
                 message:
                     `Processed ${processedCount} professors, ` +
-                    `found ${duplicatesFound} duplicate ratings` +
+                    `found ${duplicatesFound} duplicate ratings ` +
                     `${hasMore ? ". Call again with nextCursor to continue." : ". Audit complete."}`,
             };
         }),
@@ -350,7 +350,7 @@ export const adminRouter = t.router({
                 nextCursor,
                 message:
                     `Processed ${processedCount} professors, ` +
-                    `found ${reportTasks.length} ratings to flag` +
+                    `found ${reportTasks.length} ratings to flag ` +
                     `${hasMore ? ". Call again with nextCursor to continue." : ". Audit complete."}`,
             };
         }),

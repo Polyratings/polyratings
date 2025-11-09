@@ -29,12 +29,19 @@ export class OpenAIDAO implements RatingAnalyzer {
     }
 
     async analyzeRatings(ratings: PendingRating[]) {
-        const moderation = await this.openai.moderations.create({
-            model: "omni-moderation-latest",
-            input: ratings.map((r) => r.rating),
-        });
+        try {
+            const moderation = await this.openai.moderations.create({
+                model: "omni-moderation-latest",
+                input: ratings.map((r) => r.rating),
+            });
 
-        return moderation.results;
+            return moderation.results;
+        } catch (err) {
+            // Don't block submission on OpenAI failures
+            // eslint-disable-next-line no-console
+            console.error("OpenAI moderation API error:", err);
+            return ratings.map(() => undefined);
+        }
     }
 }
 export class PassThroughRatingAnalyzer implements RatingAnalyzer {
@@ -45,7 +52,6 @@ export class PassThroughRatingAnalyzer implements RatingAnalyzer {
 
     // eslint-disable-next-line class-methods-use-this
     async analyzeRatings(ratings: PendingRating[]) {
-        const arr: (Moderation | undefined)[] = [];
-        return arr.fill(undefined, 0, ratings.length);
+        return ratings.map(() => undefined);
     }
 }
