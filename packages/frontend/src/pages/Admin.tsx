@@ -441,6 +441,7 @@ function ProcessedRatings() {
                 if (row.analyzedScores && "category_scores" in row.analyzedScores) {
                     scores = row.analyzedScores.category_scores;
                 } else {
+                    // Handle old Perspective ratings
                     scores = row.analyzedScores ?? {};
                 }
 

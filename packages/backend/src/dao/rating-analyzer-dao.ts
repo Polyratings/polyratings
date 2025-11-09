@@ -1,6 +1,6 @@
-import { PendingRating } from '@backend/types/schema';
-import OpenAI from 'openai';
-import type { Moderation } from 'openai/resources/moderations';
+import { PendingRating } from "@backend/types/schema";
+import OpenAI from "openai";
+import type { Moderation } from "openai/resources/moderations";
 
 export type RatingAnalyzer = {
     analyzeRating(rating: PendingRating): Promise<Moderation | undefined>;
@@ -19,14 +19,14 @@ export class OpenAIDAO implements RatingAnalyzer {
     async analyzeRating(rating: PendingRating) {
         try {
             const moderation = await this.openai.moderations.create({
-                model: 'omni-moderation-latest',
+                model: "omni-moderation-latest",
                 input: rating.rating,
             });
 
             return moderation.results[0];
         } catch (err) {
             // Don't block submission on OpenAI failures, but log the error for monitoring
-            console.error('OpenAI moderation API error:', err);
+            console.error("OpenAI moderation API error:", err);
             return undefined;
         }
     }
