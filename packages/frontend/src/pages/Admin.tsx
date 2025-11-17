@@ -82,6 +82,26 @@ function ReportedRatings() {
     // Flag to request pause
     const pauseRequestedRef = useRef(false);
 
+    const handlePause = (
+        cursor: string | undefined,
+        totalProcessed: number,
+        totalDuplicates: number,
+        totalProfessors: number,
+    ) => {
+        const pauseCursor = cursor ?? null;
+        const pauseMessage = `⏸️ Audit paused. Processed ${totalProcessed} professors. Click Resume to continue.`;
+        setAuditProgress((prev) => ({
+            ...prev,
+            isRunning: false,
+            isPaused: true,
+            nextCursor: pauseCursor,
+            processedCount: totalProcessed,
+            duplicatesFound: totalDuplicates,
+            totalProfessors,
+            message: pauseMessage,
+        }));
+    };
+
     const runFullAudit = async (startCursor?: string) => {
         pauseRequestedRef.current = false;
         setAuditProgress((prev) => ({
@@ -102,21 +122,7 @@ function ReportedRatings() {
             do {
                 // Check if pause was requested BEFORE making API call
                 if (pauseRequestedRef.current) {
-                    const pauseCursor = cursor || null;
-                    const snapshotProcessed = totalProcessed;
-                    const snapshotDuplicates = totalDuplicates;
-                    const snapshotTotal = totalProfessors;
-                    const pauseMessage = `⏸️ Audit paused. Processed ${snapshotProcessed} professors. Click Resume to continue.`;
-                    setAuditProgress((prev) => ({
-                        ...prev,
-                        isRunning: false,
-                        isPaused: true,
-                        nextCursor: pauseCursor,
-                        processedCount: snapshotProcessed,
-                        duplicatesFound: snapshotDuplicates,
-                        totalProfessors: snapshotTotal,
-                        message: pauseMessage,
-                    }));
+                    handlePause(cursor, totalProcessed, totalDuplicates, totalProfessors);
                     return;
                 }
 
@@ -141,21 +147,7 @@ function ReportedRatings() {
 
                 // Check for pause again after API call and before delay
                 if (pauseRequestedRef.current) {
-                    const pauseCursor = cursor ?? null;
-                    const snapshotProcessed = totalProcessed;
-                    const snapshotDuplicates = totalDuplicates;
-                    const snapshotTotal = totalProfessors;
-                    const pauseMessage = `⏸️ Audit paused. Processed ${snapshotProcessed} professors. Click Resume to continue.`;
-                    setAuditProgress((prev) => ({
-                        ...prev,
-                        isRunning: false,
-                        isPaused: true,
-                        nextCursor: pauseCursor,
-                        processedCount: snapshotProcessed,
-                        duplicatesFound: snapshotDuplicates,
-                        totalProfessors: snapshotTotal,
-                        message: pauseMessage,
-                    }));
+                    handlePause(cursor, totalProcessed, totalDuplicates, totalProfessors);
                     return;
                 }
 

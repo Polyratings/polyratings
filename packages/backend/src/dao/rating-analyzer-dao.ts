@@ -45,7 +45,6 @@ export class PassThroughRatingAnalyzer implements RatingAnalyzer {
 
     // eslint-disable-next-line class-methods-use-this
     async analyzeRatings(ratings: PendingRating[]) {
-        const arr: (Moderation | undefined)[] = [];
-        return arr.fill(undefined, 0, ratings.length);
+        return ratings.map(() => undefined);
     }
 }
