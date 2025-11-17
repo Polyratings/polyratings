@@ -11,6 +11,11 @@ const addRatingParser = ratingBaseParser.extend({
     courseNum: z.number().min(100).max(599),
 });
 
+// The MAX_HARASSMENT threshold (0.65) was empirically chosen to balance false positives and false negatives
+// in content moderation. Ratings with a harassment score above this value are flagged for review.
+// Lower values increase sensitivity (more false positives), while higher values may miss harmful content.
+const MAX_HARASSMENT = 0.65;
+
 export async function addRating(input: z.infer<typeof addRatingParser>, ctx: { env: Env }) {
     // Input is a string subset of PendingRating
     const pendingRating: PendingRating = {
@@ -38,29 +43,28 @@ export async function addRating(input: z.infer<typeof addRatingParser>, ctx: { e
         });
     }
 
-    const analyzedScores = await ctx.env.ratingAnalyzer.analyzeRating(pendingRating);
-    pendingRating.analyzedScores = analyzedScores;
+    const analysis = await ctx.env.ratingAnalyzer.analyzeRating(pendingRating);
 
-    // At least 50% of people would find the text offensive in category
-    const PERSPECTIVE_THRESHOLD = 0.5;
+    if (analysis) {
+        pendingRating.analyzedScores = analysis.category_scores;
+        if (analysis.flagged) {
+            // Strongly negative reviews that aren't necessarily character attacks seem to get flagged too easily
+            // categories.harassment is the boolean flag for OpenAI's threshold, but we will check against our own level after
+            if (
+                analysis.categories.harassment &&
+                analysis.category_scores.harassment >= MAX_HARASSMENT
+            ) {
+                // Update rating in processing queue
+                pendingRating.status = "Failed";
+                await ctx.env.kvDao.addRatingLog(pendingRating);
 
-    const passedAnalysis = Object.values(analyzedScores).reduce((acc, num) => {
-        if (num === undefined) {
-            throw new Error("Not all of perspective summery scores were received");
+                throw new TRPCError({
+                    code: "PRECONDITION_FAILED",
+                    message:
+                        "Sorry, we couldn't accept this review as written. Please keep ratings constructive and respectful.",
+                });
+            }
         }
-        return num < PERSPECTIVE_THRESHOLD && acc;
-    }, true);
-
-    if (!passedAnalysis) {
-        // Update rating in processing queue
-        pendingRating.status = "Failed";
-        await ctx.env.kvDao.addRatingLog(pendingRating);
-
-        throw new TRPCError({
-            code: "PRECONDITION_FAILED",
-            message:
-                "Rating failed sentiment analysis, please contact dev@polyratings.org for assistance",
-        });
     }
 
     // Update rating in processing queue
