@@ -21,7 +21,7 @@ export class OpenAIDAO implements RatingAnalyzer {
         try {
             return (await this.analyzeRatings([rating]))[0];
         } catch (err) {
-            // Don't block submission on OpenAI failures
+            // Don't block submission on OpenAI failures, but log the error for monitoring
             // eslint-disable-next-line no-console
             console.error("OpenAI moderation API error:", err);
             return undefined;
