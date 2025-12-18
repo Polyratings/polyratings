@@ -4,6 +4,7 @@ import { TRPCError } from "@trpc/server";
 import { PendingRating, ratingBaseParser, RatingReport, reportParser } from "@backend/types/schema";
 import { DEPARTMENT_LIST } from "@backend/utils/const";
 import { Env } from "@backend/env";
+import { getRateLimiter } from "@backend/middleware/rate-limiter";
 
 const addRatingParser = ratingBaseParser.extend({
     professor: z.uuid(),
@@ -79,6 +80,7 @@ export async function addRating(input: z.infer<typeof addRatingParser>, ctx: { e
 
 export const ratingsRouter = t.router({
     add: t.procedure
+        .use(getRateLimiter("addRating"))
         .input(addRatingParser)
         .mutation(async ({ ctx, input }) => addRating(input, ctx)),
     report: t.procedure
