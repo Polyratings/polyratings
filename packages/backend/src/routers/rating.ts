@@ -140,7 +140,7 @@ function calculateCompoundBonus(categoryScores: Moderation.CategoryScores): {
         hateThreshold !== undefined &&
         harassmentThreshold !== undefined &&
         hate > hateThreshold * 0.1 && // Hate at least 10% of threshold
-        harassment > harassmentThreshold * 0.9
+        harassment > harassmentThreshold * 0.85
     ) {
         // Harassment near threshold + hate present = discriminatory harassment
         bonus += 3;
