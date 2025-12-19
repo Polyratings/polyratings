@@ -124,6 +124,29 @@ function calculateCompoundBonus(categoryScores: Moderation.CategoryScores): {
         reasons.push("Multiple threat signals detected");
     }
 
+    // Stalking compound: harassment/threatening + illicit (tracking/following behavior)
+    const illicit = categoryScores.illicit ?? 0;
+    if (harassmentThreatening > 0.001 && illicit > 0.01) {
+        bonus += 2;
+        reasons.push("Stalking behavior detected (threatening + tracking)");
+    }
+
+    // Discriminatory harassment compound: hate + harassment (both moderately elevated)
+    const hate = categoryScores.hate ?? 0;
+    const harassment = categoryScores.harassment ?? 0;
+    const hateThreshold = MODERATION_THRESHOLDS.hate;
+    const harassmentThreshold = MODERATION_THRESHOLDS.harassment;
+    if (
+        hateThreshold !== undefined &&
+        harassmentThreshold !== undefined &&
+        hate > hateThreshold * 0.1 && // Hate at least 10% of threshold
+        harassment > harassmentThreshold * 0.9
+    ) {
+        // Harassment near threshold + hate present = discriminatory harassment
+        bonus += 3;
+        reasons.push("Discriminatory harassment detected (hate + harassment)");
+    }
+
     // Violence compound: violence/graphic + violence
     const violenceGraphic = categoryScores["violence/graphic"] ?? 0;
     const violence = categoryScores.violence ?? 0;
@@ -198,6 +221,30 @@ function checkModerationThresholds(
                 reason: `${category} threshold exceeded (score: ${(score * 100).toFixed(2)}% >= threshold: ${(threshold * 100).toFixed(2)}%)`,
             };
         }
+    }
+
+    // Step 1.5: Explicit threshold checks for illicit and sexual
+    // These categories have clear thresholds and should be caught immediately when exceeded
+    const illicitScore = categoryScores.illicit ?? 0;
+    const illicitThreshold = MODERATION_THRESHOLDS.illicit;
+    if (illicitThreshold !== undefined && illicitScore >= illicitThreshold) {
+        return {
+            category: "illicit",
+            score: illicitScore,
+            threshold: illicitThreshold,
+            reason: `illicit threshold exceeded (score: ${(illicitScore * 100).toFixed(2)}% >= threshold: ${(illicitThreshold * 100).toFixed(2)}%)`,
+        };
+    }
+
+    const sexualScore = categoryScores.sexual ?? 0;
+    const sexualThreshold = MODERATION_THRESHOLDS.sexual;
+    if (sexualThreshold !== undefined && sexualScore >= sexualThreshold) {
+        return {
+            category: "sexual",
+            score: sexualScore,
+            threshold: sexualThreshold,
+            reason: `sexual threshold exceeded (score: ${(sexualScore * 100).toFixed(2)}% >= threshold: ${(sexualThreshold * 100).toFixed(2)}%)`,
+        };
     }
 
     // Step 2: For low-confidence categories and edge cases, use weighted scoring
