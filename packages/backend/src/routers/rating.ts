@@ -72,75 +72,11 @@ export async function addRating(input: z.infer<typeof addRatingParser>, ctx: { e
     return updatedProfessor;
 }
 
-/**
- * Check moderation for rating text without actually creating a rating.
- * Useful for testing and previewing whether content would be accepted.
- */
-async function checkModeration(ratingText: string, ctx: { env: Env }) {
-    // Create a minimal PendingRating object just for analysis
-    const testRating: PendingRating = {
-        id: crypto.randomUUID(),
-        rating: ratingText,
-        postDate: new Date().toString(),
-        status: "Failed",
-        error: null,
-        analyzedScores: null,
-        anonymousIdentifier: await ctx.env.anonymousIdDao.getIdentifier(),
-        // Required fields with dummy values for analysis
-        grade: "A",
-        gradeLevel: "Freshman",
-        courseType: "Elective",
-        overallRating: 2,
-        presentsMaterialClearly: 2,
-        recognizesStudentDifficulties: 2,
-        professor: crypto.randomUUID(),
-        department: "AEPS",
-        courseNum: 100,
-    };
-
-    const analysis = await ctx.env.ratingAnalyzer.analyzeRating(testRating);
-
-    if (!analysis) {
-        return {
-            passed: true,
-            message: "Moderation analysis unavailable (API error)",
-            categoryScores: null,
-            violation: null,
-        };
-    }
-
-    const violation = checkModerationThresholds(analysis.category_scores);
-
-    if (violation) {
-        return {
-            passed: false,
-            message: "Content would be rejected",
-            categoryScores: analysis.category_scores,
-            violation: {
-                category: violation.category,
-                score: violation.score,
-                threshold: violation.threshold,
-                reason: violation.reason,
-            },
-        };
-    }
-
-    return {
-        passed: true,
-        message: "Content would be accepted",
-        categoryScores: analysis.category_scores,
-        violation: null,
-    };
-}
-
 export const ratingsRouter = t.router({
     add: t.procedure
         .use(getRateLimiter("addRating"))
         .input(addRatingParser)
         .mutation(async ({ ctx, input }) => addRating(input, ctx)),
-    checkModeration: t.procedure
-        .input(z.object({ rating: z.string().trim().min(1) }))
-        .query(async ({ ctx, input }) => checkModeration(input.rating, ctx)),
     report: t.procedure
         .input(reportParser.extend({ ratingId: z.uuid(), professorId: z.uuid() }))
         .mutation(async ({ ctx, input }) => {
