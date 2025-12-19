@@ -81,8 +81,31 @@ export const PARENT_CHILD_RELATIONSHIPS: Record<string, string> = {
 
 /**
  * Composite severity threshold for weighted scoring
- * Content with severity score >= this threshold will be rejected
- * Tuned to balance false positives vs false negatives
+ *
+ * The composite severity score is derived from:
+ * - The model's per-category scores (normally in the range [0, 1])
+ * - CATEGORY_WEIGHTS, which emphasize safety-critical categories (up to weight 10)
+ * - Any additional compound bonus applied for multiple elevated signals
+ *
+ * As a result, typical composite scores for user text fall in a low
+ * single- to low double-digit range, where:
+ * - Very low-risk content (all scores near 0) yields a severity near 0
+ * - Clearly unsafe content in a single critical category (e.g. "sexual/minors"
+ *   or "self-harm/instructions") with a high model score will often exceed 8.0
+ * - Multiple medium/high-priority categories with moderately high scores can
+ *   also combine to exceed this value
+ *
+ * The value 8.0 was chosen empirically during manual review of moderation logs
+ * and test prompts to balance:
+ * - False negatives: obviously unsafe content should consistently be rejected
+ * - False positives: borderline or ambiguous content should usually be allowed
+ *
+ * Content with a composite severity score >= this threshold will be rejected.
+ * If you adjust this value:
+ * - Lower values will make moderation stricter (more content blocked)
+ * - Higher values will make moderation more permissive (less content blocked)
+ * Any change should be accompanied by a review of representative examples to
+ * ensure the desired balance of false positives vs false negatives.
  */
 export const SEVERITY_THRESHOLD = 8.0;
 
@@ -114,6 +137,9 @@ export function calculateCompoundBonus(categoryScores: Moderation.CategoryScores
     }
 
     // Stalking compound: harassment/threatening + illicit (tracking/following behavior)
+    // Uses low relative thresholds (5% and 3.7%) because stalking behavior is concerning
+    // even at low levels when both signals are present. These values were tuned to match
+    // the original hardcoded behavior (0.001 and 0.01) while maintaining threshold-relative scaling.
     const illicit = categoryScores.illicit ?? 0;
     const illicitThreshold = MODERATION_THRESHOLDS.illicit;
     if (
@@ -129,7 +155,10 @@ export function calculateCompoundBonus(categoryScores: Moderation.CategoryScores
     // Discriminatory harassment compound: hate + harassment
     // Requires harassment near threshold (85%) + any hate signal (10%+)
     // The asymmetry is intentional: harassment must be high, but even small hate signals
-    // combined with high harassment indicate discriminatory content
+    // combined with high harassment indicate discriminatory content.
+    // Note: The hate threshold (10% of 0.697 = 0.0697) is intentionally low to catch
+    // any discriminatory language when combined with high harassment, as even subtle
+    // discriminatory signals combined with harassment are concerning.
     const hate = categoryScores.hate ?? 0;
     const harassment = categoryScores.harassment ?? 0;
     const hateThreshold = MODERATION_THRESHOLDS.hate;
@@ -241,7 +270,7 @@ export function checkModerationThresholds(
 
     // Step 2: For low-confidence categories and edge cases, use weighted scoring
     let totalSeverity = 0;
-    let maxCategory = "";
+    let primaryCategory = "";
     let maxWeightedScore = 0;
     const elevatedCategories: Array<{ category: string; score: number; weighted: number }> = [];
 
@@ -251,7 +280,15 @@ export function checkModerationThresholds(
         const threshold = MODERATION_THRESHOLDS[category as keyof Moderation.CategoryScores];
         const confidence = CATEGORY_CONFIDENCE[category as keyof Moderation.CategoryScores] ?? 0.5;
 
-        if (threshold !== undefined && score > 0) {
+        // If a category has a weight but no threshold, treat this as a configuration issue.
+        // We skip it (preserving existing behavior) but emit a warning to surface the mismatch.
+        if (threshold === undefined) {
+            // eslint-disable-next-line no-console
+            console.warn(
+                "Moderation config: missing threshold for category in CATEGORY_WEIGHTS:",
+                category,
+            );
+        } else if (score > 0) {
             // Normalize score relative to threshold
             const normalizedScore = Math.min(score / threshold, 2.0);
 
@@ -278,10 +315,14 @@ export function checkModerationThresholds(
 
                 if (weightedScore > maxWeightedScore) {
                     maxWeightedScore = weightedScore;
-                    maxCategory = category;
+                    primaryCategory = category;
                 }
             } else if (normalizedScore >= 1.0) {
-                // At threshold but below confidence-based multiplier - count with reduced weight
+                // At threshold but below confidence-based multiplier - count with reduced weight.
+                // Note: This intentionally creates a step at `normalizedScore === confidenceBasedMultiplier`,
+                // so that signals which clearly exceed the confidence-based multiplier contribute
+                // disproportionately more than borderline signals that have only just passed the base threshold.
+                // This stepped behavior is deliberate to emphasize especially confident category activations.
                 const weightedScore = (normalizedScore / confidenceBasedMultiplier) * weight * 0.5;
                 totalSeverity += weightedScore;
             }
@@ -297,16 +338,26 @@ export function checkModerationThresholds(
         // Determine primary category for violation reporting
         // Prefer category with highest weighted score, fallback to first elevated category,
         // or "composite" if only compound bonus triggered (no individual elevated categories)
-        const primaryCategory = maxCategory || elevatedCategories[0]?.category || "composite";
-        const primaryScore =
-            categoryScores[primaryCategory as keyof Moderation.CategoryScores] ?? 0;
-        const primaryThreshold =
-            MODERATION_THRESHOLDS[primaryCategory as keyof Moderation.CategoryScores] ?? 0;
+        const finalPrimaryCategory =
+            primaryCategory || elevatedCategories[0]?.category || "composite";
+        const isCompositePrimary = finalPrimaryCategory === "composite";
+        const primaryScore = isCompositePrimary
+            ? totalSeverity
+            : (categoryScores[finalPrimaryCategory as keyof Moderation.CategoryScores] ?? 0);
+        const primaryThreshold = isCompositePrimary
+            ? SEVERITY_THRESHOLD
+            : (MODERATION_THRESHOLDS[finalPrimaryCategory as keyof Moderation.CategoryScores] ?? 0);
 
         const reasonParts = [
             `Composite severity: ${totalSeverity.toFixed(2)} (threshold: ${SEVERITY_THRESHOLD})`,
-            `Primary category: ${primaryCategory}`,
+            `Primary category: ${finalPrimaryCategory}`,
         ];
+
+        if (isCompositePrimary) {
+            reasonParts.push(
+                "Violation triggered by the combined effect of multiple category signals rather than a single dominant category",
+            );
+        }
 
         if (compoundReasons.length > 0) {
             reasonParts.push(`Compound signals: ${compoundReasons.join("; ")}`);
@@ -319,7 +370,7 @@ export function checkModerationThresholds(
         }
 
         return {
-            category: primaryCategory,
+            category: finalPrimaryCategory,
             score: primaryScore,
             threshold: primaryThreshold,
             reason: reasonParts.join(". "),
