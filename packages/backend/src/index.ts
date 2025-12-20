@@ -9,6 +9,7 @@ import { adminRouter } from "./routers/admin";
 import { authRouter } from "./routers/auth";
 import { professorParser, truncatedProfessorParser } from "./types/schema";
 import { ALL_PROFESSOR_KEY } from "./utils/const";
+import { chunkArray } from "./utils/chunkArray";
 import { AnonymousIdDao } from "./dao/anonymous-id-dao";
 
 export const appRouter = t.router({
@@ -116,10 +117,21 @@ async function ensureLocalDb(cloudflareEnv: CloudflareEnv, polyratingsEnv: Env) 
         ALL_PROFESSOR_KEY,
         JSON.stringify(truncatedProfessors),
     );
-    for (const professor of parsedProfessors) {
-        // eslint-disable-next-line no-await-in-loop
-        await cloudflareEnv.POLYRATINGS_TEACHERS.put(professor.id, JSON.stringify(professor));
-    }
+
+    // Batch professor writes in parallel (50-100 at a time)
+    const PROFESSOR_BATCH_SIZE = 75;
+    const professorChunks = chunkArray(parsedProfessors, PROFESSOR_BATCH_SIZE);
+
+    // Process all batches in parallel
+    await Promise.all(
+        professorChunks.map((chunk) =>
+            Promise.all(
+                chunk.map((professor) =>
+                    cloudflareEnv.POLYRATINGS_TEACHERS.put(professor.id, JSON.stringify(professor)),
+                ),
+            ),
+        ),
+    );
 
     const password = await polyratingsEnv.authStrategy.hashPassword("password");
     polyratingsEnv.kvDao.putUser({

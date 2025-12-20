@@ -6,9 +6,10 @@ import { useQueryClient } from "@tanstack/react-query";
 import { ExpanderComponentProps, TableProps } from "react-data-table-component";
 import { Department, DEPARTMENT_LIST } from "@backend/utils/const";
 import { ArrowTopRightOnSquareIcon } from "@heroicons/react/24/solid";
+import { toast } from "react-toastify";
 import { useAuth } from "@/hooks";
 import { trpc } from "@/trpc";
-import { bulkInvalidationKey, useDbValues } from "@/hooks/useDbValues";
+import { bulkInvalidationKey, useDbValues, chunkArray } from "@/hooks/useDbValues";
 import { Button } from "@/components/forms/Button";
 import { AutoComplete, Select, TextInput } from "@/components";
 import { professorSearch } from "@/utils/ProfessorSearch";
@@ -273,17 +274,60 @@ function SubmitUnderAction({ professor }: PendingProfessorAction) {
             return;
         }
 
+        // Flatten all ratings into a single array with course info
+        const ratingsToSubmit: Array<{
+            rating: (typeof professor.reviews)[string][number];
+            department: Department;
+            courseNum: number;
+        }> = [];
+
         for (const [course, ratings] of Object.entries(professor.reviews)) {
             const [dep, num] = course.split(" ");
             for (const rating of ratings) {
-                // eslint-disable-next-line no-await-in-loop
-                await submitRating({
-                    ...rating,
-                    professor: destProfessor.id,
+                ratingsToSubmit.push({
+                    rating,
                     department: dep as Department,
                     courseNum: parseFloat(num),
                 });
             }
+        }
+
+        const BATCH_SIZE = 5; // Submit 5 ratings in parallel per batch
+        const ratingChunks = chunkArray(ratingsToSubmit, BATCH_SIZE);
+
+        // Process batches sequentially, but ratings within each batch in parallel
+        const errors: Array<{ rating: string; error: unknown }> = [];
+
+        for (const chunk of ratingChunks) {
+            // eslint-disable-next-line no-await-in-loop
+            const results = await Promise.allSettled(
+                chunk.map(({ rating, department, courseNum }) =>
+                    submitRating({
+                        ...rating,
+                        professor: destProfessor.id,
+                        department,
+                        courseNum,
+                    }),
+                ),
+            );
+
+            // Collect errors
+            for (let i = 0; i < results.length; i += 1) {
+                const result = results[i];
+                if (result.status === "rejected") {
+                    errors.push({
+                        rating: chunk[i].rating.id,
+                        error: result.reason,
+                    });
+                }
+            }
+        }
+
+        // Show errors if any occurred
+        if (errors.length > 0) {
+            toast.error(
+                `Failed to submit ${errors.length} rating(s): ${errors.map((e) => e.rating).join(", ")}`,
+            );
         }
 
         await removePending(professor.id);

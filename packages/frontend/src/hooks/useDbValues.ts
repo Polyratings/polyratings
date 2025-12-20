@@ -1,4 +1,5 @@
 import { BulkKey, BulkKeyMap } from "@backend/utils/const";
+import { chunkArray } from "@backend/utils/chunkArray";
 import { useQuery } from "@tanstack/react-query";
 import { createTRPCProxyClient } from "@trpc/client";
 import { AppRouter } from "@backend/index";
@@ -34,11 +35,5 @@ export function bulkInvalidationKey(bulkKey: BulkKey) {
     return [`bulk-values-${bulkKey}`];
 }
 
-export function chunkArray<T>(arr: T[], size: number): T[][] {
-    const arrShallowClone = [...arr];
-    const chunked = [];
-    while (arrShallowClone.length) {
-        chunked.push(arrShallowClone.splice(0, size));
-    }
-    return chunked;
-}
+// Re-export chunkArray for convenience
+export { chunkArray };

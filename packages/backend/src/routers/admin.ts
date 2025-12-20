@@ -2,6 +2,7 @@ import { t, protectedProcedure } from "@backend/trpc";
 import { z } from "zod";
 import { addRating } from "@backend/types/schemaHelpers";
 import { bulkKeys, DEPARTMENT_LIST } from "@backend/utils/const";
+import { Professor } from "@backend/types/schema";
 
 const changeDepartmentParser = z.object({
     professorId: z.uuid(),
@@ -77,7 +78,7 @@ export const adminRouter = t.router({
             const professor = await ctx.env.kvDao.getProfessor(professorId);
             professor.firstName = firstName;
             professor.lastName = lastName;
-            await ctx.env.kvDao.putProfessor(professor, true);
+            await ctx.env.kvDao.putProfessor(professor, { skipNameCollisionDetection: true });
         }),
     changePendingProfessorName: protectedProcedure
         .input(changeNameParser)
@@ -107,19 +108,61 @@ export const adminRouter = t.router({
     fixEscapedChars: protectedProcedure
         .input(fixEscapedCharsParser)
         .mutation(async ({ ctx, input }) => {
-            for (const profId of input.professors) {
-                // eslint-disable-next-line no-await-in-loop
-                const professor = await ctx.env.kvDao.getProfessor(profId);
-                for (const [course, ratings] of Object.entries(professor.reviews)) {
-                    professor.reviews[course] = ratings.map((rating) => {
-                        // eslint-disable-next-line
-                        rating.rating = rating.rating.replaceAll("\\'", "'").replaceAll('\\"', '"');
-                        return rating;
-                    });
-                }
+            // Process all professors in parallel to collect updates
+            // Then batch update once to avoid race conditions and reduce write amplification
+            const results = await Promise.allSettled(
+                input.professors.map(async (profId) => {
+                    const professor = await ctx.env.kvDao.getProfessor(profId);
+                    let hasChanges = false;
 
-                // eslint-disable-next-line no-await-in-loop
-                await ctx.env.kvDao.putProfessor(professor, true);
+                    const processRatings = (ratings: (typeof professor.reviews)[string]) =>
+                        ratings.map((rating) => {
+                            const originalRating = rating.rating;
+                            const fixedRating = rating.rating
+                                .replaceAll("\\'", "'")
+                                // eslint-disable-next-line
+                                .replaceAll('\\"', '"');
+                            if (originalRating !== fixedRating) {
+                                hasChanges = true;
+                            }
+                            return { ...rating, rating: fixedRating };
+                        });
+
+                    for (const [course, ratings] of Object.entries(professor.reviews)) {
+                        professor.reviews[course] = processRatings(ratings);
+                    }
+
+                    if (hasChanges) {
+                        return { id: profId, professor };
+                    }
+                    return null;
+                }),
+            );
+
+            // Collect successful updates and errors
+            const updates: Array<{ id: string; professor: Professor }> = [];
+            const errors: Array<{ profId: string; error: unknown }> = [];
+
+            results.forEach((result, i) => {
+                if (result.status === "fulfilled" && result.value !== null) {
+                    updates.push(result.value);
+                } else if (result.status === "rejected") {
+                    errors.push({ profId: input.professors[i], error: result.reason });
+                }
+            });
+
+            // Batch update all professors at once (single read-modify-write cycle)
+            if (updates.length > 0) {
+                await ctx.env.kvDao.batchUpdateProfessors(
+                    updates.map((u) => ({ id: u.id, professor: u.professor })),
+                );
+            }
+
+            // Throw error if any failures occurred
+            if (errors.length > 0) {
+                throw new Error(
+                    `Failed to process ${errors.length} professor(s): ${errors.map((e) => e.profId).join(", ")}`,
+                );
             }
         }),
 });
