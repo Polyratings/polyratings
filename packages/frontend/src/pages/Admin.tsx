@@ -282,13 +282,29 @@ function SubmitUnderAction({ professor }: PendingProfessorAction) {
         }> = [];
 
         for (const [course, ratings] of Object.entries(professor.reviews)) {
-            const [dep, num] = course.split(" ");
-            for (const rating of ratings) {
-                ratingsToSubmit.push({
-                    rating,
-                    department: dep as Department,
-                    courseNum: parseFloat(num),
-                });
+            const courseParts = course.split(" ");
+            // Validate course format: expect "DEPT NUM" (exactly 2 parts)
+            if (courseParts.length === 2) {
+                const [dep, num] = courseParts;
+                const courseNum = parseFloat(num);
+                // Validate that course number is a valid number
+                if (!Number.isNaN(courseNum)) {
+                    for (const rating of ratings) {
+                        ratingsToSubmit.push({
+                            rating,
+                            department: dep as Department,
+                            courseNum,
+                        });
+                    }
+                } else {
+                    // eslint-disable-next-line no-console
+                    console.error(
+                        `Invalid course number in "${course}": "${num}" is not a valid number.`,
+                    );
+                }
+            } else {
+                // eslint-disable-next-line no-console
+                console.error(`Invalid course format: "${course}". Expected "DEPT NUM" format.`);
             }
         }
 
@@ -296,7 +312,7 @@ function SubmitUnderAction({ professor }: PendingProfessorAction) {
         const ratingChunks = chunkArray(ratingsToSubmit, BATCH_SIZE);
 
         // Process batches sequentially, but ratings within each batch in parallel
-        const errors: Array<{ rating: string; error: unknown }> = [];
+        const errors: Array<{ course: string; error: unknown }> = [];
 
         for (const chunk of ratingChunks) {
             // eslint-disable-next-line no-await-in-loop
@@ -311,12 +327,13 @@ function SubmitUnderAction({ professor }: PendingProfessorAction) {
                 ),
             );
 
-            // Collect errors
+            // Collect errors with course info
             for (let i = 0; i < results.length; i += 1) {
                 const result = results[i];
                 if (result.status === "rejected") {
+                    const { department: dept, courseNum: num } = chunk[i];
                     errors.push({
-                        rating: chunk[i].rating.id,
+                        course: `${dept} ${num}`,
                         error: result.reason,
                     });
                 }
@@ -326,7 +343,7 @@ function SubmitUnderAction({ professor }: PendingProfessorAction) {
         // Show errors if any occurred
         if (errors.length > 0) {
             toast.error(
-                `Failed to submit ${errors.length} rating(s): ${errors.map((e) => e.rating).join(", ")}`,
+                `Failed to submit ${errors.length} rating(s) for: ${errors.map((e) => e.course).join(", ")}`,
             );
             // Do not remove the pending professor if some ratings failed,
             // so that the failed ratings can be retried.

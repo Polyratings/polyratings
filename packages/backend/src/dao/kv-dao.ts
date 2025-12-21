@@ -99,16 +99,17 @@ export class KVDAO {
                     this.polyratingsNamespace.delete(update.id).then(() => undefined),
                 );
             } else if (update.professor) {
+                const { professor } = update;
                 // Update individual professor key (collect promise, don't await)
                 writePromises.push(
                     this.polyratingsNamespace
-                        .put(professorParser, update.professor.id, update.professor)
+                        .put(professorParser, professor.id, professor)
                         .then(() => undefined),
                 );
 
                 // Update professor in list
-                const professorIndex = profList.findIndex((t) => t.id === update.professor!.id);
-                const truncatedProf = professorToTruncatedProfessor(update.professor);
+                const professorIndex = profList.findIndex((t) => t.id === professor.id);
+                const truncatedProf = professorToTruncatedProfessor(professor);
 
                 if (professorIndex === -1) {
                     profList.push(truncatedProf);
@@ -200,14 +201,20 @@ export class KVDAO {
             ).then((results) => {
                 // Flatten results and handle errors, maintaining key-value pairs
                 const keyValuePairs: Array<{ key: string; value: unknown }> = [];
+                const errors: unknown[] = [];
                 for (const result of results) {
                     if (result.status === "fulfilled") {
                         keyValuePairs.push(...result.value);
                     } else {
-                        // Log error but continue processing other batches
-                        // eslint-disable-next-line no-console
-                        console.error("Batch fetch error:", result.reason);
+                        errors.push(result.reason);
                     }
+                }
+                if (errors.length > 0) {
+                    throw new TRPCError({
+                        code: "INTERNAL_SERVER_ERROR",
+                        message: `One or more bulk fetch batches failed (${errors.length} of ${results.length} batches).`,
+                        cause: errors[0],
+                    });
                 }
                 return keyValuePairs;
             });

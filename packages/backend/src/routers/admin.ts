@@ -135,19 +135,24 @@ export const adminRouter = t.router({
                     if (hasChanges) {
                         return { id: profId, professor };
                     }
-                    return null;
+                    return { id: profId, skipped: true };
                 }),
             );
 
-            // Collect successful updates and errors
+            // Collect successful updates, skipped (no changes), and errors separately
             const updates: Array<{ id: string; professor: Professor }> = [];
-            const errors: Array<{ profId: string; error: unknown }> = [];
+            const skipped: string[] = [];
+            const failed: Array<{ profId: string; error: unknown }> = [];
 
             results.forEach((result, i) => {
-                if (result.status === "fulfilled" && result.value !== null) {
-                    updates.push(result.value);
-                } else if (result.status === "rejected") {
-                    errors.push({ profId: input.professors[i], error: result.reason });
+                if (result.status === "fulfilled") {
+                    if ("skipped" in result.value) {
+                        skipped.push(result.value.id);
+                    } else {
+                        updates.push(result.value);
+                    }
+                } else {
+                    failed.push({ profId: input.professors[i], error: result.reason });
                 }
             });
 
@@ -158,11 +163,11 @@ export const adminRouter = t.router({
                 );
             }
 
-            // Throw error if any failures occurred
-            if (errors.length > 0) {
-                throw new Error(
-                    `Failed to process ${errors.length} professor(s): ${errors.map((e) => e.profId).join(", ")}`,
-                );
-            }
+            // Return detailed results instead of throwing on partial success
+            return {
+                updated: updates.map((u) => u.id),
+                skipped,
+                failed,
+            };
         }),
 });

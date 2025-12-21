@@ -122,16 +122,16 @@ async function ensureLocalDb(cloudflareEnv: CloudflareEnv, polyratingsEnv: Env) 
     const PROFESSOR_BATCH_SIZE = 75;
     const professorChunks = chunkArray(parsedProfessors, PROFESSOR_BATCH_SIZE);
 
-    // Process all batches in parallel
-    await Promise.all(
-        professorChunks.map((chunk) =>
-            Promise.all(
-                chunk.map((professor) =>
-                    cloudflareEnv.POLYRATINGS_TEACHERS.put(professor.id, JSON.stringify(professor)),
-                ),
+    // Process batches sequentially to avoid rate limiting
+    // Each batch processes its professors in parallel, but batches run sequentially
+    for (const chunk of professorChunks) {
+        // eslint-disable-next-line no-await-in-loop
+        await Promise.all(
+            chunk.map((professor) =>
+                cloudflareEnv.POLYRATINGS_TEACHERS.put(professor.id, JSON.stringify(professor)),
             ),
-        ),
-    );
+        );
+    }
 
     const password = await polyratingsEnv.authStrategy.hashPassword("password");
     polyratingsEnv.kvDao.putUser({
