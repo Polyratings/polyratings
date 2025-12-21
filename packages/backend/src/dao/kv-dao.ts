@@ -118,11 +118,12 @@ export class KVDAO {
             }
         }
 
-        // Execute all writes in parallel
-        await Promise.all(writePromises);
-
-        // Write updated list once
+        // First, write the updated professor list to minimize the risk of
+        // having individual records that are not reflected in the master list.
         await this.putAllProfessors(profList);
+
+        // Then, execute all individual writes in parallel
+        await Promise.all(writePromises);
     }
 
     getProfessor(id: string) {
@@ -167,7 +168,10 @@ export class KVDAO {
         return keys;
     }
 
-    async getBulkValues<T extends BulkKey>(bulkKey: T, keys: string[]): Promise<BulkKeyMap[T]> {
+    async getBulkValues<T extends BulkKey>(
+        bulkKey: T,
+        keys: string[],
+    ): Promise<Array<{ key: string; value: BulkKeyMap[T][number] }>> {
         if (keys.length > KV_REQUESTS_PER_TRIGGER) {
             throw new TRPCError({
                 code: "BAD_REQUEST",
@@ -215,13 +219,14 @@ export class KVDAO {
         const flatKeyValuePairs = allResults.flat();
 
         // Validate results using parser (maintains data integrity)
-        const validatedResults: unknown[] = [];
+        // Return key-value pairs to maintain correct mapping with input keys
+        const validatedResults: Array<{ key: string; value: BulkKeyMap[T][number] }> = [];
         for (const { key, value } of flatKeyValuePairs) {
             if (value !== null && value !== undefined) {
                 try {
                     // Validate each item using the parser
                     const parsed = parser.parse(value);
-                    validatedResults.push(parsed);
+                    validatedResults.push({ key, value: parsed as BulkKeyMap[T][number] });
                 } catch (error) {
                     // Log validation error with correct key but continue processing
                     // eslint-disable-next-line no-console
@@ -231,7 +236,7 @@ export class KVDAO {
             // Skip null/undefined values (deleted keys)
         }
 
-        return validatedResults as BulkKeyMap[T];
+        return validatedResults;
     }
 
     async putProfessor(

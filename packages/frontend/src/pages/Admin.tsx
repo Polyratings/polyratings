@@ -328,6 +328,9 @@ function SubmitUnderAction({ professor }: PendingProfessorAction) {
             toast.error(
                 `Failed to submit ${errors.length} rating(s): ${errors.map((e) => e.rating).join(", ")}`,
             );
+            // Do not remove the pending professor if some ratings failed,
+            // so that the failed ratings can be retried.
+            return;
         }
 
         await removePending(professor.id);
