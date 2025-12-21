@@ -6,9 +6,10 @@ import { useQueryClient } from "@tanstack/react-query";
 import { ExpanderComponentProps, TableProps } from "react-data-table-component";
 import { Department, DEPARTMENT_LIST } from "@backend/utils/const";
 import { ArrowTopRightOnSquareIcon } from "@heroicons/react/24/solid";
+import { toast } from "react-toastify";
 import { useAuth } from "@/hooks";
 import { trpc } from "@/trpc";
-import { bulkInvalidationKey, useDbValues } from "@/hooks/useDbValues";
+import { bulkInvalidationKey, useDbValues, chunkArray } from "@/hooks/useDbValues";
 import { Button } from "@/components/forms/Button";
 import { AutoComplete, Select, TextInput } from "@/components";
 import { professorSearch } from "@/utils/ProfessorSearch";
@@ -273,17 +274,80 @@ function SubmitUnderAction({ professor }: PendingProfessorAction) {
             return;
         }
 
+        // Flatten all ratings into a single array with course info
+        const ratingsToSubmit: Array<{
+            rating: (typeof professor.reviews)[string][number];
+            department: Department;
+            courseNum: number;
+        }> = [];
+
         for (const [course, ratings] of Object.entries(professor.reviews)) {
-            const [dep, num] = course.split(" ");
-            for (const rating of ratings) {
-                // eslint-disable-next-line no-await-in-loop
-                await submitRating({
-                    ...rating,
-                    professor: destProfessor.id,
-                    department: dep as Department,
-                    courseNum: parseFloat(num),
-                });
+            const courseParts = course.split(" ");
+            // Validate course format: expect "DEPT NUM" (exactly 2 parts)
+            if (courseParts.length === 2) {
+                const [dep, num] = courseParts;
+                const courseNum = parseFloat(num);
+                // Validate that course number is a valid number
+                if (!Number.isNaN(courseNum)) {
+                    for (const rating of ratings) {
+                        ratingsToSubmit.push({
+                            rating,
+                            department: dep as Department,
+                            courseNum,
+                        });
+                    }
+                } else {
+                    // eslint-disable-next-line no-console
+                    console.error(
+                        `Invalid course number in "${course}": "${num}" is not a valid number.`,
+                    );
+                }
+            } else {
+                // eslint-disable-next-line no-console
+                console.error(`Invalid course format: "${course}". Expected "DEPT NUM" format.`);
             }
+        }
+
+        const BATCH_SIZE = 5; // Submit 5 ratings in parallel per batch
+        const ratingChunks = chunkArray(ratingsToSubmit, BATCH_SIZE);
+
+        // Process batches sequentially, but ratings within each batch in parallel
+        const errors: Array<{ course: string; error: unknown }> = [];
+
+        for (const chunk of ratingChunks) {
+            // eslint-disable-next-line no-await-in-loop
+            const results = await Promise.allSettled(
+                chunk.map(({ rating, department, courseNum }) =>
+                    submitRating({
+                        ...rating,
+                        professor: destProfessor.id,
+                        department,
+                        courseNum,
+                    }),
+                ),
+            );
+
+            // Collect errors with course info
+            for (let i = 0; i < results.length; i += 1) {
+                const result = results[i];
+                if (result.status === "rejected") {
+                    const { department: dept, courseNum: num } = chunk[i];
+                    errors.push({
+                        course: `${dept} ${num}`,
+                        error: result.reason,
+                    });
+                }
+            }
+        }
+
+        // Show errors if any occurred
+        if (errors.length > 0) {
+            toast.error(
+                `Failed to submit ${errors.length} rating(s) for: ${errors.map((e) => e.course).join(", ")}`,
+            );
+            // Do not remove the pending professor if some ratings failed,
+            // so that the failed ratings can be retried.
+            return;
         }
 
         await removePending(professor.id);
