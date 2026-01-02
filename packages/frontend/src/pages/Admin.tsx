@@ -1,6 +1,6 @@
 /* eslint-disable no-restricted-syntax */
 /* eslint-disable react/no-unstable-nested-components */
-import { Fragment, lazy, Suspense, useState } from "react";
+import { Fragment, lazy, Suspense, useState, useRef } from "react";
 import { Professor, RatingReport, TruncatedProfessor } from "@backend/types/schema";
 import { useQueryClient } from "@tanstack/react-query";
 import { ExpanderComponentProps, TableProps } from "react-data-table-component";
@@ -54,6 +54,135 @@ function ReportedRatings() {
         onSuccess: () =>
             queryClient.invalidateQueries({ queryKey: bulkInvalidationKey("reports") }),
     });
+    const { mutateAsync: autoReportDuplicateUsers, isPending: isRunningAudit } =
+        trpc.admin.autoReportDuplicateUsers.useMutation({
+            onSuccess: () =>
+                queryClient.invalidateQueries({ queryKey: bulkInvalidationKey("reports") }),
+        });
+
+    // State for audit progress
+    const [auditProgress, setAuditProgress] = useState<{
+        isRunning: boolean;
+        isPaused: boolean;
+        processedCount: number;
+        totalProfessors: number;
+        duplicatesFound: number;
+        nextCursor: string | null;
+        message: string;
+    }>({
+        isRunning: false,
+        isPaused: false,
+        processedCount: 0,
+        totalProfessors: 0,
+        duplicatesFound: 0,
+        nextCursor: null,
+        message: "",
+    });
+
+    // Flag to request pause
+    const pauseRequestedRef = useRef(false);
+
+    const handlePause = (
+        cursor: string | undefined,
+        totalProcessed: number,
+        totalDuplicates: number,
+        totalProfessors: number,
+    ) => {
+        const pauseCursor = cursor ?? null;
+        const pauseMessage = `⏸️ Audit paused. Processed ${totalProcessed} professors. Click Resume to continue.`;
+        setAuditProgress((prev) => ({
+            ...prev,
+            isRunning: false,
+            isPaused: true,
+            nextCursor: pauseCursor,
+            processedCount: totalProcessed,
+            duplicatesFound: totalDuplicates,
+            totalProfessors,
+            message: pauseMessage,
+        }));
+    };
+
+    const runFullAudit = async (startCursor?: string) => {
+        pauseRequestedRef.current = false;
+        setAuditProgress((prev) => ({
+            ...prev,
+            isRunning: true,
+            isPaused: false,
+            processedCount: startCursor ? prev.processedCount : 0,
+            duplicatesFound: startCursor ? prev.duplicatesFound : 0,
+            message: startCursor ? "Resuming audit..." : "Starting audit...",
+        }));
+
+        try {
+            let cursor: string | undefined = startCursor;
+            let totalProcessed = startCursor ? auditProgress.processedCount : 0;
+            let totalDuplicates = startCursor ? auditProgress.duplicatesFound : 0;
+            let totalProfessors = 0;
+
+            do {
+                // Check if pause was requested BEFORE making API call
+                if (pauseRequestedRef.current) {
+                    handlePause(cursor, totalProcessed, totalDuplicates, totalProfessors);
+                    return;
+                }
+
+                // Sequential processing required to respect API rate limits and prevent overwhelming the server.
+                // eslint-disable-next-line no-await-in-loop
+                const result = await autoReportDuplicateUsers(cursor ? { cursor } : {});
+
+                totalProcessed += result.processedCount;
+                totalDuplicates += result.duplicatesFound;
+                totalProfessors = result.totalProfessors;
+                cursor = result.nextCursor || undefined;
+
+                setAuditProgress({
+                    isRunning: result.hasMore,
+                    isPaused: false,
+                    processedCount: totalProcessed,
+                    totalProfessors,
+                    duplicatesFound: totalDuplicates,
+                    nextCursor: result.nextCursor,
+                    message: result.message,
+                });
+
+                // Check for pause again after API call and before delay
+                if (pauseRequestedRef.current) {
+                    handlePause(cursor, totalProcessed, totalDuplicates, totalProfessors);
+                    return;
+                }
+
+                // Small delay between batches to prevent overwhelming the server
+                if (result.hasMore) {
+                    // eslint-disable-next-line no-await-in-loop
+                    await new Promise((resolve) => {
+                        setTimeout(resolve, 500);
+                    });
+                }
+            } while (cursor);
+
+            if (!pauseRequestedRef.current) {
+                setAuditProgress((prev) => ({
+                    ...prev,
+                    isRunning: false,
+                    isPaused: false,
+                    message:
+                        `✅ Audit complete! Processed ${totalProcessed} professors, found ${totalDuplicates}` +
+                        " duplicate ratings.",
+                }));
+            }
+        } catch (error) {
+            setAuditProgress((prev) => ({
+                ...prev,
+                isRunning: false,
+                isPaused: false,
+                message: `❌ Error during audit: ${error instanceof Error ? error.message : "Unknown error"}`,
+            }));
+        }
+    };
+
+    const pauseAudit = () => {
+        pauseRequestedRef.current = true;
+    };
 
     const columns = [
         {
@@ -154,7 +283,92 @@ function ReportedRatings() {
     return (
         <div className="mt-4">
             <h2 className="ml-1">Reported Ratings:</h2>
+
+            {/* Audit Controls */}
+            <div className="mb-4 p-4 bg-gray-100 rounded-lg">
+                <div className="flex items-center gap-4 mb-2">
+                    <Button
+                        type="button"
+                        onClick={() => runFullAudit()}
+                        disabled={
+                            auditProgress.isRunning || auditProgress.isPaused || isRunningAudit
+                        }
+                        className={
+                            auditProgress.isRunning || auditProgress.isPaused ? "bg-gray-400" : ""
+                        }
+                    >
+                        {auditProgress.isRunning ? "Running Audit..." : "Run Full Duplicate Audit"}
+                    </Button>
+
+                    {auditProgress.isRunning && (
+                        <Button
+                            type="button"
+                            onClick={pauseAudit}
+                            className="bg-yellow-500 hover:bg-yellow-600"
+                        >
+                            Pause Audit
+                        </Button>
+                    )}
+
+                    {auditProgress.isPaused && (
+                        <Button
+                            type="button"
+                            onClick={() => runFullAudit(auditProgress.nextCursor || undefined)}
+                            className="bg-green-500 hover:bg-green-600"
+                        >
+                            Resume Audit
+                        </Button>
+                    )}
+                </div>
+
+                {/* Progress Display */}
+                {(auditProgress.processedCount > 0 || auditProgress.isRunning) && (
+                    <AuditProgressDisplay
+                        processedCount={auditProgress.processedCount}
+                        totalProfessors={auditProgress.totalProfessors}
+                        duplicatesFound={auditProgress.duplicatesFound}
+                        isRunning={auditProgress.isRunning}
+                        message={auditProgress.message}
+                    />
+                )}
+            </div>
+
             <DataTable columns={columns} data={ratingReports ?? []} pagination />
+        </div>
+    );
+}
+
+function AuditProgressDisplay({
+    processedCount,
+    totalProfessors,
+    duplicatesFound,
+    isRunning,
+    message,
+}: {
+    processedCount: number;
+    totalProfessors: number;
+    duplicatesFound: number;
+    isRunning: boolean;
+    message: string;
+}) {
+    const progressPercent = totalProfessors > 0 ? (processedCount / totalProfessors) * 100 : 0;
+
+    return (
+        <div className="text-sm space-y-1">
+            <div>
+                Progress: {processedCount} / {totalProfessors} professors (
+                {Math.round(progressPercent)}%)
+            </div>
+            <div>Duplicates Found: {duplicatesFound}</div>
+            {isRunning && (
+                <div className="w-full bg-gray-200 rounded-full h-2">
+                    <div
+                        className="bg-blue-600 h-2 rounded-full transition-all duration-300"
+                        style={{ width: `${progressPercent}%` }}
+                    />
+                </div>
+            )}
+            <div className="text-gray-600">{message}</div>
         </div>
     );
 }
