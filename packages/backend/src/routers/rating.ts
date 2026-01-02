@@ -6,17 +6,13 @@ import { DEPARTMENT_LIST } from "@backend/utils/const";
 import { Env } from "@backend/env";
 import { getRateLimiter } from "@backend/middleware/rate-limiter";
 import { ensureTRPCError } from "@backend/middleware/ensure-trpc-error";
+import { checkModerationThresholds } from "@backend/utils/moderation";
 
 const addRatingParser = ratingBaseParser.extend({
     professor: z.uuid(),
     department: z.enum(DEPARTMENT_LIST),
     courseNum: z.number().min(100).max(599),
 });
-
-// The MAX_HARASSMENT threshold (0.65) was empirically chosen to balance false positives and false negatives
-// in content moderation. Ratings with a harassment score above this value are flagged for review.
-// Lower values increase sensitivity (more false positives), while higher values may miss harmful content.
-const MAX_HARASSMENT = 0.65;
 
 export async function addRating(input: z.infer<typeof addRatingParser>, ctx: { env: Env }) {
     // Input is a string subset of PendingRating
@@ -49,23 +45,21 @@ export async function addRating(input: z.infer<typeof addRatingParser>, ctx: { e
 
     if (analysis) {
         pendingRating.analyzedScores = analysis.category_scores;
-        if (analysis.flagged) {
-            // Strongly negative reviews that aren't necessarily character attacks seem to get flagged too easily
-            // categories.harassment is the boolean flag for OpenAI's threshold, but we will check against our own level after
-            if (
-                analysis.categories.harassment &&
-                analysis.category_scores.harassment >= MAX_HARASSMENT
-            ) {
-                // Update rating in processing queue
-                pendingRating.status = "Failed";
-                await ctx.env.kvDao.addRatingLog(pendingRating);
 
-                throw new TRPCError({
-                    code: "PRECONDITION_FAILED",
-                    message:
-                        "Sorry, we couldn't accept this review as written. Please keep ratings constructive and respectful.",
-                });
-            }
+        // Check all configured moderation thresholds
+        const violation = checkModerationThresholds(analysis.category_scores);
+
+        if (violation) {
+            // Store detailed violation reason for admin/debugging (not shown to user)
+            pendingRating.status = "Failed";
+            pendingRating.error = violation.reason;
+            await ctx.env.kvDao.addRatingLog(pendingRating);
+
+            throw new TRPCError({
+                code: "PRECONDITION_FAILED",
+                message:
+                    "Sorry, we couldn't accept this review as written. Please keep ratings constructive and respectful.",
+            });
         }
     }
 
