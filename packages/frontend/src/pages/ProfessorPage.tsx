@@ -20,10 +20,10 @@ import {
     TextArea,
     TextInput,
     EvaluateProfessorFormLinear,
+    Button,
 } from "@/components";
 import { trpc } from "@/trpc";
 import { REACT_MODAL_STYLES } from "@/constants";
-import { Button } from "@/components/forms/Button";
 import { useSortedCourses } from "@/hooks";
 
 export function professorPageLoaderFactory(trpcContext: ReturnType<(typeof trpc)["useUtils"]>) {
