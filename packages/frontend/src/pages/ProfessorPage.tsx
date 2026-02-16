@@ -291,6 +291,24 @@ function StatsCard({ professor, className = "" }: StatsCardProps) {
                     </span>
                 </div>
             </div>
+            <div className={`${getNumGrades(professor, "total") === 0 ? "hidden" : "flex"} flex-col gap-1 justify-between font-medium bg-gray-200 px-3 py-2 rounded-sm mt-2`}>
+                <p className="min-w-max">Grade Distribution</p>
+                <div className="flex w-full items-center rounded-md overflow-hidden">
+                    {["A", "B", "C", "D", "F", "CR", "NC", "W"].map((grade) => (
+                        <div
+                            key={grade}
+                            className={`flex justify-center 
+                                ${grade == "A" ? "bg-blue-500/40" : grade == "B" ? "bg-green-500/40" : grade == "C" ? "bg-yellow-500/40" : grade == "D" ? "bg-orange-500/40" : grade == "F" ? "bg-red-500/40" : grade == "CR" ? "bg-slate-400/40" : grade == "NC" ? "bg-zinc-500/40" : grade == "W" ? "bg-stone-600/40" : ""}${" "}
+                                ${getNumGrades(professor, grade) === 0 ? "hidden" : ""}`}
+                            style={{width: `${getPercentGrades(professor, grade)}%`}}
+                        >
+                            <span className={getPercentGrades(professor, grade) < 5 ? "text-transparent" : ""}>
+                                {grade}
+                            </span>
+                        </div>
+                    ))}
+                </div>
+            </div>
         </div>
     );
 }
@@ -491,4 +509,29 @@ function ProfessorTag({ tagName }: ProfessorTagProps) {
             <span className="font-medium ml-1 md:ml-2">{tagName}</span>
         </div>
     );
+}
+
+// return number of ratings that match given grade filter; if grade filter is "total," return number of ratings that have a grade that is not "N/A"
+function getNumGrades(
+  professor: inferProcedureOutput<AppRouter["professors"]["get"]> | undefined, gradeFilter: string
+) {
+  return Object.values(professor?.reviews || {}).reduce((total, reviews) => {
+    Object.values(reviews).forEach((r) => {
+      const currentGrade = r.grade;
+
+      // increment total if grade matches OR if grade filter is "total" and current grade is not "N/A"
+      if ((gradeFilter == "total" && currentGrade !== "N/A") || currentGrade == gradeFilter) 
+        total++;
+    });
+
+    return total;
+  }, 0);
+}
+
+// return percentage of ratings that match given grade
+function getPercentGrades(
+    professor: inferProcedureOutput<AppRouter["professors"]["get"]> | undefined, grade: string
+) {
+    const total = getNumGrades(professor, "total");
+    return total === 0 ? 0 : (getNumGrades(professor, grade) / total) * 100;
 }
