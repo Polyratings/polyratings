@@ -293,18 +293,22 @@ function StatsCard({ professor, className = "" }: StatsCardProps) {
             </div>
             <div className={`${getNumGrades(professor, "total") === 0 ? "hidden" : "flex"} flex-col gap-1 justify-between font-medium bg-gray-200 px-3 py-2 rounded-sm mt-2`}>
                 <p className="min-w-max">Grade Distribution</p>
-                <div className="flex w-full items-center rounded-md overflow-hidden">
-                    {["A", "B", "C", "D", "F", "CR", "NC", "W"].map((grade) => (
+                <div className="flex w-full items-center">
+                    {["A", "B", "C", "D", "F", "CR", "NC", "W"].filter(grade => getNumGrades(professor, grade) > 0).map((grade) => (
                         <div
                             key={grade}
-                            className={`flex justify-center 
-                                ${grade == "A" ? "bg-blue-500/40" : grade == "B" ? "bg-green-500/40" : grade == "C" ? "bg-yellow-500/40" : grade == "D" ? "bg-orange-500/40" : grade == "F" ? "bg-red-500/40" : grade == "CR" ? "bg-slate-400/40" : grade == "NC" ? "bg-zinc-500/40" : grade == "W" ? "bg-stone-600/40" : ""}${" "}
+                            className={`group relative flex justify-center first:rounded-l-md last:rounded-r-md
+                                ${grade == "A" ? "bg-blue-500/40" : grade == "B" ? "bg-green-500/40" : grade == "C" ? "bg-yellow-500/40" : grade == "D" ? "bg-orange-500/40" : grade == "F" ? "bg-red-500/40" : grade == "CR" ? "bg-slate-400/40" : grade == "NC" ? "bg-zinc-500/40" : grade == "W" ? "bg-stone-600/40" : ""} 
                                 ${getNumGrades(professor, grade) === 0 ? "hidden" : ""}`}
                             style={{width: `${getPercentGrades(professor, grade)}%`}}
                         >
-                            <span className={getPercentGrades(professor, grade) < 5 ? "text-transparent" : ""}>
-                                {grade}
-                            </span>
+                            {getPercentGrades(professor, grade) < 5 
+                                ? <span className="text-transparent">.</span>
+                                : <span>{grade}</span>}
+
+                            <div className={`invisible group-hover:visible transition absolute top-7 left-1/2 -translate-x-1/2 transform whitespace-nowrap flex items-center justify-center rounded-md px-1.5 py-0.5 border-2 border-gray-500/30 ${grade == "A" ? "bg-blue-200" : grade == "B" ? "bg-green-200" : grade == "C" ? "bg-yellow-200" : grade == "D" ? "bg-orange-200" : grade == "F" ? "bg-red-200" : grade == "CR" ? "bg-slate-100" : grade == "NC" ? "bg-zinc-200" : grade == "W" ? "bg-stone-300" : ""}`}>
+                                <p><span className="font-bold">{grade}:</span> {getNumGrades(professor, grade)} <span className="text-gray-700 text-sm">({getPercentGrades(professor, grade).toFixed(0)}%)</span></p>
+                            </div>
                         </div>
                     ))}
                 </div>
