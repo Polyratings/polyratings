@@ -6,6 +6,7 @@ import { DEPARTMENT_LIST } from "@backend/utils/const";
 import { Env } from "@backend/env";
 import { getRateLimiter } from "@backend/middleware/rate-limiter";
 import { checkModerationThresholds } from "@backend/utils/moderation";
+import { ensureTRPCError } from "@backend/middleware/ensure-trpc-error";
 
 const addRatingParser = ratingBaseParser.extend({
     professor: z.uuid(),
@@ -76,38 +77,42 @@ export const ratingsRouter = t.router({
     add: t.procedure
         .use(getRateLimiter("addRating"))
         .input(addRatingParser)
-        .mutation(async ({ ctx, input }) => addRating(input, ctx)),
+        .mutation(
+            ensureTRPCError(({ ctx, input }) => addRating(input, ctx), "Failed to add rating"),
+        ),
     report: t.procedure
         .input(reportParser.extend({ ratingId: z.uuid(), professorId: z.uuid() }))
-        .mutation(async ({ ctx, input }) => {
-            const anonymousIdentifier = await ctx.env.anonymousIdDao.getIdentifier();
-            const ratingReport: RatingReport = {
-                ratingId: input.ratingId,
-                professorId: input.professorId,
-                reports: [
-                    {
-                        email: input.email,
-                        reason: input.reason,
-                        anonymousIdentifier,
-                    },
-                ],
-            };
+        .mutation(
+            ensureTRPCError(async ({ ctx, input }) => {
+                const anonymousIdentifier = await ctx.env.anonymousIdDao.getIdentifier();
+                const ratingReport: RatingReport = {
+                    ratingId: input.ratingId,
+                    professorId: input.professorId,
+                    reports: [
+                        {
+                            email: input.email,
+                            reason: input.reason,
+                            anonymousIdentifier,
+                        },
+                    ],
+                };
 
-            await ctx.env.kvDao.putReport(ratingReport);
+                await ctx.env.kvDao.putReport(ratingReport);
 
-            // Get the rating in question
-            const professor = await ctx.env.kvDao.getProfessor(ratingReport.professorId);
-            const rating = Object.values(professor.reviews)
-                .flat()
-                .find((rating) => rating.id === ratingReport.ratingId);
+                // Get the rating in question
+                const professor = await ctx.env.kvDao.getProfessor(ratingReport.professorId);
+                const rating = Object.values(professor.reviews)
+                    .flat()
+                    .find((rating) => rating.id === ratingReport.ratingId);
 
-            await ctx.env.notificationDAO.notify(
-                "Received A Report",
-                `Rating ID: ${ratingReport.ratingId}\n` +
-                    `Submitter: ${ratingReport.reports[0].anonymousIdentifier}` +
-                    `Professor ID: ${ratingReport.professorId}\n` +
-                    `Reason: ${ratingReport.reports[0].reason}\n` +
-                    `Rating: ${rating?.rating ?? "ERROR-RATING-NOT-FOUND"}`,
-            );
-        }),
+                await ctx.env.notificationDAO.notify(
+                    "Received A Report",
+                    `Rating ID: ${ratingReport.ratingId}\n` +
+                        `Submitter: ${ratingReport.reports[0].anonymousIdentifier}` +
+                        `Professor ID: ${ratingReport.professorId}\n` +
+                        `Reason: ${ratingReport.reports[0].reason}\n` +
+                        `Rating: ${rating?.rating ?? "ERROR-RATING-NOT-FOUND"}`,
+                );
+            }, "Failed to submit report"),
+        ),
 });
