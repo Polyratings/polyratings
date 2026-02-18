@@ -11,9 +11,6 @@ export class OpenAIDAO implements RatingAnalyzer {
     private openai: OpenAI;
 
     constructor(apiKey: string, accountId: string, gatewayId: string) {
-        this.openai = new OpenAI({
-            apiKey,
-            baseURL: `https://gateway.ai.cloudflare.com/v1/${accountId}/${gatewayId}/openai`,
         });
     }
 
