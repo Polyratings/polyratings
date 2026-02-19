@@ -296,23 +296,36 @@ function StatsCard({ professor, className = "" }: StatsCardProps) {
             >
                 <p className="min-w-max">Grade Distribution</p>
                 <div className="flex w-full items-center">
-                    {["A", "B", "C", "D", "F", "CR", "NC", "W"].filter(grade => getNumGrades(professor, grade) > 0).map((grade) => (
-                        <div
-                            key={grade}
-                            className={`group relative flex justify-center first:rounded-l-md last:rounded-r-md
-                                ${grade == "A" ? "bg-blue-500/40" : grade == "B" ? "bg-green-500/40" : grade == "C" ? "bg-yellow-500/40" : grade == "D" ? "bg-orange-500/40" : grade == "F" ? "bg-red-500/40" : grade == "CR" ? "bg-slate-400/40" : grade == "NC" ? "bg-zinc-500/40" : grade == "W" ? "bg-stone-600/40" : ""} 
+                    {["A", "B", "C", "D", "F", "CR", "NC", "W"]
+                        .filter((grade) => getNumGrades(professor, grade) > 0)
+                        .map((grade) => (
+                            <div
+                                key={grade}
+                                className={`group relative flex justify-center first:rounded-l-md last:rounded-r-md border-2 border-r-0 border-gray-500/30 last:border-r-2
+                                ${getGradeColor(grade)}
                                 ${getNumGrades(professor, grade) === 0 ? "hidden" : ""}`}
-                            style={{width: `${getPercentGrades(professor, grade)}%`}}
-                        >
-                            {getPercentGrades(professor, grade) < 5 
-                                ? <span className="text-transparent">.</span>
-                                : <span>{grade}</span>}
+                                style={{ width: `${getPercentGrades(professor, grade)}%` }}
+                            >
+                                {getPercentGrades(professor, grade) < 5 ? (
+                                    <span className="text-transparent">.</span>
+                                ) : (
+                                    <span>{grade}</span>
+                                )}
 
-                            <div className={`invisible group-hover:visible transition absolute top-7 left-1/2 -translate-x-1/2 transform whitespace-nowrap flex items-center justify-center rounded-md px-1.5 py-0.5 border-2 border-gray-500/30 ${grade == "A" ? "bg-blue-200" : grade == "B" ? "bg-green-200" : grade == "C" ? "bg-yellow-200" : grade == "D" ? "bg-orange-200" : grade == "F" ? "bg-red-200" : grade == "CR" ? "bg-slate-100" : grade == "NC" ? "bg-zinc-200" : grade == "W" ? "bg-stone-300" : ""}`}>
-                                <p><span className="font-bold">{grade}:</span> {getNumGrades(professor, grade)} <span className="text-gray-700 text-sm">({getPercentGrades(professor, grade).toFixed(0)}%)</span></p>
+                                <div
+                                    className={`invisible group-hover:visible transition absolute top-7 left-1/2 -translate-x-1/2 transform whitespace-nowrap flex items-center justify-center rounded-md px-1.5 py-0.5 border-2 border-gray-500/30
+                                        ${getGradeColor(grade)}`}
+                                >
+                                    <p>
+                                        <span className="font-bold">{grade}:</span>{" "}
+                                        {getNumGrades(professor, grade)}{" "}
+                                        <span className="text-gray-700 text-sm">
+                                            ({getPercentGrades(professor, grade).toFixed(0)}%)
+                                        </span>
+                                    </p>
+                                </div>
                             </div>
-                        </div>
-                    ))}
+                        ))}
                 </div>
             </div>
         </div>
@@ -519,25 +532,51 @@ function ProfessorTag({ tagName }: ProfessorTagProps) {
 
 // return number of ratings that match given grade filter; if grade filter is "total," return number of ratings that have a grade that is not "N/A"
 function getNumGrades(
-  professor: inferProcedureOutput<AppRouter["professors"]["get"]> | undefined, gradeFilter: string
+    professor: inferProcedureOutput<AppRouter["professors"]["get"]> | undefined,
+    gradeFilter: string,
 ) {
-  return Object.values(professor?.reviews || {}).reduce((total, reviews) => {
-    Object.values(reviews).forEach((r) => {
-      const currentGrade = r.grade;
+    return Object.values(professor?.reviews || {}).reduce((total, reviews) => {
+        Object.values(reviews).forEach((r) => {
+            const currentGrade = r.grade;
 
-      // increment total if grade matches OR if grade filter is "total" and current grade is not "N/A"
-      if ((gradeFilter == "total" && currentGrade !== "N/A") || currentGrade == gradeFilter) 
-        total++;
-    });
+            // increment total if grade matches OR if grade filter is "total" and current grade is not "N/A"
+            if ((gradeFilter === "total" && currentGrade !== "N/A") || currentGrade === gradeFilter)
+                total++;
+        });
 
-    return total;
-  }, 0);
+        return total;
+    }, 0);
 }
 
 // return percentage of ratings that match given grade
 function getPercentGrades(
-    professor: inferProcedureOutput<AppRouter["professors"]["get"]> | undefined, grade: string
+    professor: inferProcedureOutput<AppRouter["professors"]["get"]> | undefined,
+    grade: string,
 ) {
     const total = getNumGrades(professor, "total");
     return total === 0 ? 0 : (getNumGrades(professor, grade) / total) * 100;
+}
+
+// get color from grade for grade distribution
+function getGradeColor(grade: string) {
+    switch (grade) {
+        case "A":
+            return "bg-blue-200";
+        case "B":
+            return "bg-green-200";
+        case "C":
+            return "bg-yellow-200";
+        case "D":
+            return "bg-orange-200";
+        case "F":
+            return "bg-red-200";
+        case "CR":
+            return "bg-slate-100";
+        case "NC":
+            return "bg-zinc-200";
+        case "W":
+            return "bg-stone-300";
+        default:
+            return "";
+    }
 }
