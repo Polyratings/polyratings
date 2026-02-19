@@ -291,7 +291,9 @@ function StatsCard({ professor, className = "" }: StatsCardProps) {
                     </span>
                 </div>
             </div>
-            <div className={`${getNumGrades(professor, "total") === 0 ? "hidden" : "flex"} flex-col gap-1 justify-between font-medium bg-gray-200 px-3 py-2 rounded-sm mt-2`}>
+            <div
+                className={`${getNumGrades(professor, "total") >= 20 ? "flex" : "hidden"} flex-col gap-1 justify-between font-medium bg-gray-200 px-3 py-2 rounded-sm mt-2`}
+            >
                 <p className="min-w-max">Grade Distribution</p>
                 <div className="flex w-full items-center">
                     {["A", "B", "C", "D", "F", "CR", "NC", "W"].filter(grade => getNumGrades(professor, grade) > 0).map((grade) => (
