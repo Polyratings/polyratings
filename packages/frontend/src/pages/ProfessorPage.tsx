@@ -292,7 +292,8 @@ function StatsCard({ professor, className = "" }: StatsCardProps) {
                 </div>
             </div>
             <div
-                className={`${getNumGrades(professor, "total") >= 20 ? "flex" : "hidden"} flex-col gap-1 justify-between font-medium bg-gray-200 px-3 py-2 rounded-sm mt-2`}
+                className={`flex-col gap-1 justify-between font-medium bg-gray-200 px-3 py-2 rounded-sm mt-2
+                    ${getNumGrades(professor, "total") >= 20 ? "flex" : "hidden"}`}
             >
                 <p className="min-w-max">Grade Distribution</p>
                 <div className="flex w-full items-center">
@@ -301,7 +302,8 @@ function StatsCard({ professor, className = "" }: StatsCardProps) {
                         .map((grade) => (
                             <div
                                 key={grade}
-                                className={`group relative flex justify-center first:rounded-l-md last:rounded-r-md border-2 border-r-0 border-gray-500/30 last:border-r-2
+                                className={`group relative flex justify-center first:rounded-l-md last:rounded-r-md 
+                                    border-2 border-r-0 border-gray-500/30 last:border-r-2
                                 ${getGradeColor(grade)}
                                 ${getNumGrades(professor, grade) === 0 ? "hidden" : ""}`}
                                 style={{ width: `${getPercentGrades(professor, grade)}%` }}
@@ -313,7 +315,8 @@ function StatsCard({ professor, className = "" }: StatsCardProps) {
                                 )}
 
                                 <div
-                                    className={`invisible group-hover:visible transition absolute top-7 left-1/2 -translate-x-1/2 transform whitespace-nowrap flex items-center justify-center rounded-md px-1.5 py-0.5 border-2 border-gray-500/30
+                                    className={`invisible group-hover:visible transition absolute top-7 left-1/2 -translate-x-1/2 transform 
+                                        whitespace-nowrap flex items-center justify-center rounded-md px-1.5 py-0.5 border-2 border-gray-500/30
                                         ${getGradeColor(grade)}`}
                                 >
                                     <p>
@@ -536,15 +539,16 @@ function getNumGrades(
     gradeFilter: string,
 ) {
     return Object.values(professor?.reviews || {}).reduce((total, reviews) => {
+        let newTotal = total;
         Object.values(reviews).forEach((r) => {
             const currentGrade = r.grade;
 
             // increment total if grade matches OR if grade filter is "total" and current grade is not "N/A"
             if ((gradeFilter === "total" && currentGrade !== "N/A") || currentGrade === gradeFilter)
-                total++;
+                newTotal = newTotal + 1;
         });
 
-        return total;
+        return newTotal;
     }, 0);
 }
 
