@@ -5,6 +5,7 @@ import { PendingRating, ratingBaseParser, RatingReport, reportParser } from "@ba
 import { DEPARTMENT_LIST } from "@backend/utils/const";
 import { Env } from "@backend/env";
 import { getRateLimiter } from "@backend/middleware/rate-limiter";
+import type { Moderation } from "openai/resources/moderations";
 import { checkModerationThresholds } from "@backend/utils/moderation";
 
 const addRatingParser = ratingBaseParser.extend({
@@ -99,12 +100,49 @@ export const ratingsRouter = t.router({
             const professor = await ctx.env.kvDao.getProfessor(ratingReport.professorId);
             const rating = Object.values(professor.reviews)
                 .flat()
-                .find((rating) => rating.id === ratingReport.ratingId);
+                .find((r) => r.id === ratingReport.ratingId);
+
+            // Run unprocessed ratings through moderation; auto-delete if model rejects.
+            // Skip moderation when analysis exists in rating log—it was vetted at submission.
+            if (rating) {
+                const existingLog = await ctx.env.kvDao.getRatingLog(ratingReport.ratingId);
+                if (!existingLog?.analyzedScores) {
+                    const pendingForAnalysis: PendingRating = {
+                        ...rating,
+                        status: "Failed",
+                        error: null,
+                        analyzedScores: null,
+                        courseNum: 100,
+                        department: DEPARTMENT_LIST[0],
+                    };
+                    const result = await ctx.env.ratingAnalyzer.analyzeRating(pendingForAnalysis);
+                    if (result?.category_scores) {
+                        const violation = checkModerationThresholds(
+                            result.category_scores as Moderation.CategoryScores,
+                        );
+                        if (violation) {
+                            await ctx.env.kvDao.removeRating(
+                                ratingReport.professorId,
+                                ratingReport.ratingId,
+                            );
+                            await ctx.env.kvDao.removeReport(ratingReport.ratingId);
+                            await ctx.env.notificationDAO.notify(
+                                "Report: Auto-Deleted (Moderation)",
+                                `Rating ID: ${ratingReport.ratingId} was reported and failed moderation.\n` +
+                                    `Professor ID: ${ratingReport.professorId}\n` +
+                                    `Reason: ${violation.reason}\n` +
+                                    `Rating (deleted): ${rating.rating}`,
+                            );
+                            return;
+                        }
+                    }
+                }
+            }
 
             await ctx.env.notificationDAO.notify(
                 "Received A Report",
                 `Rating ID: ${ratingReport.ratingId}\n` +
-                    `Submitter: ${ratingReport.reports[0].anonymousIdentifier}` +
+                    `Submitter: ${ratingReport.reports[0].anonymousIdentifier}\n` +
                     `Professor ID: ${ratingReport.professorId}\n` +
                     `Reason: ${ratingReport.reports[0].reason}\n` +
                     `Rating: ${rating?.rating ?? "ERROR-RATING-NOT-FOUND"}`,
