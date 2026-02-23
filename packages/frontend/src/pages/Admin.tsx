@@ -6,7 +6,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { ExpanderComponentProps, TableProps } from "react-data-table-component";
 import { Department, DEPARTMENT_LIST } from "@backend/utils/const";
 import { ArrowTopRightOnSquareIcon } from "@heroicons/react/24/solid";
-import { useAuth } from "@/hooks";
+import { useAuth, useAuditRunner } from "@/hooks";
 import { trpc } from "@/trpc";
 import { bulkInvalidationKey, useDbValues } from "@/hooks/useDbValues";
 import { Button } from "@/components/forms/Button";
@@ -53,6 +53,46 @@ function ReportedRatings() {
     const { mutate: actOnReport } = trpc.admin.actOnReport.useMutation({
         onSuccess: () =>
             queryClient.invalidateQueries({ queryKey: bulkInvalidationKey("reports") }),
+    });
+    const RANGE_OPTIONS = [
+        { value: "43200", label: "12 hours" },
+        { value: "86400", label: "1 day" },
+        { value: "172800", label: "2 days" },
+        { value: "259200", label: "3 days" },
+        { value: "604800", label: "7 days" },
+        { value: "1209600", label: "14 days" },
+        { value: "2592000", label: "30 days" },
+    ] as const;
+    const [rangeSeconds, setRangeSeconds] = useState(86400);
+    const duplicateMutation = trpc.admin.autoReportDuplicateUsers.useMutation({
+        onSuccess: () =>
+            queryClient.invalidateQueries({ queryKey: bulkInvalidationKey("reports") }),
+    });
+    const moderationMutation = trpc.admin.autoReportContentModeration.useMutation({
+        onSuccess: () =>
+            queryClient.invalidateQueries({ queryKey: bulkInvalidationKey("reports") }),
+    });
+
+    const duplicateAudit = useAuditRunner({
+        mutate: (input) =>
+            duplicateMutation.mutateAsync({
+                ...input,
+                withinSeconds: rangeSeconds,
+                rangeLabel:
+                    RANGE_OPTIONS.find((o) => o.value === String(rangeSeconds))?.label ?? "1 day",
+            }),
+        isPending: duplicateMutation.isPending,
+        getMetricCount: (r) => r.duplicatesFound,
+        completeMessage: (processed: number, n: number) =>
+            `Processed ${processed} professors, found ${n} duplicate ratings.`,
+    });
+
+    const moderationAudit = useAuditRunner({
+        mutate: moderationMutation.mutateAsync,
+        isPending: moderationMutation.isPending,
+        getMetricCount: (r: { moderationFlagged: number }) => r.moderationFlagged,
+        completeMessage: (processed: number, n: number) =>
+            `Processed ${processed} professors, found ${n} ratings to flag.`,
     });
 
     const columns = [
@@ -154,7 +194,161 @@ function ReportedRatings() {
     return (
         <div className="mt-4">
             <h2 className="ml-1">Reported Ratings:</h2>
+
+            {/* Audit Controls */}
+            <div className="mb-4 p-4 bg-gray-100 rounded-lg">
+                <div className="flex items-end gap-4 mb-2">
+                    <Select
+                        label="Time range"
+                        value={rangeSeconds.toString()}
+                        onChange={(e) => setRangeSeconds(Number(e.target.value))}
+                        options={[...RANGE_OPTIONS]}
+                        disabled={
+                            duplicateAudit.progress.isRunning || duplicateAudit.progress.isPaused
+                        }
+                    />
+                </div>
+                <AuditControls
+                    progress={duplicateAudit.progress}
+                    onRun={() => duplicateAudit.runAudit()}
+                    onPause={duplicateAudit.pauseAudit}
+                    onResume={() =>
+                        duplicateAudit.runAudit(duplicateAudit.progress.nextCursor ?? undefined)
+                    }
+                    isPending={duplicateAudit.isPending}
+                    runLabel="Run Full Duplicate Audit"
+                    metricLabel="Duplicates Found"
+                />
+
+                {/* Content Moderation Audit */}
+                <div className="mt-4 pt-4 border-t border-gray-300">
+                    <AuditControls
+                        progress={moderationAudit.progress}
+                        onRun={() => moderationAudit.runAudit()}
+                        onPause={moderationAudit.pauseAudit}
+                        onResume={() =>
+                            moderationAudit.runAudit(
+                                moderationAudit.progress.nextCursor ?? undefined,
+                            )
+                        }
+                        isPending={moderationAudit.isPending}
+                        runLabel="Run Content Moderation Audit"
+                        metricLabel="Ratings Flagged"
+                    />
+                </div>
+            </div>
+
             <DataTable columns={columns} data={ratingReports ?? []} pagination />
+        </div>
+    );
+}
+
+type AuditProgress = {
+    isRunning: boolean;
+    isPaused: boolean;
+    processedCount: number;
+    totalProfessors: number;
+    metricCount: number;
+    nextCursor: string | null;
+    message: string;
+};
+
+function AuditControls({
+    progress,
+    onRun,
+    onPause,
+    onResume,
+    isPending,
+    runLabel,
+    metricLabel,
+}: {
+    progress: AuditProgress;
+    onRun: () => void;
+    onPause: () => void;
+    onResume: () => void;
+    isPending: boolean;
+    runLabel: string;
+    metricLabel: string;
+}) {
+    return (
+        <>
+            <div className="flex items-center gap-4 mb-2">
+                <Button
+                    type="button"
+                    onClick={onRun}
+                    disabled={progress.isRunning || progress.isPaused || isPending}
+                    className={progress.isRunning || progress.isPaused ? "bg-gray-400" : ""}
+                >
+                    {progress.isRunning ? "Running Audit..." : runLabel}
+                </Button>
+                {progress.isRunning && (
+                    <Button
+                        type="button"
+                        onClick={onPause}
+                        className="bg-yellow-500 hover:bg-yellow-600"
+                    >
+                        Pause Audit
+                    </Button>
+                )}
+                {progress.isPaused && (
+                    <Button
+                        type="button"
+                        onClick={onResume}
+                        className="bg-green-500 hover:bg-green-600"
+                    >
+                        Resume Audit
+                    </Button>
+                )}
+            </div>
+            {(progress.processedCount > 0 || progress.isRunning) && (
+                <AuditProgressDisplay
+                    processedCount={progress.processedCount}
+                    totalProfessors={progress.totalProfessors}
+                    metricLabel={metricLabel}
+                    metricCount={progress.metricCount}
+                    isRunning={progress.isRunning}
+                    message={progress.message}
+                />
+            )}
+        </>
+    );
+}
+
+function AuditProgressDisplay({
+    processedCount,
+    totalProfessors,
+    metricLabel,
+    metricCount,
+    isRunning,
+    message,
+}: {
+    processedCount: number;
+    totalProfessors: number;
+    metricLabel: string;
+    metricCount: number;
+    isRunning: boolean;
+    message: string;
+}) {
+    const progressPercent = totalProfessors > 0 ? (processedCount / totalProfessors) * 100 : 0;
+
+    return (
+        <div className="text-sm space-y-1">
+            <div>
+                Progress: {processedCount} / {totalProfessors} professors (
+                {Math.round(progressPercent)}%)
+            </div>
+            <div>
+                {metricLabel}: {metricCount}
+            </div>
+            {isRunning && (
+                <div className="w-full bg-gray-200 rounded-full h-2">
+                    <div
+                        className="bg-blue-600 h-2 rounded-full transition-all duration-300"
+                        style={{ width: `${progressPercent}%` }}
+                    />
+                </div>
+            )}
+            <div className="text-gray-600">{message}</div>
         </div>
     );
 }

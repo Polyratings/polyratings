@@ -222,6 +222,10 @@ export class KVDAO {
         return this.reportsNamespace.get(ratingReportParser, ratingId);
     }
 
+    async getReportOptional(ratingId: string) {
+        return this.reportsNamespace.getOptional(ratingReportParser, ratingId);
+    }
+
     async putReport(report: RatingReport): Promise<void> {
         const existingReport = await this.reportsNamespace.getOptional(
             ratingReportParser,
