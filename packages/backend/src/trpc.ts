@@ -1,7 +1,7 @@
 import { initTRPC, TRPCError } from "@trpc/server";
 import { Env } from "./env";
 
-type Context = {
+export type Context = {
     env: Env;
     user?: {
         username: string;
