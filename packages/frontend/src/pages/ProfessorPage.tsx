@@ -545,7 +545,7 @@ function getNumGrades(
 
             // increment total if grade matches OR if grade filter is "total" and current grade is not "N/A"
             if ((gradeFilter === "total" && currentGrade !== "N/A") || currentGrade === gradeFilter)
-                newTotal = newTotal + 1;
+                newTotal += 1;
         });
 
         return newTotal;
