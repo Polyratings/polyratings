@@ -164,6 +164,10 @@ export class KVDAO {
         });
     }
 
+    async getRatingLog(ratingId: string): Promise<PendingRating | undefined> {
+        return this.ratingsLog.getOptional(pendingRatingParser, ratingId);
+    }
+
     async addRating(newRating: PendingRating) {
         if (newRating.status !== "Successful") {
             throw new Error("Cannot add rating to KV that has not been analyzed.");

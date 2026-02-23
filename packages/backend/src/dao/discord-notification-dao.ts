@@ -3,7 +3,10 @@ interface WebhookBody {
     username?: string; // overrides webhook's default username
 }
 
-type NotificationEvent = "Pending Professor Notification" | "Received A Report";
+type NotificationEvent =
+    | "Pending Professor Notification"
+    | "Received A Report"
+    | "Report: Auto-Deleted (Moderation)";
 
 export type NotificationDAO = {
     notify(username: NotificationEvent, content: string): Promise<void>;
