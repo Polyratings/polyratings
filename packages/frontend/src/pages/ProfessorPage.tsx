@@ -64,7 +64,7 @@ function LockProfessorModal({
 
     return (
         <Modal isOpen={isOpen} onRequestClose={onClose} style={REACT_MODAL_STYLES}>
-            <div className="bg-white rounded-sm shadow-sm p-5 w-screen max-w-xl">
+            <div className="bg-white rounded-sm shadow-sm p-5 w-screen sm:w-140">
                 <form className="relative text-left" onSubmit={handleSubmit}>
                     <button
                         className="absolute right-0 top-0 p-3 font-bold cursor-pointer"
@@ -169,7 +169,7 @@ export function ProfessorPage() {
                 onRequestClose={() => setProfessorEvaluationShownDesktop(false)}
                 style={REACT_MODAL_STYLES}
             >
-                <div className="bg-white opacity-100 rounded-sm shadow-sm p-5 w-screen max-w-2xl">
+                <div className="bg-white opacity-100 rounded-sm shadow-sm p-5 w-162">
                     <TwoStepEvaluateProfessor
                         professor={professorData}
                         closeForm={() => setProfessorEvaluationShownDesktop(false)}
@@ -542,7 +542,7 @@ function ReportButton({ professorId, ratingId, className = "" }: ReportButtonPro
                 style={REACT_MODAL_STYLES}
                 onRequestClose={() => setFormShown(false)}
             >
-                <div className="bg-white rounded-sm shadow-sm p-5 w-screen max-w-xl">
+                <div className="bg-white rounded-sm shadow-sm p-5 w-screen sm:w-140">
                     <ReportForm
                         professorId={professorId}
                         ratingId={ratingId}
