@@ -59,6 +59,8 @@ export type TruncatedProfessor = z.infer<typeof truncatedProfessorParser>;
 
 export const professorParser = truncatedProfessorParser.extend({
     reviews: z.record(z.string(), ratingParser.array()),
+    locked: z.boolean().optional(),
+    lockedMessage: z.string().optional(),
 });
 export type Professor = z.infer<typeof professorParser>;
 

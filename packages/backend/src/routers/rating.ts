@@ -29,6 +29,13 @@ export async function addRating(input: z.infer<typeof addRatingParser>, ctx: { e
     // Abuse protection: Check if the same rating text has already been submitted for the same professor
     const professor = await ctx.env.kvDao.getProfessor(input.professor);
 
+    if (professor.locked) {
+        throw new TRPCError({
+            code: "PRECONDITION_FAILED",
+            message: "This professor is locked and not accepting new ratings.",
+        });
+    }
+
     const existingRating = Object.values(professor.reviews)
         .flat()
         .find((rating) => rating.rating.trim() === pendingRating.rating);

@@ -15,6 +15,12 @@ const changeNameParser = z.object({
     lastName: z.string().trim(),
 });
 
+const lockProfessorParser = z.object({
+    professorId: z.uuid(),
+    locked: z.boolean(),
+    lockedMessage: z.string().optional(),
+});
+
 const fixEscapedCharsParser = z.object({
     professors: z
         .array(z.uuid())
@@ -87,6 +93,14 @@ export const adminRouter = t.router({
             professor.firstName = firstName;
             professor.lastName = lastName;
             await ctx.env.kvDao.putPendingProfessor(professor);
+        }),
+    lockProfessor: protectedProcedure
+        .input(lockProfessorParser)
+        .mutation(async ({ ctx, input: { professorId, locked, lockedMessage } }) => {
+            const professor = await ctx.env.kvDao.getProfessor(professorId);
+            professor.locked = locked;
+            professor.lockedMessage = locked ? lockedMessage : undefined;
+            await ctx.env.kvDao.putProfessor(professor);
         }),
     getBulkKeys: protectedProcedure
         .input(z.enum(bulkKeys))
