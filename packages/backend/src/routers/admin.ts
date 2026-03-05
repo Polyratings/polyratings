@@ -66,9 +66,16 @@ export const adminRouter = t.router({
     removeRatingsBulk: protectedProcedure
         .input(
             z.object({
-                professorId: z.string().uuid(),
-                ratingIds: z.array(z.string().uuid()).min(1).max(50),
-                reason: z.string().trim().min(1, "Reason is required"),
+                professorId: z.uuid(),
+                ratingIds: z.array(z.uuid()).min(1).max(50),
+                reason: z
+                    .string()
+                    .trim()
+                    .min(1, "Reason is required")
+                    .max(
+                        MAX_REASON_LENGTH,
+                        `Reason must be at most ${MAX_REASON_LENGTH} characters`,
+                    ),
             }),
         )
         .mutation(async ({ ctx, input: { professorId, ratingIds, reason } }) => {

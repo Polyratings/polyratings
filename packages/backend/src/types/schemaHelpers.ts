@@ -72,6 +72,14 @@ export function removeRating(professor: Professor, reviewId: string) {
         professor.reviews[courseName].splice(reviewIndex, 1);
     }
 
+    // Decrement tag counts to match addRating (single and bulk delete must stay consistent)
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    professor.tags ??= {} as any;
+    for (const tag of removedRating.tags ?? []) {
+        const current = professor.tags![tag] ?? 0;
+        professor.tags![tag] = Math.max(0, current - 1);
+    }
+
     if (professor.numEvals === 1) {
         professor.materialClear = 0;
         professor.studentDifficulties = 0;

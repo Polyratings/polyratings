@@ -135,8 +135,8 @@ export function ProfessorPage() {
     });
 
     const bulkDeleteRatingsMutation = trpc.admin.removeRatingsBulk.useMutation({
-        onSuccess: () => {
-            trpcContext.professors.get.invalidate({ id: id ?? "" });
+        onSuccess: (_data, variables) => {
+            trpcContext.professors.get.invalidate({ id: variables.professorId });
             setSelectedRatingIds(new Set());
             setBulkDeleteConfirmShown(false);
             setBulkDeleteReason("");
