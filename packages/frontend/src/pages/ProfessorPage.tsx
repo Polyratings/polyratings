@@ -575,24 +575,6 @@ function RatingCard({
 }: RatingCardProps) {
     return (
         <div className="bg-white w-full rounded-3xl py-3 px-6 my-2 border-cal-poly-green border-4 flex flex-col md:flex-row relative">
-            {showBulkDeleteCheckbox && (
-                <div className="absolute left-3 top-3 z-10 flex items-center">
-                    <label
-                        className="flex items-center gap-2 cursor-pointer"
-                        htmlFor={`rating-select-${rating.id}`}
-                    >
-                        <input
-                            id={`rating-select-${rating.id}`}
-                            type="checkbox"
-                            checked={isSelected}
-                            onChange={onToggleSelect}
-                            className="rounded border-gray-300"
-                            aria-label="Select rating for bulk delete"
-                        />
-                        <span className="text-sm text-gray-600">Select</span>
-                    </label>
-                </div>
-            )}
             <div className="hidden md:flex flex-col gap-1 shrink-0 mr-4 text-center">
                 <div className="mb-2">
                     {/* Only show stars for ratings from the new site */}
@@ -652,12 +634,30 @@ function RatingCard({
                                 ))}
                         </div>
                     </div>
-                    <div className="flex flex-col-reverse">
-                        <ReportButton
-                            className="ml-2 md:ml-10"
-                            professorId={professorId}
-                            ratingId={rating.id}
-                        />
+                    <div className="flex flex-col-reverse items-end gap-2">
+                        <div className="flex items-center gap-2">
+                            {showBulkDeleteCheckbox && (
+                                <label
+                                    className="flex items-center gap-2 cursor-pointer"
+                                    htmlFor={`rating-select-${rating.id}`}
+                                >
+                                    <input
+                                        id={`rating-select-${rating.id}`}
+                                        type="checkbox"
+                                        checked={isSelected}
+                                        onChange={onToggleSelect}
+                                        className="rounded border-gray-300"
+                                        aria-label="Select rating for bulk delete"
+                                    />
+                                    <span className="text-sm text-gray-600">Select</span>
+                                </label>
+                            )}
+                            <ReportButton
+                                className="ml-2 md:ml-10"
+                                professorId={professorId}
+                                ratingId={rating.id}
+                            />
+                        </div>
                     </div>
                 </div>
             </div>
