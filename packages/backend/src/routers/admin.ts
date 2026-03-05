@@ -27,6 +27,36 @@ const fixEscapedCharsParser = z.object({
         .max(250, "Separate your request into batches of 250 professors."),
 });
 
+const DISCORD_MESSAGE_MAX_LENGTH = 2000;
+const MAX_IDS_IN_AUDIT = 10;
+const MAX_REASON_LENGTH = 600;
+
+function buildBulkDeletionAuditMessage(
+    username: string,
+    removed: number,
+    lastName: string,
+    firstName: string,
+    professorId: string,
+    ratingIds: string[],
+    reason: string,
+): string {
+    const adminPart = `Admin **${username}** removed **${removed}** rating(s)`;
+    const profPart = `from professor **${lastName}, ${firstName}** (${professorId}).`;
+    const firstIds = ratingIds.slice(0, MAX_IDS_IN_AUDIT).join(", ");
+    const idsSummary =
+        ratingIds.length <= MAX_IDS_IN_AUDIT
+            ? `Rating IDs: ${ratingIds.join(", ")}`
+            : `Rating IDs (first ${MAX_IDS_IN_AUDIT}): ${firstIds} (and ${ratingIds.length - MAX_IDS_IN_AUDIT} more)`;
+    const truncatedReason =
+        reason.length > MAX_REASON_LENGTH ? `${reason.slice(0, MAX_REASON_LENGTH)}…` : reason;
+    const reasonPart = `\nReason: ${truncatedReason}`;
+    let message = `${adminPart} ${profPart} ${idsSummary}${reasonPart}`;
+    if (message.length > DISCORD_MESSAGE_MAX_LENGTH) {
+        message = `${message.slice(0, DISCORD_MESSAGE_MAX_LENGTH - 3)}…`;
+    }
+    return message;
+}
+
 export const adminRouter = t.router({
     removeRating: protectedProcedure
         .input(z.object({ professorId: z.string(), ratingId: z.string() }))
@@ -43,12 +73,16 @@ export const adminRouter = t.router({
         )
         .mutation(async ({ ctx, input: { professorId, ratingIds, reason } }) => {
             const professor = await ctx.env.kvDao.getProfessor(professorId);
-            await ctx.env.kvDao.removeRatingsBulk(professorId, ratingIds);
-            const adminPart = `Admin **${ctx.user!.username}** removed **${ratingIds.length}** rating(s)`;
-            const profPart = `from professor **${professor.lastName}, ${professor.firstName}** (${professorId}).`;
-            const idsPart = `Rating IDs: ${ratingIds.join(", ")}`;
-            const reasonPart = `\nReason: ${reason}`;
-            const auditMessage = `${adminPart} ${profPart} ${idsPart}${reasonPart}`;
+            const removed = await ctx.env.kvDao.removeRatingsBulk(professor, ratingIds);
+            const auditMessage = buildBulkDeletionAuditMessage(
+                ctx.user!.username,
+                removed,
+                professor.lastName,
+                professor.firstName,
+                professorId,
+                ratingIds,
+                reason,
+            );
             await ctx.env.notificationDAO.notify("Bulk Rating Deletion", auditMessage);
         }),
     getPendingProfessors: protectedProcedure.query(({ ctx }) =>

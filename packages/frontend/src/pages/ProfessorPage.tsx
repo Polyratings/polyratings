@@ -117,6 +117,13 @@ export function ProfessorPage() {
         id: id ?? "",
     });
     const trpcContext = trpc.useUtils();
+
+    // Clear bulk-delete state when navigating to a different professor
+    useEffect(() => {
+        setSelectedRatingIds(new Set());
+        setBulkDeleteConfirmShown(false);
+        setBulkDeleteReason("");
+    }, [id, professorData?.id]);
     const { isAuthenticated } = useAuth();
     const [lockModalShown, setLockModalShown] = useState(false);
     const lockProfessorMutation = trpc.admin.lockProfessor.useMutation({
@@ -257,9 +264,31 @@ export function ProfessorPage() {
                             type="button"
                             onClick={() => {
                                 if (!professorData?.id) return;
+                                const validIds = new Set(
+                                    Object.values(professorData.reviews ?? {}).flatMap((r) =>
+                                        r.map((rating) => rating.id),
+                                    ),
+                                );
+                                const idsToSend = Array.from(selectedRatingIds).filter((id) =>
+                                    validIds.has(id),
+                                );
+                                if (idsToSend.length === 0) {
+                                    toast.info(
+                                        "Selection is out of date; those ratings are no longer here. Clearing selection.",
+                                    );
+                                    setSelectedRatingIds(new Set());
+                                    setBulkDeleteConfirmShown(false);
+                                    return;
+                                }
+                                if (idsToSend.length < selectedRatingIds.size) {
+                                    const n = selectedRatingIds.size;
+                                    toast.warn(
+                                        `${idsToSend.length} of ${n} selected still on professor. Deleting those.`,
+                                    );
+                                }
                                 bulkDeleteRatingsMutation.mutate({
                                     professorId: professorData.id,
-                                    ratingIds: Array.from(selectedRatingIds),
+                                    ratingIds: idsToSend,
                                     reason: bulkDeleteReason.trim(),
                                 });
                             }}
@@ -399,25 +428,27 @@ export function ProfessorPage() {
 
             {isAuthenticated && selectedRatingIds.size > 0 && (
                 <div className="lg:max-w-5xl w-full mx-auto px-2 mt-4">
-                    <div className="flex items-center gap-3 rounded-lg bg-red-50 border border-red-200 px-4 py-3">
+                    <div className="flex items-center justify-between rounded-lg bg-red-50 border border-red-200 px-4 py-3">
                         <span className="font-medium text-red-900">
                             {selectedRatingIds.size} rating{selectedRatingIds.size === 1 ? "" : "s"}{" "}
                             selected
                         </span>
-                        <Button
-                            type="button"
-                            onClick={() => setBulkDeleteConfirmShown(true)}
-                            disabled={bulkDeleteRatingsMutation.isPending}
-                        >
-                            Delete selected
-                        </Button>
-                        <button
-                            type="button"
-                            onClick={() => setSelectedRatingIds(new Set())}
-                            className="text-red-700 underline text-sm"
-                        >
-                            Clear selection
-                        </button>
+                        <div className="flex items-center gap-3">
+                            <button
+                                type="button"
+                                onClick={() => setSelectedRatingIds(new Set())}
+                                className="text-red-700 underline text-sm"
+                            >
+                                Clear selection
+                            </button>
+                            <Button
+                                type="button"
+                                onClick={() => setBulkDeleteConfirmShown(true)}
+                                disabled={bulkDeleteRatingsMutation.isPending}
+                            >
+                                Delete selected
+                            </Button>
+                        </div>
                     </div>
                 </div>
             )}
