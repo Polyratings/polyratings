@@ -6,7 +6,8 @@ interface WebhookBody {
 type NotificationEvent =
     | "Pending Professor Notification"
     | "Received A Report"
-    | "Report: Auto-Deleted (Moderation)";
+    | "Report: Auto-Deleted (Moderation)"
+    | "Bulk Rating Deletion";
 
 export type NotificationDAO = {
     notify(username: NotificationEvent, content: string): Promise<void>;

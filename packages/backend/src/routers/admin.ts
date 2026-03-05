@@ -33,6 +33,24 @@ export const adminRouter = t.router({
         .mutation(async ({ ctx, input: { professorId, ratingId } }) => {
             await ctx.env.kvDao.removeRating(professorId, ratingId);
         }),
+    removeRatingsBulk: protectedProcedure
+        .input(
+            z.object({
+                professorId: z.string().uuid(),
+                ratingIds: z.array(z.string().uuid()).min(1).max(50),
+                reason: z.string().trim().min(1, "Reason is required"),
+            }),
+        )
+        .mutation(async ({ ctx, input: { professorId, ratingIds, reason } }) => {
+            const professor = await ctx.env.kvDao.getProfessor(professorId);
+            await ctx.env.kvDao.removeRatingsBulk(professorId, ratingIds);
+            const adminPart = `Admin **${ctx.user!.username}** removed **${ratingIds.length}** rating(s)`;
+            const profPart = `from professor **${professor.lastName}, ${professor.firstName}** (${professorId}).`;
+            const idsPart = `Rating IDs: ${ratingIds.join(", ")}`;
+            const reasonPart = `\nReason: ${reason}`;
+            const auditMessage = `${adminPart} ${profPart} ${idsPart}${reasonPart}`;
+            await ctx.env.notificationDAO.notify("Bulk Rating Deletion", auditMessage);
+        }),
     getPendingProfessors: protectedProcedure.query(({ ctx }) =>
         ctx.env.kvDao.getAllPendingProfessors(),
     ),

@@ -189,6 +189,14 @@ export class KVDAO {
         return this.putProfessor(professor);
     }
 
+    async removeRatingsBulk(professorId: string, ratingIds: string[]) {
+        const professor = await this.getProfessor(professorId);
+        for (const ratingId of ratingIds) {
+            removeRating(professor, ratingId);
+        }
+        return this.putProfessor(professor);
+    }
+
     async getUser(username: string) {
         try {
             const user = await this.usersNamespace.get(userParser, username);
