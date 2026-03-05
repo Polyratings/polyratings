@@ -1,4 +1,5 @@
 import { ALL_PROFESSOR_KEY, BulkKey, BulkKeyMap } from "@backend/utils/const";
+import { chunkArray } from "@backend/utils/chunkArray";
 import { z } from "zod";
 import { TRPCError } from "@trpc/server";
 import {
@@ -22,6 +23,11 @@ import { KvWrapper } from "./kv-wrapper";
 
 const KV_REQUESTS_PER_TRIGGER = 1000;
 const THREE_WEEKS_SECONDS = 60 * 60 * 24 * 7 * 3;
+
+// Batch processing constants for performance optimization
+// Batch size chosen to avoid 503 errors from KV rate limits
+const BULK_FETCH_BATCH_SIZE = 50;
+const PARALLEL_BATCH_CONCURRENCY = 5; // Number of batches to process simultaneously
 
 export class KVDAO {
     constructor(
@@ -53,6 +59,72 @@ export class KVDAO {
             ALL_PROFESSOR_KEY,
             professorList,
         );
+    }
+
+    /**
+     * Batch update professors to reduce write amplification.
+     * Updates multiple professors with a single read and write of the professor list.
+     *
+     * WARNING: This method is not thread-safe. Concurrent calls to this method
+     * can result in lost updates due to race conditions (read-modify-write pattern).
+     * Ensure only one batch update runs at a time, or use a queue/sequencer.
+     *
+     * Cloudflare KV does not support transactions, so true atomicity is not possible.
+     * This method reads the professor list, applies all updates, and writes it back.
+     * If another process modifies the list concurrently, one update may be lost.
+     */
+    async batchUpdateProfessors(
+        updates: Array<{ id: string; professor?: Professor; deleted?: boolean }>,
+    ): Promise<void> {
+        if (updates.length === 0) {
+            return;
+        }
+
+        // Read professor list fresh each time to minimize race condition window
+        const profList = await this.getAllProfessors();
+
+        // Collect all write operations to execute in parallel
+        const writePromises: Promise<void>[] = [];
+
+        // Process all updates
+        for (const update of updates) {
+            if (update.deleted) {
+                // Remove professor from list
+                const professorIndex = profList.findIndex((t) => t.id === update.id);
+                if (professorIndex !== -1) {
+                    profList.splice(professorIndex, 1);
+                }
+                // Delete individual professor key (collect promise, don't await)
+                writePromises.push(
+                    this.polyratingsNamespace.delete(update.id).then(() => undefined),
+                );
+            } else if (update.professor) {
+                const { professor } = update;
+                // Update individual professor key (collect promise, don't await)
+                writePromises.push(
+                    this.polyratingsNamespace
+                        .put(professorParser, professor.id, professor)
+                        .then(() => undefined),
+                );
+
+                // Update professor in list
+                const professorIndex = profList.findIndex((t) => t.id === professor.id);
+                const truncatedProf = professorToTruncatedProfessor(professor);
+
+                if (professorIndex === -1) {
+                    profList.push(truncatedProf);
+                } else {
+                    profList[professorIndex] = truncatedProf;
+                }
+            }
+        }
+
+        // First, write the updated professor list to minimize the risk of
+        // having individual records that are not reflected in the master list.
+        await this.putAllProfessors(profList);
+
+        // Then, execute all individual writes in parallel
+        await Promise.all(writePromises);
     }
 
     getProfessor(id: string) {
@@ -97,20 +169,92 @@ export class KVDAO {
         return keys;
     }
 
-    async getBulkValues<T extends BulkKey>(bulkKey: T, keys: string[]): Promise<BulkKeyMap[T]> {
+    async getBulkValues<T extends BulkKey>(
+        bulkKey: T,
+        keys: string[],
+    ): Promise<Array<{ key: string; value: BulkKeyMap[T][number] }>> {
         if (keys.length > KV_REQUESTS_PER_TRIGGER) {
             throw new TRPCError({
                 code: "BAD_REQUEST",
                 message: `Can not process more than ${KV_REQUESTS_PER_TRIGGER} keys per request`,
             });
         }
-        const { namespace } = this.getBulkNamespace(bulkKey);
-        // Use get unsafe for performance reasons. Since we are fetching a large number of records
-        // the time can be greater than 50ms resulting in occasional 503's
-        return Promise.all(keys.map((key) => namespace.getUnsafe(key))) as never;
+        const { namespace, parser } = this.getBulkNamespace(bulkKey);
+
+        // Batch keys into smaller chunks to avoid 503 errors
+        const keyChunks = chunkArray(keys, BULK_FETCH_BATCH_SIZE);
+
+        // Process batches in parallel with controlled concurrency
+        // Track key-value pairs to maintain correct mapping even if some batches fail
+        const batchPromises: Promise<Array<{ key: string; value: unknown }>>[] = [];
+        for (let i = 0; i < keyChunks.length; i += PARALLEL_BATCH_CONCURRENCY) {
+            const concurrentBatches = keyChunks.slice(i, i + PARALLEL_BATCH_CONCURRENCY);
+            const batchPromise = Promise.allSettled(
+                concurrentBatches.map((chunk) =>
+                    Promise.all(
+                        chunk.map(async (key) => {
+                            const value = await namespace.getUnsafe(key);
+                            return { key, value };
+                        }),
+                    ),
+                ),
+            ).then((results) => {
+                // Flatten results and handle errors, maintaining key-value pairs
+                const keyValuePairs: Array<{ key: string; value: unknown }> = [];
+                const errors: unknown[] = [];
+                for (const result of results) {
+                    if (result.status === "fulfilled") {
+                        keyValuePairs.push(...result.value);
+                    } else {
+                        errors.push(result.reason);
+                    }
+                }
+                if (errors.length > 0) {
+                    throw new TRPCError({
+                        code: "INTERNAL_SERVER_ERROR",
+                        message: `One or more bulk fetch batches failed (${errors.length} of ${results.length} batches).`,
+                        cause: errors[0],
+                    });
+                }
+                return keyValuePairs;
+            });
+            batchPromises.push(batchPromise);
+        }
+
+        // Wait for all batches to complete
+        const allResults = await Promise.all(batchPromises);
+        const flatKeyValuePairs = allResults.flat();
+
+        // Validate results using parser (maintains data integrity)
+        // Return key-value pairs to maintain correct mapping with input keys
+        const validatedResults: Array<{ key: string; value: BulkKeyMap[T][number] }> = [];
+        for (const { key, value } of flatKeyValuePairs) {
+            if (value !== null && value !== undefined) {
+                try {
+                    // Validate each item using the parser
+                    const parsed = parser.parse(value);
+                    validatedResults.push({ key, value: parsed as BulkKeyMap[T][number] });
+                } catch (error) {
+                    // Log validation error with correct key but continue processing
+                    // eslint-disable-next-line no-console
+                    console.error(`Validation error for key ${key}:`, error);
+                }
+            }
+            // Skip null/undefined values (deleted keys)
+        }
+
+        return validatedResults;
     }
 
-    async putProfessor(professor: Professor, skipNameCollisionDetection = false) {
+    async putProfessor(
+        professor: Professor,
+        options?: {
+            skipNameCollisionDetection?: boolean;
+            cachedProfessorList?: TruncatedProfessor[];
+        },
+    ) {
+        const skipNameCollisionDetection = options?.skipNameCollisionDetection ?? false;
+        const cachedProfessorList = options?.cachedProfessorList;
         // Need to check if key exists in order to not throw an error when calling `getProfessor`
         if (
             !skipNameCollisionDetection &&
@@ -127,7 +271,8 @@ export class KVDAO {
 
         await this.polyratingsNamespace.put(professorParser, professor.id, professor);
 
-        const profList = await this.getAllProfessors();
+        // Use cached list if provided, otherwise fetch it
+        const profList = cachedProfessorList ?? (await this.getAllProfessors());
         // Right now we have these because of the unfortunate shape of our professor list structure.
         // TODO: Investigate better structure for the professor list
         const professorIndex = profList.findIndex((t) => t.id === professor.id);
@@ -144,10 +289,11 @@ export class KVDAO {
         return professor;
     }
 
-    async removeProfessor(id: string) {
+    async removeProfessor(id: string, cachedProfessorList?: TruncatedProfessor[]) {
         await this.polyratingsNamespace.delete(id);
 
-        const profList = await this.getAllProfessors();
+        // Use cached list if provided, otherwise fetch it
+        const profList = cachedProfessorList ?? (await this.getAllProfessors());
         const professorIndex = profList.findIndex((t) => t.id === id);
 
         if (professorIndex === -1) {
