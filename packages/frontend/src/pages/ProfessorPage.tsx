@@ -1,5 +1,5 @@
 /* eslint-disable react/no-unstable-nested-components */
-import { Fragment, useEffect, useState } from "react";
+import { type ChangeEvent, Fragment, type FormEvent, useEffect, useState } from "react";
 import { IndexRouteObject, useNavigate, useParams } from "react-router";
 import AnimateHeight from "react-animate-height";
 import AnchorLink from "react-anchor-link-smooth-scroll";
@@ -57,14 +57,14 @@ function LockProfessorModal({
         }
     }, [isOpen, currentMessage]);
 
-    const handleSubmit = (e: React.FormEvent) => {
+    const handleSubmit = (e: FormEvent) => {
         e.preventDefault();
         onConfirm(message.trim());
     };
 
     return (
         <Modal isOpen={isOpen} onRequestClose={onClose} style={REACT_MODAL_STYLES}>
-            <div className="bg-white rounded-sm shadow-sm p-5 w-screen sm:w-140">
+            <div className="bg-white rounded-sm shadow-sm p-5 w-screen max-w-xl">
                 <form className="relative text-left" onSubmit={handleSubmit}>
                     <button
                         className="absolute right-0 top-0 p-3 font-bold cursor-pointer"
@@ -78,7 +78,7 @@ function LockProfessorModal({
                         Enter the banner message shown to visitors when this professor is locked.
                         New ratings will be disabled.
                     </p>
-                    <div className="flex flex-col text-inherit w-full! mb-4">
+                    <div className="flex flex-col text-inherit w-full mb-4">
                         <label className="text-xs whitespace-nowrap" htmlFor="lockProfessorMessage">
                             Banner message
                             <textarea
@@ -87,7 +87,7 @@ function LockProfessorModal({
                                 placeholder="This professor is not accepting new ratings."
                                 className="w-full h-24 rounded-sm text-black p-2 border-[#c3cdd5] bg-[#f2f5f8] active:bg-[#f2feff] border mt-1 block"
                                 value={message}
-                                onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) =>
+                                onChange={(e: ChangeEvent<HTMLTextAreaElement>) =>
                                     setMessage(e.target.value)
                                 }
                             />
@@ -169,7 +169,7 @@ export function ProfessorPage() {
                 onRequestClose={() => setProfessorEvaluationShownDesktop(false)}
                 style={REACT_MODAL_STYLES}
             >
-                <div className="bg-white opacity-100 rounded-sm shadow-sm p-5 w-162">
+                <div className="bg-white opacity-100 rounded-sm shadow-sm p-5 w-screen max-w-2xl">
                     <TwoStepEvaluateProfessor
                         professor={professorData}
                         closeForm={() => setProfessorEvaluationShownDesktop(false)}
@@ -209,37 +209,18 @@ export function ProfessorPage() {
 
                     <StatsCard className="mt-4 mb-3 block md:hidden" professor={professorData} />
 
-                    {!professorData?.locked && (
-                        <>
-                            <div className="hidden md:block">
-                                <Button
-                                    onClick={() => setProfessorEvaluationShownDesktop(true)}
-                                    className="mt-4"
-                                    type="button"
-                                >
-                                    Evaluate Professor
-                                </Button>
-                            </div>
-
-                            <div className="block md:hidden m-auto">
-                                <Button
-                                    onClick={() =>
-                                        setProfessorEvaluationShownMobile(
-                                            !professorEvaluationShownMobile,
-                                        )
-                                    }
-                                    className="mt-4"
-                                    type="button"
-                                >
-                                    Evaluate Professor
-                                </Button>
-                            </div>
-                        </>
-                    )}
-
-                    {isAuthenticated && professorData && (
-                        <div className="mt-4">
-                            {professorData.locked ? (
+                    <div className="hidden md:flex md:flex-wrap md:items-center md:gap-2 mt-4">
+                        {!professorData?.locked && (
+                            <Button
+                                onClick={() => setProfessorEvaluationShownDesktop(true)}
+                                type="button"
+                            >
+                                Evaluate Professor
+                            </Button>
+                        )}
+                        {isAuthenticated &&
+                            professorData &&
+                            (professorData.locked ? (
                                 <Button
                                     type="button"
                                     onClick={() =>
@@ -258,9 +239,45 @@ export function ProfessorPage() {
                                     <LockClosedIcon className="h-4 w-4 inline mr-1" />
                                     Lock Professor
                                 </Button>
-                            )}
-                        </div>
-                    )}
+                            ))}
+                    </div>
+
+                    <div className="flex md:hidden flex-wrap items-center justify-center gap-2 mt-4 m-auto">
+                        {!professorData?.locked && (
+                            <Button
+                                onClick={() =>
+                                    setProfessorEvaluationShownMobile(
+                                        !professorEvaluationShownMobile,
+                                    )
+                                }
+                                type="button"
+                            >
+                                Evaluate Professor
+                            </Button>
+                        )}
+                        {isAuthenticated &&
+                            professorData &&
+                            (professorData.locked ? (
+                                <Button
+                                    type="button"
+                                    onClick={() =>
+                                        lockProfessorMutation.mutate({
+                                            professorId: professorData.id,
+                                            locked: false,
+                                        })
+                                    }
+                                    disabled={lockProfessorMutation.isPending}
+                                >
+                                    <LockOpenIcon className="h-4 w-4 inline mr-1" />
+                                    Unlock Professor
+                                </Button>
+                            ) : (
+                                <Button type="button" onClick={() => setLockModalShown(true)}>
+                                    <LockClosedIcon className="h-4 w-4 inline mr-1" />
+                                    Lock Professor
+                                </Button>
+                            ))}
+                    </div>
                 </div>{" "}
                 <div>
                     <StatsCard
@@ -525,7 +542,7 @@ function ReportButton({ professorId, ratingId, className = "" }: ReportButtonPro
                 style={REACT_MODAL_STYLES}
                 onRequestClose={() => setFormShown(false)}
             >
-                <div className="bg-white rounded-sm shadow-sm p-5 w-screen sm:w-140">
+                <div className="bg-white rounded-sm shadow-sm p-5 w-screen max-w-xl">
                     <ReportForm
                         professorId={professorId}
                         ratingId={ratingId}
