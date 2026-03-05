@@ -1,5 +1,6 @@
 import { t } from "@backend/trpc";
 import { z } from "zod";
+import { TRPCError } from "@trpc/server";
 import { Professor, ratingBaseParser } from "@backend/types/schema";
 import { DEPARTMENT_LIST } from "@backend/utils/const";
 import { addRating as addRatingToProfessor } from "@backend/types/schemaHelpers";
@@ -37,6 +38,13 @@ export const professorRouter = t.router({
             );
 
             if (existingProfessor) {
+                const fullProfessor = await ctx.env.kvDao.getProfessor(existingProfessor.id);
+                if (fullProfessor.locked) {
+                    throw new TRPCError({
+                        code: "PRECONDITION_FAILED",
+                        message: "This professor is locked and not accepting new ratings.",
+                    });
+                }
                 await addRating({ ...input.rating, professor: existingProfessor.id }, ctx);
                 return {
                     professorId: existingProfessor.id,
