@@ -3,7 +3,7 @@ import "@/styles/hamburgers.css";
 import AnimateHeight from "react-animate-height";
 import { useEffect, useState } from "react";
 import { useAuth } from "@/hooks";
-import { SearchState, TruncatedSearchBar } from "./SearchBar";
+import { SearchState, SearchBar } from "./SearchBar";
 import Logo from "@/assets/Logo.svg";
 import DiscordLogo from "@/assets/Discord-Logo-White.svg";
 import GithubLogo from "@/assets/github.svg";
@@ -38,6 +38,13 @@ export function Navbar() {
                 <img src={Logo} alt="Polyratings logo" className="h-8" />
             </Link>
 
+            {/* Search bar - visible on all screen sizes except home/search pages */}
+            {showInputBar && (
+                <div className="text-black mx-5 flex-grow max-w-md">
+                    <SearchBar value={searchState} onChange={setSearchState} />
+                </div>
+            )}
+
             <button
                 onClick={triggerMobileNav}
                 aria-label="Open Navbar"
@@ -57,37 +64,33 @@ export function Navbar() {
                 height={mobileNavOpen ? "auto" : 0}
                 className="absolute top-12 left-0 bg-cal-poly-green w-full z-50 transform -translate-y-1"
             >
-                <button
-                    className="flex flex-col items-center w-full text-xl text-white"
-                    onClick={triggerMobileNav}
-                    type="button"
-                >
-                    <Link className="my-1" to="/">
-                        Home
-                    </Link>
-                    <Link className="my-1" to="/new-professor">
-                        {" "}
-                        Add a Professor
-                    </Link>
-                    <Link className="my-1" to="/search/name">
-                        Professor List
-                    </Link>
-                    <Link className="my-1" to="/about">
-                        About
-                    </Link>
-                    <Link className="my-1" to="/faq">
-                        FAQ
-                    </Link>
-                </button>
+                <div className="flex flex-col items-center w-full text-white py-4">
+                    <button
+                        className="flex flex-col items-center w-full text-xl"
+                        onClick={triggerMobileNav}
+                        type="button"
+                    >
+                        <Link className="my-1" to="/">
+                            Home
+                        </Link>
+                        <Link className="my-1" to="/new-professor">
+                            {" "}
+                            Add a Professor
+                        </Link>
+                        <Link className="my-1" to="/search/name">
+                            Professor List
+                        </Link>
+                        <Link className="my-1" to="/about">
+                            About
+                        </Link>
+                        <Link className="my-1" to="/faq">
+                            FAQ
+                        </Link>
+                    </button>
+                </div>
             </AnimateHeight>
 
             <div className="text-white hidden md:flex items-center text-lg font-semibold">
-                {showInputBar && (
-                    <div className="text-black mr-7 hidden lg:block">
-                        <TruncatedSearchBar value={searchState} onChange={setSearchState} />
-                    </div>
-                )}
-
                 <Link className="mr-7" to="/new-professor">
                     {" "}
                     Add a Professor
