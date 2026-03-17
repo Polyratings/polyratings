@@ -26,6 +26,15 @@ The backend begins with a single entrypoint in [index.ts](src/index.ts) that set
 
 - types - contains kv schema along with supporting type helpers
 
+## API Data Exposure Rules
+
+This backend stores some metadata that should not be returned from public endpoints.
+
+- `anonymousIdentifier` is considered sensitive and must not be returned from public procedures.
+- Public procedures (`t.procedure`) should return public-safe schemas only (for example `publicRatingParser` / `publicProfessorParser`).
+- Protected procedures (`protectedProcedure`) can return full internal schemas when operationally required.
+- When adding/changing router responses, prefer converting with helpers (for example `professorToPublicProfessor`) before returning data.
+
 ## Building
 
 To build this package, you simply need to run `npm run build` and [esbuild](https://esbuild.github.io/) will

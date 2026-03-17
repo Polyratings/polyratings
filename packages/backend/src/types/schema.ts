@@ -29,6 +29,8 @@ export const ratingParser = ratingBaseParser.extend({
     postDate: z.string(),
 });
 export type Rating = z.infer<typeof ratingParser>;
+export const publicRatingParser = ratingParser.omit({ anonymousIdentifier: true });
+export type PublicRating = z.infer<typeof publicRatingParser>;
 
 export const pendingRatingParser = ratingParser.extend({
     status: z.enum(PENDING_RATING_STATUSES),
@@ -63,6 +65,11 @@ export const professorParser = truncatedProfessorParser.extend({
     lockedMessage: z.string().optional(),
 });
 export type Professor = z.infer<typeof professorParser>;
+export const publicProfessorParser = professorParser.extend({
+    reviews: z.record(z.string(), publicRatingParser.array()),
+    // Intentionally omit sensitive per-rating metadata (e.g. anonymousIdentifier).
+});
+export type PublicProfessor = z.infer<typeof publicProfessorParser>;
 
 export const userParser = z.object({
     username: z.string(),
