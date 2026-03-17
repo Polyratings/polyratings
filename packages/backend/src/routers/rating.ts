@@ -1,7 +1,13 @@
 import { t } from "@backend/trpc";
 import { z } from "zod";
 import { TRPCError } from "@trpc/server";
-import { PendingRating, ratingBaseParser, RatingReport, reportParser } from "@backend/types/schema";
+import {
+    PendingRating,
+    publicProfessorParser,
+    ratingBaseParser,
+    RatingReport,
+    reportParser,
+} from "@backend/types/schema";
 import { DEPARTMENT_LIST } from "@backend/utils/const";
 import { Env } from "@backend/env";
 import { getRateLimiter } from "@backend/middleware/rate-limiter";
@@ -84,6 +90,7 @@ export const ratingsRouter = t.router({
     add: t.procedure
         .use(getRateLimiter("addRating"))
         .input(addRatingParser)
+        .output(publicProfessorParser)
         .mutation(async ({ ctx, input }) => addRating(input, ctx)),
     report: t.procedure
         .input(reportParser.extend({ ratingId: z.uuid(), professorId: z.uuid() }))
