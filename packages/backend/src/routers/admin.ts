@@ -80,14 +80,25 @@ export const adminRouter = t.router({
         )
         .mutation(async ({ ctx, input: { professorId, ratingIds, reason } }) => {
             const professor = await ctx.env.kvDao.getProfessor(professorId);
+            const existingRatingIds = new Set(
+                Object.values(professor.reviews).flatMap((ratings) =>
+                    ratings.map((rating) => rating.id),
+                ),
+            );
+            const removedRatingIds = [
+                ...new Set(ratingIds.filter((ratingId) => existingRatingIds.has(ratingId))),
+            ];
             const removed = await ctx.env.kvDao.removeRatingsBulk(professor, ratingIds);
+            await Promise.all(
+                removedRatingIds.map((ratingId) => ctx.env.kvDao.removeReport(ratingId)),
+            );
             const auditMessage = buildBulkDeletionAuditMessage(
                 ctx.user!.username,
                 removed,
                 professor.lastName,
                 professor.firstName,
                 professorId,
-                ratingIds,
+                removedRatingIds,
                 reason,
             );
             await ctx.env.notificationDAO.notify("Bulk Rating Deletion", auditMessage);
