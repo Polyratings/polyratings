@@ -15,12 +15,48 @@ const changeNameParser = z.object({
     lastName: z.string().trim(),
 });
 
+const lockProfessorParser = z.object({
+    professorId: z.uuid(),
+    locked: z.boolean(),
+    lockedMessage: z.string().optional(),
+});
+
 const fixEscapedCharsParser = z.object({
     professors: z
         .array(z.uuid())
         .min(1)
         .max(250, "Separate your request into batches of 250 professors."),
 });
+
+const DISCORD_MESSAGE_MAX_LENGTH = 2000;
+const MAX_IDS_IN_AUDIT = 10;
+const MAX_REASON_LENGTH = 600;
+
+function buildBulkDeletionAuditMessage(
+    username: string,
+    removed: number,
+    lastName: string,
+    firstName: string,
+    professorId: string,
+    ratingIds: string[],
+    reason: string,
+): string {
+    const adminPart = `Admin **${username}** removed **${removed}** rating(s)`;
+    const profPart = `from professor **${lastName}, ${firstName}** (${professorId}).`;
+    const firstIds = ratingIds.slice(0, MAX_IDS_IN_AUDIT).join(", ");
+    const idsSummary =
+        ratingIds.length <= MAX_IDS_IN_AUDIT
+            ? `Rating IDs: ${ratingIds.join(", ")}`
+            : `Rating IDs (first ${MAX_IDS_IN_AUDIT}): ${firstIds} (and ${ratingIds.length - MAX_IDS_IN_AUDIT} more)`;
+    const truncatedReason =
+        reason.length > MAX_REASON_LENGTH ? `${reason.slice(0, MAX_REASON_LENGTH)}…` : reason;
+    const reasonPart = `\nReason: ${truncatedReason}`;
+    let message = `${adminPart} ${profPart} ${idsSummary}${reasonPart}`;
+    if (message.length > DISCORD_MESSAGE_MAX_LENGTH) {
+        message = `${message.slice(0, DISCORD_MESSAGE_MAX_LENGTH - 3)}…`;
+    }
+    return message;
+}
 
 export const adminRouter = t.router({
     removeRating: protectedProcedure
@@ -29,6 +65,48 @@ export const adminRouter = t.router({
             ensureTRPCError(async ({ ctx, input: { professorId, ratingId } }) => {
                 await ctx.env.kvDao.removeRating(professorId, ratingId);
             }, "Failed to remove rating"),
+        ),
+    removeRatingsBulk: protectedProcedure
+        .input(
+            z.object({
+                professorId: z.uuid(),
+                ratingIds: z.array(z.uuid()).min(1).max(50),
+                reason: z
+                    .string()
+                    .trim()
+                    .min(1, "Reason is required")
+                    .max(
+                        MAX_REASON_LENGTH,
+                        `Reason must be at most ${MAX_REASON_LENGTH} characters`,
+                    ),
+            }),
+        )
+        .mutation(
+            ensureTRPCError(async ({ ctx, input: { professorId, ratingIds, reason } }) => {
+                const professor = await ctx.env.kvDao.getProfessor(professorId);
+                const existingRatingIds = new Set(
+                    Object.values(professor.reviews).flatMap((ratings) =>
+                        ratings.map((rating) => rating.id),
+                    ),
+                );
+                const removedRatingIds = [
+                    ...new Set(ratingIds.filter((ratingId) => existingRatingIds.has(ratingId))),
+                ];
+                const removed = await ctx.env.kvDao.removeRatingsBulk(professor, ratingIds);
+                await Promise.all(
+                    removedRatingIds.map((ratingId) => ctx.env.kvDao.removeReport(ratingId)),
+                );
+                const auditMessage = buildBulkDeletionAuditMessage(
+                    ctx.user!.username,
+                    removed,
+                    professor.lastName,
+                    professor.firstName,
+                    professorId,
+                    removedRatingIds,
+                    reason,
+                );
+                await ctx.env.notificationDAO.notify("Bulk Rating Deletion", auditMessage);
+            }, "Failed to remove ratings in bulk"),
         ),
     getPendingProfessors: protectedProcedure.query(({ ctx }) =>
         ctx.env.kvDao.getAllPendingProfessors(),
@@ -97,6 +175,14 @@ export const adminRouter = t.router({
             professor.lastName = lastName;
             await ctx.env.kvDao.putPendingProfessor(professor);
         }, "Failed to change pending professor name"),
+    ),
+    lockProfessor: protectedProcedure.input(lockProfessorParser).mutation(
+        ensureTRPCError(async ({ ctx, input: { professorId, locked, lockedMessage } }) => {
+            const professor = await ctx.env.kvDao.getProfessor(professorId);
+            professor.locked = locked;
+            professor.lockedMessage = locked ? lockedMessage : undefined;
+            await ctx.env.kvDao.putProfessor(professor);
+        }, "Failed to update professor lock status"),
     ),
     getBulkKeys: protectedProcedure
         .input(z.enum(bulkKeys))
