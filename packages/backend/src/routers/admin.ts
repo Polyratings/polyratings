@@ -57,6 +57,17 @@ function buildBulkDeletionAuditMessage(
     return message;
 }
 
+function getRatingsByAnonymousIdentifier(
+    professor: { reviews: Record<string, { anonymousIdentifier?: string }[]> },
+    anonymousIdentifier: string,
+) {
+    return Object.entries(professor.reviews).flatMap(([course, ratings]) =>
+        ratings
+            .filter((rating) => rating.anonymousIdentifier === anonymousIdentifier)
+            .map((rating) => ({ course, ...rating })),
+    );
+}
+
 export const adminRouter = t.router({
     removeRating: protectedProcedure
         .input(z.object({ professorId: z.string(), ratingId: z.string() }))
@@ -180,6 +191,17 @@ export const adminRouter = t.router({
         .mutation(async ({ ctx, input: { bulkKey, keys } }) =>
             ctx.env.kvDao.getBulkValues(bulkKey, keys),
         ),
+    getRatingsByAnonymousIdentifier: protectedProcedure
+        .input(
+            z.object({
+                professorId: z.uuid(),
+                anonymousIdentifier: z.string().trim().min(1).max(256),
+            }),
+        )
+        .query(async ({ ctx, input: { professorId, anonymousIdentifier } }) => {
+            const professor = await ctx.env.kvDao.getProfessor(professorId);
+            return getRatingsByAnonymousIdentifier(professor, anonymousIdentifier);
+        }),
     removeReport: protectedProcedure.input(z.uuid()).mutation(async ({ ctx, input }) => {
         await ctx.env.kvDao.removeReport(input);
     }),

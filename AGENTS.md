@@ -12,6 +12,7 @@ This repository is a **Lerna monorepo** with Nx for task orchestration. It conta
 | `@polyratings/backend` | `packages/backend/` | Cloudflare Workers API (tRPC) |
 | `@polyratings/cron` | `packages/cron/` | Nightly sync and backup jobs |
 | `@polyratings/eslint-config` | `packages/eslint-config/` | Shared ESLint config |
+| `@polyratings/mcp-server` | `packages/mcp-server/` | Local MCP server exposing read-only public tools and admin moderation tools over the backend for humans and AI assistants |
 
 **Dependencies:** frontend and cron depend on backend; all use eslint-config.
 
@@ -34,6 +35,7 @@ This repository is a **Lerna monorepo** with Nx for task orchestration. It conta
 - **Frontend:** `npm run start:local` (Vite dev server), `npm run test` (Vitest)
 - **Backend:** `npm run start:local` (Wrangler dev), `npm run build` (generates types + esbuild)
 - **Cron:** `npm run run:local`, `npm run build:local`
+- **MCP Server:** `npm run dev` (Node MCP server over stdio), `npm run build`
 
 ## Tech Stack
 

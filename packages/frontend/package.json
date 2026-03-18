@@ -14,7 +14,7 @@
     "dependencies": {
         "@heroicons/react": "^2.2.0",
         "@hookform/resolvers": "5.2.0",
-        "@polyratings/backend": "^0.1.0",
+        "@polyratings/backend": "*",
         "@sentry/browser": "^10.10.0",
         "@tailwindcss/vite": "^4.1.13",
         "@tanstack/react-query": "^5.90.12",
@@ -45,7 +45,7 @@
         "zod": "^4.1.5"
     },
     "devDependencies": {
-        "@polyratings/eslint-config": "^0.0.1",
+        "@polyratings/eslint-config": "*",
         "@testing-library/jest-dom": "^6.8.0",
         "@testing-library/react": "^16.3.0",
         "@testing-library/user-event": "^14.6.1",
