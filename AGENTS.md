@@ -6,12 +6,12 @@ This repository is a **Lerna monorepo** with Nx for task orchestration. It conta
 
 ## Project Structure
 
-| Package | Path | Description |
-|---------|------|-------------|
-| `@polyratings/frontend` | `packages/frontend/` | React app (Vite) deployed at polyratings.dev |
-| `@polyratings/backend` | `packages/backend/` | Cloudflare Workers API (tRPC) |
-| `@polyratings/cron` | `packages/cron/` | Nightly sync and backup jobs |
-| `@polyratings/eslint-config` | `packages/eslint-config/` | Shared ESLint config |
+| Package                      | Path                      | Description                                  |
+| ---------------------------- | ------------------------- | -------------------------------------------- |
+| `@polyratings/frontend`      | `packages/frontend/`      | React app (Vite) deployed at polyratings.dev |
+| `@polyratings/backend`       | `packages/backend/`       | Cloudflare Workers API (tRPC)                |
+| `@polyratings/cron`          | `packages/cron/`          | Nightly sync and backup jobs                 |
+| `@polyratings/eslint-config` | `packages/eslint-config/` | Shared ESLint config                         |
 
 **Dependencies:** frontend and cron depend on backend; all use eslint-config.
 
@@ -19,15 +19,15 @@ This repository is a **Lerna monorepo** with Nx for task orchestration. It conta
 
 ### Root (from repo root)
 
-| Command | Purpose |
-|---------|---------|
-| `npm install` | Install all dependencies (Lerna bootstraps packages) |
-| `npm run build` | Build all packages |
-| `npm run start:local` | Start frontend + backend with hot reload |
-| `npm run start:dev` | Same, but uses dev KV (requires Cloudflare access) |
-| `npm run test` | Run tests across packages |
-| `npm run lint` | Lint all packages |
-| `npm run fix` | Auto-fix lint issues |
+| Command               | Purpose                                              |
+| --------------------- | ---------------------------------------------------- |
+| `npm install`         | Install all dependencies (Lerna bootstraps packages) |
+| `npm run build`       | Build all packages                                   |
+| `npm run start:local` | Start frontend + backend with hot reload             |
+| `npm run start:dev`   | Same, but uses dev KV (requires Cloudflare access)   |
+| `npm run test`        | Run tests across packages                            |
+| `npm run lint`        | Lint all packages                                    |
+| `npm run fix`         | Auto-fix lint issues                                 |
 
 ### Per-package (from `packages/<name>/`)
 
@@ -56,7 +56,6 @@ This repository is a **Lerna monorepo** with Nx for task orchestration. It conta
 - **Structure:** `routers/` (handlers), `dao/` (data access over KV), `types/` (KV schema).
 - **Build:** `npm run build` runs `generateBackendTypes.js`, tsc, then esbuild.
 - **Public API data safety:** treat `anonymousIdentifier` as sensitive metadata. Public procedures (plain `t.procedure`) must return sanitized/public schemas that omit sensitive keys. Only protected procedures (`protectedProcedure`) may return schemas that include `anonymousIdentifier` when needed.
-- **Router error handling (required):** wrap router handlers with `ensureTRPCError(...)` (at minimum all `.mutation(...)` handlers) so unexpected failures are normalized with consistent error messages.
 - **Schema pattern:** keep both full/internal and public-safe Zod schemas in `src/types/schema.ts` (for example `ratingParser` vs `publicRatingParser`, `professorParser` vs `publicProfessorParser`) and use helper mappers in `src/types/schemaHelpers.ts` before returning data from public routers.
 
 ### General
