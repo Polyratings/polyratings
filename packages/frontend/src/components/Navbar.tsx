@@ -3,7 +3,7 @@ import "@/styles/hamburgers.css";
 import AnimateHeight from "react-animate-height";
 import { useEffect, useState } from "react";
 import { useAuth } from "@/hooks";
-import { SearchState, TruncatedSearchBar } from "./SearchBar";
+import { SearchState, ExtendedSearchBar, TruncatedSearchBar } from "./SearchBar";
 import Logo from "@/assets/Logo.svg";
 import DiscordLogo from "@/assets/Discord-Logo-White.svg";
 import GithubLogo from "@/assets/github.svg";
@@ -38,6 +38,18 @@ export function Navbar() {
                 <img src={Logo} alt="Polyratings logo" className="h-8" />
             </Link>
 
+            {/* Search bar - visible on all screen sizes except home/search pages */}
+            {showInputBar && (
+                <>
+                    <div className="text-black hidden md:flex mx-5 flex-grow max-w-md">
+                        <ExtendedSearchBar value={searchState} onChange={setSearchState} />
+                    </div>
+                    <div className="text-black flex md:hidden mx-5 flex-grow max-w-md">
+                        <TruncatedSearchBar value={searchState} onChange={setSearchState} />
+                    </div>
+                </>
+            )}
+
             <button
                 onClick={triggerMobileNav}
                 aria-label="Open Navbar"
@@ -57,37 +69,26 @@ export function Navbar() {
                 height={mobileNavOpen ? "auto" : 0}
                 className="absolute top-12 left-0 bg-cal-poly-green w-full z-50 transform -translate-y-1"
             >
-                <button
-                    className="flex flex-col items-center w-full text-xl text-white"
-                    onClick={triggerMobileNav}
-                    type="button"
-                >
-                    <Link className="my-1" to="/">
+                <nav className="flex flex-col items-center w-full text-white py-4 text-xl">
+                    <Link className="my-1" to="/" onClick={triggerMobileNav}>
                         Home
                     </Link>
-                    <Link className="my-1" to="/new-professor">
-                        {" "}
+                    <Link className="my-1" to="/new-professor" onClick={triggerMobileNav}>
                         Add a Professor
                     </Link>
-                    <Link className="my-1" to="/search/name">
+                    <Link className="my-1" to="/search/name" onClick={triggerMobileNav}>
                         Professor List
                     </Link>
-                    <Link className="my-1" to="/about">
+                    <Link className="my-1" to="/about" onClick={triggerMobileNav}>
                         About
                     </Link>
-                    <Link className="my-1" to="/faq">
+                    <Link className="my-1" to="/faq" onClick={triggerMobileNav}>
                         FAQ
                     </Link>
-                </button>
+                </nav>
             </AnimateHeight>
 
             <div className="text-white hidden md:flex items-center text-lg font-semibold">
-                {showInputBar && (
-                    <div className="text-black mr-7 hidden lg:block">
-                        <TruncatedSearchBar value={searchState} onChange={setSearchState} />
-                    </div>
-                )}
-
                 <Link className="mr-7" to="/new-professor">
                     {" "}
                     Add a Professor
