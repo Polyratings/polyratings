@@ -6,14 +6,22 @@ import { useQueryClient } from "@tanstack/react-query";
 import { ExpanderComponentProps, TableProps } from "react-data-table-component";
 import { Department, DEPARTMENT_LIST } from "@backend/utils/const";
 import { ArrowTopRightOnSquareIcon } from "@heroicons/react/24/solid";
+import { toast } from "react-toastify";
 import { useAuth } from "@/hooks";
 import { trpc } from "@/trpc";
 import { bulkInvalidationKey, useDbValues } from "@/hooks/useDbValues";
 import { Button } from "@/components/forms/Button";
-import { AutoComplete, Select, TextInput } from "@/components";
+import { AutoComplete, InlineQueryState, Select, TextInput } from "@/components";
 import { professorSearch } from "@/utils/ProfessorSearch";
+import { getApiErrorMessage } from "@/utils";
 
 const DataTableLazy = lazy(() => import("react-data-table-component"));
+
+function createAdminMutationErrorHandler(action: string) {
+    return (error: unknown) => {
+        toast.error(getApiErrorMessage(error, `Failed to ${action}.`));
+    };
+}
 
 function DataTable<T>({ ...rest }: TableProps<T>) {
     return (
@@ -41,19 +49,45 @@ export function Admin() {
 }
 
 function ReportedRatings() {
-    const { data: ratingReports } = useDbValues("reports");
-    const { data: professors } = trpc.professors.getMany.useQuery({
-        ids: ratingReports?.map((report) => report.professorId) ?? [],
-    });
+    const {
+        data: ratingReports,
+        isPending: reportsPending,
+        error: reportsError,
+    } = useDbValues("reports");
+    const {
+        data: professors,
+        isPending: professorsPending,
+        error: professorsError,
+    } = trpc.professors.getMany.useQuery(
+        {
+            ids: ratingReports?.map((report) => report.professorId) ?? [],
+        },
+        { meta: { suppressGlobalErrorToast: true } },
+    );
     const queryClient = useQueryClient();
     const { mutate: removeReport } = trpc.admin.removeReport.useMutation({
         onSuccess: () =>
             queryClient.invalidateQueries({ queryKey: bulkInvalidationKey("reports") }),
+        onError: createAdminMutationErrorHandler("keep the report"),
     });
     const { mutate: actOnReport } = trpc.admin.actOnReport.useMutation({
         onSuccess: () =>
             queryClient.invalidateQueries({ queryKey: bulkInvalidationKey("reports") }),
+        onError: createAdminMutationErrorHandler("act on report"),
     });
+
+    if (reportsError || professorsError || reportsPending || professorsPending) {
+        return (
+            <InlineQueryState
+                title="Reported Ratings:"
+                titleClassName="ml-1"
+                isPending={reportsPending || professorsPending}
+                error={reportsError ?? professorsError}
+                loadingMessage="Loading reported ratings..."
+                fallbackErrorMessage="Unable to load reported ratings. Please try again."
+            />
+        );
+    }
 
     const columns = [
         {
@@ -61,7 +95,7 @@ function ReportedRatings() {
             grow: 0.5,
             cell: (row: RatingReport) => {
                 const professor = professors?.find(
-                    (professor) => professor?.id === row.professorId,
+                    (professor: Professor | undefined) => professor?.id === row.professorId,
                 );
                 return `${professor?.lastName}, ${professor?.firstName}`;
             },
@@ -71,7 +105,7 @@ function ReportedRatings() {
             grow: 0.5,
             selector: (row: RatingReport) => {
                 const professor = professors?.find(
-                    (professor) => professor?.id === row.professorId,
+                    (professor: Professor | undefined) => professor?.id === row.professorId,
                 );
                 return professor?.department ?? "";
             },
@@ -103,13 +137,12 @@ function ReportedRatings() {
             grow: 3,
             selector: (row: RatingReport) => {
                 const professor = professors?.find(
-                    (professor) => professor?.id === row.professorId,
+                    (professor: Professor | undefined) => professor?.id === row.professorId,
                 );
-                return (
-                    Object.values(professor?.reviews ?? {})
-                        .flat()
-                        .find((rating) => rating.id === row.ratingId)?.rating ?? ""
-                );
+                const ratings = Object.values(
+                    professor?.reviews ?? {},
+                ).flat() as Professor["reviews"][string];
+                return ratings.find((rating) => rating.id === row.ratingId)?.rating ?? "";
             },
         },
         {
@@ -150,16 +183,31 @@ function ReportedRatings() {
 }
 
 function PendingProfessors() {
-    const { data: pendingProfessors } = useDbValues("professor-queue");
+    const { data: pendingProfessors, isPending, error } = useDbValues("professor-queue");
     const queryClient = useQueryClient();
     const { mutate: approvePendingProfessor } = trpc.admin.approvePendingProfessor.useMutation({
         onSuccess: () =>
             queryClient.invalidateQueries({ queryKey: bulkInvalidationKey("professor-queue") }),
+        onError: createAdminMutationErrorHandler("approve pending professor"),
     });
     const { mutate: rejectPendingProfessor } = trpc.admin.rejectPendingProfessor.useMutation({
         onSuccess: () =>
             queryClient.invalidateQueries({ queryKey: bulkInvalidationKey("professor-queue") }),
+        onError: createAdminMutationErrorHandler("reject pending professor"),
     });
+
+    if (error || isPending) {
+        return (
+            <InlineQueryState
+                title="Pending Professors:"
+                titleClassName="ml-1"
+                isPending={isPending}
+                error={error}
+                loadingMessage="Loading pending professors..."
+                fallbackErrorMessage="Unable to load pending professors. Please try again."
+            />
+        );
+    }
 
     const columns = [
         {
@@ -254,6 +302,7 @@ function SubmitUnderAction({ professor }: PendingProfessorAction) {
         trpc.admin.rejectPendingProfessor.useMutation({
             onSuccess: () =>
                 queryClient.invalidateQueries({ queryKey: bulkInvalidationKey("professor-queue") }),
+            onError: createAdminMutationErrorHandler("remove pending professor"),
         });
 
     const isLoading = loadingSubmitRating || loadingRemovePending;
@@ -263,20 +312,30 @@ function SubmitUnderAction({ professor }: PendingProfessorAction) {
             return;
         }
 
-        for (const [course, ratings] of Object.entries(professor.reviews)) {
-            const [dep, num] = course.split(" ");
-            for (const rating of ratings) {
-                // eslint-disable-next-line no-await-in-loop
-                await submitRating({
-                    ...rating,
-                    professor: destProfessor.id,
-                    department: dep as Department,
-                    courseNum: parseFloat(num),
-                });
+        try {
+            for (const [course, ratings] of Object.entries(professor.reviews)) {
+                const [dep, num] = course.split(" ");
+                for (const rating of ratings) {
+                    // eslint-disable-next-line no-await-in-loop
+                    await submitRating({
+                        ...rating,
+                        professor: destProfessor.id,
+                        department: dep as Department,
+                        courseNum: parseFloat(num),
+                    });
+                }
             }
-        }
 
-        await removePending(professor.id);
+            await removePending(professor.id);
+            toast.success("Submitted ratings under selected professor.");
+        } catch (submitError) {
+            toast.error(
+                getApiErrorMessage(
+                    submitError,
+                    "Failed to submit ratings under selected professor.",
+                ),
+            );
+        }
     };
 
     return (
@@ -408,8 +467,20 @@ function ChangeNameDepartment({ professor }: PendingProfessorAction) {
 }
 
 function ProcessedRatings() {
-    const { data: processedRatings } = useDbValues("rating-log");
+    const { data: processedRatings, isPending, error } = useDbValues("rating-log");
     type PendingRating = NonNullable<typeof processedRatings>[0];
+    if (error || isPending) {
+        return (
+            <InlineQueryState
+                title="Processed Ratings:"
+                titleClassName="ml-1"
+                isPending={isPending}
+                error={error}
+                loadingMessage="Loading processed ratings..."
+                fallbackErrorMessage="Unable to load processed ratings. Please try again."
+            />
+        );
+    }
 
     const sortedProcessedRatings =
         (processedRatings ?? []).sort(

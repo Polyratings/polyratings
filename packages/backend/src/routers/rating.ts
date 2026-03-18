@@ -99,9 +99,12 @@ export const ratingsRouter = t.router({
             let professor;
             try {
                 professor = await ctx.env.kvDao.getProfessor(input.professorId);
-            } catch {
+            } catch (error) {
                 // If the professor no longer exists, treat stale report submissions as no-op.
-                return;
+                if (error instanceof TRPCError && error.code === "NOT_FOUND") {
+                    return;
+                }
+                throw error;
             }
 
             // Guard against stale client caches: if the rating no longer exists, ignore the report.
@@ -110,6 +113,7 @@ export const ratingsRouter = t.router({
                 .find((r) => r.id === input.ratingId);
 
             if (!rating) {
+                // If the rating no longer exists, ignore the report.
                 return;
             }
 

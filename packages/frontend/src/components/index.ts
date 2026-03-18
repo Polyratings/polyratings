@@ -6,4 +6,5 @@ export * from "./ProfessorCard";
 export * from "./MinMaxSlider";
 export * from "./Filters";
 export * from "./AutoComplete";
+export * from "./InlineQueryState";
 export * from "./forms";

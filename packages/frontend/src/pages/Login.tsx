@@ -27,7 +27,14 @@ export function Login() {
     const { setJwt } = useAuth();
     const navigate = useNavigate();
 
-    const { mutateAsync: login, data: jwt, error: networkError } = trpc.auth.login.useMutation();
+    const {
+        mutateAsync: login,
+        data: jwt,
+        error: networkError,
+    } = trpc.auth.login.useMutation({
+        // Keep login errors inline in the form instead of global toasts.
+        meta: { suppressGlobalErrorToast: true },
+    });
 
     useEffect(() => {
         if (jwt) {

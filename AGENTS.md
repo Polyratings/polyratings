@@ -48,6 +48,8 @@ This repository is a **Lerna monorepo** with Nx for task orchestration. It conta
 - **Styling:** Tailwind CSS. Write CSS inline via Tailwind classes.
 - **Module pattern:** Use `index.ts` per folder to re-export; avoid `../` imports when possible (restricted by ESLint).
 - **API:** tRPC for type-safe client–server calls; TanStack Query for caching.
+- **Error handling:** Prefer local, contextual error UX at the query/mutation site (inline messages for page sections and forms). Keep global toasts as a fallback safety net only.
+- **Global toast suppression:** When a query/mutation already has local error handling, set query/mutation `meta.suppressGlobalErrorToast = true` (or provide explicit `onError`) to avoid duplicate notifications.
 - **Components:** One public component per file; co-locate styles with components.
 
 ### Backend (`packages/backend/`)
@@ -57,6 +59,7 @@ This repository is a **Lerna monorepo** with Nx for task orchestration. It conta
 - **Build:** `npm run build` runs `generateBackendTypes.js`, tsc, then esbuild.
 - **Public API data safety:** treat `anonymousIdentifier` as sensitive metadata. Public procedures (plain `t.procedure`) must return sanitized/public schemas that omit sensitive keys. Only protected procedures (`protectedProcedure`) may return schemas that include `anonymousIdentifier` when needed.
 - **Schema pattern:** keep both full/internal and public-safe Zod schemas in `src/types/schema.ts` (for example `ratingParser` vs `publicRatingParser`, `professorParser` vs `publicProfessorParser`) and use helper mappers in `src/types/schemaHelpers.ts` before returning data from public routers.
+- **Route error semantics:** For protected/admin routes, prefer explicit `TRPCError` responses (for example `NOT_FOUND`) when IDs are stale/missing. For public report flows affected by stale client cache, prefer graceful no-op behavior.
 
 ### General
 
