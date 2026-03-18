@@ -55,6 +55,8 @@ This repository is a **Lerna monorepo** with Nx for task orchestration. It conta
 - **Entry:** `src/index.ts` sets up tRPC router.
 - **Structure:** `routers/` (handlers), `dao/` (data access over KV), `types/` (KV schema).
 - **Build:** `npm run build` runs `generateBackendTypes.js`, tsc, then esbuild.
+- **Public API data safety:** treat `anonymousIdentifier` as sensitive metadata. Public procedures (plain `t.procedure`) must return sanitized/public schemas that omit sensitive keys. Only protected procedures (`protectedProcedure`) may return schemas that include `anonymousIdentifier` when needed.
+- **Schema pattern:** keep both full/internal and public-safe Zod schemas in `src/types/schema.ts` (for example `ratingParser` vs `publicRatingParser`, `professorParser` vs `publicProfessorParser`) and use helper mappers in `src/types/schemaHelpers.ts` before returning data from public routers.
 
 ### General
 
