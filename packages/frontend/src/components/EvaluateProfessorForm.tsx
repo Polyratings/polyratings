@@ -449,6 +449,8 @@ function useEvaluationForm(
         isPending,
         error: networkError,
     } = trpc.ratings.add.useMutation({
+        // Keep errors shown inline via networkError in this form.
+        meta: { suppressGlobalErrorToast: true },
         onSuccess: (updatedProfessor) => {
             try {
                 toast.success("Thank you for your rating");

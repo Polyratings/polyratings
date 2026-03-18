@@ -7,11 +7,15 @@ import homeCurveTransition from "@/assets/home-curve-transition.svg";
 import homeTags from "@/assets/home-tags.svg";
 import homeProfessorSummary from "@/assets/home-professor-summary.svg";
 import worstOfWorstBackground from "@/assets/worst-of-worst-background.webp";
-import { SearchBar, ProfessorCard, SearchState } from "@/components";
+import { InlineQueryState, SearchBar, ProfessorCard, SearchState } from "@/components";
 import { trpc } from "@/trpc";
 
 export function Home() {
-    const { data: allProfessors } = trpc.professors.all.useQuery();
+    const {
+        data: allProfessors,
+        isPending: isProfessorsPending,
+        error: professorsError,
+    } = trpc.professors.all.useQuery(undefined, { meta: { suppressGlobalErrorToast: true } });
 
     const bestOfTheBest = allProfessors ? getBestProfessors(allProfessors) : [];
 
@@ -49,6 +53,11 @@ export function Home() {
                     <h3 className="text-5xl font-bold mb-8">
                         Newest Feature: Course Accessibility!
                     </h3>
+                    <InlineQueryState
+                        error={professorsError}
+                        fallbackErrorMessage="Unable to load professor data. Please try again."
+                        errorClassName="text-red-200 text-base mb-4"
+                    />
                     <p className="text-2xl font-medium mb-6">
                         We are happy to announce the release of the course accessibility allowing
                         students to add tags to ratings.
@@ -85,6 +94,11 @@ export function Home() {
                 <h2 className="text-white font-semibold text-8xl xl:text-9xl text-center pt-40">
                     Best of the Best
                 </h2>
+                <InlineQueryState
+                    isPending={isProfessorsPending}
+                    loadingMessage="Loading top professors..."
+                    loadingClassName="text-white text-xl text-center mt-8"
+                />
                 <div className="grid grid-cols-2 gap-y-14 m-auto mt-20 gap-x-12 xl:gap-x-24 w-240 xl:w-260">
                     {bestOfTheBest.map((professor) => (
                         <ProfessorCard key={professor.id} professor={professor} />

@@ -4,6 +4,7 @@ import { useWindowVirtualizer } from "@tanstack/react-virtual";
 import { ChevronDoubleRightIcon } from "@heroicons/react/24/outline";
 import {
     ProfessorCard,
+    InlineQueryState,
     SearchBar,
     SearchState,
     Filters,
@@ -27,7 +28,11 @@ export function Search() {
         loadedSearchTerm,
         "searchState",
     );
-    const { data: allProfessors } = trpc.professors.all.useQuery();
+    const {
+        data: allProfessors,
+        isPending: allProfessorsPending,
+        error: allProfessorsError,
+    } = trpc.professors.all.useQuery(undefined, { meta: { suppressGlobalErrorToast: true } });
     const searchResults = professorSearch(
         allProfessors ?? [],
         searchState.type,
@@ -57,16 +62,26 @@ export function Search() {
     return (
         <div id="main">
             <SearchBar value={searchState} onChange={setSearchState} disableAutoComplete />
-            {(!searchResults.length || !filteredProfessors.length) && (
-                <h2 className="text-4xl mt-5 text-center text-cal-poly-green">
-                    No Results Found.
-                    <br />
-                    <Link className="underline pt-10" to="/new-professor">
-                        Add a Professor?
-                    </Link>
-                </h2>
-            )}
-            {Boolean(searchResults.length) && (
+            <InlineQueryState
+                error={allProfessorsError}
+                isPending={allProfessorsPending}
+                loadingMessage="Loading search data..."
+                fallbackErrorMessage="Unable to load search data. Please try again."
+                loadingClassName="text-2xl mt-5 text-center text-cal-poly-green"
+                errorClassName="text-2xl mt-5 text-center text-red-500"
+            />
+            {!allProfessorsPending &&
+                !allProfessorsError &&
+                (!searchResults.length || !filteredProfessors.length) && (
+                    <h2 className="text-4xl mt-5 text-center text-cal-poly-green">
+                        No Results Found.
+                        <br />
+                        <Link className="underline pt-10" to="/new-professor">
+                            Add a Professor?
+                        </Link>
+                    </h2>
+                )}
+            {!allProfessorsError && Boolean(searchResults.length) && (
                 <div className="relative">
                     {!mobileFilterBreakpoint && (
                         <Filters
@@ -82,7 +97,7 @@ export function Search() {
                     {mobileFilterBreakpoint && (
                         <div
                             className={`bg-gray-300 w-[calc(100vw-2rem)] h-screen fixed top-0 z-10 transition-all left-0 transform
-              ${mobileFiltersOpened ? "-translate-x-0" : "-translate-x-full"}`}
+              ${mobileFiltersOpened ? "translate-x-0" : "-translate-x-full"}`}
                         >
                             <button
                                 type="button"

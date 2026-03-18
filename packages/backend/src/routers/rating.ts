@@ -1,4 +1,4 @@
-import { t } from "@backend/trpc";
+import { t, publicProcedure } from "@backend/trpc";
 import { z } from "zod";
 import { TRPCError } from "@trpc/server";
 import {
@@ -87,21 +87,24 @@ export async function addRating(input: z.infer<typeof addRatingParser>, ctx: { e
 }
 
 export const ratingsRouter = t.router({
-    add: t.procedure
+    add: publicProcedure
         .use(getRateLimiter("addRating"))
         .input(addRatingParser)
         .output(publicProfessorParser)
-        .mutation(async ({ ctx, input }) => addRating(input, ctx)),
-    report: t.procedure
+        .mutation(({ ctx, input }) => addRating(input, ctx)),
+    report: publicProcedure
         .input(reportParser.extend({ ratingId: z.uuid(), professorId: z.uuid() }))
         .mutation(async ({ ctx, input }) => {
             const anonymousIdentifier = await ctx.env.anonymousIdDao.getIdentifier();
             let professor;
             try {
                 professor = await ctx.env.kvDao.getProfessor(input.professorId);
-            } catch {
+            } catch (error) {
                 // If the professor no longer exists, treat stale report submissions as no-op.
-                return;
+                if (error instanceof TRPCError && error.code === "NOT_FOUND") {
+                    return;
+                }
+                throw error;
             }
 
             // Guard against stale client caches: if the rating no longer exists, ignore the report.
@@ -110,6 +113,7 @@ export const ratingsRouter = t.router({
                 .find((r) => r.id === input.ratingId);
 
             if (!rating) {
+                // If the rating no longer exists, ignore the report.
                 return;
             }
 
@@ -128,7 +132,7 @@ export const ratingsRouter = t.router({
             await ctx.env.kvDao.putReport(ratingReport);
 
             // Run unprocessed ratings through moderation; auto-delete if model rejects.
-            // Skip moderation when analysis exists in rating log—it was vetted at submission.
+            // Skip moderation when analysis exists in rating log; it was vetted at submission.
             const existingLog = await ctx.env.kvDao.getRatingLog(ratingReport.ratingId);
             if (!existingLog?.analyzedScores) {
                 const pendingForAnalysis: PendingRating = {

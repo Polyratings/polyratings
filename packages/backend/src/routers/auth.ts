@@ -1,9 +1,9 @@
 import { TRPCError } from "@trpc/server";
-import { t, protectedProcedure } from "@backend/trpc";
+import { t, protectedProcedure, publicProcedure } from "@backend/trpc";
 import { z } from "zod";
 
 export const authRouter = t.router({
-    login: t.procedure
+    login: publicProcedure
         .input(z.object({ username: z.string(), password: z.string() }))
         .mutation(async ({ input: { username, password }, ctx }) => {
             const user = await ctx.env.kvDao.getUser(username);
