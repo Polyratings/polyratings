@@ -190,7 +190,16 @@ export async function listReportedRatings(
         return [];
     }
 
-    const reportValues = await getBulkValues(authToken, "reports", reportKeys);
+    const offset = input.offset ?? 0;
+    const rawLimit = input.limit ?? 50;
+    const limit = Math.min(rawLimit, MAX_BULK_VALUE_KEYS);
+    const pagedKeys = reportKeys.slice(offset, offset + limit);
+
+    if (pagedKeys.length === 0) {
+        return [];
+    }
+
+    const reportValues = await getBulkValues(authToken, "reports", pagedKeys);
 
     const reports = reportValues
         .filter(isRecord)
@@ -238,9 +247,7 @@ export async function listReportedRatings(
         };
     });
 
-    const offset = input.offset ?? 0;
-    const limit = input.limit ?? 50;
-    return enriched.slice(offset, offset + limit);
+    return enriched;
 }
 
 export async function getProfessorRatingsByAnonymousIdentifier(

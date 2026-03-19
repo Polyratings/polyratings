@@ -69,8 +69,19 @@ async function main() {
                     .string()
                     .optional()
                     .describe("Filter by department code, e.g. 'CSC', 'MATH'"),
-                limit: z.number().optional().describe("Max results to return (default 50)"),
-                offset: z.number().optional().describe("Number of results to skip for pagination"),
+                limit: z
+                    .number()
+                    .int()
+                    .min(0)
+                    .max(200)
+                    .optional()
+                    .describe("Max non-negative integer results to return (default 50, max 200)"),
+                offset: z
+                    .number()
+                    .int()
+                    .min(0)
+                    .optional()
+                    .describe("Non-negative integer number of results to skip for pagination"),
             },
             annotations: { readOnlyHint: true, openWorldHint: false },
         },
@@ -89,7 +100,7 @@ async function main() {
             description:
                 "Fetch a single professor's full record by ID, including all reviews grouped by course.",
             inputSchema: {
-                id: z.string().describe("Professor UUID"),
+                id: z.uuid().describe("Professor UUID"),
             },
             annotations: { readOnlyHint: true, openWorldHint: false },
         },
@@ -131,7 +142,7 @@ async function main() {
                 "Fetch ratings for a professor, optionally filtered by course name. " +
                 "Returns a flat list of ratings with course info attached.",
             inputSchema: {
-                professorId: z.string().describe("Professor UUID"),
+                professorId: z.uuid().describe("Professor UUID"),
                 course: z
                     .string()
                     .optional()
@@ -247,8 +258,19 @@ async function main() {
                 "Equivalent to the Reported Ratings table in the admin UI. " +
                 "Requires POLYRATINGS_ADMIN_TOKEN.",
             inputSchema: {
-                limit: z.number().optional().describe("Max results to return (default 50)"),
-                offset: z.number().optional().describe("Number of results to skip for pagination"),
+                limit: z
+                    .number()
+                    .int()
+                    .min(0)
+                    .max(100)
+                    .optional()
+                    .describe("Max non-negative integer results to return (default 50, max 100)"),
+                offset: z
+                    .number()
+                    .int()
+                    .min(0)
+                    .optional()
+                    .describe("Non-negative integer number of results to skip for pagination"),
             },
             annotations: { readOnlyHint: true, openWorldHint: false },
         },
@@ -324,8 +346,13 @@ async function main() {
                 "Use this to validate suspected spam clusters by submitter fingerprint. " +
                 "Requires POLYRATINGS_ADMIN_TOKEN.",
             inputSchema: {
-                professorId: z.string().describe("Professor UUID"),
-                anonymousIdentifier: z.string().describe("Anonymous submitter identifier"),
+                professorId: z.uuid().describe("Professor UUID"),
+                anonymousIdentifier: z
+                    .string()
+                    .trim()
+                    .min(1)
+                    .max(256)
+                    .describe("Anonymous submitter identifier"),
             },
             annotations: { readOnlyHint: true, openWorldHint: false },
         },
@@ -354,9 +381,9 @@ async function main() {
                 "Remove multiple ratings for a single professor in one audited action. " +
                 "Use for confirmed spam clusters after validation. Requires POLYRATINGS_ADMIN_TOKEN.",
             inputSchema: {
-                professorId: z.string().uuid().describe("Professor UUID"),
+                professorId: z.uuid().describe("Professor UUID"),
                 ratingIds: z
-                    .array(z.string().uuid())
+                    .array(z.uuid())
                     .min(1)
                     .max(50)
                     .describe("Rating UUIDs to remove (1-50)"),
@@ -371,7 +398,7 @@ async function main() {
                 return textResult({
                     success: true,
                     professorId,
-                    removedCount: ratingIds.length,
+                    requestedCount: ratingIds.length,
                     ratingIds,
                     action: "bulk-removed",
                 });

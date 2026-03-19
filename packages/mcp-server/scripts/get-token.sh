@@ -19,6 +19,19 @@ if [[ $# -ne 0 ]]; then
     exit 1
 fi
 
+if [[ ! -t 0 ]]; then
+    echo "This script must be run in an interactive terminal (TTY)." >&2
+    echo "Run it directly in a shell where you can enter credentials." >&2
+    exit 1
+fi
+
+for cmd in curl jq python3; do
+    if ! command -v "$cmd" >/dev/null 2>&1; then
+        echo "Required command '$cmd' is not installed or not on PATH." >&2
+        exit 1
+    fi
+done
+
 read -rp "Username: " USERNAME
 read -rsp "Password: " PASSWORD
 echo
