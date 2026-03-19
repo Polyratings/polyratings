@@ -21,7 +21,7 @@
   },
   "devDependencies": {
     "@cloudflare/workers-types": "^4.20250906.0",
-    "@polyratings/eslint-config": "^0.0.1",
+    "@polyratings/eslint-config": "*",
     "@types/node-fetch": "^2.6.13",
     "dotenv": "^17.2.2",
     "esbuild": "^0.25.9",
@@ -31,7 +31,7 @@
     "wrangler": "^4.34.0"
   },
   "dependencies": {
-    "@polyratings/backend": "^0.1.0",
+    "@polyratings/backend": "*",
     "@trpc/client": "11.8.0",
     "@trpc/server": "11.8.0",
     "toucan-js": "^4.1.1"
