@@ -1,6 +1,6 @@
 import { t } from "@backend/trpc";
 import { z } from "zod";
-import { Professor, ratingBaseParser } from "@backend/types/schema";
+import { Professor, publicProfessorParser, ratingBaseParser } from "@backend/types/schema";
 import { DEPARTMENT_LIST } from "@backend/utils/const";
 import { addRating as addRatingToProfessor } from "@backend/types/schemaHelpers";
 import { addRating } from "./rating";
@@ -9,9 +9,11 @@ export const professorRouter = t.router({
     all: t.procedure.query(({ ctx }) => ctx.env.kvDao.getAllProfessors()),
     get: t.procedure
         .input(z.object({ id: z.uuid() }))
+        .output(publicProfessorParser)
         .query(({ input, ctx }) => ctx.env.kvDao.getProfessor(input.id)),
     getMany: t.procedure
         .input(z.object({ ids: z.uuid().array() }))
+        .output(publicProfessorParser.array())
         .query(({ input, ctx }) =>
             Promise.all(input.ids.map((id) => ctx.env.kvDao.getProfessor(id))),
         ),
