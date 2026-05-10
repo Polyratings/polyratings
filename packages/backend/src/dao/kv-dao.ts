@@ -17,6 +17,7 @@ import {
     addRating as addRatingToProfessor,
     professorToTruncatedProfessor,
     removeRating,
+    removeRatingsBulk as removeRatingsBulkFromProfessor,
 } from "@backend/types/schemaHelpers";
 import { KvWrapper } from "./kv-wrapper";
 
@@ -164,6 +165,10 @@ export class KVDAO {
         });
     }
 
+    async getRatingLog(ratingId: string): Promise<PendingRating | undefined> {
+        return this.ratingsLog.getOptional(pendingRatingParser, ratingId);
+    }
+
     async addRating(newRating: PendingRating) {
         if (newRating.status !== "Successful") {
             throw new Error("Cannot add rating to KV that has not been analyzed.");
@@ -183,6 +188,12 @@ export class KVDAO {
         const professor = await this.getProfessor(professorId);
         removeRating(professor, ratingId);
         return this.putProfessor(professor);
+    }
+
+    async removeRatingsBulk(professor: Professor, ratingIds: string[]): Promise<number> {
+        const removed = removeRatingsBulkFromProfessor(professor, ratingIds);
+        await this.putProfessor(professor);
+        return removed;
     }
 
     async getUser(username: string) {

@@ -8,6 +8,7 @@ import {
     PENDING_RATING_STATUSES,
     PROFESSOR_TAGS,
 } from "@backend/utils/const";
+import type { Moderation } from "openai/resources/moderations";
 
 export const ratingBaseParser = z.object({
     grade: z.enum(GRADES),
@@ -28,31 +29,17 @@ export const ratingParser = ratingBaseParser.extend({
     postDate: z.string(),
 });
 export type Rating = z.infer<typeof ratingParser>;
-
-export const perspectiveAttributeScoreParser = z.object({
-    summaryScore: z.object({
-        value: z.number(),
-        type: z.string(),
-    }),
-    spanScores: z.nullable(
-        z.array(
-            z.object({
-                begin: z.number(),
-                end: z.number(),
-                score: z.object({
-                    value: z.number(),
-                    type: z.string(),
-                }),
-            }),
-        ),
-    ),
-});
-export type PerspectiveAttributeScore = z.infer<typeof perspectiveAttributeScoreParser>;
+export const publicRatingParser = ratingParser.omit({ anonymousIdentifier: true });
+export type PublicRating = z.infer<typeof publicRatingParser>;
 
 export const pendingRatingParser = ratingParser.extend({
     status: z.enum(PENDING_RATING_STATUSES),
     error: z.nullable(z.string()),
-    analyzedScores: z.nullable(z.record(z.string(), z.number())),
+    analyzedScores: z
+        .custom<
+            Moderation.CategoryScores | Record<string, number>
+        >((mod) => typeof mod === "object")
+        .nullable(),
     courseNum: z.number().min(100).max(599),
     department: z.enum(DEPARTMENT_LIST),
 });
@@ -74,8 +61,15 @@ export type TruncatedProfessor = z.infer<typeof truncatedProfessorParser>;
 
 export const professorParser = truncatedProfessorParser.extend({
     reviews: z.record(z.string(), ratingParser.array()),
+    locked: z.boolean().optional(),
+    lockedMessage: z.string().optional(),
 });
 export type Professor = z.infer<typeof professorParser>;
+export const publicProfessorParser = professorParser.extend({
+    reviews: z.record(z.string(), publicRatingParser.array()),
+    // Intentionally omit sensitive per-rating metadata (e.g. anonymousIdentifier).
+});
+export type PublicProfessor = z.infer<typeof publicProfessorParser>;
 
 export const userParser = z.object({
     username: z.string(),

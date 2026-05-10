@@ -1,9 +1,18 @@
 import { t } from "@backend/trpc";
 import { z } from "zod";
 import { TRPCError } from "@trpc/server";
-import { PendingRating, ratingBaseParser, RatingReport, reportParser } from "@backend/types/schema";
+import {
+    PendingRating,
+    publicProfessorParser,
+    ratingBaseParser,
+    RatingReport,
+    reportParser,
+} from "@backend/types/schema";
 import { DEPARTMENT_LIST } from "@backend/utils/const";
 import { Env } from "@backend/env";
+import { getRateLimiter } from "@backend/middleware/rate-limiter";
+import type { Moderation } from "openai/resources/moderations";
+import { checkModerationThresholds } from "@backend/utils/moderation";
 
 const addRatingParser = ratingBaseParser.extend({
     professor: z.uuid(),
@@ -26,6 +35,13 @@ export async function addRating(input: z.infer<typeof addRatingParser>, ctx: { e
     // Abuse protection: Check if the same rating text has already been submitted for the same professor
     const professor = await ctx.env.kvDao.getProfessor(input.professor);
 
+    if (professor.locked) {
+        throw new TRPCError({
+            code: "PRECONDITION_FAILED",
+            message: "This professor is locked and not accepting new ratings.",
+        });
+    }
+
     const existingRating = Object.values(professor.reviews)
         .flat()
         .find((rating) => rating.rating.trim() === pendingRating.rating);
@@ -38,29 +54,26 @@ export async function addRating(input: z.infer<typeof addRatingParser>, ctx: { e
         });
     }
 
-    const analyzedScores = await ctx.env.ratingAnalyzer.analyzeRating(pendingRating);
-    pendingRating.analyzedScores = analyzedScores;
+    const analysis = await ctx.env.ratingAnalyzer.analyzeRating(pendingRating);
 
-    // At least 50% of people would find the text offensive in category
-    const PERSPECTIVE_THRESHOLD = 0.5;
+    if (analysis) {
+        pendingRating.analyzedScores = analysis.category_scores;
 
-    const passedAnalysis = Object.values(analyzedScores).reduce((acc, num) => {
-        if (num === undefined) {
-            throw new Error("Not all of perspective summery scores were received");
+        // Check all configured moderation thresholds
+        const violation = checkModerationThresholds(analysis.category_scores);
+
+        if (violation) {
+            // Store detailed violation reason for admin/debugging (not shown to user)
+            pendingRating.status = "Failed";
+            pendingRating.error = violation.reason;
+            await ctx.env.kvDao.addRatingLog(pendingRating);
+
+            throw new TRPCError({
+                code: "PRECONDITION_FAILED",
+                message:
+                    "Sorry, we couldn't accept this review as written. Please keep ratings constructive and respectful.",
+            });
         }
-        return num < PERSPECTIVE_THRESHOLD && acc;
-    }, true);
-
-    if (!passedAnalysis) {
-        // Update rating in processing queue
-        pendingRating.status = "Failed";
-        await ctx.env.kvDao.addRatingLog(pendingRating);
-
-        throw new TRPCError({
-            code: "PRECONDITION_FAILED",
-            message:
-                "Rating failed sentiment analysis, please contact dev@polyratings.org for assistance",
-        });
     }
 
     // Update rating in processing queue
@@ -75,12 +88,31 @@ export async function addRating(input: z.infer<typeof addRatingParser>, ctx: { e
 
 export const ratingsRouter = t.router({
     add: t.procedure
+        .use(getRateLimiter("addRating"))
         .input(addRatingParser)
+        .output(publicProfessorParser)
         .mutation(async ({ ctx, input }) => addRating(input, ctx)),
     report: t.procedure
         .input(reportParser.extend({ ratingId: z.uuid(), professorId: z.uuid() }))
         .mutation(async ({ ctx, input }) => {
             const anonymousIdentifier = await ctx.env.anonymousIdDao.getIdentifier();
+            let professor;
+            try {
+                professor = await ctx.env.kvDao.getProfessor(input.professorId);
+            } catch {
+                // If the professor no longer exists, treat stale report submissions as no-op.
+                return;
+            }
+
+            // Guard against stale client caches: if the rating no longer exists, ignore the report.
+            const rating = Object.values(professor.reviews)
+                .flat()
+                .find((r) => r.id === input.ratingId);
+
+            if (!rating) {
+                return;
+            }
+
             const ratingReport: RatingReport = {
                 ratingId: input.ratingId,
                 professorId: input.professorId,
@@ -95,19 +127,48 @@ export const ratingsRouter = t.router({
 
             await ctx.env.kvDao.putReport(ratingReport);
 
-            // Get the rating in question
-            const professor = await ctx.env.kvDao.getProfessor(ratingReport.professorId);
-            const rating = Object.values(professor.reviews)
-                .flat()
-                .find((rating) => rating.id === ratingReport.ratingId);
+            // Run unprocessed ratings through moderation; auto-delete if model rejects.
+            // Skip moderation when analysis exists in rating log—it was vetted at submission.
+            const existingLog = await ctx.env.kvDao.getRatingLog(ratingReport.ratingId);
+            if (!existingLog?.analyzedScores) {
+                const pendingForAnalysis: PendingRating = {
+                    ...rating,
+                    status: "Failed",
+                    error: null,
+                    analyzedScores: null,
+                    courseNum: 100,
+                    department: DEPARTMENT_LIST[0],
+                };
+                const result = await ctx.env.ratingAnalyzer.analyzeRating(pendingForAnalysis);
+                if (result?.category_scores) {
+                    const violation = checkModerationThresholds(
+                        result.category_scores as Moderation.CategoryScores,
+                    );
+                    if (violation) {
+                        await ctx.env.kvDao.removeRating(
+                            ratingReport.professorId,
+                            ratingReport.ratingId,
+                        );
+                        await ctx.env.kvDao.removeReport(ratingReport.ratingId);
+                        await ctx.env.notificationDAO.notify(
+                            "Report: Auto-Deleted (Moderation)",
+                            `Rating ID: ${ratingReport.ratingId} was reported and failed moderation.\n` +
+                                `Professor ID: ${ratingReport.professorId}\n` +
+                                `Reason: ${violation.reason}\n` +
+                                `Rating (deleted): ${rating.rating}`,
+                        );
+                        return;
+                    }
+                }
+            }
 
             await ctx.env.notificationDAO.notify(
                 "Received A Report",
                 `Rating ID: ${ratingReport.ratingId}\n` +
-                    `Submitter: ${ratingReport.reports[0].anonymousIdentifier}` +
+                    `Submitter: ${ratingReport.reports[0].anonymousIdentifier}\n` +
                     `Professor ID: ${ratingReport.professorId}\n` +
                     `Reason: ${ratingReport.reports[0].reason}\n` +
-                    `Rating: ${rating?.rating ?? "ERROR-RATING-NOT-FOUND"}`,
+                    `Rating: ${rating.rating}`,
             );
         }),
 });

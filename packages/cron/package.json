@@ -28,12 +28,12 @@
     "eslint": "^8.57.1",
     "node-fetch": "^3.3.2",
     "typescript": "^5.9.2",
-    "wrangler": "^4.34.0"
+    "wrangler": "^4.87.0"
   },
   "dependencies": {
     "@polyratings/backend": "^0.1.0",
-    "@trpc/client": "11.5.1",
-    "@trpc/server": "11.5.1",
+    "@trpc/client": "11.8.0",
+    "@trpc/server": "11.8.0",
     "toucan-js": "^4.1.1"
   }
 }

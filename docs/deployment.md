@@ -10,9 +10,9 @@ First you'll need somewhere to store the Polyratings source. You can either fork
 
 You can follow the the [steps here](https://support.cloudflare.com/hc/en-us/articles/201720164-Creating-a-Cloudflare-account-and-adding-a-website) to setup your Cloudflare account and either register a new domain new or transfer an existing one to Cloudflare. For all intents and purposes it **is not** necessary for you to utilize anything more than the Cloudflare [Free Tier](https://www.cloudflare.com/plans/free/) unless you wish to utilize some of the analytics or access control tools/features.
 
-## Acquiring Access to Perspective API
+## Acquiring Access to OpenAI
 
-Perspective API is used to perform sentiment analysis on new ratings as students enter them, and is an integral part to the operation of the site. You can follow the steps [here](https://developers.perspectiveapi.com/s/docs-get-started) to setup access. We will not be covering how to setup a Google Cloud Platform account or its associated project, but you can find that information [here.](https://console.cloud.google.com/freetrial?_ga=2.23528445.670071674.1647121117-896238666.1632636274)
+OpenAI Moderation API is used to perform sentiment analysis on new ratings as students enter them, and is an integral part to the operation of the site. You can learn more [here](https://platform.openai.com/docs/guides/moderation).
 
 # Cloudflare Workers
 
@@ -71,7 +71,7 @@ In the Backend package, you'll need to modify the `kv_namespaces` field under ea
 
 Additionally, you're going to need to configure some [Secrets using Wrangler.](https://developers.cloudflare.com/workers/platform/environment-variables/#adding-secrets-via-wrangler) Specifically, we need to create the following secrets (they can either be the same per environment, or different so long as they are valid):
 
-- `PERSPECTIVE_API_KEY` - API key received when following [Preliminary Setup](#preliminary-setup)
+- `OPENAI_API_KEY` - API key received when following [Preliminary Setup](#preliminary-setup)
 - `JWT_SIGNING_KEY` - @mfish33 (if you want to explain how to gen it)
 
 #### Deploying/Publishing
