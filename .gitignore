@@ -2,3 +2,5 @@ node_modules/
 **/.wrangler
 nx-cloud.env
 .nx
+
+.claude/worktrees
