@@ -14,6 +14,11 @@ export const getRateLimiter = (rateLimiterName: keyof Env["rateLimiters"]) =>
     t.middleware(async (opts) => {
         const { ctx, path } = opts;
 
+        // Skip rate limiting for authenticated admins
+        if (ctx.user) {
+            return opts.next();
+        }
+
         const anonId = await ctx.env.anonymousIdDao.getIdentifier();
 
         // Check if the request is limited by rate limiting (uses anonId and URI)

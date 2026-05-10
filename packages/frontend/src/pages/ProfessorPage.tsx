@@ -1,5 +1,5 @@
 /* eslint-disable react/no-unstable-nested-components */
-import { Fragment, useState } from "react";
+import { type ChangeEvent, Fragment, type FormEvent, useEffect, useState } from "react";
 import { IndexRouteObject, useNavigate, useParams } from "react-router";
 import AnimateHeight from "react-animate-height";
 import AnchorLink from "react-anchor-link-smooth-scroll";
@@ -7,7 +7,7 @@ import StarRatings from "react-star-ratings";
 import { ValueOf } from "type-fest";
 import Modal from "react-modal";
 import { TagIcon } from "@heroicons/react/24/solid";
-import { FlagIcon } from "@heroicons/react/24/outline";
+import { FlagIcon, LockClosedIcon, LockOpenIcon } from "@heroicons/react/24/outline";
 import { z } from "zod";
 import { SubmitHandler, useForm } from "react-hook-form";
 import { toast } from "react-toastify";
@@ -24,7 +24,7 @@ import {
 import { trpc } from "@/trpc";
 import { REACT_MODAL_STYLES } from "@/constants";
 import { Button } from "@/components/forms/Button";
-import { useSortedCourses } from "@/hooks";
+import { useAuth, useSortedCourses } from "@/hooks";
 
 export function professorPageLoaderFactory(trpcContext: ReturnType<(typeof trpc)["useUtils"]>) {
     const professorPageLoader: IndexRouteObject["loader"] = ({ params }) =>
@@ -34,15 +34,127 @@ export function professorPageLoaderFactory(trpcContext: ReturnType<(typeof trpc)
     return professorPageLoader;
 }
 
+interface LockProfessorModalProps {
+    isOpen: boolean;
+    onClose: () => void;
+    currentMessage?: string;
+    onConfirm: (lockedMessage: string) => void;
+    isPending: boolean;
+}
+
+function LockProfessorModal({
+    isOpen,
+    onClose,
+    currentMessage,
+    onConfirm,
+    isPending,
+}: LockProfessorModalProps) {
+    const [message, setMessage] = useState(currentMessage ?? "");
+
+    useEffect(() => {
+        if (isOpen) {
+            setMessage(currentMessage ?? "");
+        }
+    }, [isOpen, currentMessage]);
+
+    const handleSubmit = (e: FormEvent) => {
+        e.preventDefault();
+        onConfirm(message.trim());
+    };
+
+    return (
+        <Modal isOpen={isOpen} onRequestClose={onClose} style={REACT_MODAL_STYLES}>
+            <div className="bg-white rounded-sm shadow-sm p-5 w-screen sm:w-140">
+                <form className="relative text-left" onSubmit={handleSubmit}>
+                    <button
+                        className="absolute right-0 top-0 p-3 font-bold cursor-pointer"
+                        onClick={onClose}
+                        type="button"
+                    >
+                        X
+                    </button>
+                    <h2 className="text-3xl font-semibold mb-4">Lock Professor</h2>
+                    <p className="text-gray-600 mb-4">
+                        Enter the banner message shown to visitors when this professor is locked.
+                        New ratings will be disabled.
+                    </p>
+                    <div className="flex flex-col text-inherit w-full mb-4">
+                        <label className="text-xs whitespace-nowrap" htmlFor="lockProfessorMessage">
+                            Banner message
+                            <textarea
+                                id="lockProfessorMessage"
+                                name="lockedMessage"
+                                placeholder="This professor is not accepting new ratings."
+                                className="w-full h-24 rounded-sm text-black p-2 border-[#c3cdd5] bg-[#f2f5f8] active:bg-[#f2feff] border mt-1 block"
+                                value={message}
+                                onChange={(e: ChangeEvent<HTMLTextAreaElement>) =>
+                                    setMessage(e.target.value)
+                                }
+                            />
+                        </label>
+                    </div>
+                    <div className="flex justify-center mt-4">
+                        <Button type="submit" disabled={isPending}>
+                            Lock Professor
+                        </Button>
+                    </div>
+                </form>
+            </div>
+        </Modal>
+    );
+}
+
 export function ProfessorPage() {
     const { id } = useParams<{ id: string }>();
 
     const [courseVisibility, setCourseVisibility] = useState<boolean[]>([]);
     const firstVisibleCourseIndex = courseVisibility.findIndex(Boolean);
+    const [selectedRatingIds, setSelectedRatingIds] = useState<Set<string>>(new Set());
+    const [bulkDeleteConfirmShown, setBulkDeleteConfirmShown] = useState(false);
+    const [bulkDeleteReason, setBulkDeleteReason] = useState("");
 
     const { data: professorData, error: fetchError } = trpc.professors.get.useQuery({
         id: id ?? "",
     });
+    const trpcContext = trpc.useUtils();
+
+    // Clear bulk-delete state when navigating to a different professor
+    useEffect(() => {
+        setSelectedRatingIds(new Set());
+        setBulkDeleteConfirmShown(false);
+        setBulkDeleteReason("");
+    }, [id, professorData?.id]);
+    const { isAuthenticated } = useAuth();
+    const [lockModalShown, setLockModalShown] = useState(false);
+    const lockProfessorMutation = trpc.admin.lockProfessor.useMutation({
+        onSuccess: () => {
+            trpcContext.professors.get.invalidate({ id: id ?? "" });
+            setLockModalShown(false);
+            toast.success("Professor lock status updated");
+        },
+    });
+
+    const bulkDeleteRatingsMutation = trpc.admin.removeRatingsBulk.useMutation({
+        onSuccess: (_data, variables) => {
+            trpcContext.professors.get.invalidate({ id: variables.professorId });
+            setSelectedRatingIds(new Set());
+            setBulkDeleteConfirmShown(false);
+            setBulkDeleteReason("");
+            toast.success("Selected ratings have been removed.");
+        },
+        onError: (err) => {
+            toast.error(err.message ?? "Failed to remove ratings.");
+        },
+    });
+
+    function toggleRatingSelection(ratingId: string) {
+        setSelectedRatingIds((prev) => {
+            const next = new Set(prev);
+            if (next.has(ratingId)) next.delete(ratingId);
+            else next.add(ratingId);
+            return next;
+        });
+    }
 
     const topTags = Object.entries(professorData?.tags ?? {})
         .sort(([, aNum], [, bNum]) => bNum - aNum)
@@ -97,6 +209,99 @@ export function ProfessorPage() {
                 </div>
             </Modal>
 
+            <LockProfessorModal
+                isOpen={lockModalShown}
+                onClose={() => setLockModalShown(false)}
+                currentMessage={professorData?.lockedMessage}
+                onConfirm={(lockedMessage) => {
+                    lockProfessorMutation.mutate({
+                        professorId: professorData?.id ?? "",
+                        locked: true,
+                        lockedMessage: lockedMessage || undefined,
+                    });
+                }}
+                isPending={lockProfessorMutation.isPending}
+            />
+
+            <Modal
+                isOpen={bulkDeleteConfirmShown}
+                onRequestClose={() =>
+                    !bulkDeleteRatingsMutation.isPending && setBulkDeleteConfirmShown(false)
+                }
+                style={REACT_MODAL_STYLES}
+            >
+                <div className="bg-white rounded-sm shadow-sm p-5 w-screen max-w-md">
+                    <h2 className="text-xl font-semibold mb-2">Delete selected ratings?</h2>
+                    <p className="text-gray-600 mb-4">
+                        You are about to permanently delete {selectedRatingIds.size} rating
+                        {selectedRatingIds.size === 1 ? "" : "s"}. This action will be logged to
+                        Discord.
+                    </p>
+                    <label
+                        className="block text-sm font-medium text-gray-700 mb-1"
+                        htmlFor="bulk-delete-reason"
+                    >
+                        Reason for deletion (required, included in audit log)
+                        <textarea
+                            id="bulk-delete-reason"
+                            placeholder="e.g. Spam, off-topic, policy violation"
+                            className="w-full h-24 rounded-sm text-black p-2 border border-gray-300 bg-gray-50 mt-1 mb-4 block resize-y"
+                            value={bulkDeleteReason}
+                            onChange={(e: ChangeEvent<HTMLTextAreaElement>) =>
+                                setBulkDeleteReason(e.target.value)
+                            }
+                        />
+                    </label>
+                    <div className="flex gap-2 justify-end">
+                        <Button
+                            type="button"
+                            onClick={() => setBulkDeleteConfirmShown(false)}
+                            disabled={bulkDeleteRatingsMutation.isPending}
+                        >
+                            Cancel
+                        </Button>
+                        <Button
+                            type="button"
+                            onClick={() => {
+                                if (!professorData?.id) return;
+                                const validIds = new Set(
+                                    Object.values(professorData.reviews ?? {}).flatMap((r) =>
+                                        r.map((rating) => rating.id),
+                                    ),
+                                );
+                                const idsToSend = Array.from(selectedRatingIds).filter((id) =>
+                                    validIds.has(id),
+                                );
+                                if (idsToSend.length === 0) {
+                                    toast.info(
+                                        "Selection is out of date; those ratings are no longer here. Clearing selection.",
+                                    );
+                                    setSelectedRatingIds(new Set());
+                                    setBulkDeleteConfirmShown(false);
+                                    return;
+                                }
+                                if (idsToSend.length < selectedRatingIds.size) {
+                                    const n = selectedRatingIds.size;
+                                    toast.warn(
+                                        `${idsToSend.length} of ${n} selected still on professor. Deleting those.`,
+                                    );
+                                }
+                                bulkDeleteRatingsMutation.mutate({
+                                    professorId: professorData.id,
+                                    ratingIds: idsToSend,
+                                    reason: bulkDeleteReason.trim(),
+                                });
+                            }}
+                            disabled={
+                                bulkDeleteRatingsMutation.isPending || !bulkDeleteReason.trim()
+                            }
+                        >
+                            {bulkDeleteRatingsMutation.isPending ? "Deleting…" : "Delete"}
+                        </Button>
+                    </div>
+                </div>
+            </Modal>
+
             <div className="lg:max-w-5xl w-full mx-auto flex justify-center md:justify-between pt-4 md:pt-10 pb-3 px-2">
                 <div className="flex flex-col">
                     <h2 className="text-lg font-semibold">{professorData?.department} Professor</h2>
@@ -115,26 +320,74 @@ export function ProfessorPage() {
 
                     <StatsCard className="mt-4 mb-3 block md:hidden" professor={professorData} />
 
-                    <div className="hidden md:block">
-                        <Button
-                            onClick={() => setProfessorEvaluationShownDesktop(true)}
-                            className="mt-4"
-                            type="button"
-                        >
-                            Evaluate Professor
-                        </Button>
+                    <div className="hidden md:flex md:flex-wrap md:items-center md:gap-2 mt-4">
+                        {!professorData?.locked && (
+                            <Button
+                                onClick={() => setProfessorEvaluationShownDesktop(true)}
+                                type="button"
+                            >
+                                Evaluate Professor
+                            </Button>
+                        )}
+                        {isAuthenticated &&
+                            professorData &&
+                            (professorData.locked ? (
+                                <Button
+                                    type="button"
+                                    onClick={() =>
+                                        lockProfessorMutation.mutate({
+                                            professorId: professorData.id,
+                                            locked: false,
+                                        })
+                                    }
+                                    disabled={lockProfessorMutation.isPending}
+                                >
+                                    <LockOpenIcon className="h-4 w-4 inline mr-1" />
+                                    Unlock Professor
+                                </Button>
+                            ) : (
+                                <Button type="button" onClick={() => setLockModalShown(true)}>
+                                    <LockClosedIcon className="h-4 w-4 inline mr-1" />
+                                    Lock Professor
+                                </Button>
+                            ))}
                     </div>
 
-                    <div className="block md:hidden m-auto">
-                        <Button
-                            onClick={() =>
-                                setProfessorEvaluationShownMobile(!professorEvaluationShownMobile)
-                            }
-                            className="mt-4"
-                            type="button"
-                        >
-                            Evaluate Professor
-                        </Button>
+                    <div className="flex md:hidden flex-wrap items-center justify-center gap-2 mt-4 m-auto">
+                        {!professorData?.locked && (
+                            <Button
+                                onClick={() =>
+                                    setProfessorEvaluationShownMobile(
+                                        !professorEvaluationShownMobile,
+                                    )
+                                }
+                                type="button"
+                            >
+                                Evaluate Professor
+                            </Button>
+                        )}
+                        {isAuthenticated &&
+                            professorData &&
+                            (professorData.locked ? (
+                                <Button
+                                    type="button"
+                                    onClick={() =>
+                                        lockProfessorMutation.mutate({
+                                            professorId: professorData.id,
+                                            locked: false,
+                                        })
+                                    }
+                                    disabled={lockProfessorMutation.isPending}
+                                >
+                                    <LockOpenIcon className="h-4 w-4 inline mr-1" />
+                                    Unlock Professor
+                                </Button>
+                            ) : (
+                                <Button type="button" onClick={() => setLockModalShown(true)}>
+                                    <LockClosedIcon className="h-4 w-4 inline mr-1" />
+                                    Lock Professor
+                                </Button>
+                            ))}
                     </div>
                 </div>{" "}
                 <div>
@@ -144,6 +397,18 @@ export function ProfessorPage() {
                     />
                 </div>
             </div>
+
+            {professorData?.locked && (
+                <div className="lg:max-w-5xl w-full mx-auto mt-2 px-2">
+                    <div className="flex items-center gap-2 rounded-lg bg-amber-100 border border-amber-300 text-amber-900 px-4 py-3">
+                        <LockClosedIcon className="h-5 w-5 shrink-0" />
+                        <p className="font-medium">
+                            {professorData.lockedMessage ||
+                                "This professor is not accepting new ratings."}
+                        </p>
+                    </div>
+                </div>
+            )}
 
             {/* Mobile divider */}
             <div className="sm:hidden bg-cal-poly-green h-1 w-full" />
@@ -160,6 +425,33 @@ export function ProfessorPage() {
                     />
                 </div>
             </AnimateHeight>
+
+            {isAuthenticated && selectedRatingIds.size > 0 && (
+                <div className="lg:max-w-5xl w-full mx-auto px-2 mt-4">
+                    <div className="flex items-center justify-between rounded-lg bg-red-50 border border-red-200 px-4 py-3">
+                        <span className="font-medium text-red-900">
+                            {selectedRatingIds.size} rating{selectedRatingIds.size === 1 ? "" : "s"}{" "}
+                            selected
+                        </span>
+                        <div className="flex items-center gap-3">
+                            <button
+                                type="button"
+                                onClick={() => setSelectedRatingIds(new Set())}
+                                className="text-red-700 underline text-sm"
+                            >
+                                Clear selection
+                            </button>
+                            <Button
+                                type="button"
+                                onClick={() => setBulkDeleteConfirmShown(true)}
+                                disabled={bulkDeleteRatingsMutation.isPending}
+                            >
+                                Delete selected
+                            </Button>
+                        </div>
+                    </div>
+                </div>
+            )}
 
             {professorData &&
                 sortedCourses &&
@@ -181,6 +473,9 @@ export function ProfessorPage() {
                                         key={rating.id}
                                         rating={rating}
                                         professorId={professorData.id}
+                                        showBulkDeleteCheckbox={isAuthenticated}
+                                        isSelected={selectedRatingIds.has(rating.id)}
+                                        onToggleSelect={() => toggleRatingSelection(rating.id)}
                                     />
                                 ))}
                             </div>
@@ -298,8 +593,17 @@ function StatsCard({ professor, className = "" }: StatsCardProps) {
 interface RatingCardProps {
     professorId: string;
     rating: ValueOf<inferProcedureOutput<AppRouter["professors"]["get"]>["reviews"]>[0];
+    showBulkDeleteCheckbox?: boolean;
+    isSelected?: boolean;
+    onToggleSelect?: () => void;
 }
-function RatingCard({ rating, professorId }: RatingCardProps) {
+function RatingCard({
+    rating,
+    professorId,
+    showBulkDeleteCheckbox = false,
+    isSelected = false,
+    onToggleSelect,
+}: RatingCardProps) {
     return (
         <div className="bg-white w-full rounded-3xl py-3 px-6 my-2 border-cal-poly-green border-4 flex flex-col md:flex-row relative">
             <div className="hidden md:flex flex-col gap-1 shrink-0 mr-4 text-center">
@@ -361,12 +665,30 @@ function RatingCard({ rating, professorId }: RatingCardProps) {
                                 ))}
                         </div>
                     </div>
-                    <div className="flex flex-col-reverse">
-                        <ReportButton
-                            className="ml-2 md:ml-10"
-                            professorId={professorId}
-                            ratingId={rating.id}
-                        />
+                    <div className="flex flex-col-reverse items-end gap-2">
+                        <div className="flex items-center gap-2">
+                            {showBulkDeleteCheckbox && (
+                                <label
+                                    className="flex items-center gap-2 cursor-pointer"
+                                    htmlFor={`rating-select-${rating.id}`}
+                                >
+                                    <input
+                                        id={`rating-select-${rating.id}`}
+                                        type="checkbox"
+                                        checked={isSelected}
+                                        onChange={onToggleSelect}
+                                        className="rounded border-gray-300"
+                                        aria-label="Select rating for bulk delete"
+                                    />
+                                    <span className="text-sm text-gray-600">Select</span>
+                                </label>
+                            )}
+                            <ReportButton
+                                className="ml-2 md:ml-10"
+                                professorId={professorId}
+                                ratingId={rating.id}
+                            />
+                        </div>
                     </div>
                 </div>
             </div>

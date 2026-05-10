@@ -1,22 +1,8 @@
 {
-  "tasksRunnerOptions": {
-    "default": {
-      "runner": "nx-cloud",
-      "options": {
-        "cacheableOperations": [
-          "build:fast",
-          "build",
-          "lint",
-          "fix",
-          "build:local",
-          "test"
-        ],
-        "accessToken": "MmQ1ODQwODQtZTg3Ni00OWY4LTg4MGYtNTczMjFiMTMyZDVkfHJlYWQ="
-      }
-    }
-  },
   "namedInputs": {
-    "default": ["{projectRoot}/**/*"],
+    "default": [
+      "{projectRoot}/**/*"
+    ],
     "production": [
       "default",
       "!{projectRoot}/**/*.spec.ts",
@@ -27,25 +13,48 @@
   },
   "targetDefaults": {
     "build:fast": {
-      "inputs": ["production", "^production"],
+      "inputs": [
+        "production",
+        "^production"
+      ],
       "outputs": [
         "{projectRoot}/dist"
-      ]
+      ],
+      "cache": true
     },
     "build": {
-      "inputs": ["production", "^production"],
+      "inputs": [
+        "production",
+        "^production"
+      ],
       "outputs": [
         "{projectRoot}/dist"
-      ]
+      ],
+      "cache": true
     },
     "build:local": {
-      "inputs": ["production", "^production"],
+      "inputs": [
+        "production",
+        "^production"
+      ],
       "outputs": [
         "{projectRoot}/dist"
-      ]
+      ],
+      "cache": true
     },
     "test": {
-      "inputs": ["default", "^production"]
+      "inputs": [
+        "default",
+        "^production"
+      ],
+      "cache": true
+    },
+    "lint": {
+      "cache": true
+    },
+    "fix": {
+      "cache": true
     }
-  }
+  },
+  "nxCloudAccessToken": "MmQ1ODQwODQtZTg3Ni00OWY4LTg4MGYtNTczMjFiMTMyZDVkfHJlYWQ="
 }
