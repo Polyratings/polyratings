@@ -1,6 +1,6 @@
 // Disable any since there is no types when dealing with cloudflare API
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { chunkArray } from "../utils/chunkArray";
+import { chunkArray } from "@backend/utils/chunkArray";
 import { Logger } from "../logger";
 
 const CLOUDFLARE_API_BASE_URL = "https://api.cloudflare.com/client/v4/";
