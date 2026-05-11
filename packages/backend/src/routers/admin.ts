@@ -111,6 +111,18 @@ function buildBulkDeletionAuditMessage(
     return message;
 }
 
+async function removeReportBestEffort(
+    kvDao: { removeReport(ratingId: string): Promise<void> },
+    ratingId: string,
+): Promise<void> {
+    try {
+        await kvDao.removeReport(ratingId);
+    } catch {
+        // Do not fail the primary deletion path if report cleanup fails.
+        // Cleanup can be retried by future moderation actions.
+    }
+}
+
 export const adminRouter = t.router({
     removeRating: protectedProcedure
         .input(z.object({ professorId: z.uuid(), ratingId: z.uuid() }))
@@ -123,7 +135,7 @@ export const adminRouter = t.router({
                 });
             }
             await ctx.env.kvDao.removeRatingWithProfessor(professor, ratingId);
-            await ctx.env.kvDao.removeReport(ratingId);
+            await removeReportBestEffort(ctx.env.kvDao, ratingId);
         }),
     removeRatingsBulk: protectedProcedure
         .input(
@@ -155,7 +167,7 @@ export const adminRouter = t.router({
             }
             const removed = await ctx.env.kvDao.removeRatingsBulk(professor, ratingIds);
             await Promise.all(
-                removedRatingIds.map((ratingId) => ctx.env.kvDao.removeReport(ratingId)),
+                removedRatingIds.map((ratingId) => removeReportBestEffort(ctx.env.kvDao, ratingId)),
             );
             const auditMessage = buildBulkDeletionAuditMessage(
                 ctx.user!.username,
@@ -252,15 +264,17 @@ export const adminRouter = t.router({
     }),
     actOnReport: protectedProcedure.input(z.uuid()).mutation(async ({ ctx, input }) => {
         const report = await requireReport(ctx, input);
-        const professor = await requireProfessor(ctx, report.professorId);
+        const professor = await ctx.env.kvDao.getProfessorOptional(report.professorId);
+        if (!professor) {
+            await removeReportBestEffort(ctx.env.kvDao, input);
+            return;
+        }
         if (!getProfessorRatingIds(professor).has(report.ratingId)) {
-            throw new TRPCError({
-                code: "NOT_FOUND",
-                message: `Rating with id ${report.ratingId} does not exist on professor ${report.professorId}.`,
-            });
+            await removeReportBestEffort(ctx.env.kvDao, input);
+            return;
         }
         await ctx.env.kvDao.removeRatingWithProfessor(professor, report.ratingId);
-        await ctx.env.kvDao.removeReport(input);
+        await removeReportBestEffort(ctx.env.kvDao, input);
     }),
     fixEscapedChars: protectedProcedure
         .input(fixEscapedCharsParser)

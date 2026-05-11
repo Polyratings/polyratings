@@ -20,12 +20,20 @@ export const professorRouter = t.router({
         .query(({ input, ctx }) => ctx.env.kvDao.getProfessor(input.id)),
     getMany: publicProcedure
         .input(z.object({ ids: z.uuid().array() }))
-        .output(publicProfessorParser.array())
+        .output(
+            z.object({
+                professors: publicProfessorParser.array(),
+                missingIds: z.uuid().array(),
+            }),
+        )
         .query(async ({ input, ctx }) => {
             const results = await Promise.all(
                 input.ids.map((id) => ctx.env.kvDao.getProfessorOptional(id)),
             );
-            return results.filter((p): p is Professor => p !== undefined);
+            return {
+                professors: results.filter((p): p is Professor => p !== undefined),
+                missingIds: input.ids.filter((_, index) => !results[index]),
+            };
         }),
     add: publicProcedure
         .input(
