@@ -101,6 +101,17 @@ async function removeReportBestEffort(
     }
 }
 
+function getRatingsByAnonymousIdentifier(
+    professor: { reviews: Record<string, { anonymousIdentifier?: string }[]> },
+    anonymousIdentifier: string,
+) {
+    return Object.entries(professor.reviews).flatMap(([course, ratings]) =>
+        ratings
+            .filter((rating) => rating.anonymousIdentifier === anonymousIdentifier)
+            .map((rating) => ({ course, ...rating })),
+    );
+}
+
 export const adminRouter = t.router({
     removeRating: protectedProcedure
         .input(z.object({ professorId: z.uuid(), ratingId: z.uuid() }))
@@ -163,6 +174,7 @@ export const adminRouter = t.router({
                     reason,
                 ),
             );
+            return { removed };
         }),
     getPendingProfessors: protectedProcedure.query(({ ctx }) =>
         ctx.env.kvDao.getAllPendingProfessors(),
@@ -259,6 +271,17 @@ export const adminRouter = t.router({
                 professors: results.filter((p): p is Professor => p !== undefined),
                 missingIds: input.ids.filter((_, index) => !results[index]),
             };
+        }),
+    getRatingsByAnonymousIdentifier: protectedProcedure
+        .input(
+            z.object({
+                professorId: z.uuid(),
+                anonymousIdentifier: z.string().trim().min(1).max(256),
+            }),
+        )
+        .query(async ({ ctx, input: { professorId, anonymousIdentifier } }) => {
+            const professor = await ctx.env.kvDao.getProfessor(professorId);
+            return getRatingsByAnonymousIdentifier(professor, anonymousIdentifier);
         }),
     removeReport: protectedProcedure.input(z.uuid()).mutation(async ({ ctx, input }) => {
         await ctx.env.kvDao.removeReport(input);

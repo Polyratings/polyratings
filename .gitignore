@@ -2,6 +2,7 @@ node_modules/
 **/.wrangler
 nx-cloud.env
 .nx
+.cursor/mcp.json
 playwright-report/
 test-results/
 blob-report/

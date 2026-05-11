@@ -6,13 +6,14 @@ This repository is a **Lerna monorepo** with Nx for task orchestration. It conta
 
 ## Project Structure
 
-| Package                      | Path                      | Description                                  |
-| ---------------------------- | ------------------------- | -------------------------------------------- |
-| `@polyratings/frontend`      | `packages/frontend/`      | React app (Vite) deployed at polyratings.dev |
-| `@polyratings/backend`       | `packages/backend/`       | Cloudflare Workers API (tRPC)                |
-| `@polyratings/cron`          | `packages/cron/`          | Nightly sync and backup jobs                 |
-| `@polyratings/e2e`           | `packages/e2e/`           | Playwright end-to-end smoke tests            |
-| `@polyratings/eslint-config` | `packages/eslint-config/` | Shared ESLint config                         |
+| Package                      | Path                      | Description                                                                                                                |
+| ---------------------------- | ------------------------- | -------------------------------------------------------------------------------------------------------------------------- |
+| `@polyratings/frontend`      | `packages/frontend/`      | React app (Vite) deployed at polyratings.dev                                                                               |
+| `@polyratings/backend`       | `packages/backend/`       | Cloudflare Workers API (tRPC)                                                                                              |
+| `@polyratings/cron`          | `packages/cron/`          | Nightly sync and backup jobs                                                                                               |
+| `@polyratings/e2e`           | `packages/e2e/`           | Playwright end-to-end smoke tests                                                                                          |
+| `@polyratings/eslint-config` | `packages/eslint-config/` | Shared ESLint config                                                                                                       |
+| `@polyratings/mcp-server`    | `packages/mcp-server/`    | Local MCP server exposing read-only public tools and admin moderation tools over the backend for humans and AI assistants |
 
 **Dependencies:** frontend and cron depend on backend; all use eslint-config.
 
@@ -36,6 +37,7 @@ This repository is a **Lerna monorepo** with Nx for task orchestration. It conta
 - **Frontend:** `npm run start:local` (Vite dev server), `npm run test` (Vitest)
 - **Backend:** `npm run start:local` (Wrangler dev), `npm run build` (generates types + esbuild)
 - **Cron:** `npm run run:local`, `npm run build:local`
+- **MCP Server:** `npm run dev` (Node MCP server over stdio), `npm run build`
 - **E2E:** `npm run e2e` (Playwright), `npm run e2e:ui` (Playwright UI mode)
 
 ## Tech Stack
