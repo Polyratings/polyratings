@@ -8,6 +8,7 @@ import { trpc } from "@/trpc";
 import { useAuth } from "@/hooks";
 import { Button } from "@/components/forms/Button";
 import { TextInput } from "@/components";
+import { getApiErrorMessage } from "@/utils";
 
 const loginParser = z.object({
     username: z.string().min(1, { error: "Required" }),
@@ -27,7 +28,14 @@ export function Login() {
     const { setJwt } = useAuth();
     const navigate = useNavigate();
 
-    const { mutateAsync: login, data: jwt, error: networkError } = trpc.auth.login.useMutation();
+    const {
+        mutateAsync: login,
+        data: jwt,
+        error: networkError,
+    } = trpc.auth.login.useMutation({
+        // Keep login errors inline in the form instead of global toasts.
+        meta: { suppressGlobalErrorToast: true },
+    });
 
     useEffect(() => {
         if (jwt) {
@@ -64,7 +72,12 @@ export function Login() {
                             error={errors.password?.message}
                         />
                         {networkError && (
-                            <p className="text-red-500 text-sm">{networkError.message}</p>
+                            <p className="text-red-500 text-sm">
+                                {getApiErrorMessage(
+                                    networkError,
+                                    "Sign-in failed. Please check your username and password.",
+                                )}
+                            </p>
                         )}
                         <Button className="w-full" type="submit">
                             Continue

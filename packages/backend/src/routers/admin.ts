@@ -1,4 +1,4 @@
-import { t, protectedProcedure } from "@backend/trpc";
+import { t, protectedProcedure, type Context } from "@backend/trpc";
 import { z } from "zod";
 import { addRating } from "@backend/types/schemaHelpers";
 import { bulkKeys, DEPARTMENT_LIST } from "@backend/utils/const";
@@ -39,10 +39,7 @@ function getProfessorRatingIds(professor: Professor): Set<string> {
     );
 }
 
-async function requireProfessor(
-    ctx: { env: { kvDao: { getProfessorOptional(id: string): Promise<Professor | undefined> } } },
-    professorId: string,
-): Promise<Professor> {
+async function requireProfessor(ctx: Context, professorId: string): Promise<Professor> {
     const professor = await ctx.env.kvDao.getProfessorOptional(professorId);
     if (!professor) {
         throw new TRPCError({
@@ -53,14 +50,7 @@ async function requireProfessor(
     return professor;
 }
 
-async function requirePendingProfessor(
-    ctx: {
-        env: {
-            kvDao: { getPendingProfessorOptional(id: string): Promise<Professor | undefined> };
-        };
-    },
-    professorId: string,
-): Promise<Professor> {
+async function requirePendingProfessor(ctx: Context, professorId: string): Promise<Professor> {
     const professor = await ctx.env.kvDao.getPendingProfessorOptional(professorId);
     if (!professor) {
         throw new TRPCError({
@@ -71,10 +61,7 @@ async function requirePendingProfessor(
     return professor;
 }
 
-async function requireReport(
-    ctx: { env: { kvDao: { getReportOptional(id: string): Promise<RatingReport | undefined> } } },
-    reportId: string,
-): Promise<RatingReport> {
+async function requireReport(ctx: Context, reportId: string): Promise<RatingReport> {
     const report = await ctx.env.kvDao.getReportOptional(reportId);
     if (!report) {
         throw new TRPCError({
@@ -117,9 +104,15 @@ async function removeReportBestEffort(
 ): Promise<void> {
     try {
         await kvDao.removeReport(ratingId);
-    } catch {
-        // Do not fail the primary deletion path if report cleanup fails.
-        // Cleanup can be retried by future moderation actions.
+    } catch (error) {
+        // Do not fail the primary deletion path if report cleanup fails; the
+        // report can be retried by future moderation actions. Log so the
+        // failure is visible in Workers tails / Sentry.
+        // eslint-disable-next-line no-console
+        console.error(
+            `Best-effort removeReport failed for ratingId=${ratingId}:`,
+            error instanceof Error ? (error.stack ?? error.message) : error,
+        );
     }
 }
 

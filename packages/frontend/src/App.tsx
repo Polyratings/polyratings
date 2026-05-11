@@ -6,8 +6,8 @@ import {
     Outlet,
     ScrollRestoration,
 } from "react-router";
-import { ToastContainer } from "react-toastify";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { ToastContainer, toast } from "react-toastify";
+import { MutationCache, QueryCache, QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { persistQueryClient } from "@tanstack/react-query-persist-client";
 import { useMemo, useState } from "react";
 import {
@@ -25,7 +25,31 @@ import { Navbar } from "./components";
 import "react-toastify/dist/ReactToastify.css";
 import { trpc, trpcClientOptions } from "./trpc";
 import { createIDBPersister } from "./utils/idbPersister";
+import { getApiErrorMessage } from "./utils";
 import { AuthContext, useAuthState } from "./hooks";
+
+/**
+ * Bump this when persisted React Query data shape changes incompatibly
+ * (e.g. a tRPC procedure's wire format changes). `persistQueryClient` will
+ * drop any cache that does not match this `buster`, preventing stale clients
+ * from rendering with old shapes after a deploy.
+ */
+const PERSISTED_QUERY_CACHE_BUSTER = "v2-2026-05";
+
+type GlobalQueryMeta = {
+    suppressGlobalErrorToast?: boolean;
+};
+
+declare module "@tanstack/react-query" {
+    interface Register {
+        queryMeta: GlobalQueryMeta;
+        mutationMeta: GlobalQueryMeta;
+    }
+}
+
+function shouldSuppressGlobalErrorToast(meta: GlobalQueryMeta | undefined): boolean {
+    return Boolean(meta?.suppressGlobalErrorToast);
+}
 
 // Lazy load error logger to save bundle size
 if (process.env.NODE_ENV === "production") {
@@ -57,11 +81,37 @@ export default function App() {
 
     const [queryClient] = useState(() => {
         const queryClient = new QueryClient({
-            defaultOptions: { queries: { staleTime: Infinity, gcTime: 600000 } },
+            queryCache: new QueryCache({
+                onError: (error, query) => {
+                    if (
+                        query.state.data === undefined &&
+                        !shouldSuppressGlobalErrorToast(query.options.meta)
+                    ) {
+                        toast.error(getApiErrorMessage(error, "We could not load this data."));
+                    }
+                },
+            }),
+            mutationCache: new MutationCache({
+                onError: (error, _variables, _context, mutation) => {
+                    if (
+                        !mutation.options.onError &&
+                        !shouldSuppressGlobalErrorToast(mutation.options.meta)
+                    ) {
+                        toast.error(
+                            getApiErrorMessage(error, "We could not complete that request."),
+                        );
+                    }
+                },
+            }),
+            defaultOptions: {
+                queries: { staleTime: Infinity, gcTime: 600000, retry: 1 },
+                mutations: { retry: 0 },
+            },
         });
         persistQueryClient({
             queryClient,
             persister: createIDBPersister(),
+            buster: PERSISTED_QUERY_CACHE_BUSTER,
         });
         return queryClient;
     });
