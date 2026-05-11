@@ -40,9 +40,8 @@ export class Env {
 
     anonymousIdDao: AnonymousIdDao;
 
-    rateLimiters: {
-        addRating: RateLimit;
-    };
+    /** Anonymous mutation limits use `${tRPC path}_${anonId}`; one binding is enough. */
+    rateLimiter: RateLimit;
 
     constructor(env: CloudflareEnv) {
         this.kvDao = new KVDAO(
@@ -75,9 +74,7 @@ export class Env {
 
         this.anonymousIdDao = new AnonymousIdDao(env.HASHED_IP, env.POLYRATINGS_SESSIONS);
 
-        this.rateLimiters = {
-            addRating: env.ADD_RATING_LIMITER,
-        };
+        this.rateLimiter = env.RATE_LIMITER;
     }
 }
 
@@ -100,5 +97,5 @@ const cloudflareEnvParser = z.object({
     DISCORD_WEBHOOK_URL: z.string(),
     IS_DEPLOYED: z.boolean(),
     HASHED_IP: z.string(),
-    ADD_RATING_LIMITER: rateLimiterParser,
+    RATE_LIMITER: rateLimiterParser,
 });

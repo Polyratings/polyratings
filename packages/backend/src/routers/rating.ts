@@ -1,4 +1,5 @@
-import { t, publicProcedure } from "@backend/trpc";
+import { t } from "@backend/trpc";
+import { rateLimitedPublicProcedure } from "@backend/middleware/rate-limiter";
 import { z } from "zod";
 import { TRPCError } from "@trpc/server";
 import {
@@ -10,7 +11,6 @@ import {
 } from "@backend/types/schema";
 import { DEPARTMENT_LIST } from "@backend/utils/const";
 import { Env } from "@backend/env";
-import { getRateLimiter } from "@backend/middleware/rate-limiter";
 import type { Moderation } from "openai/resources/moderations";
 import { checkModerationThresholds } from "@backend/utils/moderation";
 
@@ -87,12 +87,11 @@ export async function addRating(input: z.infer<typeof addRatingParser>, ctx: { e
 }
 
 export const ratingsRouter = t.router({
-    add: publicProcedure
-        .use(getRateLimiter("addRating"))
+    add: rateLimitedPublicProcedure
         .input(addRatingParser)
         .output(publicProfessorParser)
         .mutation(async ({ ctx, input }) => addRating(input, ctx)),
-    report: publicProcedure
+    report: rateLimitedPublicProcedure
         .input(reportParser.extend({ ratingId: z.uuid(), professorId: z.uuid() }))
         .mutation(async ({ ctx, input }) => {
             let professor;

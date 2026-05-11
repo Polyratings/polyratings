@@ -1,4 +1,5 @@
 import { t, publicProcedure } from "@backend/trpc";
+import { rateLimitedPublicProcedure } from "@backend/middleware/rate-limiter";
 import { z } from "zod";
 import {
     Professor,
@@ -35,7 +36,7 @@ export const professorRouter = t.router({
                 missingIds: input.ids.filter((_, index) => !results[index]),
             };
         }),
-    add: publicProcedure
+    add: rateLimitedPublicProcedure
         .input(
             z.object({
                 department: z.enum(DEPARTMENT_LIST),
