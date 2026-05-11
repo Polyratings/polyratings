@@ -18,6 +18,12 @@ Useful commands:
 - `npm run e2e:ui` (open Playwright UI mode)
 - `npm run e2e:headed` (headed browser run)
 
+Spec-driven workflow:
+
+- Business requirements live in `packages/e2e/docs/*.md`
+- Each Playwright suite in `packages/e2e/src/*.spec.ts` maps to acceptance criteria IDs in those docs
+- Add or update requirement docs before adding test implementation for new use-cases
+
 To target a different local frontend port or host, set `PLAYWRIGHT_BASE_URL` (must be `http://localhost:…` or `http://127.0.0.1:…` so Playwright still starts `webServer`):
 
 `PLAYWRIGHT_BASE_URL=http://localhost:4173 npm run e2e`

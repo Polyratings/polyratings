@@ -16,9 +16,7 @@ type AxeFixture = {
      * the test report, and asserts `violations` is empty. Optional configure
      * callback for per-test customization.
      */
-    scanForA11yViolations: (
-        configure?: (builder: AxeBuilder) => AxeBuilder,
-    ) => Promise<AxeResults>;
+    scanForA11yViolations: (configure?: (builder: AxeBuilder) => AxeBuilder) => Promise<AxeResults>;
 };
 
 const attachResults = async (testInfo: TestInfo, name: string, results: AxeResults) => {
@@ -31,17 +29,10 @@ const attachResults = async (testInfo: TestInfo, name: string, results: AxeResul
 const formatViolation = (violation: Result) => {
     const nodes = violation.nodes
         .slice(0, 3)
-        .map(
-            (node) =>
-                `${node.target.join(" ")}: ${node.failureSummary ?? "No summary"}`,
-        )
+        .map((node) => `${node.target.join(" ")}: ${node.failureSummary ?? "No summary"}`)
         .join("\n");
 
-    return [
-        `${violation.id} (${violation.impact ?? "unknown"})`,
-        violation.help,
-        nodes,
-    ].join("\n");
+    return [`${violation.id} (${violation.impact ?? "unknown"})`, violation.help, nodes].join("\n");
 };
 
 export const test = base.extend<AxeFixture>({

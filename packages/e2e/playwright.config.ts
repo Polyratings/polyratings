@@ -16,10 +16,10 @@ export default defineConfig({
         ? {
               webServer: {
                   command: "npm run start:local",
-                  cwd: "../frontend",
+                  cwd: "../..",
                   url: baseURL,
                   reuseExistingServer: !process.env.CI,
-                  timeout: 120_000,
+                  timeout: 180_000,
               },
           }
         : {}),

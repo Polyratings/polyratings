@@ -1,7 +1,9 @@
 import { expect, test } from "@playwright/test";
 
-test("about page loads expected heading", async ({ page }) => {
+test("ABOUT: about page loads expected heading", async ({ page }) => {
     await page.goto("/about");
 
-    await expect(page.getByRole("heading", { name: "About Polyratings" })).toBeVisible();
+    await test.step("ABOUT-1: about route heading renders", async () => {
+        await expect(page.getByRole("heading", { name: "About Polyratings" })).toBeVisible();
+    });
 });
