@@ -1,0 +1,37 @@
+{
+    "name": "@polyratings/mcp-server",
+    "version": "0.0.1",
+    "description": "Local MCP server for read-only Polyratings queries and admin inspection.",
+    "private": true,
+    "scripts": {
+        "dev": "tsx src/index.ts",
+        "start": "node dist/index.js",
+        "build": "tsc --noEmit && esbuild src/index.ts --bundle --platform=node --outdir=dist --packages=external --format=cjs",
+        "lint": "eslint --max-warnings=0 .",
+        "fix": "eslint . --fix",
+        "test": "echo \"No tests yet\""
+    },
+    "dependencies": {
+        "@modelcontextprotocol/sdk": "^1.27.1",
+        "@polyratings/backend": "*",
+        "@trpc/client": "11.17.0",
+        "zod": "^4.4.3"
+    },
+    "devDependencies": {
+        "@polyratings/eslint-config": "*",
+        "@types/node": "^24.3.1",
+        "esbuild": "^0.25.0",
+        "eslint": "^8.57.1",
+        "tsx": "^4.21.0",
+        "typescript": "^5.9.2"
+    },
+    "eslintConfig": {
+        "extends": "@polyratings/eslint-config",
+        "rules": {
+            "no-restricted-imports": "off",
+            "no-restricted-syntax": "off",
+            "no-await-in-loop": "off",
+            "no-continue": "off"
+        }
+    }
+}
