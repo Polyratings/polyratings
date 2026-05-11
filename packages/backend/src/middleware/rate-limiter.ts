@@ -7,7 +7,7 @@ import { TRPCError } from "@trpc/server";
  *
  * @throws TRPCError with code 'TOO_MANY_REQUESTS' if the rate limit is exceeded.
  */
-export const isRateLimited = t.middleware(async (opts) => {
+export const rateLimitMiddleware = t.middleware(async (opts) => {
     const { ctx, path } = opts;
 
     if (ctx.user) {
@@ -30,5 +30,5 @@ export const isRateLimited = t.middleware(async (opts) => {
     return opts.next();
 });
 
-/** Public procedure with anonymous rate limiting applied (see `isRateLimited`). */
-export const rateLimitedPublicProcedure = publicProcedure.use(isRateLimited);
+/** Public procedure with anonymous rate limiting applied (see `rateLimitMiddleware`). */
+export const rateLimitedPublicProcedure = publicProcedure.use(rateLimitMiddleware);
