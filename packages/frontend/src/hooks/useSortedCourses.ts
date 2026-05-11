@@ -1,7 +1,8 @@
 import { AppRouter } from "@backend/index";
 import { inferProcedureOutput } from "@trpc/server";
-import { ValueOf } from "type-fest";
 import { trpc } from "@/trpc";
+
+type ValueOf<T> = T[keyof T];
 
 export interface CourseRatings {
     courseName: string;

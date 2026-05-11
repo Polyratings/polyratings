@@ -9,6 +9,13 @@ export default defineConfig({
     retries: process.env.CI ? 1 : 0,
     reporter: process.env.CI ? [["github"], ["html", { open: "never" }]] : [["list"]],
     timeout: 30_000,
+    webServer: {
+        command: "npm run start:local",
+        cwd: "../frontend",
+        url: baseURL,
+        reuseExistingServer: !process.env.CI,
+        timeout: 120_000,
+    },
     expect: {
         timeout: 10_000,
     },
