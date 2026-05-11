@@ -95,7 +95,6 @@ export const ratingsRouter = t.router({
     report: publicProcedure
         .input(reportParser.extend({ ratingId: z.uuid(), professorId: z.uuid() }))
         .mutation(async ({ ctx, input }) => {
-            const anonymousIdentifier = await ctx.env.anonymousIdDao.getIdentifier();
             let professor;
             try {
                 professor = await ctx.env.kvDao.getProfessor(input.professorId);
@@ -116,6 +115,7 @@ export const ratingsRouter = t.router({
                 // If the rating no longer exists, ignore the report.
                 return;
             }
+            const anonymousIdentifier = await ctx.env.anonymousIdDao.getIdentifier();
 
             const ratingReport: RatingReport = {
                 ratingId: input.ratingId,

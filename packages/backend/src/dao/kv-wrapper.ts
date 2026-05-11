@@ -27,8 +27,11 @@ export class KvWrapper {
         try {
             const value = await this.get(parser, key);
             return value;
-        } catch {
-            return undefined;
+        } catch (error) {
+            if (error instanceof TRPCError && error.code === "NOT_FOUND") {
+                return undefined;
+            }
+            throw error;
         }
     }
 
