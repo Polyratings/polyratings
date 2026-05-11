@@ -2,6 +2,8 @@ import { t, protectedProcedure } from "@backend/trpc";
 import { z } from "zod";
 import { addRating } from "@backend/types/schemaHelpers";
 import { bulkKeys, DEPARTMENT_LIST } from "@backend/utils/const";
+import { TRPCError } from "@trpc/server";
+import { Professor, RatingReport } from "@backend/types/schema";
 
 const changeDepartmentParser = z.object({
     professorId: z.uuid(),
@@ -31,6 +33,58 @@ const DISCORD_MESSAGE_MAX_LENGTH = 2000;
 const MAX_IDS_IN_AUDIT = 10;
 const MAX_REASON_LENGTH = 600;
 
+function getProfessorRatingIds(professor: Professor): Set<string> {
+    return new Set(
+        Object.values(professor.reviews).flatMap((ratings) => ratings.map((rating) => rating.id)),
+    );
+}
+
+async function requireProfessor(
+    ctx: { env: { kvDao: { getProfessorOptional(id: string): Promise<Professor | undefined> } } },
+    professorId: string,
+): Promise<Professor> {
+    const professor = await ctx.env.kvDao.getProfessorOptional(professorId);
+    if (!professor) {
+        throw new TRPCError({
+            code: "NOT_FOUND",
+            message: `Professor with id ${professorId} does not exist.`,
+        });
+    }
+    return professor;
+}
+
+async function requirePendingProfessor(
+    ctx: {
+        env: {
+            kvDao: { getPendingProfessorOptional(id: string): Promise<Professor | undefined> };
+        };
+    },
+    professorId: string,
+): Promise<Professor> {
+    const professor = await ctx.env.kvDao.getPendingProfessorOptional(professorId);
+    if (!professor) {
+        throw new TRPCError({
+            code: "NOT_FOUND",
+            message: `Pending professor with id ${professorId} does not exist.`,
+        });
+    }
+    return professor;
+}
+
+async function requireReport(
+    ctx: { env: { kvDao: { getReportOptional(id: string): Promise<RatingReport | undefined> } } },
+    reportId: string,
+): Promise<RatingReport> {
+    const report = await ctx.env.kvDao.getReportOptional(reportId);
+    if (!report) {
+        throw new TRPCError({
+            code: "NOT_FOUND",
+            message: `Report for rating id ${reportId} does not exist.`,
+        });
+    }
+    return report;
+}
+
 function buildBulkDeletionAuditMessage(
     username: string,
     removed: number,
@@ -57,11 +111,31 @@ function buildBulkDeletionAuditMessage(
     return message;
 }
 
+async function removeReportBestEffort(
+    kvDao: { removeReport(ratingId: string): Promise<void> },
+    ratingId: string,
+): Promise<void> {
+    try {
+        await kvDao.removeReport(ratingId);
+    } catch {
+        // Do not fail the primary deletion path if report cleanup fails.
+        // Cleanup can be retried by future moderation actions.
+    }
+}
+
 export const adminRouter = t.router({
     removeRating: protectedProcedure
-        .input(z.object({ professorId: z.string(), ratingId: z.string() }))
+        .input(z.object({ professorId: z.uuid(), ratingId: z.uuid() }))
         .mutation(async ({ ctx, input: { professorId, ratingId } }) => {
-            await ctx.env.kvDao.removeRating(professorId, ratingId);
+            const professor = await requireProfessor(ctx, professorId);
+            if (!getProfessorRatingIds(professor).has(ratingId)) {
+                throw new TRPCError({
+                    code: "NOT_FOUND",
+                    message: `Rating with id ${ratingId} does not exist on professor ${professorId}.`,
+                });
+            }
+            await ctx.env.kvDao.removeRatingWithProfessor(professor, ratingId);
+            await removeReportBestEffort(ctx.env.kvDao, ratingId);
         }),
     removeRatingsBulk: protectedProcedure
         .input(
@@ -79,18 +153,21 @@ export const adminRouter = t.router({
             }),
         )
         .mutation(async ({ ctx, input: { professorId, ratingIds, reason } }) => {
-            const professor = await ctx.env.kvDao.getProfessor(professorId);
-            const existingRatingIds = new Set(
-                Object.values(professor.reviews).flatMap((ratings) =>
-                    ratings.map((rating) => rating.id),
-                ),
-            );
+            const professor = await requireProfessor(ctx, professorId);
+            const existingRatingIds = getProfessorRatingIds(professor);
             const removedRatingIds = [
                 ...new Set(ratingIds.filter((ratingId) => existingRatingIds.has(ratingId))),
             ];
+            if (removedRatingIds.length === 0) {
+                throw new TRPCError({
+                    code: "NOT_FOUND",
+                    message:
+                        "None of the requested ratings exist on this professor. They may have already been deleted.",
+                });
+            }
             const removed = await ctx.env.kvDao.removeRatingsBulk(professor, ratingIds);
             await Promise.all(
-                removedRatingIds.map((ratingId) => ctx.env.kvDao.removeReport(ratingId)),
+                removedRatingIds.map((ratingId) => removeReportBestEffort(ctx.env.kvDao, ratingId)),
             );
             const auditMessage = buildBulkDeletionAuditMessage(
                 ctx.user!.username,
@@ -107,7 +184,7 @@ export const adminRouter = t.router({
         ctx.env.kvDao.getAllPendingProfessors(),
     ),
     approvePendingProfessor: protectedProcedure.input(z.uuid()).mutation(async ({ ctx, input }) => {
-        const pendingProfessor = await ctx.env.kvDao.getPendingProfessor(input);
+        const pendingProfessor = await requirePendingProfessor(ctx, input);
 
         await ctx.env.kvDao.putProfessor(pendingProfessor);
         await ctx.env.kvDao.removePendingProfessor(input);
@@ -123,8 +200,10 @@ export const adminRouter = t.router({
     mergeProfessor: protectedProcedure
         .input(z.object({ destId: z.uuid(), sourceId: z.uuid() }))
         .mutation(async ({ ctx, input: { destId, sourceId } }) => {
-            const destProfessor = await ctx.env.kvDao.getProfessor(destId);
-            const sourceProfessor = await ctx.env.kvDao.getProfessor(sourceId);
+            const [destProfessor, sourceProfessor] = await Promise.all([
+                requireProfessor(ctx, destId),
+                requireProfessor(ctx, sourceId),
+            ]);
 
             Object.entries(sourceProfessor.reviews).forEach(([course, ratings]) => {
                 ratings.forEach((rating) => addRating(destProfessor, rating, course));
@@ -136,21 +215,21 @@ export const adminRouter = t.router({
     changeProfessorDepartment: protectedProcedure
         .input(changeDepartmentParser)
         .mutation(async ({ ctx, input: { professorId, department } }) => {
-            const professor = await ctx.env.kvDao.getProfessor(professorId);
+            const professor = await requireProfessor(ctx, professorId);
             professor.department = department;
             await ctx.env.kvDao.putProfessor(professor);
         }),
     changePendingProfessorDepartment: protectedProcedure
         .input(changeDepartmentParser)
         .mutation(async ({ ctx, input: { professorId, department } }) => {
-            const professor = await ctx.env.kvDao.getPendingProfessor(professorId);
+            const professor = await requirePendingProfessor(ctx, professorId);
             professor.department = department;
             await ctx.env.kvDao.putPendingProfessor(professor);
         }),
     changeProfessorName: protectedProcedure
         .input(changeNameParser)
         .mutation(async ({ ctx, input: { professorId, firstName, lastName } }) => {
-            const professor = await ctx.env.kvDao.getProfessor(professorId);
+            const professor = await requireProfessor(ctx, professorId);
             professor.firstName = firstName;
             professor.lastName = lastName;
             await ctx.env.kvDao.putProfessor(professor, true);
@@ -158,7 +237,7 @@ export const adminRouter = t.router({
     changePendingProfessorName: protectedProcedure
         .input(changeNameParser)
         .mutation(async ({ ctx, input: { professorId, firstName, lastName } }) => {
-            const professor = await ctx.env.kvDao.getPendingProfessor(professorId);
+            const professor = await requirePendingProfessor(ctx, professorId);
             professor.firstName = firstName;
             professor.lastName = lastName;
             await ctx.env.kvDao.putPendingProfessor(professor);
@@ -166,7 +245,7 @@ export const adminRouter = t.router({
     lockProfessor: protectedProcedure
         .input(lockProfessorParser)
         .mutation(async ({ ctx, input: { professorId, locked, lockedMessage } }) => {
-            const professor = await ctx.env.kvDao.getProfessor(professorId);
+            const professor = await requireProfessor(ctx, professorId);
             professor.locked = locked;
             professor.lockedMessage = locked ? lockedMessage : undefined;
             await ctx.env.kvDao.putProfessor(professor);
@@ -177,23 +256,41 @@ export const adminRouter = t.router({
     // Mark as mutation to not have url issues
     getBulkValues: protectedProcedure
         .input(z.object({ bulkKey: z.enum(bulkKeys), keys: z.string().array() }))
-        .mutation(async ({ ctx, input: { bulkKey, keys } }) =>
+        .mutation(({ ctx, input: { bulkKey, keys } }) =>
             ctx.env.kvDao.getBulkValues(bulkKey, keys),
         ),
     removeReport: protectedProcedure.input(z.uuid()).mutation(async ({ ctx, input }) => {
         await ctx.env.kvDao.removeReport(input);
     }),
     actOnReport: protectedProcedure.input(z.uuid()).mutation(async ({ ctx, input }) => {
-        const report = await ctx.env.kvDao.getReport(input);
-        await ctx.env.kvDao.removeRating(report.professorId, report.ratingId);
-        await ctx.env.kvDao.removeReport(input);
+        const report = await requireReport(ctx, input);
+        const professor = await ctx.env.kvDao.getProfessorOptional(report.professorId);
+        if (!professor) {
+            await removeReportBestEffort(ctx.env.kvDao, input);
+            return;
+        }
+        if (!getProfessorRatingIds(professor).has(report.ratingId)) {
+            await removeReportBestEffort(ctx.env.kvDao, input);
+            return;
+        }
+        await ctx.env.kvDao.removeRatingWithProfessor(professor, report.ratingId);
+        await removeReportBestEffort(ctx.env.kvDao, input);
     }),
     fixEscapedChars: protectedProcedure
         .input(fixEscapedCharsParser)
         .mutation(async ({ ctx, input }) => {
-            for (const profId of input.professors) {
-                // eslint-disable-next-line no-await-in-loop
-                const professor = await ctx.env.kvDao.getProfessor(profId);
+            const professors = await Promise.all(
+                input.professors.map((profId) => ctx.env.kvDao.getProfessorOptional(profId)),
+            );
+            const missingIds = input.professors.filter((_, idx) => !professors[idx]);
+            if (missingIds.length > 0) {
+                throw new TRPCError({
+                    code: "NOT_FOUND",
+                    message: `Unknown professor id(s): ${missingIds.join(", ")}`,
+                });
+            }
+
+            for (const professor of professors as Professor[]) {
                 for (const [course, ratings] of Object.entries(professor.reviews)) {
                     professor.reviews[course] = ratings.map((rating) => {
                         // eslint-disable-next-line

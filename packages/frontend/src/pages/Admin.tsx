@@ -42,9 +42,10 @@ export function Admin() {
 
 function ReportedRatings() {
     const { data: ratingReports } = useDbValues("reports");
-    const { data: professors } = trpc.professors.getMany.useQuery({
+    const { data: professorsResult } = trpc.professors.getMany.useQuery({
         ids: ratingReports?.map((report) => report.professorId) ?? [],
     });
+    const professors = professorsResult?.professors;
     const queryClient = useQueryClient();
     const { mutate: removeReport } = trpc.admin.removeReport.useMutation({
         onSuccess: () =>
