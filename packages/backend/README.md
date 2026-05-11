@@ -31,9 +31,9 @@ The backend begins with a single entrypoint in [index.ts](src/index.ts) that set
 This backend stores some metadata that should not be returned from public endpoints.
 
 - `anonymousIdentifier` is considered sensitive and must not be returned from public procedures.
-- Public procedures (`t.procedure`) should return public-safe schemas only (for example `publicRatingParser` / `publicProfessorParser`).
+- Public procedures (`publicProcedure`) should return public-safe schemas only (for example `publicRatingParser` / `publicProfessorParser`) via an explicit `.output(...)` Zod schema.
 - Protected procedures (`protectedProcedure`) can return full internal schemas when operationally required.
-- When adding/changing router responses, prefer converting with helpers (for example `professorToPublicProfessor`) before returning data.
+- When adding/changing router responses, prefer binding the output via `.output(publicProfessorParser)` (or similar) so the public schema is enforced at the router boundary.
 
 ## Building
 

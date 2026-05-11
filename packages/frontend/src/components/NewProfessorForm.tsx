@@ -130,7 +130,10 @@ function useNewProfessorForm() {
         mutateAsync: addNewProfessorMutation,
         isPending,
         error: networkError,
-    } = trpc.professors.add.useMutation();
+    } = trpc.professors.add.useMutation({
+        // Keep mutation errors rendered inline via networkError.
+        meta: { suppressGlobalErrorToast: true },
+    });
     const navigate = useNavigate();
 
     const utils = trpc.useUtils();

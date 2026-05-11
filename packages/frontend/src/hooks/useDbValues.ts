@@ -13,6 +13,7 @@ export function useDbValues<T extends BulkKey>(bulkKey: T) {
 
     return useQuery({
         queryKey: [`bulk-values-${bulkKey}`],
+        meta: { suppressGlobalErrorToast: true },
         queryFn: async () => {
             const keys = await rawTrpcClient.admin.getBulkKeys.query(bulkKey);
             const chunkedKeys = chunkArray(keys, WORKER_RETRIEVAL_CHUNK_SIZE);
