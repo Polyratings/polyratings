@@ -11,6 +11,7 @@ This repository is a **Lerna monorepo** with Nx for task orchestration. It conta
 | `@polyratings/frontend` | `packages/frontend/` | React app (Vite) deployed at polyratings.dev |
 | `@polyratings/backend` | `packages/backend/` | Cloudflare Workers API (tRPC) |
 | `@polyratings/cron` | `packages/cron/` | Nightly sync and backup jobs |
+| `@polyratings/e2e` | `packages/e2e/` | Playwright end-to-end smoke tests |
 | `@polyratings/eslint-config` | `packages/eslint-config/` | Shared ESLint config |
 
 **Dependencies:** frontend and cron depend on backend; all use eslint-config.
@@ -26,6 +27,7 @@ This repository is a **Lerna monorepo** with Nx for task orchestration. It conta
 | `npm run start:local` | Start frontend + backend with hot reload |
 | `npm run start:dev` | Same, but uses dev KV (requires Cloudflare access) |
 | `npm run test` | Run tests across packages |
+| `npm run e2e` | Run Playwright end-to-end tests (`@polyratings/e2e`) |
 | `npm run lint` | Lint all packages |
 | `npm run fix` | Auto-fix lint issues |
 
@@ -34,6 +36,7 @@ This repository is a **Lerna monorepo** with Nx for task orchestration. It conta
 - **Frontend:** `npm run start:local` (Vite dev server), `npm run test` (Vitest)
 - **Backend:** `npm run start:local` (Wrangler dev), `npm run build` (generates types + esbuild)
 - **Cron:** `npm run run:local`, `npm run build:local`
+- **E2E:** `npm run e2e` (Playwright), `npm run e2e:ui` (Playwright UI mode)
 
 ## Tech Stack
 
