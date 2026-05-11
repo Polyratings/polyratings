@@ -1,21 +1,42 @@
-import { t } from "@backend/trpc";
+import { t, publicProcedure } from "@backend/trpc";
+import { rateLimitedPublicProcedure } from "@backend/middleware/rate-limiter";
 import { z } from "zod";
-import { Professor, ratingBaseParser } from "@backend/types/schema";
+import {
+    Professor,
+    publicProfessorParser,
+    ratingBaseParser,
+    truncatedProfessorParser,
+} from "@backend/types/schema";
 import { DEPARTMENT_LIST } from "@backend/utils/const";
 import { addRating as addRatingToProfessor } from "@backend/types/schemaHelpers";
 import { addRating } from "./rating";
 
 export const professorRouter = t.router({
-    all: t.procedure.query(({ ctx }) => ctx.env.kvDao.getAllProfessors()),
-    get: t.procedure
+    all: publicProcedure
+        .output(truncatedProfessorParser.array())
+        .query(({ ctx }) => ctx.env.kvDao.getAllProfessors()),
+    get: publicProcedure
         .input(z.object({ id: z.uuid() }))
+        .output(publicProfessorParser)
         .query(({ input, ctx }) => ctx.env.kvDao.getProfessor(input.id)),
-    getMany: t.procedure
+    getMany: publicProcedure
         .input(z.object({ ids: z.uuid().array() }))
-        .query(({ input, ctx }) =>
-            Promise.all(input.ids.map((id) => ctx.env.kvDao.getProfessor(id))),
-        ),
-    add: t.procedure
+        .output(
+            z.object({
+                professors: publicProfessorParser.array(),
+                missingIds: z.uuid().array(),
+            }),
+        )
+        .query(async ({ input, ctx }) => {
+            const results = await Promise.all(
+                input.ids.map((id) => ctx.env.kvDao.getProfessorOptional(id)),
+            );
+            return {
+                professors: results.filter((p): p is Professor => p !== undefined),
+                missingIds: input.ids.filter((_, index) => !results[index]),
+            };
+        }),
+    add: rateLimitedPublicProcedure
         .input(
             z.object({
                 department: z.enum(DEPARTMENT_LIST),
@@ -42,7 +63,8 @@ export const professorRouter = t.router({
                     professorId: existingProfessor.id,
                     message:
                         "Your request for adding a new professor was automatically added to " +
-                        `${existingProfessor.lastName}, ${existingProfessor.firstName}. Please reach out to dev@polyratings.dev if this is incorrect`,
+                        `${existingProfessor.lastName}, ${existingProfessor.firstName}. ` +
+                        "Please reach out to dev@polyratings.dev if this is incorrect",
                 };
             }
 

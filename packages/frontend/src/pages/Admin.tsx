@@ -42,9 +42,10 @@ export function Admin() {
 
 function ReportedRatings() {
     const { data: ratingReports } = useDbValues("reports");
-    const { data: professors } = trpc.professors.getMany.useQuery({
+    const { data: professorsResult } = trpc.professors.getMany.useQuery({
         ids: ratingReports?.map((report) => report.professorId) ?? [],
     });
+    const professors = professorsResult?.professors;
     const queryClient = useQueryClient();
     const { mutate: removeReport } = trpc.admin.removeReport.useMutation({
         onSuccess: () =>
@@ -115,17 +116,7 @@ function ReportedRatings() {
         {
             name: "Rating By",
             grow: 0.5,
-            selector: (row: RatingReport) => {
-                const professor = professors?.find(
-                    (professor) => professor?.id === row.professorId,
-                );
-
-                return (
-                    Object.values(professor?.reviews ?? {})
-                        .flat()
-                        .find((rating) => rating.id === row.ratingId)?.anonymousIdentifier ?? ""
-                );
-            },
+            selector: (row: RatingReport) => row.reports[0]?.anonymousIdentifier ?? "",
         },
         {
             name: "Keep",

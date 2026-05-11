@@ -48,8 +48,12 @@ export function ExtendedSearchBar({
             disableAutoComplete={disableAutoComplete}
             LeftSlot={<SearchToggle searchType={value.type} onClick={toggleSearchType} />}
             RightSlot={
-                <Button className="py-1! rounded-l-none rounded-r-full px-1" type="submit">
-                    <ChevronRightIcon className="w-8 h-8" />
+                <Button
+                    aria-label="Submit search"
+                    className="py-1! rounded-l-none rounded-r-full px-1"
+                    type="submit"
+                >
+                    <ChevronRightIcon className="w-8 h-8" aria-hidden />
                 </Button>
             }
         />

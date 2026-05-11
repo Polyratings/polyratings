@@ -60,6 +60,10 @@ export class KVDAO {
         return this.polyratingsNamespace.get(professorParser, id);
     }
 
+    getProfessorOptional(id: string) {
+        return this.polyratingsNamespace.getOptional(professorParser, id);
+    }
+
     getBulkNamespace(bulkKey: BulkKey): { namespace: KvWrapper; parser: z.ZodTypeAny } {
         const namespaceMap: Record<BulkKey, { namespace: KvWrapper; parser: z.ZodTypeAny }> = {
             professors: { namespace: this.polyratingsNamespace, parser: professorParser },
@@ -186,6 +190,11 @@ export class KVDAO {
 
     async removeRating(professorId: string, ratingId: string) {
         const professor = await this.getProfessor(professorId);
+        return this.removeRatingWithProfessor(professor, ratingId);
+    }
+
+    /** Mutates the given professor snapshot and persists it (avoids a redundant KV read). */
+    removeRatingWithProfessor(professor: Professor, ratingId: string) {
         removeRating(professor, ratingId);
         return this.putProfessor(professor);
     }
@@ -217,6 +226,10 @@ export class KVDAO {
         return this.professorApprovalQueueNamespace.get(professorParser, id);
     }
 
+    getPendingProfessorOptional(id: string) {
+        return this.professorApprovalQueueNamespace.getOptional(professorParser, id);
+    }
+
     async getAllPendingProfessors() {
         return this.professorApprovalQueueNamespace.getAll(professorParser);
     }
@@ -227,6 +240,10 @@ export class KVDAO {
 
     async getReport(ratingId: string) {
         return this.reportsNamespace.get(ratingReportParser, ratingId);
+    }
+
+    getReportOptional(ratingId: string) {
+        return this.reportsNamespace.getOptional(ratingReportParser, ratingId);
     }
 
     async putReport(report: RatingReport): Promise<void> {

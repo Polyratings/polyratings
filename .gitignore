@@ -2,5 +2,9 @@ node_modules/
 **/.wrangler
 nx-cloud.env
 .nx
+playwright-report/
+test-results/
+blob-report/
+packages/e2e/playwright/.cache/
 
 .claude/worktrees

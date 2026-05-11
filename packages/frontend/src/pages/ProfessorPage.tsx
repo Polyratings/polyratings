@@ -4,7 +4,6 @@ import { IndexRouteObject, useNavigate, useParams } from "react-router";
 import AnimateHeight from "react-animate-height";
 import AnchorLink from "react-anchor-link-smooth-scroll";
 import StarRatings from "react-star-ratings";
-import { ValueOf } from "type-fest";
 import Modal from "react-modal";
 import { TagIcon } from "@heroicons/react/24/solid";
 import { FlagIcon, LockClosedIcon, LockOpenIcon } from "@heroicons/react/24/outline";
@@ -25,6 +24,8 @@ import { trpc } from "@/trpc";
 import { REACT_MODAL_STYLES } from "@/constants";
 import { Button } from "@/components/forms/Button";
 import { useAuth, useSortedCourses } from "@/hooks";
+
+type ValueOf<T> = T[keyof T];
 
 export function professorPageLoaderFactory(trpcContext: ReturnType<(typeof trpc)["useUtils"]>) {
     const professorPageLoader: IndexRouteObject["loader"] = ({ params }) =>

@@ -1,5 +1,4 @@
 import { PendingRating, Professor, RatingReport, User } from "@backend/types/schema";
-import type { IsEqual } from "type-fest";
 
 /**
  * List of all departments with courses as of 1/23/2022
@@ -143,7 +142,6 @@ export const bulkKeys = [
     "users",
 ] as const;
 
-// TODO: Add type assert of BulkKey == keyof BulkKeyMap
 export type BulkKey = (typeof bulkKeys)[number];
 
 export type BulkKeyMap = {
@@ -179,7 +177,16 @@ export const PROFESSOR_TAGS = [
 
 export const ALL_PROFESSOR_KEY = "all";
 
-type TypeEqual = IsEqual<BulkKey, keyof BulkKeyMap> extends true ? true : never;
-// Error will be generated here if the BulkKey union does not match the keys of BulkKeyMap
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-const realPart: TypeEqual = true;
+type KeysAlign<A extends PropertyKey, B extends PropertyKey> = [
+    Exclude<A, B> | Exclude<B, A>,
+] extends [never]
+    ? true
+    : false;
+
+/**
+ * Compile-time assert: if `bulkKeys` and `BulkKeyMap` keys diverge, the assignment fails typecheck.
+ * The binding is never read at runtime; only its type is checked.
+ */
+type __Assert<T extends true> = T;
+// eslint-disable-next-line @typescript-eslint/no-unused-vars -- compile-time only (see JSDoc above)
+const bulkKeysKvSchemaSanity: __Assert<KeysAlign<BulkKey, keyof BulkKeyMap>> = true;

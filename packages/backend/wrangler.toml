@@ -1,3 +1,4 @@
+#:schema node_modules/wrangler/config-schema.json
 account_id = "4b59b59a6058dce1832781075d4fde9d"
 workers_dev = false
 compatibility_date = "2022-01-15"
@@ -28,11 +29,12 @@ watch_dir = [
     "src/trpc.ts",
 ]
 
-[[unsafe.bindings]]
-name = "ADD_RATING_LIMITER"
-type = "ratelimit"
+# First-class rate limits (replaces experimental `unsafe.bindings` ratelimit entries).
+# Keys are `${tRPC path}_${anonId}` in middleware, so one binding covers all public mutations.
+[[ratelimits]]
+name = "RATE_LIMITER"
 namespace_id = "1000"
-simple = { limit = 20, period = 10 } # 20 requests every 10 seconds
+simple = { limit = 20, period = 10 } # 20 requests every 10 seconds (local / default)
 
 [env.dev]
 name = 'polyratings-dev-backend'
@@ -46,9 +48,8 @@ kv_namespaces = [
     { binding = "POLYRATINGS_SESSIONS", id = "62feb12023254effb0d2b7842e74589f", preview_id = "62feb12023254effb0d2b7842e74589f" },
 ]
 
-[[env.dev.unsafe.bindings]]
-name = "ADD_RATING_LIMITER"
-type = "ratelimit"
+[[env.dev.ratelimits]]
+name = "RATE_LIMITER"
 namespace_id = "1001"
 simple = { limit = 20, period = 10 } # 20 requests every 10 seconds
 
@@ -64,9 +65,8 @@ kv_namespaces = [
     { binding = "POLYRATINGS_SESSIONS", id = "3f1960ed2db04d71ab8a560b86cee81f" },
 ]
 
-[[env.beta.unsafe.bindings]]
-name = "ADD_RATING_LIMITER"
-type = "ratelimit"
+[[env.beta.ratelimits]]
+name = "RATE_LIMITER"
 namespace_id = "1002"
 simple = { limit = 2, period = 10 } # 2 requests every 10 seconds
 
@@ -82,9 +82,8 @@ kv_namespaces = [
     { binding = "POLYRATINGS_SESSIONS", id = "d9cd467978be4b46b90d82b081b95cb9" },
 ]
 
-[[env.prod.unsafe.bindings]]
-name = "ADD_RATING_LIMITER"
-type = "ratelimit"
+[[env.prod.ratelimits]]
+name = "RATE_LIMITER"
 namespace_id = "1003"
 simple = { limit = 2, period = 60 } # 2 requests every 60 seconds
 
