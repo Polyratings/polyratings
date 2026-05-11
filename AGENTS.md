@@ -6,13 +6,13 @@ This repository is a **Lerna monorepo** with Nx for task orchestration. It conta
 
 ## Project Structure
 
-| Package | Path | Description |
-|---------|------|-------------|
-| `@polyratings/frontend` | `packages/frontend/` | React app (Vite) deployed at polyratings.dev |
-| `@polyratings/backend` | `packages/backend/` | Cloudflare Workers API (tRPC) |
-| `@polyratings/cron` | `packages/cron/` | Nightly sync and backup jobs |
-| `@polyratings/e2e` | `packages/e2e/` | Playwright end-to-end smoke tests |
-| `@polyratings/eslint-config` | `packages/eslint-config/` | Shared ESLint config |
+| Package                      | Path                      | Description                                  |
+| ---------------------------- | ------------------------- | -------------------------------------------- |
+| `@polyratings/frontend`      | `packages/frontend/`      | React app (Vite) deployed at polyratings.dev |
+| `@polyratings/backend`       | `packages/backend/`       | Cloudflare Workers API (tRPC)                |
+| `@polyratings/cron`          | `packages/cron/`          | Nightly sync and backup jobs                 |
+| `@polyratings/e2e`           | `packages/e2e/`           | Playwright end-to-end smoke tests            |
+| `@polyratings/eslint-config` | `packages/eslint-config/` | Shared ESLint config                         |
 
 **Dependencies:** frontend and cron depend on backend; all use eslint-config.
 
@@ -20,16 +20,16 @@ This repository is a **Lerna monorepo** with Nx for task orchestration. It conta
 
 ### Root (from repo root)
 
-| Command | Purpose |
-|---------|---------|
-| `npm install` | Install all dependencies (Lerna bootstraps packages) |
-| `npm run build` | Build all packages |
-| `npm run start:local` | Start frontend + backend with hot reload |
-| `npm run start:dev` | Same, but uses dev KV (requires Cloudflare access) |
-| `npm run test` | Run tests across packages |
-| `npm run e2e` | Run Playwright end-to-end tests (`@polyratings/e2e`) |
-| `npm run lint` | Lint all packages |
-| `npm run fix` | Auto-fix lint issues |
+| Command               | Purpose                                              |
+| --------------------- | ---------------------------------------------------- |
+| `npm install`         | Install all dependencies (Lerna bootstraps packages) |
+| `npm run build`       | Build all packages                                   |
+| `npm run start:local` | Start frontend + backend with hot reload             |
+| `npm run start:dev`   | Same, but uses dev KV (requires Cloudflare access)   |
+| `npm run test`        | Run tests across packages                            |
+| `npm run e2e`         | Run Playwright end-to-end tests (`@polyratings/e2e`) |
+| `npm run lint`        | Lint all packages                                    |
+| `npm run fix`         | Auto-fix lint issues                                 |
 
 ### Per-package (from `packages/<name>/`)
 
@@ -86,3 +86,25 @@ This repository is a **Lerna monorepo** with Nx for task orchestration. It conta
 2. **Build order:** Run `npm run build` from root to build all packages in dependency order.
 3. **Backend types:** Backend build generates types consumed by frontend; rebuild backend if you change routers or types.
 4. **Nx:** The workspace uses Nx for caching and task orchestration; `nx run <project>:<target>` works for individual targets.
+
+## E2E Tests
+
+- **Location:** `packages/e2e/src/`
+- **Requirements:** Business logic requirements live in `packages/e2e/docs/` and drive test implementation.
+- **Environments:**
+  - **Local (default):** `npm run e2e` — Playwright starts the frontend (`start:local` in `packages/frontend`) and uses `http://localhost:5173`.
+  - **Beta:** `npm run e2e:beta` — runs against [https://beta.polyratings.pages.dev/](https://beta.polyratings.pages.dev/) (no local web server). Override with `PLAYWRIGHT_BASE_URL` if needed.
+
+## Accessibility
+
+- **Target:** WCAG 2.1 AA for sender flows
+- **Automated gates (enforced):**
+  - **Lint:** `eslint-plugin-jsx-a11y` is enabled via the shared `@polyratings/eslint-config` (Airbnb preset). Frontend uses `packages/frontend/.eslintrc.js` and `npm run lint` from the repo root.
+  - **Unit:** `jest-axe` with Vitest (assert on `results.violations` from `axe(container)`). Add an axe scan when you introduce a new reusable UI primitive (see `packages/frontend/src/components/forms/Button.a11y.spec.tsx`).
+  - **E2E:** Playwright tests whose names include `@a11y` use `packages/e2e/src/support/axe-test.ts` (`@axe-core/playwright`): `makeAxeBuilder()` / `scanForA11yViolations()` apply `withTags(['wcag2a','wcag2aa','wcag21a','wcag21aa'])`, attach numbered `axe-results-*.json`, and assert zero violations.
+- **Running locally:** `npm run e2e:a11y` (starts the frontend via Playwright when using the default localhost base URL). Use `npm run e2e:dev -- --grep @a11y` to forward extra Playwright CLI args. Deployed beta: `npm run e2e:beta -- --grep @a11y` (or set `PLAYWRIGHT_BASE_URL` to another host; non-localhost skips the dev server).
+- **Manual cadence (not automated):**
+  - Quarterly: one pass with [Accessibility Insights for Web](https://accessibilityinsights.io/) against the live beta (or production) site.
+  - Before major releases: VoiceOver smoke on the sender happy path.
+  - Before facility pilots: at least one usability session with older-adult testers.
+- **Handling known issues:** prefer fixing. If a violation must be deferred, use `.exclude()` / `.disableRules()` on the specific scan call in the spec (not globally) and open a tracking issue.

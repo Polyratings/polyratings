@@ -1,21 +1,23 @@
 # Polyratings Playwright E2E
 
-These tests assume the app is already running locally from the repo root:
+**Local (default):** From the repo root, `npm run e2e` runs Playwright with `webServer` enabled: it starts the frontend in `packages/frontend` via `npm run start:local` and uses `http://localhost:5173`.
 
-1. In terminal 1: `npm run start:local`
-2. In terminal 2: `npm run e2e`
+**Beta:** From the repo root, `npm run e2e:beta` runs the same specs against [https://beta.polyratings.pages.dev/](https://beta.polyratings.pages.dev/) without starting a local server.
 
 Defaults:
 
-- Frontend base URL: `http://localhost:5173` (Vite default port)
+- Local frontend base URL: `http://localhost:5173` (Vite default port)
 - Backend API URL in local mode: `http://localhost:3001` (from `App.config`/generated backend env)
 
 Useful commands:
 
-- `npm run e2e` (run all tests)
+- `npm run e2e` (local, with dev server)
+- `npm run e2e:a11y` (WCAG 2.x A/AA axe scans; `@a11y` tag — see `docs/README.md`)
+- `npm run e2e:beta` (deployed beta frontend)
+- `npm run e2e:dev` (alias for running the e2e package’s `playwright test`; pass extra args after `--`)
 - `npm run e2e:ui` (open Playwright UI mode)
 - `npm run e2e:headed` (headed browser run)
 
-To target a different frontend host, set `PLAYWRIGHT_BASE_URL`:
+To target a different local frontend port or host, set `PLAYWRIGHT_BASE_URL` (must be `http://localhost:…` or `http://127.0.0.1:…` so Playwright still starts `webServer`):
 
 `PLAYWRIGHT_BASE_URL=http://localhost:4173 npm run e2e`
