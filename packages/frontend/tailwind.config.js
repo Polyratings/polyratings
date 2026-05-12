@@ -25,7 +25,7 @@ module.exports = {
                 "screen/5": "calc(100vh / 5)",
                 "screen3/5": "calc(100vh / 5 * 3)",
                 "screen4/5": "calc(100vh / 5 * 4)",
-                screenWoNav: "calc(100vh - 3rem)",
+                screenWoNav: "calc(100dvh - 3.5rem)",
             },
             screens: {
                 m2xl: { max: "1535px" },
@@ -43,7 +43,7 @@ module.exports = {
                 full: "100%",
             },
             minHeight: {
-                screenWoNav: "calc(100vh - 3rem)",
+                screenWoNav: "calc(100dvh - 3.5rem)",
             },
             minWidth: {
                 0: "0",
