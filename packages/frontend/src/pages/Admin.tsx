@@ -42,7 +42,7 @@ export function Admin() {
 
 function ReportedRatings() {
     const { data: ratingReports } = useDbValues("reports");
-    const { data: professorsResult } = trpc.professors.getMany.useQuery({
+    const { data: professorsResult } = trpc.admin.getProfessors.useQuery({
         ids: ratingReports?.map((report) => report.professorId) ?? [],
     });
     const professors = professorsResult?.professors;
@@ -116,7 +116,14 @@ function ReportedRatings() {
         {
             name: "Rating By",
             grow: 0.5,
-            selector: (row: RatingReport) => row.reports[0]?.anonymousIdentifier ?? "",
+            selector: (row: RatingReport) => {
+                const professor = professors?.find((p) => p?.id === row.professorId);
+                return (
+                    Object.values(professor?.reviews ?? {})
+                        .flat()
+                        .find((rating) => rating.id === row.ratingId)?.anonymousIdentifier ?? ""
+                );
+            },
         },
         {
             name: "Keep",

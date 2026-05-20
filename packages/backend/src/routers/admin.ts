@@ -3,7 +3,7 @@ import { z } from "zod";
 import { addRating } from "@backend/types/schemaHelpers";
 import { bulkKeys, DEPARTMENT_LIST } from "@backend/utils/const";
 import { TRPCError } from "@trpc/server";
-import { Professor, RatingReport } from "@backend/types/schema";
+import { Professor, professorParser, RatingReport } from "@backend/types/schema";
 
 const changeDepartmentParser = z.object({
     professorId: z.uuid(),
@@ -259,6 +259,23 @@ export const adminRouter = t.router({
         .mutation(({ ctx, input: { bulkKey, keys } }) =>
             ctx.env.kvDao.getBulkValues(bulkKey, keys),
         ),
+    getProfessors: protectedProcedure
+        .input(z.object({ ids: z.uuid().array() }))
+        .output(
+            z.object({
+                professors: professorParser.array(),
+                missingIds: z.uuid().array(),
+            }),
+        )
+        .query(async ({ input, ctx }) => {
+            const results = await Promise.all(
+                input.ids.map((id) => ctx.env.kvDao.getProfessorOptional(id)),
+            );
+            return {
+                professors: results.filter((p): p is Professor => p !== undefined),
+                missingIds: input.ids.filter((_, index) => !results[index]),
+            };
+        }),
     removeReport: protectedProcedure.input(z.uuid()).mutation(async ({ ctx, input }) => {
         await ctx.env.kvDao.removeReport(input);
     }),
