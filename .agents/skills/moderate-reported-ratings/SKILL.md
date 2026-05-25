@@ -18,7 +18,7 @@ Copy and track this checklist:
 
 ```
 - [ ] 1. Fetch the report queue
-- [ ] 2. Classify each report (KEEP / REMOVE / INVESTIGATE)
+- [ ] 2. Classify each report (KEEP / REMOVE / DEDUPE / INVESTIGATE)
 - [ ] 3. Investigate flagged-as-copy/fake reports
 - [ ] 4. Present decisions with rationale
 - [ ] 5. Execute removes (only after explicit user confirmation)
@@ -35,13 +35,14 @@ Apply [references/guidelines.md](references/guidelines.md) to each rating. Defau
 
 - **KEEP** — substantive review; the report objects to opinion/words, speculates, or is procedural only.
 - **REMOVE** — rating fails the value standard (name-calling only, off-topic, one-word hate, identifies third-party students, etc.).
-- **INVESTIGATE** — report alleges "copy/paste", "wrote this herself", or "fake" and the rating is a stark outlier against the professor's pattern. Go to step 3 before deciding.
+- **DEDUPE** — same anon posted matching text more than once on the same course (likely a star/text correction resubmit). Keep one canonical copy, remove the extras. See [references/guidelines.md](references/guidelines.md) § "Duplicate handling: DEDUPE vs spam".
+- **INVESTIGATE** — report alleges "copy/paste", "wrote this herself", or "fake" and the rating is a stark outlier against the professor's pattern; **or** duplicate text across **different course codes** (possible spam). Go to step 3 before deciding.
 
 ### 3. Investigation flow (for suspected fake/spam)
 
 Do all applicable steps, in parallel when possible:
 
-1. **Call `polyratings_admin_get_ratings_by_anon_id`** with the rating's `professorId` and `ratingBy` to find other ratings the same anon submitted on that professor. Matching text across courses is strong spam evidence.
+1. **Call `polyratings_admin_get_ratings_by_anon_id`** with the rating's `professorId` and `ratingBy` to find other ratings the same anon submitted on that professor. Matching text across **different courses** is strong spam evidence; matching text on the **same course** with different stars is usually DEDUPE.
    - Note: if this endpoint returns "No procedure found on path", the tRPC procedure isn't deployed yet — fall back to `polyratings_get_professor_ratings` and scan the `anonymousIdentifier` field client-side.
 2. **Call `polyratings_get_professor_ratings`** with the `professorId`. Look for:
    - Consensus pattern of all other reviews (e.g., uniformly negative).
@@ -51,13 +52,20 @@ Do all applicable steps, in parallel when possible:
 
 ### 4. Present decisions before acting
 
-Produce a table with: rating ID, professor/course, rating text (full), report reason(s), and rationale. Group by KEEP vs REMOVE. **Do not call remove/keep tools until the user confirms.** Moderation is destructive.
+Produce a table with: rating ID, professor/course, rating text (full), report reason(s), and rationale. Group by KEEP vs REMOVE vs DEDUPE. For DEDUPE clusters, state explicitly which rating ID to **keep** and which to **remove**. **Do not call remove/keep tools until the user confirms.** Moderation is destructive.
 
 ### 5. Execute removes
 
 For each REMOVE, call `polyratings_admin_remove_reported_rating` with the `ratingId`. This deletes the rating and clears its report entry.
 
-For duplicate-spam clusters where one copy is reported and another is not, use `polyratings_admin_remove_ratings_bulk` with the unreported duplicate's rating ID, the professor ID, and a clear `reason` citing the reported twin.
+For **duplicate spam** clusters where one copy is reported and another is not, use `polyratings_admin_remove_ratings_bulk` with the unreported duplicate's rating ID, the professor ID, and a clear `reason` citing the reported twin. Remove **every** copy in the cluster.
+
+For **DEDUPE** clusters (accidental same-course resubmit):
+
+1. Remove only the **extra** copy/copies (reported or unreported).
+2. If the extra is reported, use `polyratings_admin_remove_reported_rating`.
+3. If the extra is unreported, use `polyratings_admin_remove_ratings_bulk` with a reason citing the kept canonical copy.
+4. If the **kept** copy is the reported one, call `polyratings_admin_keep_reported_rating` on it to clear the queue entry.
 
 ### 6. Clear kept reports
 
@@ -72,7 +80,8 @@ See [references/guidelines.md](references/guidelines.md) for the full rubric. In
 - **Remove** name-calling-only, off-topic, cryptic/incoherent, or third-party-identifying content.
 - **Author self-deletion requests are ignored** per the FAQ — do not remove a rating solely because the author regrets posting it.
 - **Suspected self-review by the professor** requires evidence (community call-outs + outlier claims contradicting consensus), not just a contrarian star rating.
-- **Duplicate spam** (same anon, matching text, multiple rating entries for one professor) is always removed.
+- **Duplicate spam** (same anon, matching text across multiple courses or obvious farming) — remove all copies.
+- **Accidental duplicate** (same anon, same course, resubmit to fix stars) — **dedupe**: keep the best canonical copy, remove extras only.
 
 ## Tools reference
 

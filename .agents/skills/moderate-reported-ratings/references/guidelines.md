@@ -27,7 +27,8 @@ This means:
 | Sarcasm with stars that contradict the text, no substance | REMOVE | "I wish you luck in learning absolutely nothing" + 4/4/4 |
 | About appearance / personality quirks, not teaching | REMOVE | "dina and her bright neon orange cardigan against the world" |
 | Identifies a specific third-party student's behavior | REMOVE | Narratives about another student's actions that could identify them |
-| Confirmed duplicate (same anon, matching text, >1 rating) | REMOVE | Same author posts identical text under two course codes |
+| Duplicate spam (same anon, matching text, multiple courses or rapid reposts) | REMOVE all | Same author posts identical text under two course codes seconds apart |
+| Accidental duplicate (same anon, same course, resubmit to fix stars/text) | DEDUPE | Same text twice on one course with different star ratings — keep the intended copy, remove the extra |
 | Suspected professor self-review (see below) | INVESTIGATE → REMOVE if evidence | Stark positive outlier + community call-outs |
 | Author requests own deletion | KEEP | FAQ: "any requests to edit or delete comments will be ignored." |
 | Report reason is procedural only ("duplicate account", "wrong course") | KEEP | Not a content-based reason; doesn't affect the rating's value |
@@ -39,7 +40,7 @@ Reports alleging a review is fake, copy-paste, or a self-review need evidence, n
 
 ### Evidence that supports REMOVE
 
-1. **Duplicate text**: Same `anonymousIdentifier` posted the same or near-identical rating for the same professor under multiple course codes, often seconds apart.
+1. **Duplicate spam**: Same `anonymousIdentifier` posted the same or near-identical rating for the same professor under **multiple course codes**, often seconds apart — copy-paste farming, not an honest resubmit.
 2. **Explicit community call-outs**: Other reviewers (different anon IDs) independently name the suspect review as fake ("ignore the 5-star review", "she's writing the 4-star reviews herself").
 3. **Claim contradiction**: The suspect review makes specific positive claims that independent reviewers specifically contradict (e.g., "office hours help a lot" when dozens of students report being dismissed or ignored in office hours).
 4. **Rating/text mismatch inconsistent with sarcasm context**: e.g., max stars on a rating text that mocks the professor.
@@ -65,6 +66,36 @@ A review may describe the reviewer's own experience with the professor (KEEP-eli
 
 These are REMOVE regardless of how substantive the rest of the review is, because they expose a third party who had no opportunity to respond.
 
+## Duplicate handling: DEDUPE vs spam
+
+When the same `anonymousIdentifier` has more than one rating entry with matching or near-identical text, **do not remove all copies by default**. Substantive text may still be valuable — the issue is usually an extra row, not bad content.
+
+### DEDUPE (keep one, remove extras)
+
+Use when the duplicates look like an **accidental resubmit or correction**:
+
+- Same course, same professor, same text, **different star ratings** (student likely reposted to fix stars).
+- Same course with trivial text differences (whitespace, punctuation) and no cross-course pattern.
+- Report reason is "repeat rating" but content is substantive — treat as dedupe, not spam.
+
+**Which copy to keep:**
+
+1. Prefer the copy whose **stars match the review text** (e.g., harsh text + low stars).
+2. If stars are equally plausible, prefer the **later** submission when timestamps are available.
+3. If still ambiguous, **ask the user** which copy to keep before acting.
+
+**Which copies to remove:** every extra duplicate except the single canonical copy being kept.
+
+### REMOVE all (spam)
+
+Use when duplicates are **spam**, not an honest mistake:
+
+- Identical text posted under **different course codes** for the same professor (especially seconds apart).
+- Same anon posting the same boilerplate across many courses with no plausible reason to review each.
+- Duplicate clusters that exist only to inflate/deflate ratings, not to correct an error.
+
+In spam cases, remove **every** copy in the cluster.
+
 ## Output format for presenting decisions
 
 When presenting decisions to the user before acting:
@@ -77,6 +108,10 @@ When presenting decisions to the user before acting:
 ### REMOVE (N)
 | # | Rating ID | Professor / Course | Rationale |
 ...
+
+### DEDUPE (N clusters)
+| # | Keep (rating ID) | Remove (rating ID(s)) | Professor / Course | Rationale |
+...
 ```
 
 For each entry, also include the full rating text and each report reason so the user can verify before confirming destructive actions.
@@ -87,7 +122,9 @@ For each entry, also include the full rating text and each report reason so the 
 
 **Example B — REMOVE (self-review):** A 4/4/4 review of a professor with ~30 uniformly 0-star reviews, posted the same day another reviewer writes "She is writing the 4-star reviews for herself. RUN." The 4-star review specifically recommends office hours, which multiple other reviewers describe as hostile/dismissive. → REMOVE: community-flagged + claim contradiction + stark outlier.
 
-**Example C — REMOVE (duplicate spam):** Same `anonymousIdentifier` posted identical text under "ENGL 145" and "AEPS 145" for the same professor 41 seconds apart. → REMOVE the reported copy via `polyratings_admin_remove_reported_rating`, then REMOVE the unreported twin via `polyratings_admin_remove_ratings_bulk` with an audit reason.
+**Example C — REMOVE all (duplicate spam):** Same `anonymousIdentifier` posted identical text under "ENGL 145" and "AEPS 145" for the same professor 41 seconds apart. → REMOVE every copy: reported via `polyratings_admin_remove_reported_rating`, unreported twins via `polyratings_admin_remove_ratings_bulk` with an audit reason.
+
+**Example C2 — DEDUPE (accidental resubmit):** Same `anonymousIdentifier` posted identical substantive text twice on "BUS 391" with different star ratings (4/3/1 vs 1/0/0). Report says "Repeat rating and all text." → **Keep** the copy whose stars best match the text (here, the 1-star resubmit); **remove** the extra 4-star copy. Clear the report on the kept rating via `polyratings_admin_keep_reported_rating` if it was the reported row, or remove the reported duplicate if the reported row is the extra copy.
 
 **Example D — REMOVE (third-party):** Review of Prof X describes how "a student currently enrolled in his class drops by a different section's lab to sit on his desk and flirt with him." Identifies a third-party student's behavior. → REMOVE regardless of other merits.
 
