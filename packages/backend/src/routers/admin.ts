@@ -4,6 +4,12 @@ import { addRating } from "@backend/types/schemaHelpers";
 import { bulkKeys, DEPARTMENT_LIST } from "@backend/utils/const";
 import { TRPCError } from "@trpc/server";
 import { Professor, professorParser, RatingReport } from "@backend/types/schema";
+import {
+    bulkRatingDeletionNotification,
+    adminRatingDeletionNotification,
+    findRating,
+    findRatingCourse,
+} from "@backend/utils/discordNotifications";
 
 const changeDepartmentParser = z.object({
     professorId: z.uuid(),
@@ -29,8 +35,6 @@ const fixEscapedCharsParser = z.object({
         .max(250, "Separate your request into batches of 250 professors."),
 });
 
-const DISCORD_MESSAGE_MAX_LENGTH = 2000;
-const MAX_IDS_IN_AUDIT = 10;
 const MAX_REASON_LENGTH = 600;
 
 function getProfessorRatingIds(professor: Professor): Set<string> {
@@ -85,32 +89,6 @@ async function requireReport(
     return report;
 }
 
-function buildBulkDeletionAuditMessage(
-    username: string,
-    removed: number,
-    lastName: string,
-    firstName: string,
-    professorId: string,
-    ratingIds: string[],
-    reason: string,
-): string {
-    const adminPart = `Admin **${username}** removed **${removed}** rating(s)`;
-    const profPart = `from professor **${lastName}, ${firstName}** (${professorId}).`;
-    const firstIds = ratingIds.slice(0, MAX_IDS_IN_AUDIT).join(", ");
-    const idsSummary =
-        ratingIds.length <= MAX_IDS_IN_AUDIT
-            ? `Rating IDs: ${ratingIds.join(", ")}`
-            : `Rating IDs (first ${MAX_IDS_IN_AUDIT}): ${firstIds} (and ${ratingIds.length - MAX_IDS_IN_AUDIT} more)`;
-    const truncatedReason =
-        reason.length > MAX_REASON_LENGTH ? `${reason.slice(0, MAX_REASON_LENGTH)}…` : reason;
-    const reasonPart = `\nReason: ${truncatedReason}`;
-    let message = `${adminPart} ${profPart} ${idsSummary}${reasonPart}`;
-    if (message.length > DISCORD_MESSAGE_MAX_LENGTH) {
-        message = `${message.slice(0, DISCORD_MESSAGE_MAX_LENGTH - 3)}…`;
-    }
-    return message;
-}
-
 async function removeReportBestEffort(
     kvDao: { removeReport(ratingId: string): Promise<void> },
     ratingId: string,
@@ -134,8 +112,15 @@ export const adminRouter = t.router({
                     message: `Rating with id ${ratingId} does not exist on professor ${professorId}.`,
                 });
             }
+            const rating = findRating(professor.reviews, ratingId);
+            const course = findRatingCourse(professor.reviews, ratingId) ?? "Unknown course";
             await ctx.env.kvDao.removeRatingWithProfessor(professor, ratingId);
             await removeReportBestEffort(ctx.env.kvDao, ratingId);
+            if (rating) {
+                await ctx.env.notificationDAO.notify(
+                    adminRatingDeletionNotification(ctx.user!.username, professor, course, rating),
+                );
+            }
         }),
     removeRatingsBulk: protectedProcedure
         .input(
@@ -169,16 +154,15 @@ export const adminRouter = t.router({
             await Promise.all(
                 removedRatingIds.map((ratingId) => removeReportBestEffort(ctx.env.kvDao, ratingId)),
             );
-            const auditMessage = buildBulkDeletionAuditMessage(
-                ctx.user!.username,
-                removed,
-                professor.lastName,
-                professor.firstName,
-                professorId,
-                removedRatingIds,
-                reason,
+            await ctx.env.notificationDAO.notify(
+                bulkRatingDeletionNotification(
+                    ctx.user!.username,
+                    removed,
+                    professor,
+                    removedRatingIds,
+                    reason,
+                ),
             );
-            await ctx.env.notificationDAO.notify("Bulk Rating Deletion", auditMessage);
         }),
     getPendingProfessors: protectedProcedure.query(({ ctx }) =>
         ctx.env.kvDao.getAllPendingProfessors(),

@@ -13,6 +13,11 @@ import { DEPARTMENT_LIST } from "@backend/utils/const";
 import { Env } from "@backend/env";
 import type { Moderation } from "openai/resources/moderations";
 import { checkModerationThresholds } from "@backend/utils/moderation";
+import {
+    autoDeletedRatingNotification,
+    findRatingCourse,
+    ratingReportNotification,
+} from "@backend/utils/discordNotifications";
 
 const addRatingParser = ratingBaseParser.extend({
     professor: z.uuid(),
@@ -114,6 +119,7 @@ export const ratingsRouter = t.router({
                 // If the rating no longer exists, ignore the report.
                 return;
             }
+            const course = findRatingCourse(professor.reviews, input.ratingId) ?? "Unknown course";
             const anonymousIdentifier = await ctx.env.anonymousIdDao.getIdentifier();
 
             const ratingReport: RatingReport = {
@@ -154,11 +160,14 @@ export const ratingsRouter = t.router({
                         );
                         await ctx.env.kvDao.removeReport(ratingReport.ratingId);
                         await ctx.env.notificationDAO.notify(
-                            "Report: Auto-Deleted (Moderation)",
-                            `Rating ID: ${ratingReport.ratingId} was reported and failed moderation.\n` +
-                                `Professor ID: ${ratingReport.professorId}\n` +
-                                `Reason: ${violation.reason}\n` +
-                                `Rating (deleted): ${rating.rating}`,
+                            autoDeletedRatingNotification(
+                                professor,
+                                course,
+                                rating,
+                                violation.reason,
+                                ratingReport.reports[0].reason,
+                                ratingReport.reports[0].anonymousIdentifier ?? "Unknown",
+                            ),
                         );
                         return;
                     }
@@ -166,12 +175,13 @@ export const ratingsRouter = t.router({
             }
 
             await ctx.env.notificationDAO.notify(
-                "Received A Report",
-                `Rating ID: ${ratingReport.ratingId}\n` +
-                    `Submitter: ${ratingReport.reports[0].anonymousIdentifier}\n` +
-                    `Professor ID: ${ratingReport.professorId}\n` +
-                    `Reason: ${ratingReport.reports[0].reason}\n` +
-                    `Rating: ${rating.rating}`,
+                ratingReportNotification(
+                    professor,
+                    course,
+                    rating,
+                    ratingReport.reports[0].reason,
+                    ratingReport.reports[0].anonymousIdentifier ?? "Unknown",
+                ),
             );
         }),
 });

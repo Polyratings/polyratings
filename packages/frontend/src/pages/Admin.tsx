@@ -6,6 +6,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { ExpanderComponentProps, TableProps } from "react-data-table-component";
 import { Department, DEPARTMENT_LIST } from "@backend/utils/const";
 import { ArrowTopRightOnSquareIcon } from "@heroicons/react/24/solid";
+import { Navigate } from "react-router";
 import { useAuth } from "@/hooks";
 import { trpc } from "@/trpc";
 import { bulkInvalidationKey, useDbValues } from "@/hooks/useDbValues";
@@ -26,7 +27,10 @@ function DataTable<T>({ ...rest }: TableProps<T>) {
 
 export function Admin() {
     const { isAuthenticated } = useAuth();
-    return isAuthenticated ? (
+    if (!isAuthenticated) {
+        return <Navigate to="/login" replace />;
+    }
+    return (
         <div>
             <h1 className="text-center text-6xl font-semibold my-4">Polyratings Admin Panel</h1>
             <div className="container m-auto text-lg">
@@ -35,8 +39,6 @@ export function Admin() {
                 <ProcessedRatings />
             </div>
         </div>
-    ) : (
-        <div>In order to use the admin panel you must be authenticated</div>
     );
 }
 
