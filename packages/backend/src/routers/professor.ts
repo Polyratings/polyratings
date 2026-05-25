@@ -9,6 +9,7 @@ import {
 } from "@backend/types/schema";
 import { DEPARTMENT_LIST } from "@backend/utils/const";
 import { addRating as addRatingToProfessor } from "@backend/types/schemaHelpers";
+import { pendingProfessorNotification } from "@backend/utils/discordNotifications";
 import { addRating } from "./rating";
 
 export const professorRouter = t.router({
@@ -107,12 +108,17 @@ export const professorRouter = t.router({
             } else {
                 await ctx.env.kvDao.putPendingProfessor(professor);
 
+                const [[courseName]] = Object.entries(professor.reviews);
                 const allPending = await ctx.env.kvDao.getAllPendingProfessors();
                 await ctx.env.notificationDAO.notify(
-                    "Pending Professor Notification",
-                    `Professor ${professor.firstName} ${professor.lastName} ` +
-                        `with id: ${professor.id} is waiting for approval!\n` +
-                        `There is currently ${allPending.length} in the approval queue`,
+                    pendingProfessorNotification(
+                        professor.firstName,
+                        professor.lastName,
+                        professor.id,
+                        professor.department,
+                        courseName,
+                        allPending.length,
+                    ),
                 );
             }
 
