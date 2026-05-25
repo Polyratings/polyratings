@@ -146,40 +146,7 @@ export function removeRatingsBulk(professor: Professor, ratingIds: string[]): nu
         );
     }
 
-    for (const rating of removedRatings) {
-        for (const tag of rating.tags ?? []) {
-            const current = professor.tags![tag] ?? 0;
-            professor.tags![tag] = Math.max(0, current - 1);
-        }
-    }
-
-    const oldNumEvals = professor.numEvals;
-    const newNumEvals = oldNumEvals - removedRatings.length;
-    if (newNumEvals <= 0) {
-        professor.numEvals = 0;
-        professor.materialClear = 0;
-        professor.studentDifficulties = 0;
-        professor.overallRating = 0;
-        return removedRatings.length;
-    }
-
-    const sumMaterial = removedRatings.reduce((s, r) => s + r.presentsMaterialClearly, 0);
-    const sumStudentDiff = removedRatings.reduce((s, r) => s + r.recognizesStudentDifficulties, 0);
-    const sumOverall = removedRatings.reduce((s, r) => s + r.overallRating, 0);
-
-    professor.numEvals = newNumEvals;
-    professor.materialClear = roundToPrecision(
-        (professor.materialClear * oldNumEvals - sumMaterial) / newNumEvals,
-        2,
-    );
-    professor.studentDifficulties = roundToPrecision(
-        (professor.studentDifficulties * oldNumEvals - sumStudentDiff) / newNumEvals,
-        2,
-    );
-    professor.overallRating = roundToPrecision(
-        (professor.overallRating * oldNumEvals - sumOverall) / newNumEvals,
-        2,
-    );
+    recomputeProfessorAggregates(professor);
     return removedRatings.length;
 }
 
@@ -205,6 +172,45 @@ export function professorToTruncatedProfessor({
         materialClear,
         studentDifficulties,
     };
+}
+
+/** Recompute aggregate stats and tag counts from remaining reviews (fixes drift after bulk deletes). */
+export function recomputeProfessorAggregates(professor: Professor): void {
+    const all: Rating[] = [];
+    for (const courseName of Object.keys(professor.reviews)) {
+        all.push(...professor.reviews[courseName]);
+    }
+    professor.courses = Object.keys(professor.reviews);
+
+    professor.tags = {};
+    for (const rating of all) {
+        for (const tag of rating.tags ?? []) {
+            professor.tags![tag] = (professor.tags![tag] ?? 0) + 1;
+        }
+    }
+
+    if (all.length === 0) {
+        professor.numEvals = 0;
+        professor.overallRating = 0;
+        professor.materialClear = 0;
+        professor.studentDifficulties = 0;
+        return;
+    }
+
+    const n = all.length;
+    professor.numEvals = n;
+    professor.overallRating = roundToPrecision(
+        all.reduce((sum, r) => sum + r.overallRating, 0) / n,
+        2,
+    );
+    professor.materialClear = roundToPrecision(
+        all.reduce((sum, r) => sum + r.presentsMaterialClearly, 0) / n,
+        2,
+    );
+    professor.studentDifficulties = roundToPrecision(
+        all.reduce((sum, r) => sum + r.recognizesStudentDifficulties, 0) / n,
+        2,
+    );
 }
 
 function roundToPrecision(roundingTarget: number, precision: number) {
