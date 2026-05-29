@@ -12,12 +12,13 @@ import { persistQueryClient } from "@tanstack/react-query-persist-client";
 import { useMemo, useState } from "react";
 import {
     Home,
-    ProfessorPage,
+    ProfessorPageRoute,
     Login,
     NewProfessor,
     About,
     Admin,
     FAQ,
+    NotFoundRedirect,
     professorPageLoaderFactory,
     SearchWrapper,
 } from "./pages";
@@ -84,23 +85,28 @@ export default function App() {
 function PolyratingsRouter() {
     const trpcContext = trpc.useUtils();
 
-    const router = createBrowserRouter(
-        createRoutesFromElements(
-            <Route path="/" element={<BaseComponent />}>
-                <Route index element={<Home />} />
-                <Route
-                    path="professor/:id"
-                    element={<ProfessorPage />}
-                    loader={professorPageLoaderFactory(trpcContext)}
-                />
-                <Route path="search/:searchType" element={<SearchWrapper />} />
-                <Route path="login" element={<Login />} />
-                <Route path="new-professor" element={<NewProfessor />} />
-                <Route path="about" element={<About />} />
-                <Route path="admin" element={<Admin />} />
-                <Route path="faq" element={<FAQ />} />
-            </Route>,
-        ),
+    const router = useMemo(
+        () =>
+            createBrowserRouter(
+                createRoutesFromElements(
+                    <Route path="/" element={<BaseComponent />}>
+                        <Route index element={<Home />} />
+                        <Route
+                            path="professor/:id"
+                            element={<ProfessorPageRoute />}
+                            loader={professorPageLoaderFactory(trpcContext)}
+                        />
+                        <Route path="search/:searchType" element={<SearchWrapper />} />
+                        <Route path="login" element={<Login />} />
+                        <Route path="new-professor" element={<NewProfessor />} />
+                        <Route path="about" element={<About />} />
+                        <Route path="admin" element={<Admin />} />
+                        <Route path="faq" element={<FAQ />} />
+                        <Route path="*" element={<NotFoundRedirect />} />
+                    </Route>,
+                ),
+            ),
+        [trpcContext],
     );
 
     return <RouterProvider router={router} />;
@@ -110,7 +116,7 @@ function BaseComponent() {
     return (
         <>
             <ScrollRestoration />
-            <ToastContainer />
+            <ToastContainer pauseOnFocusLoss={false} pauseOnHover={false} />
             <Navbar />
             <Outlet />
         </>
