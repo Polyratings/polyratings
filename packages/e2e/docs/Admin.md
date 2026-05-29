@@ -16,17 +16,18 @@ The admin route exposes moderation surfaces for pending professors, reported rat
 | ------- | ------------------------------------------------------------------------------------------------ | -------- |
 | ADMIN-1 | Authenticated users visiting `/admin` see "Polyratings Admin Panel" heading                      | Must     |
 | ADMIN-2 | Authenticated users see sections for Pending Professors, Reported Ratings, and Processed Ratings | Must     |
-| ADMIN-3 | Unauthenticated users visiting `/admin` see access-gated messaging                               | Must     |
+| ADMIN-3 | Unauthenticated users visiting `/admin` redirect to `/login` without admin panel content         | Must     |
 
 ## Test Scenarios
 
 | Scenario                                            | Criteria Covered    | Spec            | Status      |
 | --------------------------------------------------- | ------------------- | --------------- | ----------- |
 | Admin panel sections are visible when authenticated | ADMIN-1 and ADMIN-2 | `admin.spec.ts` | Planned     |
-| Access-gated message appears when unauthenticated   | ADMIN-3             | `admin.spec.ts` | Implemented |
+| Unauthenticated visit redirects to login          | ADMIN-3             | `admin.spec.ts` | Implemented |
 
 ## Implementation
 
 - **Spec file:** `packages/e2e/src/admin.spec.ts`
-- **Implemented tests:** `ADMIN: access-gated message appears when unauthenticated`
+- **Implemented tests:** `ADMIN: unauthenticated users redirect to login`
+- **Frontend route handling:** `packages/frontend/src/pages/Admin.tsx` redirects unauthenticated users with `<Navigate to="/login" replace />`
 - **Status:** Partially implemented
