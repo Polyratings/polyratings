@@ -1,6 +1,6 @@
 /* eslint-disable react/no-unstable-nested-components */
 import { type ChangeEvent, Fragment, type FormEvent, useEffect, useState } from "react";
-import { IndexRouteObject, useNavigate, useParams } from "react-router";
+import { IndexRouteObject, useLoaderData, useNavigate, useParams } from "react-router";
 import AnimateHeight from "react-animate-height";
 import AnchorLink from "react-anchor-link-smooth-scroll";
 import StarRatings from "react-star-ratings";
@@ -10,6 +10,7 @@ import { FlagIcon, LockClosedIcon, LockOpenIcon } from "@heroicons/react/24/outl
 import { z } from "zod";
 import { SubmitHandler, useForm } from "react-hook-form";
 import { toast } from "react-toastify";
+import { TRPCClientError } from "@trpc/client";
 import { inferProcedureOutput } from "@trpc/server";
 import { AppRouter } from "@backend/index";
 import { InView } from "react-intersection-observer";
@@ -24,13 +25,45 @@ import { trpc } from "@/trpc";
 import { REACT_MODAL_STYLES } from "@/constants";
 import { Button } from "@/components/forms/Button";
 import { useAuth, useSortedCourses } from "@/hooks";
+import { NotFoundRedirect } from "./NotFoundRedirect";
 
 type ValueOf<T> = T[keyof T];
 
+type ProfessorPageLoaderData = { notFound: true } | { notFound: false };
+
+function isProfessorNotFoundError(error: unknown): boolean {
+    return error instanceof TRPCClientError && error.data?.code === "NOT_FOUND";
+}
+
+export function ProfessorPageRoute() {
+    const loaderData = useLoaderData() as ProfessorPageLoaderData;
+
+    if (loaderData.notFound) {
+        return <NotFoundRedirect variant="professor" />;
+    }
+
+    return <ProfessorPage />;
+}
+
 export function professorPageLoaderFactory(trpcContext: ReturnType<(typeof trpc)["useUtils"]>) {
-    const professorPageLoader: IndexRouteObject["loader"] = ({ params }) =>
-        trpcContext.professors.get.getData({ id: params.id ?? "" }) ??
-        trpcContext.professors.get.fetch({ id: params.id ?? "" });
+    const professorPageLoader: IndexRouteObject["loader"] = async ({ params }) => {
+        const id = params.id ?? "";
+
+        if (!z.uuid().safeParse(id).success) {
+            return { notFound: true } satisfies ProfessorPageLoaderData;
+        }
+
+        try {
+            await (trpcContext.professors.get.getData({ id }) ??
+                trpcContext.professors.get.fetch({ id }));
+            return { notFound: false } satisfies ProfessorPageLoaderData;
+        } catch (error) {
+            if (isProfessorNotFoundError(error)) {
+                return { notFound: true } satisfies ProfessorPageLoaderData;
+            }
+            throw error;
+        }
+    };
 
     return professorPageLoader;
 }
