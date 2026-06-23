@@ -3,6 +3,11 @@ import { createRoot } from "react-dom/client";
 import "./index.css";
 import Modal from "react-modal";
 import App from "./App";
+import { initSentry } from "./sentry";
+
+if (process.env.NODE_ENV === "production") {
+    initSentry();
+}
 
 Modal.setAppElement("#root");
 
