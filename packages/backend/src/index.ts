@@ -1,3 +1,4 @@
+/// <reference types="@cloudflare/workers-types" />
 import { CloudflareEnv, Env, getCloudflareEnv } from "@backend/env";
 import { Toucan } from "toucan-js";
 import { fetchRequestHandler } from "@trpc/server/adapters/fetch";

@@ -303,10 +303,7 @@ function EvaluateProfessorStep({
 }
 
 type TagSelectionVariant =
-    | "desktop-primary"
-    | "desktop-secondary"
-    | "mobile-primary"
-    | "mobile-secondary";
+    "desktop-primary" | "desktop-secondary" | "mobile-primary" | "mobile-secondary";
 
 export type TagSelectionProps = {
     onChange: (tags: string[]) => void;

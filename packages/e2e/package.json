@@ -11,8 +11,8 @@
         "e2e:install": "playwright install chromium"
     },
     "devDependencies": {
-        "@axe-core/playwright": "^4.11.0",
-        "@playwright/test": "^1.59.1",
+        "@axe-core/playwright": "^4.13.0",
+        "@playwright/test": "^1.62.1",
         "axe-core": "^4.10.3"
     }
 }

@@ -32,6 +32,7 @@ Per-test customization uses `scanForA11yViolations((builder) => ...)` or builds 
 | [Search.md](./Search.md)                           | Search no-results fallback flow                                    | `src/search.spec.ts`             | Implemented           |
 | [PublicAccessibility.md](./PublicAccessibility.md) | WCAG scan baseline for public routes                               | `src/a11y/public-routes.spec.ts` | Implemented           |
 | [ProfessorPage.md](./ProfessorPage.md)             | Professor profile, ratings visibility, and evaluation entry points | `src/professor-page.spec.ts`     | Partially implemented |
+| [NotFound.md](./NotFound.md)                       | Unknown routes and missing professors redirect home                | `src/not-found-redirect.spec.ts` | Implemented           |
 | [NewProfessor.md](./NewProfessor.md)               | Add-a-professor submission flow                                    | `src/new-professor.spec.ts`      | Implemented           |
 | [Login.md](./Login.md)                             | Admin login form and redirect behavior                             | `src/login.spec.ts`              | Partially implemented |
 | [Admin.md](./Admin.md)                             | Admin panel access and moderation surfaces                         | `src/admin.spec.ts`              | Partially implemented |
