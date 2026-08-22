@@ -14,6 +14,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useEffect } from "react";
 import { ClipLoader } from "react-spinners";
 import { trpc } from "@/trpc";
+import { getApiErrorMessage } from "@/utils";
 import { Checkbox, Select, TextArea, TextInput } from "./forms";
 import {
     CLASS_INFORMATION,
@@ -73,7 +74,11 @@ export function NewProfessorFormTwoStep() {
                     triggerValidation={triggerValidation}
                 />
 
-                <div className="text-red-500 text-sm">{networkError?.message}</div>
+                <div className="text-red-500 text-sm">
+                    {networkError
+                        ? getApiErrorMessage(networkError, "We could not add this professor.")
+                        : null}
+                </div>
             </form>
         </div>
     );
@@ -111,7 +116,11 @@ export function NewProfessorLinear() {
                     <ClipLoader color="white" loading={isLoading} size={34} />
                 </div>
 
-                <div className="text-red-500 text-sm">{networkError?.message}</div>
+                <div className="text-red-500 text-sm">
+                    {networkError
+                        ? getApiErrorMessage(networkError, "We could not add this professor.")
+                        : null}
+                </div>
             </form>
         </div>
     );
@@ -130,7 +139,10 @@ function useNewProfessorForm() {
         mutateAsync: addNewProfessorMutation,
         isPending,
         error: networkError,
-    } = trpc.professors.add.useMutation();
+    } = trpc.professors.add.useMutation({
+        // Keep mutation errors rendered inline via networkError.
+        meta: { suppressGlobalErrorToast: true },
+    });
     const navigate = useNavigate();
 
     const utils = trpc.useUtils();

@@ -40,7 +40,9 @@ export interface FilterState {
 // eslint-disable-next-line react/function-component-definition
 export function Filters({ unfilteredProfessors, onUpdate, className }: FilterProps) {
     // Get all Professors to calculate states
-    const { data: allProfessors } = trpc.professors.all.useQuery();
+    const { data: allProfessors } = trpc.professors.all.useQuery(undefined, {
+        meta: { suppressGlobalErrorToast: true },
+    });
 
     const getEvaluationDomain = (): [number, number] => [
         Math.min(...(allProfessors?.map((professor) => professor.numEvals) ?? [1])),
