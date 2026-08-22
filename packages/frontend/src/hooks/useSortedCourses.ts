@@ -10,9 +10,12 @@ export interface CourseRatings {
 }
 
 export function useSortedCourses(professorId: string | undefined) {
-    const { data: professorData } = trpc.professors.get.useQuery({
-        id: professorId ?? "",
-    });
+    const { data: professorData } = trpc.professors.get.useQuery(
+        {
+            id: professorId ?? "",
+        },
+        { meta: { suppressGlobalErrorToast: true } },
+    );
 
     // Put classes for professors primary department first. This is to cut down on rating spamming
     // of other departments. It is possible for a professor to teach outside of the department but

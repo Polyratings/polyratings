@@ -142,7 +142,9 @@ function SearchBase({
     className = "",
     inputClassName = "",
 }: SearchBaseProps) {
-    const { data: allProfessors } = trpc.professors.all.useQuery();
+    const { data: allProfessors } = trpc.professors.all.useQuery(undefined, {
+        meta: { suppressGlobalErrorToast: true },
+    });
     const navigate = useNavigate();
 
     const onFormSubmit = (e: React.FormEvent<HTMLFormElement>) => {

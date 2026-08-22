@@ -1,7 +1,7 @@
 import { initTRPC, TRPCError } from "@trpc/server";
 import { Env } from "./env";
 
-type Context = {
+export type Context = {
     env: Env;
     user?: {
         username: string;
@@ -17,13 +17,16 @@ const normalizeUnknownErrors = t.middleware(async ({ next, path, type }) => {
         if (error instanceof TRPCError) {
             throw error;
         }
+        // Log path/type and a short summary only — the raw throw can include
+        // rating text or SDK payloads. Attach the original error as `cause`
+        // so Sentry still sees the stack.
+        const summary = error instanceof Error ? error.message : typeof error;
+        // eslint-disable-next-line no-console
+        console.error(`Unhandled error in ${type} ${path}: ${summary}`);
         throw new TRPCError({
             code: "INTERNAL_SERVER_ERROR",
             message: "Something went wrong. Please try again.",
-            cause:
-                error instanceof Error
-                    ? new Error(`Unhandled error in ${type} ${path}`, { cause: error })
-                    : error,
+            cause: error,
         });
     }
 });
