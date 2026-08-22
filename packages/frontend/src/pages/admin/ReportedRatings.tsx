@@ -3,7 +3,7 @@ import { Professor, RatingReport } from "@backend/types/schema";
 import { DEPARTMENT_LIST } from "@backend/utils/const";
 import { useQueryClient } from "@tanstack/react-query";
 import { ShieldCheck, Trash2 } from "lucide-react";
-import { InlineQueryState, Select } from "@/components";
+import { Button, InlineQueryState, Select } from "@/components";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import {
@@ -14,6 +14,7 @@ import {
     TableHeader,
     TableRow,
 } from "@/components/ui/table";
+import { useAuditRunner } from "@/hooks";
 import { bulkInvalidationKey, useDbValues } from "@/hooks/useDbValues";
 import { trpc } from "@/trpc";
 import { cn, toSelectOptions } from "@/utils";
@@ -32,6 +33,16 @@ import {
     getAdminTablePage,
     tableSurfaceClassName,
 } from "@/pages/admin/shared";
+
+const DUPLICATE_RANGE_OPTIONS = [
+    { value: "43200", label: "12 hours" },
+    { value: "86400", label: "1 day" },
+    { value: "172800", label: "2 days" },
+    { value: "259200", label: "3 days" },
+    { value: "604800", label: "7 days" },
+    { value: "1209600", label: "14 days" },
+    { value: "2592000", label: "30 days" },
+] as const;
 
 function findProfessor(professors: Professor[] | undefined, professorId: string) {
     return professors?.find((professor) => professor.id === professorId);
@@ -74,6 +85,36 @@ export function ReportedRatings() {
     const [page, setPage] = useState(0);
     const [search, setSearch] = useState("");
     const [department, setDepartment] = useState("");
+    const [rangeSeconds, setRangeSeconds] = useState(86400);
+    const duplicateMutation = trpc.admin.autoReportDuplicateUsers.useMutation({
+        onSuccess: () =>
+            queryClient.invalidateQueries({ queryKey: bulkInvalidationKey("reports") }),
+    });
+    const moderationMutation = trpc.admin.autoReportContentModeration.useMutation({
+        onSuccess: () =>
+            queryClient.invalidateQueries({ queryKey: bulkInvalidationKey("reports") }),
+    });
+    const duplicateAudit = useAuditRunner({
+        mutate: (input) =>
+            duplicateMutation.mutateAsync({
+                ...input,
+                withinSeconds: rangeSeconds,
+                rangeLabel:
+                    DUPLICATE_RANGE_OPTIONS.find((o) => o.value === String(rangeSeconds))?.label ??
+                    "1 day",
+            }),
+        isPending: duplicateMutation.isPending,
+        getMetricCount: (result) => result.duplicatesFound,
+        completeMessage: (processed, count) =>
+            `Processed ${processed} professors, found ${count} duplicate ratings.`,
+    });
+    const moderationAudit = useAuditRunner({
+        mutate: moderationMutation.mutateAsync,
+        isPending: moderationMutation.isPending,
+        getMetricCount: (result) => result.moderationFlagged,
+        completeMessage: (processed, count) =>
+            `Processed ${processed} professors, found ${count} ratings to flag.`,
+    });
 
     const reportsBlocked = !ratingReports && (reportsPending || Boolean(reportsError));
     const professorsBlocked = !professorsResult && (professorsPending || Boolean(professorsError));
@@ -162,6 +203,47 @@ export function ReportedRatings() {
                         wrapperClassName="w-full"
                     />
                 </div>
+            </div>
+            <div className="mb-4 space-y-4 rounded-lg border border-input bg-muted/40 p-4">
+                <div className="flex flex-col gap-3 sm:flex-row sm:items-end">
+                    <Select
+                        label="Duplicate time range"
+                        value={String(rangeSeconds)}
+                        onChange={(e) => setRangeSeconds(Number(e.target.value))}
+                        options={[...DUPLICATE_RANGE_OPTIONS]}
+                        disabled={
+                            duplicateAudit.progress.isRunning || duplicateAudit.progress.isPaused
+                        }
+                        wrapperClassName="w-full sm:w-48"
+                    />
+                </div>
+                <AuditControls
+                    progress={duplicateAudit.progress}
+                    onRun={() => void duplicateAudit.runAudit()}
+                    onPause={duplicateAudit.pauseAudit}
+                    onResume={() =>
+                        void duplicateAudit.runAudit(
+                            duplicateAudit.progress.nextCursor ?? undefined,
+                        )
+                    }
+                    isPending={duplicateAudit.isPending}
+                    runLabel="Run full duplicate audit"
+                    metricLabel="Duplicates found"
+                />
+                <Separator />
+                <AuditControls
+                    progress={moderationAudit.progress}
+                    onRun={() => void moderationAudit.runAudit()}
+                    onPause={moderationAudit.pauseAudit}
+                    onResume={() =>
+                        void moderationAudit.runAudit(
+                            moderationAudit.progress.nextCursor ?? undefined,
+                        )
+                    }
+                    isPending={moderationAudit.isPending}
+                    runLabel="Run content moderation audit"
+                    metricLabel="Ratings flagged"
+                />
             </div>
             <div className={tableSurfaceClassName}>
                 <Table aria-label="Reported Ratings">
@@ -302,5 +384,106 @@ export function ReportedRatings() {
                 />
             </div>
         </AdminSection>
+    );
+}
+
+type AuditProgress = {
+    isRunning: boolean;
+    isPaused: boolean;
+    processedCount: number;
+    totalProfessors: number;
+    metricCount: number;
+    nextCursor: string | null;
+    message: string;
+};
+
+function AuditControls({
+    progress,
+    onRun,
+    onPause,
+    onResume,
+    isPending,
+    runLabel,
+    metricLabel,
+}: {
+    progress: AuditProgress;
+    onRun: () => void;
+    onPause: () => void;
+    onResume: () => void;
+    isPending: boolean;
+    runLabel: string;
+    metricLabel: string;
+}) {
+    return (
+        <div className="space-y-2">
+            <div className="flex flex-wrap items-center gap-2">
+                <Button
+                    type="button"
+                    onClick={onRun}
+                    disabled={progress.isRunning || progress.isPaused || isPending}
+                >
+                    {progress.isRunning ? "Running audit…" : runLabel}
+                </Button>
+                {progress.isRunning ? (
+                    <Button type="button" variant="outline" onClick={onPause}>
+                        Pause
+                    </Button>
+                ) : null}
+                {progress.isPaused ? (
+                    <Button type="button" variant="outline" onClick={onResume}>
+                        Resume
+                    </Button>
+                ) : null}
+            </div>
+            {progress.processedCount > 0 || progress.isRunning ? (
+                <AuditProgressDisplay
+                    processedCount={progress.processedCount}
+                    totalProfessors={progress.totalProfessors}
+                    metricLabel={metricLabel}
+                    metricCount={progress.metricCount}
+                    isRunning={progress.isRunning}
+                    message={progress.message}
+                />
+            ) : null}
+        </div>
+    );
+}
+
+function AuditProgressDisplay({
+    processedCount,
+    totalProfessors,
+    metricLabel,
+    metricCount,
+    isRunning,
+    message,
+}: {
+    processedCount: number;
+    totalProfessors: number;
+    metricLabel: string;
+    metricCount: number;
+    isRunning: boolean;
+    message: string;
+}) {
+    const progressPercent = totalProfessors > 0 ? (processedCount / totalProfessors) * 100 : 0;
+
+    return (
+        <div className="space-y-1 text-sm text-muted-foreground">
+            <div>
+                Progress: {processedCount} / {totalProfessors} professors (
+                {Math.round(progressPercent)}%)
+            </div>
+            <div>
+                {metricLabel}: {metricCount}
+            </div>
+            {isRunning ? (
+                <div className="h-2 w-full rounded-full bg-muted">
+                    <div
+                        className="h-2 rounded-full bg-brand transition-all duration-300"
+                        style={{ width: `${progressPercent}%` }}
+                    />
+                </div>
+            ) : null}
+            <div>{message}</div>
+        </div>
     );
 }
