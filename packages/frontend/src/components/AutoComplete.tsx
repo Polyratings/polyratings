@@ -88,11 +88,11 @@ export function AutoComplete<T, U>({
     return (
         <div className={`relative ${className}`}>
             <input
-                aria-label={label}
                 className={`p-2 w-full h-full outline-hidden bg-white ${inputClassName}`}
                 type="text"
                 placeholder={placeholder}
                 {...getInputProps({
+                    "aria-label": label,
                     onKeyDown: (event) => {
                         if (event.key === "Enter" && highlightedIndex === -1) {
                             // eslint-disable-next-line @typescript-eslint/no-explicit-any
