@@ -7,11 +7,15 @@ import homeCurveTransition from "@/assets/home-curve-transition.svg";
 import homeTags from "@/assets/home-tags.svg";
 import homeProfessorSummary from "@/assets/home-professor-summary.svg";
 import worstOfWorstBackground from "@/assets/worst-of-worst-background.webp";
-import { SearchBar, ProfessorCard, SearchState } from "@/components";
+import { InlineQueryState, SearchBar, ProfessorCard, SearchState } from "@/components";
 import { trpc } from "@/trpc";
 
 export function Home() {
-    const { data: allProfessors } = trpc.professors.all.useQuery();
+    const {
+        data: allProfessors,
+        isPending: isProfessorsPending,
+        error: professorsError,
+    } = trpc.professors.all.useQuery(undefined, { meta: { suppressGlobalErrorToast: true } });
 
     const bestOfTheBest = allProfessors ? getBestProfessors(allProfessors) : [];
 
@@ -85,6 +89,14 @@ export function Home() {
                 <h2 className="text-white font-semibold text-8xl xl:text-9xl text-center pt-40">
                     Best of the Best
                 </h2>
+                <InlineQueryState
+                    isPending={isProfessorsPending && !allProfessors}
+                    error={professorsError}
+                    loadingMessage="Loading top professors..."
+                    fallbackErrorMessage="Unable to load top professors. Please try again."
+                    loadingClassName="text-white text-xl text-center mt-8"
+                    errorClassName="text-red-200 text-xl text-center mt-8"
+                />
                 <div className="grid grid-cols-2 gap-y-14 m-auto mt-20 gap-x-12 xl:gap-x-24 w-240 xl:w-260">
                     {bestOfTheBest.map((professor) => (
                         <ProfessorCard key={professor.id} professor={professor} />

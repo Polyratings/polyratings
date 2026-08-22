@@ -18,6 +18,7 @@ import { AppRouter } from "@backend/index";
 import { UserIcon } from "@heroicons/react/24/solid";
 import { ReactElement, useState } from "react";
 import { trpc } from "@/trpc";
+import { getApiErrorMessage } from "@/utils";
 import { Select, TextArea } from "./forms";
 import { TextInput } from "./forms/TextInput";
 import { Button } from "./forms/Button";
@@ -70,7 +71,11 @@ export function TwoStepEvaluateProfessor({ professor, closeForm }: EvaluateProfe
                 triggerValidation={triggerValidation}
             />
 
-            <div className="text-red-500 text-sm">{networkError?.message}</div>
+            <div className="text-red-500 text-sm">
+                {networkError
+                    ? getApiErrorMessage(networkError, "We could not submit this rating.")
+                    : null}
+            </div>
         </form>
     );
 }
@@ -186,7 +191,11 @@ export function EvaluateProfessorFormLinear({ professor, closeForm }: EvaluatePr
                 {/* Exact size for no layer shift */}
                 <ClipLoader color="white" loading={isPending} size={34} />
             </div>
-            <div className="text-red-500 text-sm">{networkError?.message}</div>
+            <div className="text-red-500 text-sm">
+                {networkError
+                    ? getApiErrorMessage(networkError, "We could not submit this rating.")
+                    : null}
+            </div>
         </form>
     );
 }
@@ -446,6 +455,8 @@ function useEvaluationForm(
         isPending,
         error: networkError,
     } = trpc.ratings.add.useMutation({
+        // Keep errors shown inline via networkError in this form.
+        meta: { suppressGlobalErrorToast: true },
         onSuccess: (updatedProfessor) => {
             try {
                 toast.success("Thank you for your rating");

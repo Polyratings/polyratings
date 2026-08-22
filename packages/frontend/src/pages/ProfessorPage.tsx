@@ -25,6 +25,7 @@ import { trpc } from "@/trpc";
 import { REACT_MODAL_STYLES } from "@/constants";
 import { Button } from "@/components/forms/Button";
 import { useAuth, useSortedCourses } from "@/hooks";
+import { getApiErrorMessage } from "@/utils";
 import { NotFoundRedirect } from "./NotFoundRedirect";
 
 type ValueOf<T> = T[keyof T];
@@ -55,7 +56,10 @@ export function professorPageLoaderFactory(trpcContext: ReturnType<(typeof trpc)
 
         try {
             await (trpcContext.professors.get.getData({ id }) ??
-                trpcContext.professors.get.fetch({ id }));
+                trpcContext.professors.get.fetch(
+                    { id },
+                    { meta: { suppressGlobalErrorToast: true } },
+                ));
             return { notFound: false } satisfies ProfessorPageLoaderData;
         } catch (error) {
             if (isProfessorNotFoundError(error)) {
@@ -147,9 +151,12 @@ export function ProfessorPage() {
     const [bulkDeleteConfirmShown, setBulkDeleteConfirmShown] = useState(false);
     const [bulkDeleteReason, setBulkDeleteReason] = useState("");
 
-    const { data: professorData, error: fetchError } = trpc.professors.get.useQuery({
-        id: id ?? "",
-    });
+    const { data: professorData, error: fetchError } = trpc.professors.get.useQuery(
+        {
+            id: id ?? "",
+        },
+        { meta: { suppressGlobalErrorToast: true } },
+    );
     const trpcContext = trpc.useUtils();
 
     // Clear bulk-delete state when navigating to a different professor
@@ -196,7 +203,7 @@ export function ProfessorPage() {
         .slice(0, 4);
 
     const navigate = useNavigate();
-    if (fetchError) {
+    if (fetchError && !professorData) {
         navigate("/");
     }
 
@@ -788,19 +795,21 @@ function ReportForm({ closeForm, professorId, ratingId }: ReportFormProps) {
         resolver: zodResolver(reportFormParser),
     });
 
-    const reportMutation = trpc.ratings.report.useMutation();
+    const reportMutation = trpc.ratings.report.useMutation({
+        meta: { suppressGlobalErrorToast: true },
+        onSuccess: () => {
+            toast.success("Thank you for the report. The team will review it soon");
+            closeForm();
+        },
+    });
 
-    const onSubmit: SubmitHandler<ReportFormInputs> = async (formResult) => {
-        // Silently log error and tell the user that there report was successful
-        // While dishonest it will lead to a better experience in the case there is an error
+    const onSubmit: SubmitHandler<ReportFormInputs> = (formResult) => {
         reportMutation.mutate({
             professorId,
             ratingId,
             email: formResult.email ?? "",
             reason: formResult.reason,
         });
-        closeForm();
-        toast.success("Thank you for the report. The team will review it soon");
     };
 
     return (
@@ -828,8 +837,16 @@ function ReportForm({ closeForm, professorId, ratingId }: ReportFormProps) {
                 error={errors.reason?.message}
                 {...register("reason")}
             />
+            {reportMutation.error && (
+                <p className="text-red-500 text-sm mt-2">
+                    {getApiErrorMessage(
+                        reportMutation.error,
+                        "We could not submit this report. Please try again.",
+                    )}
+                </p>
+            )}
             <div className="flex justify-center">
-                <Button className="mt-4" type="submit">
+                <Button className="mt-4" type="submit" disabled={reportMutation.isPending}>
                     Submit
                 </Button>
             </div>

@@ -1,9 +1,10 @@
 import { Link, useLocation, useParams, useSearchParams } from "react-router";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useWindowVirtualizer } from "@tanstack/react-virtual";
 import { ChevronDoubleRightIcon } from "@heroicons/react/24/outline";
 import {
     ProfessorCard,
+    InlineQueryState,
     SearchBar,
     SearchState,
     Filters,
@@ -27,7 +28,11 @@ export function Search() {
         loadedSearchTerm,
         "searchState",
     );
-    const { data: allProfessors } = trpc.professors.all.useQuery();
+    const {
+        data: allProfessors,
+        isPending: allProfessorsPending,
+        error: allProfessorsError,
+    } = trpc.professors.all.useQuery(undefined, { meta: { suppressGlobalErrorToast: true } });
     const searchResults = professorSearch(
         allProfessors ?? [],
         searchState.type,
@@ -38,6 +43,18 @@ export function Search() {
     const [filteredProfessors, setFilteredProfessors] = useState<NonNullable<typeof allProfessors>>(
         [],
     );
+    const [filtersApplied, setFiltersApplied] = useState(false);
+    const searchResultKey = searchResults.map((professor) => professor.id).join(",");
+
+    useEffect(() => {
+        setFiltersApplied(false);
+        setFilteredProfessors([]);
+    }, [searchResultKey]);
+
+    const onFilteredProfessors = (professors: NonNullable<typeof allProfessors>) => {
+        setFilteredProfessors(professors);
+        setFiltersApplied(true);
+    };
 
     const mobileFilterBreakpoint = useTailwindBreakpoint({ xl: false }, true);
 
@@ -57,7 +74,28 @@ export function Search() {
     return (
         <div id="main">
             <SearchBar value={searchState} onChange={setSearchState} disableAutoComplete />
-            {(!searchResults.length || !filteredProfessors.length) && (
+            {!allProfessorsPending && !allProfessors && allProfessorsError && (
+                <InlineQueryState
+                    error={allProfessorsError}
+                    fallbackErrorMessage="Unable to load search data. Please try again."
+                    errorClassName="text-2xl mt-5 text-center text-red-500"
+                />
+            )}
+            {Boolean(allProfessors) && allProfessorsError && (
+                <InlineQueryState
+                    error={allProfessorsError}
+                    fallbackErrorMessage="Unable to refresh search data. Showing last loaded results."
+                    errorClassName="text-2xl mt-5 text-center text-red-500"
+                />
+            )}
+            {allProfessorsPending && !allProfessors && (
+                <InlineQueryState
+                    isPending
+                    loadingMessage="Loading search data..."
+                    loadingClassName="text-2xl mt-5 text-center text-cal-poly-green"
+                />
+            )}
+            {Boolean(allProfessors) && !searchResults.length && (
                 <h2 className="text-4xl mt-5 text-center text-cal-poly-green">
                     No Results Found.
                     <br />
@@ -66,6 +104,14 @@ export function Search() {
                     </Link>
                 </h2>
             )}
+            {Boolean(allProfessors) &&
+                Boolean(searchResults.length) &&
+                filtersApplied &&
+                !filteredProfessors.length && (
+                    <h2 className="text-4xl mt-5 text-center text-cal-poly-green">
+                        Nothing matches these filters.
+                    </h2>
+                )}
             {Boolean(searchResults.length) && (
                 <div className="relative">
                     {!mobileFilterBreakpoint && (
@@ -73,7 +119,7 @@ export function Search() {
                             // Use searchResults.length as key to force the child to re-render since it is an array
                             key={searchResults.length}
                             unfilteredProfessors={searchResults}
-                            onUpdate={setFilteredProfessors}
+                            onUpdate={onFilteredProfessors}
                             className="absolute left-0 top-0 pl-12 hidden xl:block"
                         />
                     )}
@@ -82,7 +128,7 @@ export function Search() {
                     {mobileFilterBreakpoint && (
                         <div
                             className={`bg-gray-300 w-[calc(100vw-2rem)] h-screen fixed top-0 z-10 transition-all left-0 transform
-              ${mobileFiltersOpened ? "-translate-x-0" : "-translate-x-full"}`}
+              ${mobileFiltersOpened ? "translate-x-0" : "-translate-x-full"}`}
                         >
                             <button
                                 type="button"
@@ -106,7 +152,7 @@ export function Search() {
                                 // Use searchResults.length as key to force the child to re-render since it is an array
                                 key={searchResults.length}
                                 unfilteredProfessors={searchResults}
-                                onUpdate={setFilteredProfessors}
+                                onUpdate={onFilteredProfessors}
                                 className="pl-12 pt-6 w-4/5"
                             />
                         </div>
