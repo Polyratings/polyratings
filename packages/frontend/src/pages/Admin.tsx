@@ -314,20 +314,14 @@ function SubmitUnderAction({ professor }: PendingProfessorAction) {
     const { data: allProfessors } = trpc.professors.all.useQuery(undefined, {
         meta: { suppressGlobalErrorToast: true },
     });
-    const { mutateAsync: submitRating, isPending: loadingSubmitRating } =
-        trpc.ratings.add.useMutation({
-            meta: { suppressGlobalErrorToast: true },
-        });
 
     const queryClient = useQueryClient();
-    const { mutateAsync: removePending, isPending: loadingRemovePending } =
-        trpc.admin.rejectPendingProfessor.useMutation({
+    const { mutateAsync: submitUnder, isPending } =
+        trpc.admin.submitPendingUnderProfessor.useMutation({
             onSuccess: () =>
                 queryClient.invalidateQueries({ queryKey: bulkInvalidationKey("professor-queue") }),
             meta: { suppressGlobalErrorToast: true },
         });
-
-    const isLoading = loadingSubmitRating || loadingRemovePending;
 
     const submit = async () => {
         if (!destProfessor) {
@@ -335,20 +329,7 @@ function SubmitUnderAction({ professor }: PendingProfessorAction) {
         }
 
         try {
-            for (const [course, ratings] of Object.entries(professor.reviews)) {
-                const [dep, num] = course.split(" ");
-                for (const rating of ratings) {
-                    // eslint-disable-next-line no-await-in-loop
-                    await submitRating({
-                        ...rating,
-                        professor: destProfessor.id,
-                        department: dep as Department,
-                        courseNum: parseFloat(num),
-                    });
-                }
-            }
-
-            await removePending(professor.id);
+            await submitUnder({ destId: destProfessor.id, sourceId: professor.id });
             toast.success("Submitted ratings under selected professor.");
         } catch (submitError) {
             toast.error(
@@ -393,7 +374,7 @@ function SubmitUnderAction({ professor }: PendingProfessorAction) {
             />
             <Button
                 onClick={() => submit()}
-                disabled={!destProfessor || isLoading}
+                disabled={!destProfessor || isPending}
                 className="text-sm"
             >
                 Submit

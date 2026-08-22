@@ -169,6 +169,50 @@ export const adminRouter = t.router({
     rejectPendingProfessor: protectedProcedure.input(z.uuid()).mutation(async ({ input, ctx }) => {
         await ctx.env.kvDao.removePendingProfessor(input);
     }),
+    /**
+     * Copy every rating from a pending professor onto an existing professor in a
+     * single KV read-modify-write, then remove the pending record.
+     * Idempotent on rating id so a retry after a failed pending-delete is safe.
+     */
+    submitPendingUnderProfessor: protectedProcedure
+        .input(z.object({ destId: z.uuid(), sourceId: z.uuid() }))
+        .mutation(async ({ ctx, input: { destId, sourceId } }) => {
+            const [destProfessor, sourceProfessor] = await Promise.all([
+                requireProfessor(ctx, destId),
+                requirePendingProfessor(ctx, sourceId),
+            ]);
+
+            if (destProfessor.locked) {
+                throw new TRPCError({
+                    code: "PRECONDITION_FAILED",
+                    message: "This professor is locked and not accepting new ratings.",
+                });
+            }
+
+            const sourceRatings = Object.values(sourceProfessor.reviews).flat();
+            if (sourceRatings.length === 0) {
+                throw new TRPCError({
+                    code: "BAD_REQUEST",
+                    message: "Pending professor has no ratings to submit.",
+                });
+            }
+
+            const existingIds = getProfessorRatingIds(destProfessor);
+            let copied = 0;
+            Object.entries(sourceProfessor.reviews).forEach(([course, ratings]) => {
+                ratings.forEach((rating) => {
+                    if (!existingIds.has(rating.id)) {
+                        addRating(destProfessor, rating, course);
+                        copied += 1;
+                    }
+                });
+            });
+
+            if (copied > 0) {
+                await ctx.env.kvDao.putProfessor(destProfessor);
+            }
+            await ctx.env.kvDao.removePendingProfessor(sourceId);
+        }),
     removeProfessor: protectedProcedure.input(z.uuid()).mutation(async ({ input, ctx }) => {
         await ctx.env.kvDao.removeProfessor(input);
     }),
@@ -209,7 +253,7 @@ export const adminRouter = t.router({
             const professor = await requireProfessor(ctx, professorId);
             professor.firstName = firstName;
             professor.lastName = lastName;
-            await ctx.env.kvDao.putProfessor(professor, true);
+            await ctx.env.kvDao.putProfessor(professor, { skipNameCollisionDetection: true });
         }),
     changePendingProfessorName: protectedProcedure
         .input(changeNameParser)
@@ -272,6 +316,13 @@ export const adminRouter = t.router({
     }),
     fixEscapedChars: protectedProcedure
         .input(fixEscapedCharsParser)
+        .output(
+            z.object({
+                updated: z.uuid().array(),
+                skipped: z.uuid().array(),
+                failed: z.array(z.object({ profId: z.uuid(), message: z.string() })),
+            }),
+        )
         .mutation(async ({ ctx, input }) => {
             const professors = await Promise.all(
                 input.professors.map((profId) => ctx.env.kvDao.getProfessorOptional(profId)),
@@ -284,17 +335,56 @@ export const adminRouter = t.router({
                 });
             }
 
-            for (const professor of professors as Professor[]) {
-                for (const [course, ratings] of Object.entries(professor.reviews)) {
-                    professor.reviews[course] = ratings.map((rating) => {
-                        // eslint-disable-next-line
-                        rating.rating = rating.rating.replaceAll("\\'", "'").replaceAll('\\"', '"');
-                        return rating;
+            const updates: Array<{ id: string; professor: Professor }> = [];
+            const skipped: string[] = [];
+            const failed: Array<{ profId: string; message: string }> = [];
+
+            (professors as Professor[]).forEach((professor, i) => {
+                const profId = input.professors[i];
+                try {
+                    let hasChanges = false;
+
+                    const processRatings = (ratings: (typeof professor.reviews)[string]) =>
+                        ratings.map((rating) => {
+                            const originalRating = rating.rating;
+                            const fixedRating = rating.rating
+                                .replaceAll("\\'", "'")
+                                // eslint-disable-next-line
+                                .replaceAll('\\"', '"');
+                            if (originalRating !== fixedRating) {
+                                hasChanges = true;
+                            }
+                            return { ...rating, rating: fixedRating };
+                        });
+
+                    for (const [course, ratings] of Object.entries(professor.reviews)) {
+                        professor.reviews[course] = processRatings(ratings);
+                    }
+
+                    if (hasChanges) {
+                        updates.push({ id: profId, professor });
+                    } else {
+                        skipped.push(profId);
+                    }
+                } catch (error) {
+                    failed.push({
+                        profId,
+                        message:
+                            error instanceof Error ? error.message : "Failed to process professor",
                     });
                 }
+            });
 
-                // eslint-disable-next-line no-await-in-loop
-                await ctx.env.kvDao.putProfessor(professor, true);
+            if (updates.length > 0) {
+                await ctx.env.kvDao.batchUpdateProfessors(
+                    updates.map((u) => ({ id: u.id, professor: u.professor })),
+                );
             }
+
+            return {
+                updated: updates.map((u) => u.id),
+                skipped,
+                failed,
+            };
         }),
 });

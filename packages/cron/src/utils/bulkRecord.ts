@@ -1,26 +1,23 @@
 import { AppRouter } from "@backend/index";
 import { BulkKey, BulkKeyMap } from "@backend/utils/const";
+import { chunkArray, mapInBatches } from "@backend/utils/chunkArray";
 import { createTRPCProxyClient } from "@trpc/client";
-import { chunkArray } from "./chunkArray";
 
 const WORKER_RETRIEVAL_CHUNK_SIZE = 100;
+const WORKER_RETRIEVAL_CONCURRENCY = 3;
 
 export async function bulkRecord<T extends BulkKey>(
     client: ReturnType<typeof createTRPCProxyClient<AppRouter>>,
     bulkKey: T,
 ): Promise<Record<string, BulkKeyMap[T][0]>> {
     const allKeys = await client.admin.getBulkKeys.query(bulkKey);
-    const values = (
-        await Promise.all(
-            chunkArray(allKeys, WORKER_RETRIEVAL_CHUNK_SIZE).map((chunk) =>
-                client.admin.getBulkValues
-                    .mutate({ keys: chunk, bulkKey })
-                    // We know that the values and the chunk have the same length
-                    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-                    .then((values) => values.map((value, i) => ({ key: chunk[i]!, value }))),
-            ),
+    const keyValuePairs = (
+        await mapInBatches(
+            chunkArray(allKeys, WORKER_RETRIEVAL_CHUNK_SIZE),
+            WORKER_RETRIEVAL_CONCURRENCY,
+            (chunk) => client.admin.getBulkValues.mutate({ keys: chunk, bulkKey }),
         )
     ).flat();
 
-    return Object.fromEntries(values.map(({ key, value }) => [key, value]));
+    return Object.fromEntries(keyValuePairs.map(({ key, value }) => [key, value]));
 }
