@@ -1,5 +1,5 @@
 import { Link, useLocation, useParams, useSearchParams } from "react-router";
-import { useEffect, useState } from "react";
+import { useMemo, useState } from "react";
 import { useWindowVirtualizer } from "@tanstack/react-virtual";
 import { ChevronDoubleRightIcon } from "@heroicons/react/24/outline";
 import {
@@ -12,11 +12,18 @@ import {
 } from "@/components";
 import { useTailwindBreakpoint } from "@/hooks";
 import { professorSearch, ProfessorSearchType } from "@/utils/ProfessorSearch";
+import {
+    applyProfessorFilters,
+    createDefaultFilterState,
+    FilterState,
+    getEvaluationDomain,
+} from "@/utils/applyProfessorFilters";
 import { trpc } from "@/trpc";
 import { useLocationState } from "@/hooks/useLocationState";
 
 export function Search() {
     const [searchParams] = useSearchParams();
+    const location = useLocation();
 
     const { searchType } = useParams<{ searchType: ProfessorSearchType }>();
 
@@ -28,33 +35,26 @@ export function Search() {
         loadedSearchTerm,
         "searchState",
     );
+    const previousFilters = location.state as FilterState | undefined;
+    const [filterState, setFilterState] = useLocationState<FilterState>(
+        previousFilters ?? createDefaultFilterState(),
+        "filterState",
+    );
     const {
         data: allProfessors,
         isPending: allProfessorsPending,
         error: allProfessorsError,
     } = trpc.professors.all.useQuery(undefined, { meta: { suppressGlobalErrorToast: true } });
-    const searchResults = professorSearch(
-        allProfessors ?? [],
-        searchState.type,
-        searchState.searchValue,
+    const searchResults = useMemo(
+        () => professorSearch(allProfessors ?? [], searchState.type, searchState.searchValue),
+        [allProfessors, searchState.type, searchState.searchValue],
+    );
+    const evaluationDomain = useMemo(() => getEvaluationDomain(allProfessors), [allProfessors]);
+    const filteredProfessors = useMemo(
+        () => applyProfessorFilters(searchResults, filterState),
+        [searchResults, filterState],
     );
     const [mobileFiltersOpened, setMobileFiltersOpened] = useState(false);
-
-    const [filteredProfessors, setFilteredProfessors] = useState<NonNullable<typeof allProfessors>>(
-        [],
-    );
-    const [filtersApplied, setFiltersApplied] = useState(false);
-    const searchResultKey = searchResults.map((professor) => professor.id).join(",");
-
-    useEffect(() => {
-        setFiltersApplied(false);
-        setFilteredProfessors([]);
-    }, [searchResultKey]);
-
-    const onFilteredProfessors = (professors: NonNullable<typeof allProfessors>) => {
-        setFilteredProfessors(professors);
-        setFiltersApplied(true);
-    };
 
     const mobileFilterBreakpoint = useTailwindBreakpoint({ xl: false }, true);
 
@@ -106,7 +106,6 @@ export function Search() {
             )}
             {Boolean(allProfessors) &&
                 Boolean(searchResults.length) &&
-                filtersApplied &&
                 !filteredProfessors.length && (
                     <h2 className="text-4xl mt-5 text-center text-cal-poly-green">
                         Nothing matches these filters.
@@ -116,10 +115,9 @@ export function Search() {
                 <div className="relative">
                     {!mobileFilterBreakpoint && (
                         <Filters
-                            // Use searchResults.length as key to force the child to re-render since it is an array
-                            key={searchResults.length}
-                            unfilteredProfessors={searchResults}
-                            onUpdate={onFilteredProfessors}
+                            value={filterState}
+                            onChange={setFilterState}
+                            evaluationDomain={evaluationDomain}
                             className="absolute left-0 top-0 pl-12 hidden xl:block"
                         />
                     )}
@@ -149,10 +147,9 @@ export function Search() {
                             </button>
 
                             <Filters
-                                // Use searchResults.length as key to force the child to re-render since it is an array
-                                key={searchResults.length}
-                                unfilteredProfessors={searchResults}
-                                onUpdate={onFilteredProfessors}
+                                value={filterState}
+                                onChange={setFilterState}
+                                evaluationDomain={evaluationDomain}
                                 className="pl-12 pt-6 w-4/5"
                             />
                         </div>

@@ -29,7 +29,7 @@ Per-test customization uses `scanForA11yViolations((builder) => ...)` or builds 
 | [Home.md](./Home.md)                               | Home route hero + primary navigation entry points                  | `src/home.spec.ts`               | Implemented           |
 | [About.md](./About.md)                             | About page route and main heading                                  | `src/about.spec.ts`              | Implemented           |
 | [FAQ.md](./FAQ.md)                                 | FAQ page route and main heading                                    | `src/faq.spec.ts`                | Implemented           |
-| [Search.md](./Search.md)                           | Search no-results fallback flow                                    | `src/search.spec.ts`             | Implemented           |
+| [Search.md](./Search.md)                           | Professor list search, typing, and no-results fallback             | `src/search.spec.ts`             | Implemented           |
 | [PublicAccessibility.md](./PublicAccessibility.md) | WCAG scan baseline for public routes                               | `src/a11y/public-routes.spec.ts` | Implemented           |
 | [ProfessorPage.md](./ProfessorPage.md)             | Professor profile, ratings visibility, and evaluation entry points | `src/professor-page.spec.ts`     | Partially implemented |
 | [NotFound.md](./NotFound.md)                       | Unknown routes and missing professors redirect home                | `src/not-found-redirect.spec.ts` | Implemented           |
