@@ -8,6 +8,7 @@ import {
     truncatedProfessorParser,
 } from "@backend/types/schema";
 import { DEPARTMENT_LIST } from "@backend/utils/const";
+import { courseNumParser, courseReviewsKey } from "@backend/utils/courseNum";
 import { addRating as addRatingToProfessor } from "@backend/types/schemaHelpers";
 import { pendingProfessorNotification } from "@backend/utils/discordNotifications";
 import { addRating } from "./rating";
@@ -45,7 +46,7 @@ export const professorRouter = t.router({
                 lastName: z.string(),
                 rating: ratingBaseParser.extend({
                     department: z.enum(DEPARTMENT_LIST),
-                    courseNum: z.number().min(100).max(599),
+                    courseNum: courseNumParser,
                 }),
             }),
         )
@@ -84,7 +85,7 @@ export const professorRouter = t.router({
                 // eslint-disable-next-line @typescript-eslint/no-explicit-any
                 tags: tags as any,
                 reviews: {
-                    [`${input.rating.department} ${input.rating.courseNum}`]: [
+                    [courseReviewsKey(input.rating.department, input.rating.courseNum)]: [
                         {
                             professor: professorId,
                             id: crypto.randomUUID(),

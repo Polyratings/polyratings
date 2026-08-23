@@ -30,7 +30,7 @@ test("PROF: professor page renders profile, ratings context, evaluate action, an
         await expect(
             page
                 .locator("h3")
-                .filter({ hasText: /[A-Z]{2,5}\s\d{3}/ })
+                .filter({ hasText: /[A-Z]{2,5}\s\d{3,4}/ })
                 .first(),
         ).toBeVisible();
     });

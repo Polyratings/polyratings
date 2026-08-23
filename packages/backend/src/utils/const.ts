@@ -1,7 +1,9 @@
 import { PendingRating, Professor, RatingReport, User } from "@backend/types/schema";
 
 /**
- * List of all departments with courses as of 1/23/2022
+ * Department codes for professor home department and the department half of a
+ * course key (`CSC 101`). Historical 2022 codes are kept; 2026–28 SLO catalog
+ * departments/prefixes that were missing are added.
  */
 export const DEPARTMENT_LIST = [
     "AEPS",
@@ -17,6 +19,7 @@ export const DEPARTMENT_LIST = [
     "ART",
     "ASCI",
     "ASTR",
+    "ATHL",
     "BIO",
     "BMED",
     "BOT",
@@ -26,6 +29,8 @@ export const DEPARTMENT_LIST = [
     "CE",
     "CHEM",
     "CHIN",
+    "CI",
+    "CLA",
     "CM",
     "CMAT",
     "COMS",
@@ -44,13 +49,17 @@ export const DEPARTMENT_LIST = [
     "EDES",
     "EDUC",
     "EE",
+    "EIM",
+    "ELAP",
     "ENGL",
     "ENGR",
     "ENVE",
     "ERSC",
     "ES",
     "ESCI",
+    "ESM",
     "EXSS",
+    "FDSC",
     "FPE",
     "FR",
     "FSN",
@@ -63,6 +72,7 @@ export const DEPARTMENT_LIST = [
     "GSB",
     "GSE",
     "GSP",
+    "HCSA",
     "HIST",
     "HLTH",
     "HNRC",
@@ -88,10 +98,12 @@ export const DEPARTMENT_LIST = [
     "MU",
     "NE",
     "NR",
+    "NUTR",
     "PEM",
     "PEW",
     "PHIL",
     "PHYS",
+    "PLSC",
     "POLS",
     "PSC",
     "PSY",
@@ -106,6 +118,7 @@ export const DEPARTMENT_LIST = [
     "TH",
     "UNIV",
     "WGS",
+    "WGQS",
     "WLC",
     "WVIT",
 ] as const;

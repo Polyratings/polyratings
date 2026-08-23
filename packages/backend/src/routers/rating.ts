@@ -10,6 +10,7 @@ import {
     reportParser,
 } from "@backend/types/schema";
 import { DEPARTMENT_LIST } from "@backend/utils/const";
+import { courseNumParser } from "@backend/utils/courseNum";
 import { Env } from "@backend/env";
 import type { Moderation } from "openai/resources/moderations";
 import { checkModerationThresholds } from "@backend/utils/moderation";
@@ -22,7 +23,7 @@ import {
 const addRatingParser = ratingBaseParser.extend({
     professor: z.uuid(),
     department: z.enum(DEPARTMENT_LIST),
-    courseNum: z.number().min(100).max(599),
+    courseNum: courseNumParser,
 });
 
 export async function addRating(input: z.infer<typeof addRatingParser>, ctx: { env: Env }) {

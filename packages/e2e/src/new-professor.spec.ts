@@ -67,3 +67,30 @@ test("NEWPROF: successful submission surfaces user feedback", { tag: "@write" },
         ).toBeVisible();
     });
 });
+
+test("NEWPROF: successful submission with a 4-digit semester course number", { tag: "@write" }, async ({
+    page,
+}) => {
+    await page.setViewportSize({ width: 390, height: 844 });
+    await page.goto("/new-professor");
+
+    await test.step("NEWPROF-5: 4-digit course number is accepted after semester conversion", async () => {
+        const uniqueSuffix = Date.now().toString();
+        await expect(page.getByRole("heading", { name: "Professor" })).toBeVisible();
+        await page.locator('input[name="professorFirstName"]:visible').fill(`E2E${uniqueSuffix}`);
+        await page
+            .locator('input[name="professorLastName"]:visible')
+            .fill(`Semester${uniqueSuffix}`);
+        await page.locator('input[name="courseNum"]:visible').fill("2231");
+        await page
+            .locator('textarea[name="ratingText"]:visible')
+            .fill("This is an end-to-end rating body with enough characters.");
+
+        await page.getByRole("button", { name: "Submit" }).click();
+        await expect(
+            page.getByText(
+                /Thank you for adding a professor|automatically added to .*Please reach out/i,
+            ),
+        ).toBeVisible();
+    });
+});
