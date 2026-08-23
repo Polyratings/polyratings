@@ -100,7 +100,9 @@ We currently provide a [daily dump](https://github.com/Polyratings/polyratings-d
 
 # Cloudflare Pages
 
-As far as I am aware, there is no easy programmatic/automatic way to create a Cloudflare Pages project, so you'll need to follow the steps below to automatically build and deploy the site from source.
+The official Polyratings GitHub Actions workflow builds the frontend and publishes it with `wrangler pages deploy` (`master` = production, `beta` = branch alias, pull requests = preview). **Disable automatic Git deployments** on the Pages project (Settings → Builds & deployments) so GitHub Actions is the only publisher. Leaving Git connected will double-deploy and race the workflow.
+
+Creating a Pages project still happens in the dashboard:
 
 ## Configuration (When Modifying the Backend Package)
 
@@ -117,7 +119,7 @@ You'll need to fill out the page using the following settings:
 - **Project name:** The name you want associated with this Pages project. Note: it **is not** the final URL that will point to your homepage.
 - **Production branch**: This should usually be `master` unless you've changed the default branch of your repository.
 - **Framework preset**: None
-- **Build command**: `npm install && npm run build`. This is because the monorepo is orchestrated by [Lerna](https://lerna.js.org/) so all of the installation, symlinking, and building is handled at the top level.
+- **Build command**: unused when publishing via Direct Upload / `wrangler pages deploy` from GitHub Actions. If you keep Git integration for a fork, `npm install && npm run build` still works because Lerna handles the monorepo.
 - **Build output directory**: `/packages/frontend/dist`
 
 Then select "Save and Deploy." Your site should automatically deploy to `project-name.pages.dev` though if your project name is identical to another, there will be a unique identifier appended to the end of `project-name`.

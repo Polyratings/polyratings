@@ -28,6 +28,7 @@ This repository is a **Lerna monorepo** with Nx for task orchestration. It conta
 | `npm run start:dev`   | Same, but uses dev KV (requires Cloudflare access)   |
 | `npm run test`        | Run tests across packages                            |
 | `npm run e2e`         | Run Playwright end-to-end tests (`@polyratings/e2e`) |
+| `npm run e2e:prod`    | Run e2e against production, excluding `@write` tests |
 | `npm run lint`        | Lint all packages                                    |
 | `npm run fix`         | Auto-fix lint issues                                 |
 
@@ -76,9 +77,9 @@ This repository is a **Lerna monorepo** with Nx for task orchestration. It conta
 
 ## Deployment
 
-- **Backend:** `npm run deploy:prod`, `deploy:beta`, or `deploy:dev` from `packages/backend/`.
-- **Frontend:** Deployed via Cloudflare Pages.
-- **Cron:** Deployed separately; syncs data and backs up professor list.
+- **Backend:** `npm run deploy:prod`, `deploy:beta`, or `deploy:dev` from `packages/backend/` (also invoked from GitHub Actions).
+- **Frontend:** Built and published from GitHub Actions with `wrangler pages deploy` (`master` → production, `beta` → `beta.polyratings.pages.dev`, PRs → preview). Disable Cloudflare Pages Git automatic deployments so only this workflow publishes.
+- **Cron:** Deployed with production worker deploys; syncs data and backs up the professor list.
 
 ## Agent Workflow Tips
 
@@ -94,6 +95,9 @@ This repository is a **Lerna monorepo** with Nx for task orchestration. It conta
 - **Environments:**
   - **Local (default):** `npm run e2e` — Playwright starts the frontend (`start:local` in `packages/frontend`) and uses `http://localhost:5173`.
   - **Beta:** `npm run e2e:beta` — runs against [https://beta.polyratings.pages.dev/](https://beta.polyratings.pages.dev/) (no local web server). Override with `PLAYWRIGHT_BASE_URL` if needed.
+  - **Production:** `npm run e2e:prod` — runs against [https://polyratings.dev](https://polyratings.dev) and skips tests tagged `@write`.
+- **Write tests:** Mutating flows use Playwright `{ tag: "@write" }` (new professor submit, rating submit, report submit). Production CI sets `PLAYWRIGHT_EXCLUDE_WRITE=true` (`grepInvert: /@write/`). Pre-prod runs the full suite.
+- **CI:** GitHub Actions runs affected lint/build/test, then deploys workers + Pages and runs Playwright against the live URL.
 
 ## Accessibility
 

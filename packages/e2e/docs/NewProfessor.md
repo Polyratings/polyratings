@@ -29,5 +29,5 @@ The new professor route allows users to submit a professor entry and initial rat
 ## Implementation
 
 - **Spec file:** `packages/e2e/src/new-professor.spec.ts`
-- **Implemented tests:** `NEWPROF: desktop route renders new professor form`, `NEWPROF: mobile route renders linear submit flow`, `NEWPROF: empty required fields are blocked with validation state`, `NEWPROF: successful submission surfaces user feedback`
+- **Implemented tests:** `NEWPROF: desktop route renders new professor form`, `NEWPROF: mobile route renders linear submit flow`, `NEWPROF: empty required fields are blocked with validation state`, `NEWPROF: successful submission surfaces user feedback` (`{ tag: "@write" }`; skipped in production)
 - **Status:** Implemented

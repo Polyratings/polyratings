@@ -37,5 +37,5 @@ The professor detail route shows professor stats, ratings by course, and user ac
 ## Implementation
 
 - **Spec file:** `packages/e2e/src/professor-page.spec.ts`
-- **Implemented tests:** `PROF: professor page renders profile, ratings context, evaluate action, and report controls`, `PROF: report submission flow succeeds from professor page`, `PROF: rating submission flow succeeds from professor page`
+- **Implemented tests:** `PROF: professor page renders profile, ratings context, evaluate action, and report controls`, `PROF: report submission flow succeeds from professor page` (`@write`), `PROF: rating submission flow succeeds from professor page` (`@write`)
 - **Status:** Partially implemented
