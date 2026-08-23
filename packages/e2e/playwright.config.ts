@@ -33,6 +33,10 @@ export default defineConfig({
     },
     use: {
         baseURL,
+        extraHTTPHeaders: {
+            // Backend no-ops Discord when this is set, even if beta notifications are enabled.
+            "x-polyratings-skip-notifications": "1",
+        },
         trace: "on-first-retry",
         screenshot: "only-on-failure",
         video: "retain-on-failure",

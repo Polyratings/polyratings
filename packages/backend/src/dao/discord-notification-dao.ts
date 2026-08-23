@@ -3,6 +3,9 @@ import {
     type DiscordNotification,
 } from "@backend/utils/discordNotifications";
 
+/** Sent by Playwright so e2e write tests do not hit Discord. */
+export const SKIP_NOTIFICATIONS_HEADER = "x-polyratings-skip-notifications";
+
 export type NotificationDAO = {
     notify(notification: DiscordNotification): Promise<void>;
 };

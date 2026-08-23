@@ -22,11 +22,27 @@ export function getCloudflareEnv(rawEnv: Record<string, unknown>): CloudflareEnv
             JWT_SIGNING_KEY: "TEST_SIGNING_SECRET",
             OPENAI_API_KEY: "",
             DISCORD_WEBHOOK_URL: "",
+            ENABLE_DISCORD_NOTIFICATIONS: "false",
             ...rawEnv,
         });
     }
 
     return cloudflareEnvParser.parse(rawEnv);
+}
+
+function discordNotificationsEnabled(env: CloudflareEnv): boolean {
+    if (!env.DISCORD_WEBHOOK_URL) {
+        return false;
+    }
+    const flag = env.ENABLE_DISCORD_NOTIFICATIONS;
+    if (flag === true || flag === "true") {
+        return true;
+    }
+    if (flag === false || flag === "false") {
+        return false;
+    }
+    // Local opt-in: webhook set and flag unset.
+    return !env.IS_DEPLOYED;
 }
 
 export class Env {
@@ -43,7 +59,7 @@ export class Env {
     /** Anonymous mutation limits use `${tRPC path}_${anonId}`; one binding is enough. */
     rateLimiter: RateLimit;
 
-    constructor(env: CloudflareEnv) {
+    constructor(env: CloudflareEnv, options: { skipNotifications?: boolean } = {}) {
         this.kvDao = new KVDAO(
             new KvWrapper(env.POLYRATINGS_TEACHERS),
             new KvWrapper(env.POLYRATINGS_USERS),
@@ -62,9 +78,13 @@ export class Env {
                 "moderation",
             );
         }
-        if (!env.IS_DEPLOYED && !env.DISCORD_WEBHOOK_URL) {
-            // eslint-disable-next-line no-console
-            console.warn("Not using Discord Notifier. Please set DISCORD_WEBHOOK_URL to enable");
+        if (options.skipNotifications || !discordNotificationsEnabled(env)) {
+            if (!env.IS_DEPLOYED && !env.DISCORD_WEBHOOK_URL) {
+                // eslint-disable-next-line no-console
+                console.warn(
+                    "Not using Discord Notifier. Please set DISCORD_WEBHOOK_URL to enable",
+                );
+            }
             this.notificationDAO = new NoOpNotificationDao();
         } else {
             this.notificationDAO = new DiscordNotificationDAO(env.DISCORD_WEBHOOK_URL);
@@ -95,6 +115,7 @@ const cloudflareEnvParser = z.object({
     JWT_SIGNING_KEY: z.string(),
     OPENAI_API_KEY: z.string(),
     DISCORD_WEBHOOK_URL: z.string(),
+    ENABLE_DISCORD_NOTIFICATIONS: z.union([z.boolean(), z.string()]).optional(),
     IS_DEPLOYED: z.boolean(),
     HASHED_IP: z.string(),
     RATE_LIMITER: rateLimiterParser,

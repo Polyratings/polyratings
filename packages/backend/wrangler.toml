@@ -36,6 +36,10 @@ name = "RATE_LIMITER"
 namespace_id = "1000"
 simple = { limit = 20, period = 10 } # 20 requests every 10 seconds (local / default)
 
+# Discord webhooks are opt-in outside prod (e2e write tests hit beta/dev).
+[vars]
+ENABLE_DISCORD_NOTIFICATIONS = "false"
+
 [env.dev]
 name = 'polyratings-dev-backend'
 route = 'api-dev.polyratings.org/*'
@@ -47,6 +51,9 @@ kv_namespaces = [
     { binding = "POLYRATINGS_REPORTS", id = "3f3235ea2ed3456497e65e0ed980a31a", preview_id = "3f3235ea2ed3456497e65e0ed980a31a" },
     { binding = "POLYRATINGS_SESSIONS", id = "62feb12023254effb0d2b7842e74589f", preview_id = "62feb12023254effb0d2b7842e74589f" },
 ]
+
+[env.dev.vars]
+ENABLE_DISCORD_NOTIFICATIONS = "false"
 
 [[env.dev.ratelimits]]
 name = "RATE_LIMITER"
@@ -65,6 +72,9 @@ kv_namespaces = [
     { binding = "POLYRATINGS_SESSIONS", id = "3f1960ed2db04d71ab8a560b86cee81f" },
 ]
 
+[env.beta.vars]
+ENABLE_DISCORD_NOTIFICATIONS = "false"
+
 [[env.beta.ratelimits]]
 name = "RATE_LIMITER"
 namespace_id = "1002"
@@ -81,6 +91,9 @@ kv_namespaces = [
     { binding = "POLYRATINGS_REPORTS", id = "e7cdc104b5c047f498c0cc702a487bdf" },
     { binding = "POLYRATINGS_SESSIONS", id = "d9cd467978be4b46b90d82b081b95cb9" },
 ]
+
+[env.prod.vars]
+ENABLE_DISCORD_NOTIFICATIONS = "true"
 
 [[env.prod.ratelimits]]
 name = "RATE_LIMITER"
