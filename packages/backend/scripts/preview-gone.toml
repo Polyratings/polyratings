@@ -1,0 +1,6 @@
+account_id = "4b59b59a6058dce1832781075d4fde9d"
+name = "polyratings-dev-backend"
+main = "./preview-gone-worker.ts"
+compatibility_date = "2022-01-15"
+workers_dev = false
+preview_urls = true

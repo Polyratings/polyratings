@@ -1,0 +1,59 @@
+name: Cleanup PR preview
+
+# Runs from the PR base branch (trusted workflow). Does not check out PR code.
+on:
+  pull_request_target:
+    types: [closed]
+
+permissions:
+  contents: read
+
+jobs:
+  cleanup:
+    name: Delete PR preview
+    if: github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    concurrency:
+      group: preview-pr-${{ github.event.number }}
+      cancel-in-progress: false
+    steps:
+      - name: Detect Cloudflare credentials
+        id: cf
+        run: |
+          if [[ -n "${{ secrets.CF_API_TOKEN }}" ]]; then
+            echo "has_token=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "has_token=false" >> "$GITHUB_OUTPUT"
+            echo "No CF_API_TOKEN; skipping preview cleanup."
+          fi
+
+      - uses: actions/checkout@v7
+        if: steps.cf.outputs.has_token == 'true'
+
+      - uses: actions/setup-node@v7
+        if: steps.cf.outputs.has_token == 'true'
+        with:
+          node-version: 24
+          cache: "npm"
+
+      - name: Install dependencies
+        if: steps.cf.outputs.has_token == 'true'
+        run: npm ci
+
+      - name: Delete Pages deployments for pr-${{ github.event.number }}
+        if: steps.cf.outputs.has_token == 'true'
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CF_API_TOKEN }}
+          CF_ACCOUNT_ID: "4b59b59a6058dce1832781075d4fde9d"
+          CF_PAGES_PROJECT_NAME: polyratings
+          PAGES_BRANCH: pr-${{ github.event.number }}
+        run: npx tsx packages/backend/scripts/delete-pr-pages-deployments.ts
+
+      - name: Point Worker preview alias at a 410 stub
+        if: steps.cf.outputs.has_token == 'true'
+        working-directory: packages/backend/scripts
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CF_API_TOKEN }}
+        run: |
+          npx wrangler versions upload --config preview-gone.toml --preview-alias "pr-${{ github.event.number }}" --message "PR ${{ github.event.number }} closed"

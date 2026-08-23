@@ -100,7 +100,17 @@ We currently provide a [daily dump](https://github.com/Polyratings/polyratings-d
 
 # Cloudflare Pages
 
-The official Polyratings GitHub Actions workflow builds the frontend and publishes it with `wrangler pages deploy` (`master` = production, `beta` = branch alias, pull requests = preview). **Disable automatic Git deployments** on the Pages project (Settings → Builds & deployments) so GitHub Actions is the only publisher. Leaving Git connected will double-deploy and race the workflow.
+The official Polyratings GitHub Actions workflow builds the frontend and publishes it with `wrangler pages deploy`:
+
+- `master` → production (`polyratings.dev`) and `wrangler deploy --env prod`
+- `beta` → `beta.polyratings.pages.dev` and `wrangler deploy --env beta`
+- pull requests → Pages branch `pr-<number>` and `wrangler versions upload --env dev --preview-alias pr-<number>` (does **not** change the live `api-dev.polyratings.org` Worker). The frontend is built with `VITE_API_URL` set to the Worker preview URL (`pr-<n>-polyratings-dev-backend.<subdomain>.workers.dev`).
+
+**Disable automatic Git deployments** on the Pages project (Settings → Builds & deployments) so GitHub Actions is the only publisher. Leaving Git connected will double-deploy and race the workflow.
+
+If a PR Worker preview 404s, enable Preview URLs on `polyratings-dev-backend` in the dashboard (Settings → Domains & Routes). `preview_urls = true` is set on `[env.dev]` in `packages/backend/wrangler.toml`.
+
+When a same-repo pull request is closed, GitHub Actions deletes Pages deployments for branch `pr-<number>` and re-points the Worker preview alias `pr-<number>` at a 410 stub (aliases cannot be deleted). Versioned `*.workers.dev` URLs for old uploads are left in place. Optional Cloudflare Access on preview hostnames is dashboard-only.
 
 Creating a Pages project still happens in the dashboard:
 

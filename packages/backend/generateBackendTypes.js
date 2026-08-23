@@ -26,6 +26,27 @@ function objToString(obj, ndeep = 1) {
 const workerToml = fs.readFileSync(path.resolve(__dirname, "./wrangler.toml"), "utf-8");
 const parsedToml = toml.parse(workerToml);
 
+function envRoutePattern(envData) {
+    if (typeof envData.route === "string") {
+        return envData.route;
+    }
+    if (envData.route?.pattern) {
+        return envData.route.pattern;
+    }
+    const firstRoute = Array.isArray(envData.routes) ? envData.routes[0] : undefined;
+    if (typeof firstRoute === "string") {
+        return firstRoute;
+    }
+    if (firstRoute?.pattern) {
+        return firstRoute.pattern;
+    }
+    throw new Error("Missing Worker route pattern in wrangler.toml");
+}
+
+function envApiHost(envData) {
+    return envRoutePattern(envData).replace(/\/\*$/, "");
+}
+
 const nameSpaceDefinitions = Object.entries(parsedToml.env)
 .map(([envKey, envData]) =>
     envData.kv_namespaces.reduce((acc, curr) => {
@@ -54,7 +75,7 @@ export interface PolyratingsAPIEnv {
 }
 ${Object.entries(parsedToml.env).map(([envKey, envData]) =>
 `export const ${envKey.toUpperCase()}_ENV: PolyratingsAPIEnv = {
-    url: "https://${envData.route.slice(0, -2)}",
+    url: "https://${envApiHost(envData)}",
 };`,
 ).join("\n")}
 export const LOCAL_ENV: PolyratingsAPIEnv = {

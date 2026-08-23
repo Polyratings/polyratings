@@ -39,11 +39,14 @@ const modeToConfig: Record<string, AppConfiguration> = {
 };
 
 const deploymentMode = import.meta.env.MODE ?? "fallback";
+const viteApiUrl = import.meta.env.VITE_API_URL?.replace(/\/$/, "");
 
 // eslint-disable-next-line import/no-mutable-exports
 let config: AppConfiguration;
 if (deploymentMode === "local-dev") {
     config = localConfig;
+} else if (viteApiUrl) {
+    config = { clientEnv: { url: viteApiUrl }, base: "/" };
 } else {
     config = modeToConfig[deploymentMode] ?? modeToConfig.fallback;
 }

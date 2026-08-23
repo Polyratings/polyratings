@@ -67,6 +67,8 @@ jobs:
       deployments: write
     with:
       ENVIRONMENT_NAME: prod
+      GITHUB_ENVIRONMENT: production
+      GITHUB_ENVIRONMENT_URL: https://polyratings.dev
       DEPLOY_SCRIPT: deploy:prod
       PAGES_BRANCH: master
       FRONTEND_BUILD_MODE: master
@@ -85,6 +87,8 @@ jobs:
       deployments: write
     with:
       ENVIRONMENT_NAME: beta
+      GITHUB_ENVIRONMENT: beta
+      GITHUB_ENVIRONMENT_URL: https://beta.polyratings.pages.dev
       DEPLOY_SCRIPT: deploy:beta
       PAGES_BRANCH: beta
       FRONTEND_BUILD_MODE: beta
@@ -94,19 +98,24 @@ jobs:
       CF_API_TOKEN: ${{ secrets.CF_API_TOKEN }}
 
   deploy-dev:
-    name: Dev Deployment
+    name: Dev Preview
     needs: [ci]
-    # Shared dev backend + Pages preview. Fork PRs have no Cloudflare token and are skipped in the reusable workflow.
+    # Per-PR Worker preview + Pages branch. Fork PRs have no Cloudflare token and are skipped in the reusable workflow.
     if: github.event_name == 'pull_request'
     uses: ./.github/workflows/reusable-deploy-workflow.yml
     permissions:
       contents: read
       deployments: write
+      pull-requests: write
     with:
       ENVIRONMENT_NAME: dev
-      DEPLOY_SCRIPT: deploy:dev
-      PAGES_BRANCH: ${{ github.head_ref }}
+      GITHUB_ENVIRONMENT: dev
+      WORKER_PUBLISH: versions-upload
+      PREVIEW_ALIAS: pr-${{ github.event.number }}
+      PAGES_BRANCH: pr-${{ github.event.number }}
       FRONTEND_BUILD_MODE: dev
+      CONCURRENCY_GROUP: preview-pr-${{ github.event.number }}
+      COMMENT_ON_PR: true
       EXCLUDE_WRITE_TESTS: false
     secrets:
       CF_API_TOKEN: ${{ secrets.CF_API_TOKEN }}

@@ -7,12 +7,42 @@ on:
         description: "prod, beta, or dev"
         required: true
         type: string
-      DEPLOY_SCRIPT:
-        description: "Root npm script used to deploy workers (deploy:prod, deploy:beta, or deploy:dev)"
+      GITHUB_ENVIRONMENT:
+        description: "GitHub Environment name (production, beta, or dev)"
         required: true
         type: string
+      GITHUB_ENVIRONMENT_URL:
+        description: "Optional URL shown on the GitHub Environment deployment"
+        required: false
+        type: string
+        default: ""
+      DEPLOY_SCRIPT:
+        description: "Root npm script used to deploy workers (deploy:prod or deploy:beta). Omit for PR versions upload."
+        required: false
+        type: string
+        default: ""
+      WORKER_PUBLISH:
+        description: "deploy = wrangler deploy (prod/beta). versions-upload = PR preview (never wrangler deploy)."
+        required: false
+        type: string
+        default: "deploy"
+      PREVIEW_ALIAS:
+        description: "Worker preview alias (pr-<number>) when WORKER_PUBLISH is versions-upload"
+        required: false
+        type: string
+        default: ""
+      CONCURRENCY_GROUP:
+        description: "Override concurrency group. Defaults to cd-<environment>."
+        required: false
+        type: string
+        default: ""
+      COMMENT_ON_PR:
+        description: "Post/update a PR comment with the Pages preview URL"
+        required: false
+        type: boolean
+        default: false
       PAGES_BRANCH:
-        description: "Cloudflare Pages branch (master=production, beta=preview alias, PR branch=preview)"
+        description: "Cloudflare Pages branch (master=production, beta=preview alias, pr-N=preview)"
         required: true
         type: string
       FRONTEND_BUILD_MODE:
@@ -49,12 +79,12 @@ jobs:
     name: Deploy ${{ inputs.ENVIRONMENT_NAME }}
     runs-on: ubuntu-latest
     timeout-minutes: 30
+    environment:
+      name: ${{ inputs.GITHUB_ENVIRONMENT }}
+      url: ${{ inputs.GITHUB_ENVIRONMENT_URL }}
     concurrency:
-      group: cd-${{ inputs.ENVIRONMENT_NAME }}
+      group: ${{ inputs.CONCURRENCY_GROUP != '' && inputs.CONCURRENCY_GROUP || format('cd-{0}', inputs.ENVIRONMENT_NAME) }}
       cancel-in-progress: false
-    permissions:
-      contents: read
-      deployments: write
     env:
       # Nx/Node TS stripping can fail to resolve Playwright config when run via Nx.
       NX_PREFER_NODE_STRIP_TYPES: false
@@ -89,17 +119,46 @@ jobs:
         if: steps.cf.outputs.has_token == 'true'
         run: npm ci
 
+      - name: Allowlist env.dev KV ids
+        if: steps.cf.outputs.has_token == 'true' && inputs.WORKER_PUBLISH == 'versions-upload'
+        run: |
+          git fetch origin master beta
+          npx tsx packages/backend/scripts/assert-dev-kv-allowlist.ts
+
+      - name: Upload Worker preview version
+        if: steps.cf.outputs.has_token == 'true' && inputs.WORKER_PUBLISH == 'versions-upload'
+        id: upload-worker
+        working-directory: packages/backend
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CF_API_TOKEN }}
+          PREVIEW_ALIAS: ${{ inputs.PREVIEW_ALIAS }}
+        run: |
+          if [[ -z "$PREVIEW_ALIAS" ]]; then
+            echo "PREVIEW_ALIAS is required for versions-upload"
+            exit 1
+          fi
+          npx wrangler versions upload --env dev --preview-alias "$PREVIEW_ALIAS" --message "PR ${{ github.event.number }}" 2>&1 | tee /tmp/wrangler-versions-upload.log
+          preview_url="$(grep -Eo "https://${PREVIEW_ALIAS}-[A-Za-z0-9.-]+\.workers\.dev" /tmp/wrangler-versions-upload.log | head -n 1 || true)"
+          if [[ -z "$preview_url" ]]; then
+            echo "Could not parse Worker preview URL from wrangler output."
+            echo "If the URL 404s, enable Preview URLs on polyratings-dev-backend (Settings → Domains & Routes)."
+            exit 1
+          fi
+          echo "preview_url=$preview_url" >> "$GITHUB_OUTPUT"
+          echo "Worker preview: $preview_url"
+
+      - name: Deploy workers
+        if: steps.cf.outputs.has_token == 'true' && inputs.WORKER_PUBLISH == 'deploy'
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CF_API_TOKEN }}
+        run: NX_CLOUD_DISTRIBUTED_EXECUTION=false npm run ${{ inputs.DEPLOY_SCRIPT }}
+
       - name: Build frontend
         if: steps.cf.outputs.has_token == 'true'
         env:
           CF_PAGES_BRANCH: ${{ inputs.FRONTEND_BUILD_MODE }}
+          VITE_API_URL: ${{ steps.upload-worker.outputs.preview_url }}
         run: NX_CLOUD_DISTRIBUTED_EXECUTION=false npx nx run @polyratings/frontend:build
-
-      - name: Deploy workers
-        if: steps.cf.outputs.has_token == 'true'
-        env:
-          CLOUDFLARE_API_TOKEN: ${{ secrets.CF_API_TOKEN }}
-        run: NX_CLOUD_DISTRIBUTED_EXECUTION=false npm run ${{ inputs.DEPLOY_SCRIPT }}
 
       - name: Deploy frontend to Cloudflare Pages
         if: steps.cf.outputs.has_token == 'true'
@@ -109,6 +168,45 @@ jobs:
           apiToken: ${{ secrets.CF_API_TOKEN }}
           accountId: ${{ inputs.CF_ACCOUNT_ID }}
           command: pages deploy packages/frontend/dist --project-name=${{ inputs.CF_PAGES_PROJECT_NAME }} --branch=${{ inputs.PAGES_BRANCH }} --commit-dirty=true
+
+      - name: Comment preview URL on PR
+        if: steps.cf.outputs.has_token == 'true' && inputs.COMMENT_ON_PR
+        uses: actions/github-script@v8
+        env:
+          PAGES_URL: ${{ steps.publish-pages.outputs.pages-deployment-alias-url || steps.publish-pages.outputs.deployment-url }}
+          API_URL: ${{ steps.upload-worker.outputs.preview_url }}
+        with:
+          script: |
+            const marker = "<!-- polyratings-dev-preview -->";
+            const pagesUrl = process.env.PAGES_URL;
+            const apiUrl = process.env.API_URL;
+            const body = [
+              marker,
+              "## Dev preview",
+              `- Frontend: ${pagesUrl}`,
+              `- API: ${apiUrl}`,
+            ].join("\n");
+            const { data: comments } = await github.rest.issues.listComments({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+            });
+            const existing = comments.find((comment) => comment.body?.includes(marker));
+            if (existing) {
+              await github.rest.issues.updateComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                comment_id: existing.id,
+                body,
+              });
+            } else {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+                body,
+              });
+            }
 
       - name: Install Playwright browsers
         if: steps.cf.outputs.has_token == 'true'
