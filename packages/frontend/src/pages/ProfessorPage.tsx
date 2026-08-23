@@ -20,10 +20,11 @@ import {
     TextArea,
     TextInput,
     EvaluateProfessorFormLinear,
+    Button,
+    fieldControlClassName,
 } from "@/components";
 import { trpc } from "@/trpc";
 import { REACT_MODAL_STYLES } from "@/constants";
-import { Button } from "@/components/forms/Button";
 import { useAuth, useSortedCourses } from "@/hooks";
 import { getApiErrorMessage } from "@/utils";
 import { NotFoundRedirect } from "./NotFoundRedirect";
@@ -123,7 +124,10 @@ function LockProfessorModal({
                                 id="lockProfessorMessage"
                                 name="lockedMessage"
                                 placeholder="This professor is not accepting new ratings."
-                                className="w-full h-24 rounded-sm text-black p-2 border-[#c3cdd5] bg-[#f2f5f8] active:bg-[#f2feff] border mt-1 block"
+                                className={fieldControlClassName(
+                                    false,
+                                    "w-full h-24 rounded-sm text-black p-2 mt-1 block",
+                                )}
                                 value={message}
                                 onChange={(e: ChangeEvent<HTMLTextAreaElement>) =>
                                     setMessage(e.target.value)
@@ -584,7 +588,7 @@ function StatsCard({ professor, className = "" }: StatsCardProps) {
                     </p>
                     <StarRatings
                         rating={professor?.overallRating}
-                        starRatedColor="#BD8B13"
+                        starRatedColor="var(--color-cal-poly-gold)"
                         numberOfStars={4}
                         starDimension="1.8em"
                         starSpacing="3px"
@@ -598,7 +602,7 @@ function StatsCard({ professor, className = "" }: StatsCardProps) {
                     <div className="mb-[0.13rem]">
                         <StarRatings
                             rating={professor?.studentDifficulties}
-                            starRatedColor="#BD8B13"
+                            starRatedColor="var(--color-cal-poly-gold)"
                             numberOfStars={4}
                             starDimension="1.1rem"
                             starSpacing="1px"
@@ -616,7 +620,7 @@ function StatsCard({ professor, className = "" }: StatsCardProps) {
                     <div className="mb-[0.13rem]">
                         <StarRatings
                             rating={professor?.materialClear}
-                            starRatedColor="#BD8B13"
+                            starRatedColor="var(--color-cal-poly-gold)"
                             numberOfStars={4}
                             starDimension="1.1rem"
                             starSpacing="1px"
@@ -653,7 +657,7 @@ function RatingCard({
                     {new Date(rating.postDate).getFullYear() >= 2022 && (
                         <StarRatings
                             rating={rating?.overallRating}
-                            starRatedColor="#BD8B13"
+                            starRatedColor="var(--color-cal-poly-gold)"
                             numberOfStars={4}
                             starDimension="1.1rem"
                             starSpacing="1px"
@@ -670,7 +674,7 @@ function RatingCard({
                 {new Date(rating.postDate).getFullYear() >= 2022 && (
                     <StarRatings
                         rating={rating?.overallRating}
-                        starRatedColor="#BD8B13"
+                        starRatedColor="var(--color-cal-poly-gold)"
                         numberOfStars={4}
                         starDimension="1.1rem"
                         starSpacing="1px"

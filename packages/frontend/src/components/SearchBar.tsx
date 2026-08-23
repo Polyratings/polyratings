@@ -3,7 +3,7 @@ import { ChevronRightIcon, MagnifyingGlassIcon } from "@heroicons/react/24/solid
 import { AutoComplete } from "./AutoComplete";
 import { trpc } from "@/trpc";
 import { ProfessorSearchType, professorSearch } from "@/utils/ProfessorSearch";
-import { Button } from "./forms/Button";
+import { Button } from "./forms";
 
 export interface SearchState {
     type: ProfessorSearchType;

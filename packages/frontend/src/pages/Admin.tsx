@@ -11,8 +11,7 @@ import { Navigate } from "react-router";
 import { useAuth } from "@/hooks";
 import { trpc } from "@/trpc";
 import { bulkInvalidationKey, useDbValues } from "@/hooks/useDbValues";
-import { Button } from "@/components/forms/Button";
-import { AutoComplete, InlineQueryState, Select, TextInput } from "@/components";
+import { AutoComplete, Button, InlineQueryState, Select, TextInput } from "@/components";
 import { professorSearch } from "@/utils/ProfessorSearch";
 import { getApiErrorMessage } from "@/utils";
 

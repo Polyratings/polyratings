@@ -15,14 +15,13 @@ import { useEffect } from "react";
 import { ClipLoader } from "react-spinners";
 import { trpc } from "@/trpc";
 import { getApiErrorMessage } from "@/utils";
-import { Checkbox, Select, TextArea, TextInput } from "./forms";
+import { Button, Checkbox, Select, TextArea, TextInput } from "./forms";
 import {
     CLASS_INFORMATION,
     FormBar,
     NUMERICAL_RATINGS,
     TagSelection,
 } from "./EvaluateProfessorForm";
-import { Button } from "./forms/Button";
 
 const newProfessorFormParser = z.object({
     professorFirstName: z.string().trim().min(1),

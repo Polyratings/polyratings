@@ -1,5 +1,7 @@
 import { forwardRef } from "react";
 import { ChevronDownIcon } from "@heroicons/react/24/outline";
+import { cn } from "@/utils";
+import { fieldControlClassName } from "./fieldClassName";
 
 export interface SelectProps extends React.ComponentProps<"select"> {
     options: { value: string; label: string }[];
@@ -11,20 +13,24 @@ export interface SelectProps extends React.ComponentProps<"select"> {
 export const Select = forwardRef<HTMLSelectElement, SelectProps>(
     ({ options, name, label, error, wrapperClassName = "", ...rest }, ref) => (
         <div
-            className={`w-42 flex flex-col ${
-                error ? "text-red-500" : "text-inherit"
-            } ${wrapperClassName}`}
+            className={cn(
+                "w-42 flex flex-col",
+                error ? "text-red-500" : "text-inherit",
+                wrapperClassName,
+            )}
         >
             <label className="text-xs whitespace-nowrap" htmlFor={name}>
                 {label}
             </label>
             <div className="relative text-[#465967]">
                 <select
-                    className={`w-full py-2 pl-4 pr-10 rounded  ${
-                        rest.disabled ? "cursor-not-allowed" : "cursor-pointer"
-                    } appearance-none border ${
-                        error ? "border-red-500 bg-red-50" : "border-[#c3cdd5] bg-[#f2f5f8]"
-                    } active:bg-[#f2feff]`}
+                    className={fieldControlClassName(
+                        error,
+                        cn(
+                            "w-full py-2 pl-4 pr-10 rounded appearance-none",
+                            rest.disabled ? "cursor-not-allowed" : "cursor-pointer",
+                        ),
+                    )}
                     id={name}
                     name={name}
                     ref={ref}

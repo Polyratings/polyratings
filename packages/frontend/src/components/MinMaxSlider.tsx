@@ -12,8 +12,8 @@ interface MinMaxSliderProps {
 // TODO: Remove hacky media query to reflow on 4k screens
 const overrideHoverCss = `
 .rc-slider-handle-dragging.rc-slider-handle-dragging.rc-slider-handle-dragging {
-    border-color: #1F4715;
-    box-shadow: 0 0 0 5px rgb(31, 71, 21, 0.5);
+    border-color: var(--color-cal-poly-green);
+    box-shadow: 0 0 0 5px color-mix(in srgb, var(--color-cal-poly-green) 50%, transparent);
 }
 @media (min-width: 2500px) { 
     .rc-slider-handle {
@@ -34,7 +34,7 @@ export function MinMaxSlider({
         [max]: max,
     };
     const handleStyles = {
-        borderColor: "#1F4715",
+        borderColor: "var(--color-cal-poly-green)",
         width: "0.875rem",
         height: "0.875rem",
     };
@@ -46,7 +46,7 @@ export function MinMaxSlider({
                 allowCross={false}
                 onChange={(v) => onchange(v as [number, number])}
                 value={value}
-                trackStyle={[{ backgroundColor: "#1F4715" }]}
+                trackStyle={[{ backgroundColor: "var(--color-cal-poly-green)" }]}
                 handleStyle={[handleStyles, handleStyles]}
                 min={min}
                 max={max}

@@ -23,6 +23,7 @@
         "@trpc/client": "11.18.0",
         "@trpc/react-query": "11.18.0",
         "@trpc/server": "11.18.0",
+        "clsx": "^2.1.1",
         "downshift": "^9.4.0",
         "idb-keyval": "^6.3.0",
         "jwt-decode": "^4.0.0",
@@ -39,6 +40,7 @@
         "react-spinners": "^0.17.0",
         "react-star-ratings": "^2.3.0",
         "react-toastify": "^11.1.0",
+        "tailwind-merge": "^3.6.0",
         "tailwind-scrollbar-hide": "^4.0.0",
         "tailwindcss": "^4.3.0",
         "zod": "^4.4.3"

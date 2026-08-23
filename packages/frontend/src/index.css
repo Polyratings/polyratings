@@ -1,13 +1,28 @@
 @import 'tailwindcss';
 @import 'tailwind-scrollbar-hide/v4';
 
-@config '../tailwind.config.js';
-
 @theme {
   /* Navbar is h-14 (3.5rem). Tailwind v4 does not emit legacy JS `theme.extend.height`
      keys as utilities; define tokens here so `h-screen-wo-nav` / `min-h-screen-wo-nav` work. */
   --height-screen-wo-nav: calc(100dvh - 3.5rem);
   --min-height-screen-wo-nav: calc(100dvh - 3.5rem);
+  --height-screen3/5: calc(100vh / 5 * 3);
+  --max-height-10/12: 83%;
+
+  --font-nunito: Nunito, sans-serif;
+
+  --color-cal-poly-green: #1f4715;
+  --color-cal-poly-light-green: #d7eace;
+  --color-cal-poly-gold: #bd8b13;
+  --color-field: #f2f5f8;
+  --color-field-border: #c3cdd5;
+  --color-field-active: #f2feff;
+
+  --border-width: 0.0625rem;
+  --border-width-0: 0;
+  --border-width-2: 0.125rem;
+  --border-width-4: 0.25rem;
+  --border-width-8: 0.5rem;
 }
 
 /*

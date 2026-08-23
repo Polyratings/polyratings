@@ -19,9 +19,7 @@ import { UserIcon } from "@heroicons/react/24/solid";
 import { ReactElement, useState } from "react";
 import { trpc } from "@/trpc";
 import { getApiErrorMessage } from "@/utils";
-import { Select, TextArea } from "./forms";
-import { TextInput } from "./forms/TextInput";
-import { Button } from "./forms/Button";
+import { Button, Select, TextArea, TextInput } from "./forms";
 import { useSortedCourses } from "@/hooks";
 
 interface EvaluateProfessorFormProps {
@@ -155,7 +153,7 @@ export function FormBar({ isLoading, triggerValidation, firstStep, secondStep }:
 
             <div className="flex justify-center">
                 {/* Exact size for no layer shift */}
-                <ClipLoader color="#1F4715" loading={isLoading} size={34} />
+                <ClipLoader color="var(--color-cal-poly-green)" loading={isLoading} size={34} />
             </div>
         </>
     );

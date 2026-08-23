@@ -1,4 +1,6 @@
 import { forwardRef } from "react";
+import { cn } from "@/utils";
+import { fieldControlClassName } from "./fieldClassName";
 
 export interface TextInputProps extends React.ComponentProps<"input"> {
     label: string;
@@ -28,17 +30,20 @@ export const TextInput = forwardRef<HTMLInputElement, TextInputProps>(
 
         return (
             <div
-                className={`flex flex-col w-42 ${
-                    error ? "text-red-500" : "text-inherit"
-                } ${wrapperClassName}`}
+                className={cn(
+                    "flex flex-col w-42",
+                    error ? "text-red-500" : "text-inherit",
+                    wrapperClassName,
+                )}
             >
                 <label className="text-xs whitespace-nowrap" htmlFor={name}>
                     {label}
                 </label>
                 <input
-                    className={`py-2 pl-4 pr-10 rounded  cursor-pointer appearance-none border ${
-                        error ? "border-red-500 bg-red-50" : "border-[#c3cdd5] bg-[#f2f5f8]"
-                    } active:bg-[#f2feff] ${className}`}
+                    className={fieldControlClassName(
+                        error,
+                        cn("py-2 pl-4 pr-10 rounded cursor-pointer appearance-none", className),
+                    )}
                     id={name}
                     ref={ref}
                     type={type}

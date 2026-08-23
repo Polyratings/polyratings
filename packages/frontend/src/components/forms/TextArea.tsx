@@ -1,4 +1,6 @@
 import { forwardRef } from "react";
+import { cn } from "@/utils";
+import { fieldControlClassName } from "./fieldClassName";
 
 export type TextAreaProps = {
     name: string;
@@ -18,9 +20,11 @@ export const TextArea = forwardRef<HTMLTextAreaElement, TextAreaProps>(
 
         return (
             <div
-                className={`flex flex-col ${
-                    error ? "text-red-500" : "text-inherit"
-                } ${wrapperClassName}`}
+                className={cn(
+                    "flex flex-col",
+                    error ? "text-red-500" : "text-inherit",
+                    wrapperClassName,
+                )}
             >
                 <label className="text-xs whitespace-nowrap" htmlFor={name}>
                     {label}
@@ -32,7 +36,10 @@ export const TextArea = forwardRef<HTMLTextAreaElement, TextAreaProps>(
                     {...rest}
                     aria-invalid={error ? "true" : undefined}
                     aria-describedby={describedBy}
-                    className={`w-full h-48 rounded-sm text-black p-2 border-[#c3cdd5] bg-[#f2f5f8] active:bg-[#f2feff] border ${className}`}
+                    className={fieldControlClassName(
+                        error,
+                        cn("w-full h-48 rounded-sm text-black p-2", className),
+                    )}
                 />
                 {error && (
                     <p id={errorId} role="alert" className="text-sm text-red-500">
