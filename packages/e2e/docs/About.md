@@ -24,3 +24,4 @@ The About route provides Polyratings history and project context for users and c
 
 - **Spec file:** `packages/e2e/src/about.spec.ts`
 - **Test:** `ABOUT: about page loads expected heading`
+- **Status:** Implemented

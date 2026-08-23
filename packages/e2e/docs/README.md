@@ -6,7 +6,7 @@ This directory contains business logic requirement documents that drive E2E test
 - **User Stories** – Business context from the user's perspective
 - **Acceptance Criteria** – Conditions that must be satisfied for the feature to be complete
 - **Test Scenarios** – Concrete E2E scenarios that verify the criteria
-- **Implementation Status** – Link to spec file and coverage
+- **Implementation Status** – These specs define the tests 1:1. Playwright implements the IDs and scenario titles here; do not add tests the spec does not describe.
 
 Tests are implemented in `packages/e2e/src/` and run against local (`npm run e2e`) or deployed hosts via `PLAYWRIGHT_BASE_URL` (for example `npm run e2e:beta`). Production runs (`npm run e2e:prod` or CI on `master`) set `PLAYWRIGHT_EXCLUDE_WRITE=true` to skip tests tagged `@write`.
 
@@ -31,8 +31,8 @@ Per-test customization uses `scanForA11yViolations((builder) => ...)` or builds 
 | [FAQ.md](./FAQ.md)                                 | FAQ page route and main heading                                    | `src/faq.spec.ts`                | Implemented           |
 | [Search.md](./Search.md)                           | Professor list search, typing, and no-results fallback             | `src/search.spec.ts`             | Implemented           |
 | [PublicAccessibility.md](./PublicAccessibility.md) | WCAG scan baseline for public routes                               | `src/a11y/public-routes.spec.ts` | Implemented           |
-| [ProfessorPage.md](./ProfessorPage.md)             | Professor profile, ratings visibility, and evaluation entry points | `src/professor-page.spec.ts`     | Partially implemented |
+| [ProfessorPage.md](./ProfessorPage.md)             | Professor profile, ratings visibility, and evaluation entry points | `src/professor-page.spec.ts`     | Implemented           |
 | [NotFound.md](./NotFound.md)                       | Unknown routes and missing professors redirect home                | `src/not-found-redirect.spec.ts` | Implemented           |
 | [NewProfessor.md](./NewProfessor.md)               | Add-a-professor submission flow                                    | `src/new-professor.spec.ts`      | Implemented           |
-| [Login.md](./Login.md)                             | Admin login form and redirect behavior                             | `src/login.spec.ts`              | Partially implemented |
-| [Admin.md](./Admin.md)                             | Admin panel access and moderation surfaces                         | `src/admin.spec.ts`              | Partially implemented |
+| [Login.md](./Login.md)                             | Admin login form and invalid-credential feedback                   | `src/login.spec.ts`              | Implemented           |
+| [Admin.md](./Admin.md)                             | Unauthenticated admin route redirect                               | `src/admin.spec.ts`              | Implemented           |

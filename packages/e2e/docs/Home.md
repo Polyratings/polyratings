@@ -27,3 +27,4 @@ The home route introduces Polyratings and provides primary entry points for sear
 
 - **Spec file:** `packages/e2e/src/home.spec.ts`
 - **Test:** `HOME: home page renders hero and primary nav links`
+- **Status:** Implemented

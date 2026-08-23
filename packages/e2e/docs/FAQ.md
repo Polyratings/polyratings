@@ -24,3 +24,4 @@ The FAQ route answers common questions about rating authenticity, moderation sta
 
 - **Spec file:** `packages/e2e/src/faq.spec.ts`
 - **Test:** `FAQ: faq page loads expected heading`
+- **Status:** Implemented

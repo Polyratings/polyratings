@@ -33,3 +33,4 @@ The search route lets students query professors by name or course and narrow the
 - **Tests:**
     - `SEARCH: search route handles no-results state`
     - `SEARCH: professor list shows results and stays populated while typing`
+- **Status:** Implemented
