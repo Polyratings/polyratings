@@ -28,13 +28,6 @@ const lockProfessorParser = z.object({
     lockedMessage: z.string().optional(),
 });
 
-const fixEscapedCharsParser = z.object({
-    professors: z
-        .array(z.uuid())
-        .min(1)
-        .max(250, "Separate your request into batches of 250 professors."),
-});
-
 const MAX_REASON_LENGTH = 600;
 
 function getProfessorRatingIds(professor: Professor): Set<string> {
@@ -314,77 +307,4 @@ export const adminRouter = t.router({
         await ctx.env.kvDao.removeRatingWithProfessor(professor, report.ratingId);
         await removeReportBestEffort(ctx.env.kvDao, input);
     }),
-    fixEscapedChars: protectedProcedure
-        .input(fixEscapedCharsParser)
-        .output(
-            z.object({
-                updated: z.uuid().array(),
-                skipped: z.uuid().array(),
-                failed: z.array(z.object({ profId: z.uuid(), message: z.string() })),
-            }),
-        )
-        .mutation(async ({ ctx, input }) => {
-            const professors = await Promise.all(
-                input.professors.map((profId) => ctx.env.kvDao.getProfessorOptional(profId)),
-            );
-            const missingIds = input.professors.filter((_, idx) => !professors[idx]);
-            if (missingIds.length > 0) {
-                throw new TRPCError({
-                    code: "NOT_FOUND",
-                    message: `Unknown professor id(s): ${missingIds.join(", ")}`,
-                });
-            }
-
-            const updates: Array<{ id: string; professor: Professor }> = [];
-            const skipped: string[] = [];
-            const failed: Array<{ profId: string; message: string }> = [];
-
-            (professors as Professor[]).forEach((professor, i) => {
-                const profId = input.professors[i];
-                try {
-                    let hasChanges = false;
-
-                    const processRatings = (ratings: (typeof professor.reviews)[string]) =>
-                        ratings.map((rating) => {
-                            const originalRating = rating.rating;
-                            const fixedRating = rating.rating
-                                .replaceAll("\\'", "'")
-                                // eslint-disable-next-line
-                                .replaceAll('\\"', '"');
-                            if (originalRating !== fixedRating) {
-                                hasChanges = true;
-                            }
-                            return { ...rating, rating: fixedRating };
-                        });
-
-                    for (const [course, ratings] of Object.entries(professor.reviews)) {
-                        professor.reviews[course] = processRatings(ratings);
-                    }
-
-                    if (hasChanges) {
-                        updates.push({ id: profId, professor });
-                    } else {
-                        skipped.push(profId);
-                    }
-                } catch (error) {
-                    failed.push({
-                        profId,
-                        message:
-                            error instanceof Error ? error.message : "Failed to process professor",
-                    });
-                }
-            });
-
-            if (updates.length > 0) {
-                await ctx.env.kvDao.batchUpdateProfessors(
-                    updates.map((u) => ({ id: u.id, professor: u.professor })),
-                );
-            }
-
-            return {
-                updated: updates.map((u) => u.id),
-                skipped,
-                failed,
-            };
-        }),
 });

@@ -1,6 +1,7 @@
 name: Continuous Integration and Deployment
 permissions:
   contents: read
+  actions: read
 
 on:
   pull_request:
@@ -8,21 +9,30 @@ on:
     branches:
       - master
       - beta
+  merge_group:
 
 env:
   NX_BRANCH: ${{ github.event.number || github.ref_name }}
   NX_CLOUD_ACCESS_TOKEN: ${{ secrets.NX_CLOUD_ACCESS_TOKEN }}
 
 jobs:
-  Integration_And_Deployment:
+  ci:
+    name: Continuous Integration
     runs-on: ubuntu-latest
-    env:
-      OUTSIDE_CONTRIB: ${{ secrets.CF_API_TOKEN == '' }}
+    concurrency:
+      group: ci-${{ github.ref }}
+      cancel-in-progress: true
+    permissions:
+      contents: read
+      actions: read
     steps:
       - name: Checkout Code
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+          filter: tree:0
 
-      - uses: actions/setup-node@v6
+      - uses: actions/setup-node@v7
         with:
           node-version: 24
           cache: "npm"
@@ -30,31 +40,83 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Lint packages
-        run: npm run lint
+      - uses: nrwl/nx-set-shas@v5
+        with:
+          main-branch-name: master
 
-      - name: Build Packages
-        run: npm run build
+      - name: Lint affected packages
+        run: npx nx affected --target=lint --parallel
 
-      - name: Test Packages
-        run: npm run test
+      - name: Build affected packages
+        run: npx nx affected --target=build --parallel
 
-      - name: Deploy Prod
-        if: github.ref == 'refs/heads/master'
-        env:
-          CLOUDFLARE_API_TOKEN: ${{ secrets.CF_API_TOKEN }}
-        run: NX_CLOUD_DISTRIBUTED_EXECUTION=false npm run deploy:prod
+      - name: Test affected packages
+        run: npx nx affected --target=test --parallel --passWithNoTests
 
-      - name: Deploy Beta
-        if: github.ref == 'refs/heads/beta'
-        env:
-          CLOUDFLARE_API_TOKEN: ${{ secrets.CF_API_TOKEN }}
-        run: NX_CLOUD_DISTRIBUTED_EXECUTION=false npm run deploy:beta
+      - name: Nx self-healing CI
+        if: always()
+        run: npx nx fix-ci
 
-      # We will deploy to dev so that cloudflare preview urls will point to the backend
-      # This will be a problem with multiple PRs, but hey we at least tried :)
-      - name: Deploy Dev
-        if: ${{ github.ref != 'refs/heads/beta' && github.ref != 'refs/heads/master' && env.OUTSIDE_CONTRIB == 'false' }}
-        env:
-          CLOUDFLARE_API_TOKEN: ${{ secrets.CF_API_TOKEN }}
-        run: NX_CLOUD_DISTRIBUTED_EXECUTION=false npm run deploy:dev
+  deploy-prod:
+    name: Production Deployment
+    needs: [ci]
+    if: github.event_name == 'push' && github.ref == 'refs/heads/master'
+    uses: ./.github/workflows/reusable-deploy-workflow.yml
+    permissions:
+      contents: read
+      deployments: write
+    with:
+      ENVIRONMENT_NAME: prod
+      GITHUB_ENVIRONMENT: production
+      GITHUB_ENVIRONMENT_URL: https://polyratings.dev
+      DEPLOY_SCRIPT: deploy:prod
+      PAGES_BRANCH: master
+      PLAYWRIGHT_BASE_URL: https://polyratings.dev
+      EXCLUDE_WRITE_TESTS: true
+    secrets:
+      CF_API_TOKEN: ${{ secrets.CF_API_TOKEN }}
+
+  deploy-beta:
+    name: Beta Deployment
+    needs: [ci]
+    # Push to beta only. Promotion PRs (beta → master) must not republish beta.
+    if: github.event_name == 'push' && github.ref == 'refs/heads/beta'
+    uses: ./.github/workflows/reusable-deploy-workflow.yml
+    permissions:
+      contents: read
+      deployments: write
+    with:
+      ENVIRONMENT_NAME: beta
+      GITHUB_ENVIRONMENT: beta
+      GITHUB_ENVIRONMENT_URL: https://beta.polyratings.pages.dev
+      DEPLOY_SCRIPT: deploy:beta
+      PAGES_BRANCH: beta
+      PLAYWRIGHT_BASE_URL: https://beta.polyratings.pages.dev
+      EXCLUDE_WRITE_TESTS: false
+    secrets:
+      CF_API_TOKEN: ${{ secrets.CF_API_TOKEN }}
+
+  deploy-dev:
+    name: Dev Preview
+    needs: [ci]
+    # Per-PR Worker preview + Pages branch. Fork PRs have no Cloudflare token and are skipped in the reusable workflow.
+    # Skip beta → master promotion PRs (already live on beta; prod deploys on merge).
+    if: >
+      github.event_name == 'pull_request' &&
+      !(github.head_ref == 'beta' && github.base_ref == 'master')
+    uses: ./.github/workflows/reusable-deploy-workflow.yml
+    permissions:
+      contents: read
+      deployments: write
+      pull-requests: write
+    with:
+      ENVIRONMENT_NAME: dev
+      GITHUB_ENVIRONMENT: dev
+      WORKER_PUBLISH: versions-upload
+      PREVIEW_ALIAS: pr-${{ github.event.number }}
+      PAGES_BRANCH: pr-${{ github.event.number }}
+      CONCURRENCY_GROUP: preview-pr-${{ github.event.number }}
+      COMMENT_ON_PR: true
+      EXCLUDE_WRITE_TESTS: false
+    secrets:
+      CF_API_TOKEN: ${{ secrets.CF_API_TOKEN }}

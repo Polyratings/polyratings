@@ -41,7 +41,9 @@ test("NEWPROF: empty required fields are blocked with validation state", async (
     });
 });
 
-test("NEWPROF: successful submission surfaces user feedback", async ({ page }) => {
+test("NEWPROF: successful submission surfaces user feedback", { tag: "@write" }, async ({
+    page,
+}) => {
     await page.setViewportSize({ width: 390, height: 844 });
     await page.goto("/new-professor");
 

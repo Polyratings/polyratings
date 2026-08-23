@@ -20,14 +20,15 @@ The new professor route allows users to submit a professor entry and initial rat
 
 ## Test Scenarios
 
-| Scenario                                         | Criteria Covered        | Spec                    | Status      |
-| ------------------------------------------------ | ----------------------- | ----------------------- | ----------- |
-| New professor form renders on desktop and mobile | NEWPROF-1 and NEWPROF-2 | `new-professor.spec.ts` | Implemented |
-| Validation appears for missing required fields   | NEWPROF-3               | `new-professor.spec.ts` | Implemented |
-| Successful new professor submission flow         | NEWPROF-4               | `new-professor.spec.ts` | Implemented |
+| Scenario                                         | Criteria Covered | Spec                    | Status      |
+| ------------------------------------------------ | ---------------- | ----------------------- | ----------- |
+| New professor form renders on desktop            | NEWPROF-1        | `new-professor.spec.ts` | Implemented |
+| New professor form renders on mobile             | NEWPROF-2        | `new-professor.spec.ts` | Implemented |
+| Validation appears for missing required fields   | NEWPROF-3        | `new-professor.spec.ts` | Implemented |
+| Successful new professor submission flow         | NEWPROF-4        | `new-professor.spec.ts` | Implemented |
 
 ## Implementation
 
 - **Spec file:** `packages/e2e/src/new-professor.spec.ts`
-- **Implemented tests:** `NEWPROF: desktop route renders new professor form`, `NEWPROF: mobile route renders linear submit flow`, `NEWPROF: empty required fields are blocked with validation state`, `NEWPROF: successful submission surfaces user feedback`
+- **Tests:** `NEWPROF: desktop route renders new professor form`, `NEWPROF: mobile route renders linear submit flow`, `NEWPROF: empty required fields are blocked with validation state`, `NEWPROF: successful submission surfaces user feedback` (`{ tag: "@write" }`; skipped in production)
 - **Status:** Implemented

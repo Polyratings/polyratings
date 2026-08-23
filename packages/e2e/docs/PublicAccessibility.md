@@ -19,11 +19,17 @@ Public informational routes maintain a WCAG 2.1 AA accessibility baseline enforc
 
 ## Test Scenarios
 
-| Scenario                             | Criteria Covered              | Spec                         | Status      |
-| ------------------------------------ | ----------------------------- | ---------------------------- | ----------- |
-| Public routes accessibility baseline | A11Y-PUB-1 through A11Y-PUB-3 | `a11y/public-routes.spec.ts` | Implemented |
+| Scenario                            | Criteria Covered | Spec                         | Status      |
+| ----------------------------------- | ---------------- | ---------------------------- | ----------- |
+| Home route accessibility baseline   | A11Y-PUB-1       | `a11y/public-routes.spec.ts` | Implemented |
+| About route accessibility baseline  | A11Y-PUB-2       | `a11y/public-routes.spec.ts` | Implemented |
+| FAQ route accessibility baseline    | A11Y-PUB-3       | `a11y/public-routes.spec.ts` | Implemented |
 
 ## Implementation
 
 - **Spec file:** `packages/e2e/src/a11y/public-routes.spec.ts`
-- **Test:** `@a11y A11Y-PUB: public routes accessibility baseline`
+- **Tests:**
+    - `@a11y A11Y-PUB: home route accessibility baseline`
+    - `@a11y A11Y-PUB: about route accessibility baseline`
+    - `@a11y A11Y-PUB: FAQ route accessibility baseline`
+- **Status:** Implemented

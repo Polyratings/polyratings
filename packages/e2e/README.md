@@ -4,6 +4,8 @@
 
 **Beta:** From the repo root, `npm run e2e:beta` runs the same specs against [https://beta.polyratings.pages.dev/](https://beta.polyratings.pages.dev/) without starting a local server.
 
+**Production:** `npm run e2e:prod` runs against [https://polyratings.dev](https://polyratings.dev) and skips tests tagged `@write` (mutating submissions).
+
 Defaults:
 
 - Local frontend base URL: `http://localhost:5173` (Vite default port)
@@ -14,6 +16,7 @@ Useful commands:
 - `npm run e2e` (local, with dev server)
 - `npm run e2e:a11y` (WCAG 2.x A/AA axe scans; `@a11y` tag — see `docs/README.md`)
 - `npm run e2e:beta` (deployed beta frontend)
+- `npm run e2e:prod` (deployed production frontend; excludes `@write`)
 - `npm run e2e:dev` (alias for running the e2e package’s `playwright test`; pass extra args after `--`)
 - `npm run e2e:ui` (open Playwright UI mode)
 - `npm run e2e:headed` (headed browser run)

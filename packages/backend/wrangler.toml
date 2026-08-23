@@ -36,9 +36,14 @@ name = "RATE_LIMITER"
 namespace_id = "1000"
 simple = { limit = 20, period = 10 } # 20 requests every 10 seconds (local / default)
 
+# Discord webhooks are opt-in outside prod (e2e write tests hit beta/dev).
+[vars]
+ENABLE_DISCORD_NOTIFICATIONS = "false"
+
 [env.dev]
 name = 'polyratings-dev-backend'
-route = 'api-dev.polyratings.org/*'
+preview_urls = true
+route = { pattern = "api-dev.polyratings.org/*", zone_name = "polyratings.org" }
 kv_namespaces = [
     { binding = "POLYRATINGS_TEACHERS", id = "20700dd12582422b9f91a0a1695ace88", preview_id = "20700dd12582422b9f91a0a1695ace88" },
     { binding = "PROCESSING_QUEUE", id = "ada7d85a6912462ebaaaed5304f58323", preview_id = "ada7d85a6912462ebaaaed5304f58323" },
@@ -48,6 +53,9 @@ kv_namespaces = [
     { binding = "POLYRATINGS_SESSIONS", id = "62feb12023254effb0d2b7842e74589f", preview_id = "62feb12023254effb0d2b7842e74589f" },
 ]
 
+[env.dev.vars]
+ENABLE_DISCORD_NOTIFICATIONS = "false"
+
 [[env.dev.ratelimits]]
 name = "RATE_LIMITER"
 namespace_id = "1001"
@@ -55,7 +63,7 @@ simple = { limit = 20, period = 10 } # 20 requests every 10 seconds
 
 [env.beta]
 name = 'polyratings-beta-backend'
-route = 'api-beta.polyratings.org/*'
+route = { pattern = "api-beta.polyratings.org/*", zone_name = "polyratings.org" }
 kv_namespaces = [
     { binding = "POLYRATINGS_TEACHERS", id = "3a5904587fe943679bf97e59d95b7632" },
     { binding = "PROCESSING_QUEUE", id = "a25ee370718a4d0e86aeba48f7156618" },
@@ -65,6 +73,9 @@ kv_namespaces = [
     { binding = "POLYRATINGS_SESSIONS", id = "3f1960ed2db04d71ab8a560b86cee81f" },
 ]
 
+[env.beta.vars]
+ENABLE_DISCORD_NOTIFICATIONS = "false"
+
 [[env.beta.ratelimits]]
 name = "RATE_LIMITER"
 namespace_id = "1002"
@@ -72,7 +83,7 @@ simple = { limit = 2, period = 10 } # 2 requests every 10 seconds
 
 [env.prod]
 name = "polyratings-prod-backend"
-route = "api-prod.polyratings.org/*"
+route = { pattern = "api-prod.polyratings.org/*", zone_name = "polyratings.org" }
 kv_namespaces = [
     { binding = "POLYRATINGS_TEACHERS", id = "c6bf2730306a4e65bb8aa7412ae6f250" },
     { binding = "PROCESSING_QUEUE", id = "845ba14e564c411fa52543408e15c53e" },
@@ -81,6 +92,9 @@ kv_namespaces = [
     { binding = "POLYRATINGS_REPORTS", id = "e7cdc104b5c047f498c0cc702a487bdf" },
     { binding = "POLYRATINGS_SESSIONS", id = "d9cd467978be4b46b90d82b081b95cb9" },
 ]
+
+[env.prod.vars]
+ENABLE_DISCORD_NOTIFICATIONS = "true"
 
 [[env.prod.ratelimits]]
 name = "RATE_LIMITER"

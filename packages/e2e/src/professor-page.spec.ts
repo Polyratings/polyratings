@@ -46,7 +46,9 @@ test("PROF: professor page renders profile, ratings context, evaluate action, an
     });
 });
 
-test("PROF: report submission flow succeeds from professor page", async ({ page }) => {
+test("PROF: report submission flow succeeds from professor page", { tag: "@write" }, async ({
+    page,
+}) => {
     await openInteractiveProfessorPage(page);
 
     await test.step("PROF-6: report form can be submitted and shows success feedback", async () => {
@@ -64,7 +66,9 @@ test("PROF: report submission flow succeeds from professor page", async ({ page 
     });
 });
 
-test("PROF: rating submission flow succeeds from professor page", async ({ page }) => {
+test("PROF: rating submission flow succeeds from professor page", { tag: "@write" }, async ({
+    page,
+}) => {
     await openInteractiveProfessorPage(page);
 
     await test.step("PROF-7: evaluate form can be submitted and shows success feedback", async () => {

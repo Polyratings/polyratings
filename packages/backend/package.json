@@ -13,25 +13,28 @@
         "deploy:beta": "wrangler deploy --env beta",
         "deploy:dev": "wrangler deploy --env dev",
         "lint": "eslint --max-warnings=0 .",
-        "fix": "eslint . --fix"
+        "fix": "eslint . --fix",
+        "assert-dev-kv-allowlist": "tsx scripts/assert-dev-kv-allowlist.ts"
     },
     "author": "Addison Tustin <addison@atustin.dev>",
     "license": "GPL-3.0",
     "devDependencies": {
-        "@cloudflare/workers-types": "^4.20260511.1",
+        "@cloudflare/workers-types": "^5.20260822.1",
         "@polyratings/eslint-config": "^0.0.1",
+        "@tsconfig/node-lts": "^24.0.1",
         "esbuild": "^0.28.2",
         "esbuild-visualizer": "^0.7.0",
         "eslint": "^8.57.1",
-        "toml": "^3.0.0",
-        "typescript": "^5.9.3",
+        "toml": "^5.0.0",
+        "tsx": "^4.23.12",
+        "typescript": "~6.0.3",
         "wrangler": "^4.125.0"
     },
     "dependencies": {
-        "@trpc/server": "11.17.0",
+        "@trpc/server": "11.18.0",
         "@tsndr/cloudflare-worker-jwt": "^3.2.3",
         "discord-api-types": "^0.38.53",
-        "openai": "^6.49.0",
+        "openai": "^7.5.0",
         "toucan-js": "^4.1.1",
         "zod": "^4.4.3"
     }

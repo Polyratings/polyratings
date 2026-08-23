@@ -1,110 +1,52 @@
 # AGENTS Guidelines for Polyratings
 
-This repository is a **Lerna monorepo** with Nx for task orchestration. It contains the Polyratings website (professor ratings for Cal Poly) with a React frontend and Cloudflare Workers backend.
+Lerna + Nx monorepo: Cal Poly professor ratings (React frontend, Cloudflare Workers API).
 
-> **Agent instruction:** If you determine that any information in this file is out of date (e.g., commands, structure, tech stack, conventions), update AGENTS.md to reflect the current state of the project.
+If this file is wrong, update it.
 
-## Project Structure
+## Packages
 
-| Package                      | Path                      | Description                                  |
-| ---------------------------- | ------------------------- | -------------------------------------------- |
-| `@polyratings/frontend`      | `packages/frontend/`      | React app (Vite) deployed at polyratings.dev |
-| `@polyratings/backend`       | `packages/backend/`       | Cloudflare Workers API (tRPC)                |
-| `@polyratings/cron`          | `packages/cron/`          | Nightly sync and backup jobs                 |
-| `@polyratings/e2e`           | `packages/e2e/`           | Playwright end-to-end smoke tests            |
-| `@polyratings/eslint-config` | `packages/eslint-config/` | Shared ESLint config                         |
+| Package | Path | Role |
+| --- | --- | --- |
+| `@polyratings/frontend` | `packages/frontend/` | Vite React app (polyratings.dev) |
+| `@polyratings/backend` | `packages/backend/` | Workers tRPC API |
+| `@polyratings/cron` | `packages/cron/` | Nightly sync / backup |
+| `@polyratings/e2e` | `packages/e2e/` | Playwright |
+| `@polyratings/eslint-config` | `packages/eslint-config/` | Shared ESLint |
 
-**Dependencies:** frontend and cron depend on backend; all use eslint-config.
+Frontend and cron depend on backend.
 
-## Development Commands
+## Commands (repo root)
 
-### Root (from repo root)
+| Command | Purpose |
+| --- | --- |
+| `npm install` | Install + Lerna bootstrap |
+| `npm run build` | Build all (dependency order) |
+| `npm run start:local` | Frontend + backend, hot reload, local KV |
+| `npm run start:dev` | Same with Cloudflare dev KV |
+| `npm run test` / `lint` / `fix` | Tests, lint, auto-fix |
+| `npm run e2e` | Playwright (local Vite) |
+| `npm run e2e:prod` | Production host, skip `@write` |
 
-| Command               | Purpose                                              |
-| --------------------- | ---------------------------------------------------- |
-| `npm install`         | Install all dependencies (Lerna bootstraps packages) |
-| `npm run build`       | Build all packages                                   |
-| `npm run start:local` | Start frontend + backend with hot reload             |
-| `npm run start:dev`   | Same, but uses dev KV (requires Cloudflare access)   |
-| `npm run test`        | Run tests across packages                            |
-| `npm run e2e`         | Run Playwright end-to-end tests (`@polyratings/e2e`) |
-| `npm run lint`        | Lint all packages                                    |
-| `npm run fix`         | Auto-fix lint issues                                 |
+Per-package: `start:local` (frontend/backend), `npm t` (frontend Vitest), `run:local` (cron). Rebuild backend after router/type changes (generates types for frontend).
 
-### Per-package (from `packages/<name>/`)
+## Stack and conventions
 
-- **Frontend:** `npm run start:local` (Vite dev server), `npm run test` (Vitest)
-- **Backend:** `npm run start:local` (Wrangler dev), `npm run build` (generates types + esbuild)
-- **Cron:** `npm run run:local`, `npm run build:local`
-- **E2E:** `npm run e2e` (Playwright), `npm run e2e:ui` (Playwright UI mode)
+- **Frontend:** React 18, Vite, Tailwind (inline classes), tRPC, TanStack Query, React Router. `index.ts` re-exports; no `../` imports. One public component per file. Local error UX at the query/mutation; `meta.suppressGlobalErrorToast` when handled locally.
+- **Backend:** Workers, tRPC (`src/index.ts`), KV DAOs, Zod in `src/types/schema.ts` (public vs internal parsers). Public routes: `publicProcedure` and omit `anonymousIdentifier`. Discord notifications production-only; e2e sends `x-polyratings-skip-notifications: 1`.
+- **General:** TypeScript; `@polyratings/eslint-config`; `npm run fix` before commit.
 
-## Tech Stack
+## E2E 1:1 with specs
 
-- **Frontend:** React 18, Vite, Tailwind CSS v4, tRPC, TanStack Query, React Router
-- **Backend:** Cloudflare Workers, tRPC, Workers KV, esbuild
-- **Shared:** TypeScript, Zod, shared `@polyratings/backend` types
+Requirement **specs** in `packages/e2e/docs/*.md` define the tests. Playwright in `packages/e2e/src/` implements them. Do not invent tests without a spec, or shrink specs to match leftover tests.
 
-## Coding Conventions
+Keep **1:1 parity**: each spec file ↔ one suite; each acceptance ID ↔ a `test` or `test.step`; scenario titles match test names. Change the spec first, then the `.spec.ts`.
 
-### Frontend (`packages/frontend/`)
+- Local: `npm run e2e` (`http://localhost:5173`). Beta/prod: `e2e:beta` / `e2e:prod`. `@write` skipped in production.
+- A11y: WCAG 2.1 AA; `npm run e2e:a11y` (`@a11y`, axe in `src/support/axe-test.ts`). Frontend also uses `eslint-plugin-jsx-a11y` and jest-axe on new UI primitives.
 
-- **Styling:** Tailwind CSS. Write CSS inline via Tailwind classes.
-- **Module pattern:** Use `index.ts` per folder to re-export; avoid `../` imports when possible (restricted by ESLint).
-- **API:** tRPC for type-safe client–server calls; TanStack Query for caching.
-- **Error handling:** Prefer local, contextual error UX at the query/mutation site (inline messages for page sections and forms). Keep global toasts as a fallback safety net only.
-- **Global toast suppression:** When a query/mutation already has local error handling, set query/mutation `meta.suppressGlobalErrorToast = true` (or provide explicit `onError`) to avoid duplicate notifications.
-- **Components:** One public component per file; co-locate styles with components.
+## Deploy (GitHub Actions)
 
-### Backend (`packages/backend/`)
-
-- **Entry:** `src/index.ts` sets up tRPC router.
-- **Structure:** `routers/` (handlers), `dao/` (data access over KV), `types/` (KV schema).
-- **Build:** `npm run build` runs `generateBackendTypes.js`, tsc, then esbuild.
-- **Public API data safety:** treat `anonymousIdentifier` as sensitive metadata. Public routes should use `publicProcedure` and must return sanitized/public schemas that omit sensitive keys. Only protected procedures (`protectedProcedure`) may return schemas that include `anonymousIdentifier` when needed.
-- **Schema pattern:** keep both full/internal and public-safe Zod schemas in `src/types/schema.ts` (for example `ratingParser` vs `publicRatingParser`, `professorParser` vs `publicProfessorParser`) and use helper mappers in `src/types/schemaHelpers.ts` before returning data from public routers.
-- **Route error semantics:** For protected/admin routes, prefer explicit `TRPCError` responses (for example `NOT_FOUND`) when IDs are stale/missing. For public report flows affected by stale client cache, prefer graceful no-op behavior.
-
-### General
-
-- Prefer TypeScript (`.ts`/`.tsx`) for new code.
-- Use the shared `@polyratings/eslint-config`; run `npm run fix` before committing.
-
-## Testing
-
-- **Frontend:** Vitest. Run with `npm t` from `packages/frontend/`.
-- **Backend:** Automated tests are in progress.
-
-## Deployment
-
-- **Backend:** `npm run deploy:prod`, `deploy:beta`, or `deploy:dev` from `packages/backend/`.
-- **Frontend:** Deployed via Cloudflare Pages.
-- **Cron:** Deployed separately; syncs data and backs up professor list.
-
-## Agent Workflow Tips
-
-1. **Use `start:local` for development** – starts both frontend and backend with hot reload.
-2. **Build order:** Run `npm run build` from root to build all packages in dependency order.
-3. **Backend types:** Backend build generates types consumed by frontend; rebuild backend if you change routers or types.
-4. **Nx:** The workspace uses Nx for caching and task orchestration; `nx run <project>:<target>` works for individual targets.
-
-## E2E Tests
-
-- **Location:** `packages/e2e/src/`
-- **Requirements:** Business logic requirements live in `packages/e2e/docs/` and drive test implementation.
-- **Environments:**
-  - **Local (default):** `npm run e2e` — Playwright starts the frontend (`start:local` in `packages/frontend`) and uses `http://localhost:5173`.
-  - **Beta:** `npm run e2e:beta` — runs against [https://beta.polyratings.pages.dev/](https://beta.polyratings.pages.dev/) (no local web server). Override with `PLAYWRIGHT_BASE_URL` if needed.
-
-## Accessibility
-
-- **Target:** WCAG 2.1 AA for sender flows
-- **Automated gates (enforced):**
-  - **Lint:** `eslint-plugin-jsx-a11y` is enabled via the shared `@polyratings/eslint-config` (Airbnb preset). Frontend uses `packages/frontend/.eslintrc.js` and `npm run lint` from the repo root.
-  - **Unit:** `jest-axe` with Vitest (assert on `results.violations` from `axe(container)`). Add an axe scan when you introduce a new reusable UI primitive (see `packages/frontend/src/components/forms/Button.a11y.spec.tsx`).
-  - **E2E:** Playwright tests whose names include `@a11y` use `packages/e2e/src/support/axe-test.ts` (`@axe-core/playwright`): `makeAxeBuilder()` / `scanForA11yViolations()` apply `withTags(['wcag2a','wcag2aa','wcag21a','wcag21aa'])`, attach numbered `axe-results-*.json`, and assert zero violations.
-- **Running locally:** `npm run e2e:a11y` (starts the frontend via Playwright when using the default localhost base URL). Use `npm run e2e:dev -- --grep @a11y` to forward extra Playwright CLI args. Deployed beta: `npm run e2e:beta -- --grep @a11y` (or set `PLAYWRIGHT_BASE_URL` to another host; non-localhost skips the dev server).
-- **Manual cadence (not automated):**
-  - Quarterly: one pass with [Accessibility Insights for Web](https://accessibilityinsights.io/) against the live beta (or production) site.
-  - Before major releases: VoiceOver smoke on the sender happy path.
-  - Before facility pilots: at least one usability session with older-adult testers.
-- **Handling known issues:** prefer fixing. If a violation must be deferred, use `.exclude()` / `.disableRules()` on the specific scan call in the spec (not globally) and open a tracking issue.
+- Workers: `deploy:prod` / `deploy:beta`; PRs use `wrangler versions upload --env dev --preview-alias pr-<number>`.
+- Pages: workflow-only `wrangler pages deploy` (`NX_NO_CLOUD=true`, Vite `--mode` per env). Disable Pages Git auto-deploy. Closed same-repo PRs drop Pages + Worker preview alias.
+- Cron ships with production worker deploys.

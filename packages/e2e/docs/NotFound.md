@@ -31,6 +31,8 @@ Unknown routes and missing professor pages redirect users back to the home route
 ## Implementation
 
 - **Spec file:** `packages/e2e/src/not-found-redirect.spec.ts`
+- **Tests:** `NOT-FOUND-1: unknown route redirects immediately on desktop`, `NOT-FOUND-2: unknown route shows countdown then redirects on mobile`, `NOT-FOUND-3: invalid professor id redirects immediately on desktop`, `NOT-FOUND-4: invalid professor id shows countdown then redirects on mobile`
+- **Status:** Implemented
 - **Frontend route handling:** `packages/frontend/src/pages/NotFoundRedirect.tsx`, catch-all route and professor loader in `packages/frontend/src/App.tsx` and `packages/frontend/src/pages/ProfessorPage.tsx`
 - **Professor loader behavior:** invalid UUIDs and tRPC `NOT_FOUND` responses render the professor variant; other loader failures propagate to the router error surface.
 - **Desktop copy:** toast + immediate redirect via `<Navigate replace to="/" />`.

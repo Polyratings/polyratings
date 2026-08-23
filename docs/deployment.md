@@ -100,7 +100,19 @@ We currently provide a [daily dump](https://github.com/Polyratings/polyratings-d
 
 # Cloudflare Pages
 
-As far as I am aware, there is no easy programmatic/automatic way to create a Cloudflare Pages project, so you'll need to follow the steps below to automatically build and deploy the site from source.
+The official Polyratings GitHub Actions workflow builds the frontend and publishes it with `wrangler pages deploy`:
+
+- `master` → production (`polyratings.dev`) and `wrangler deploy --env prod`
+- `beta` → `beta.polyratings.pages.dev` and `wrangler deploy --env beta`
+- pull requests → Pages branch `pr-<number>` and `wrangler versions upload --env dev --preview-alias pr-<number>` (does **not** change the live `api-dev.polyratings.org` Worker). The frontend is built with `VITE_API_URL` set to the Worker preview URL (`pr-<n>-polyratings-dev-backend.<subdomain>.workers.dev`). Promotion PRs from `beta` into `master` skip both the beta republish and the per-PR preview; production still deploys when the merge lands on `master`.
+
+**Disable automatic Git deployments** on the Pages project (Settings → Builds & deployments) so GitHub Actions is the only publisher. Leaving Git connected will double-deploy and race the workflow.
+
+If a PR Worker preview 404s, enable Preview URLs on `polyratings-dev-backend` in the dashboard (Settings → Domains & Routes). `preview_urls = true` is set on `[env.dev]` in `packages/backend/wrangler.toml`.
+
+When a same-repo pull request is closed, GitHub Actions deletes Pages deployments for branch `pr-<number>` and re-points the Worker preview alias `pr-<number>` at a 410 stub (aliases cannot be deleted). Versioned `*.workers.dev` URLs for old uploads are left in place. Optional Cloudflare Access on preview hostnames is dashboard-only.
+
+Creating a Pages project still happens in the dashboard:
 
 ## Configuration (When Modifying the Backend Package)
 
@@ -117,7 +129,7 @@ You'll need to fill out the page using the following settings:
 - **Project name:** The name you want associated with this Pages project. Note: it **is not** the final URL that will point to your homepage.
 - **Production branch**: This should usually be `master` unless you've changed the default branch of your repository.
 - **Framework preset**: None
-- **Build command**: `npm install && npm run build`. This is because the monorepo is orchestrated by [Lerna](https://lerna.js.org/) so all of the installation, symlinking, and building is handled at the top level.
+- **Build command**: unused when publishing via Direct Upload / `wrangler pages deploy` from GitHub Actions. If you keep Git integration for a fork, `npm install && npm run build` still works because Lerna handles the monorepo.
 - **Build output directory**: `/packages/frontend/dist`
 
 Then select "Save and Deploy." Your site should automatically deploy to `project-name.pages.dev` though if your project name is identical to another, there will be a unique identifier appended to the end of `project-name`.

@@ -1,5 +1,5 @@
 import { ALL_PROFESSOR_KEY, BulkKey, BulkKeyMap } from "@backend/utils/const";
-import { chunkArray, mapInBatches } from "@backend/utils/chunkArray";
+import { mapInBatches } from "@backend/utils/chunkArray";
 import { z } from "zod";
 import { TRPCError } from "@trpc/server";
 import {
@@ -25,10 +25,8 @@ import { KvWrapper } from "./kv-wrapper";
 const KV_REQUESTS_PER_TRIGGER = 1000;
 const THREE_WEEKS_SECONDS = 60 * 60 * 24 * 7 * 3;
 
-// Batch processing constants for performance optimization.
-// Windows of this size are awaited before the next window starts to avoid KV 503s.
+// Window size for bulk KV reads. Awaited before the next window starts.
 const BULK_FETCH_CONCURRENCY = 50;
-const INDIVIDUAL_WRITE_CONCURRENCY = 10;
 
 export class KVDAO {
     constructor(
@@ -60,81 +58,6 @@ export class KVDAO {
             ALL_PROFESSOR_KEY,
             professorList,
         );
-    }
-
-    /**
-     * Batch update professors to reduce write amplification.
-     * Updates multiple professors with a single read and write of the professor list.
-     *
-     * WARNING: This method is not thread-safe. Concurrent calls to this method
-     * can result in lost updates due to race conditions (read-modify-write pattern).
-     * Ensure only one batch update runs at a time, or use a queue/sequencer.
-     *
-     * Cloudflare KV does not support transactions, so true atomicity is not possible.
-     * Per-id records are written first (same order as `putProfessor`); the master
-     * list is only written if every individual write succeeds. If another process
-     * modifies the list concurrently, one update may still be lost.
-     *
-     * TODO: Migrate professor storage to D1 so list + record updates can run in a
-     * single SQL transaction instead of this KV read-modify-write.
-     */
-    async batchUpdateProfessors(
-        updates: Array<{ id: string; professor?: Professor; deleted?: boolean }>,
-    ): Promise<void> {
-        if (updates.length === 0) {
-            return;
-        }
-
-        // Read professor list fresh each time to minimize race condition window
-        const profList = await this.getAllProfessors();
-
-        // Collect write thunks so KV I/O does not start until we finish planning.
-        const individualWrites: Array<() => Promise<void>> = [];
-
-        for (const update of updates) {
-            if (update.deleted) {
-                const professorIndex = profList.findIndex((t) => t.id === update.id);
-                if (professorIndex !== -1) {
-                    profList.splice(professorIndex, 1);
-                }
-                individualWrites.push(async () => {
-                    await this.polyratingsNamespace.delete(update.id);
-                });
-            } else if (update.professor) {
-                const { professor } = update;
-                individualWrites.push(async () => {
-                    await this.polyratingsNamespace.put(professorParser, professor.id, professor);
-                });
-
-                const professorIndex = profList.findIndex((t) => t.id === professor.id);
-                const truncatedProf = professorToTruncatedProfessor(professor);
-
-                if (professorIndex === -1) {
-                    profList.push(truncatedProf);
-                } else {
-                    profList[professorIndex] = truncatedProf;
-                }
-            }
-        }
-
-        const writeResults: PromiseSettledResult<void>[] = [];
-        for (const batch of chunkArray(individualWrites, INDIVIDUAL_WRITE_CONCURRENCY)) {
-            // eslint-disable-next-line no-await-in-loop -- windows must complete before the next starts
-            writeResults.push(...(await Promise.allSettled(batch.map((write) => write()))));
-        }
-
-        const failedWrites = writeResults.filter(
-            (result): result is PromiseRejectedResult => result.status === "rejected",
-        );
-        if (failedWrites.length > 0) {
-            throw new TRPCError({
-                code: "INTERNAL_SERVER_ERROR",
-                message: `Failed to persist ${failedWrites.length} of ${individualWrites.length} professor record(s). Master list was not updated.`,
-                cause: failedWrites[0].reason,
-            });
-        }
-
-        await this.putAllProfessors(profList);
     }
 
     getProfessor(id: string) {

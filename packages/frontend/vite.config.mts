@@ -4,7 +4,7 @@ import tailwindcss from "@tailwindcss/vite";
 
 // https://vitejs.dev/config/
 export default defineConfig({
-    base: process.env.GITHUB_WORKFLOW ? "/polyratings-revamp/" : "/",
+    base: "/",
     plugins: [react(), tailwindcss()],
     resolve: {
         tsconfigPaths: true,

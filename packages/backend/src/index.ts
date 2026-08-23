@@ -12,6 +12,7 @@ import { professorParser, truncatedProfessorParser } from "./types/schema";
 import { ALL_PROFESSOR_KEY } from "./utils/const";
 import { mapInBatches } from "./utils/chunkArray";
 import { AnonymousIdDao } from "./dao/anonymous-id-dao";
+import { SKIP_NOTIFICATIONS_HEADER } from "./dao/discord-notification-dao";
 
 export const appRouter = t.router({
     professors: professorRouter,
@@ -41,7 +42,8 @@ export default {
         );
 
         const cloudflareEnv = getCloudflareEnv({ HASHED_IP, IS_DEPLOYED: isDeployed, ...rawEnv });
-        const polyratingsEnv = new Env(cloudflareEnv);
+        const skipNotifications = request.headers.get(SKIP_NOTIFICATIONS_HEADER) === "1";
+        const polyratingsEnv = new Env(cloudflareEnv, { skipNotifications });
 
         if (!cloudflareEnv.IS_DEPLOYED) {
             await ensureLocalDb(cloudflareEnv, polyratingsEnv);
