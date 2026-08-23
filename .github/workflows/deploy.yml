@@ -71,7 +71,6 @@ jobs:
       GITHUB_ENVIRONMENT_URL: https://polyratings.dev
       DEPLOY_SCRIPT: deploy:prod
       PAGES_BRANCH: master
-      FRONTEND_BUILD_MODE: master
       PLAYWRIGHT_BASE_URL: https://polyratings.dev
       EXCLUDE_WRITE_TESTS: true
     secrets:
@@ -91,7 +90,6 @@ jobs:
       GITHUB_ENVIRONMENT_URL: https://beta.polyratings.pages.dev
       DEPLOY_SCRIPT: deploy:beta
       PAGES_BRANCH: beta
-      FRONTEND_BUILD_MODE: beta
       PLAYWRIGHT_BASE_URL: https://beta.polyratings.pages.dev
       EXCLUDE_WRITE_TESTS: false
     secrets:
@@ -113,7 +111,6 @@ jobs:
       WORKER_PUBLISH: versions-upload
       PREVIEW_ALIAS: pr-${{ github.event.number }}
       PAGES_BRANCH: pr-${{ github.event.number }}
-      FRONTEND_BUILD_MODE: dev
       CONCURRENCY_GROUP: preview-pr-${{ github.event.number }}
       COMMENT_ON_PR: true
       EXCLUDE_WRITE_TESTS: false

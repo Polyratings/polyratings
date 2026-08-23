@@ -45,10 +45,6 @@ on:
         description: "Cloudflare Pages branch (master=production, beta=preview alias, pr-N=preview)"
         required: true
         type: string
-      FRONTEND_BUILD_MODE:
-        description: "Vite/CF_PAGES_BRANCH mode used to select the frontend API target (master, beta, or dev)"
-        required: true
-        type: string
       PLAYWRIGHT_BASE_URL:
         description: "Stable frontend URL for e2e. Falls back to the Pages deployment URL when omitted."
         required: false
@@ -156,9 +152,12 @@ jobs:
       - name: Build frontend
         if: steps.cf.outputs.has_token == 'true'
         env:
-          CF_PAGES_BRANCH: ${{ inputs.FRONTEND_BUILD_MODE }}
+          # prod → Vite `production` (api-prod). beta/dev keep the same name.
+          VITE_MODE: ${{ inputs.ENVIRONMENT_NAME == 'prod' && 'production' || inputs.ENVIRONMENT_NAME }}
           VITE_API_URL: ${{ steps.upload-worker.outputs.preview_url }}
-        run: NX_CLOUD_DISTRIBUTED_EXECUTION=false npx nx run @polyratings/frontend:build
+        # Do not reuse Nx Cloud cache from CI (`nx affected --target=build` uses default
+        # Vite production mode and would otherwise publish that dist to every environment).
+        run: NX_NO_CLOUD=true NX_CLOUD_DISTRIBUTED_EXECUTION=false npx nx run @polyratings/frontend:build
 
       - name: Deploy frontend to Cloudflare Pages
         if: steps.cf.outputs.has_token == 'true'

@@ -79,7 +79,7 @@ This repository is a **Lerna monorepo** with Nx for task orchestration. It conta
 ## Deployment
 
 - **Backend:** `npm run deploy:prod` / `deploy:beta` from `packages/backend/` (also invoked from GitHub Actions on `master` / `beta`). PRs use `wrangler versions upload --env dev --preview-alias pr-<number>` (not `wrangler deploy`).
-- **Frontend:** Built and published from GitHub Actions with `wrangler pages deploy` (`master` → production, `beta` → `beta.polyratings.pages.dev`, PRs → `pr-<number>` with `VITE_API_URL` pointing at the Worker preview). Disable Cloudflare Pages Git automatic deployments so only this workflow publishes. Closed same-repo PRs delete those Pages deployments and point the Worker alias at a 410 stub.
+- **Frontend:** Built and published from GitHub Actions with `wrangler pages deploy` (`master` → production, `beta` → `beta.polyratings.pages.dev`, PRs → `pr-<number>` with `VITE_API_URL` pointing at the Worker preview). Deploy builds with `NX_NO_CLOUD=true` and Vite `--mode` from the environment (`production` / `beta` / `dev`) so Nx Cloud cannot reuse CI’s default-mode dist. Disable Cloudflare Pages Git automatic deployments so only this workflow publishes. Closed same-repo PRs delete those Pages deployments and point the Worker alias at a 410 stub.
 - **Cron:** Deployed with production worker deploys; syncs data and backs up the professor list.
 
 ## Agent Workflow Tips

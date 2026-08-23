@@ -11,44 +11,24 @@ interface AppConfiguration {
     base: string;
 }
 
-const localConfig: AppConfiguration = {
-    clientEnv: LOCAL_ENV,
-    base: "/",
-};
-
-const devConfig: AppConfiguration = {
-    clientEnv: DEV_ENV,
-    base: "/",
-};
-
-const prodConfig: AppConfiguration = {
-    clientEnv: PROD_ENV,
-    base: "/",
-};
-
-const betaConfig: AppConfiguration = {
-    clientEnv: BETA_ENV,
-    base: "/",
-};
-
-const modeToConfig: Record<string, AppConfiguration> = {
-    master: prodConfig,
-    beta: betaConfig,
-    dev: devConfig,
-    fallback: devConfig,
-};
-
-const deploymentMode = import.meta.env.MODE ?? "fallback";
-const viteApiUrl = import.meta.env.VITE_API_URL?.replace(/\/$/, "");
-
-// eslint-disable-next-line import/no-mutable-exports
-let config: AppConfiguration;
-if (deploymentMode === "local-dev") {
-    config = localConfig;
-} else if (viteApiUrl) {
-    config = { clientEnv: { url: viteApiUrl }, base: "/" };
-} else {
-    config = modeToConfig[deploymentMode] ?? modeToConfig.fallback;
+function apiEnvForMode(mode: string): PolyratingsAPIEnv {
+    const viteApiUrl = import.meta.env.VITE_API_URL?.replace(/\/$/, "");
+    if (viteApiUrl) {
+        return { url: viteApiUrl };
+    }
+    if (mode === "local-dev") {
+        return LOCAL_ENV;
+    }
+    if (mode === "master" || mode === "production") {
+        return PROD_ENV;
+    }
+    if (mode === "beta") {
+        return BETA_ENV;
+    }
+    return DEV_ENV;
 }
 
-export { config };
+export const config: AppConfiguration = {
+    clientEnv: apiEnvForMode(import.meta.env.MODE ?? "fallback"),
+    base: "/",
+};
