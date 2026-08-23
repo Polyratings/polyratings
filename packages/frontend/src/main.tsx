@@ -5,7 +5,7 @@ import Modal from "react-modal";
 import App from "./App";
 import { initSentry } from "./sentry";
 
-if (process.env.NODE_ENV === "production") {
+if (import.meta.env.PROD) {
     initSentry();
 }
 

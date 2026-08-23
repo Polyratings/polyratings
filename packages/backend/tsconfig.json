@@ -1,21 +1,15 @@
 {
+    "extends": "@tsconfig/node-lts/tsconfig.json",
     "compilerOptions": {
-        "target": "ESNext",
-        "module": "ESNext",
-        "lib": ["ESNext"],
+        "module": "esnext",
+        "moduleResolution": "bundler",
         "types": ["@cloudflare/workers-types"],
-        "outDir": "dist",
-        "moduleResolution": "Node",
-        "experimentalDecorators": true,
         "strictPropertyInitialization": false,
-        "strict": true,
-        "baseUrl": "./",
         "paths": {
-            "@backend/*": ["src/*"]
+            "@backend/*": ["./src/*"]
         },
         "declaration": true,
         "noEmit": true,
-        "skipLibCheck": true,
         "noEmitHelpers": true
     },
     "include": ["src/**/*"]
