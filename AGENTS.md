@@ -98,7 +98,7 @@ This repository is a **Lerna monorepo** with Nx for task orchestration. It conta
   - **Beta:** `npm run e2e:beta` — runs against [https://beta.polyratings.pages.dev/](https://beta.polyratings.pages.dev/) (no local web server). Override with `PLAYWRIGHT_BASE_URL` if needed.
   - **Production:** `npm run e2e:prod` — runs against [https://polyratings.dev](https://polyratings.dev) and skips tests tagged `@write`.
 - **Write tests:** Mutating flows use Playwright `{ tag: "@write" }` (new professor submit, rating submit, report submit). Production CI sets `PLAYWRIGHT_EXCLUDE_WRITE=true` (`grepInvert: /@write/`). Pre-prod runs the full suite.
-- **CI:** GitHub Actions runs affected lint/build/test, then deploys workers + Pages and runs Playwright against the live URL.
+- **CI:** GitHub Actions runs affected lint/build/test, then deploys workers + Pages and runs Playwright against the live URL. PRs from `beta` into `master` skip beta and per-PR preview deploys.
 
 ## Accessibility
 

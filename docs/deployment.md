@@ -104,7 +104,7 @@ The official Polyratings GitHub Actions workflow builds the frontend and publish
 
 - `master` → production (`polyratings.dev`) and `wrangler deploy --env prod`
 - `beta` → `beta.polyratings.pages.dev` and `wrangler deploy --env beta`
-- pull requests → Pages branch `pr-<number>` and `wrangler versions upload --env dev --preview-alias pr-<number>` (does **not** change the live `api-dev.polyratings.org` Worker). The frontend is built with `VITE_API_URL` set to the Worker preview URL (`pr-<n>-polyratings-dev-backend.<subdomain>.workers.dev`).
+- pull requests → Pages branch `pr-<number>` and `wrangler versions upload --env dev --preview-alias pr-<number>` (does **not** change the live `api-dev.polyratings.org` Worker). The frontend is built with `VITE_API_URL` set to the Worker preview URL (`pr-<n>-polyratings-dev-backend.<subdomain>.workers.dev`). Promotion PRs from `beta` into `master` skip both the beta republish and the per-PR preview; production still deploys when the merge lands on `master`.
 
 **Disable automatic Git deployments** on the Pages project (Settings → Builds & deployments) so GitHub Actions is the only publisher. Leaving Git connected will double-deploy and race the workflow.
 

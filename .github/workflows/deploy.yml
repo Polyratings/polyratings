@@ -60,7 +60,7 @@ jobs:
   deploy-prod:
     name: Production Deployment
     needs: [ci]
-    if: github.ref == 'refs/heads/master'
+    if: github.event_name == 'push' && github.ref == 'refs/heads/master'
     uses: ./.github/workflows/reusable-deploy-workflow.yml
     permissions:
       contents: read
@@ -79,7 +79,8 @@ jobs:
   deploy-beta:
     name: Beta Deployment
     needs: [ci]
-    if: github.ref == 'refs/heads/beta'
+    # Push to beta only. Promotion PRs (beta → master) must not republish beta.
+    if: github.event_name == 'push' && github.ref == 'refs/heads/beta'
     uses: ./.github/workflows/reusable-deploy-workflow.yml
     permissions:
       contents: read
@@ -99,7 +100,10 @@ jobs:
     name: Dev Preview
     needs: [ci]
     # Per-PR Worker preview + Pages branch. Fork PRs have no Cloudflare token and are skipped in the reusable workflow.
-    if: github.event_name == 'pull_request'
+    # Skip beta → master promotion PRs (already live on beta; prod deploys on merge).
+    if: >
+      github.event_name == 'pull_request' &&
+      !(github.head_ref == 'beta' && github.base_ref == 'master')
     uses: ./.github/workflows/reusable-deploy-workflow.yml
     permissions:
       contents: read

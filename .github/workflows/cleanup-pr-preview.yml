@@ -11,7 +11,9 @@ permissions:
 jobs:
   cleanup:
     name: Delete PR preview
-    if: github.event.pull_request.head.repo.full_name == github.repository
+    if: >
+      github.event.pull_request.head.repo.full_name == github.repository &&
+      !(github.event.pull_request.head.ref == 'beta' && github.event.pull_request.base.ref == 'master')
     runs-on: ubuntu-latest
     timeout-minutes: 15
     concurrency:
