@@ -32,7 +32,7 @@ Per-package: `start:local` (frontend/backend), `npm t` (frontend Vitest), `run:l
 
 ## Stack and conventions
 
-- **Frontend:** React 18, Vite, Tailwind (inline classes), tRPC, TanStack Query, React Router. `index.ts` re-exports; no `../` imports. One public component per file. Local error UX at the query/mutation; `meta.suppressGlobalErrorToast` when handled locally.
+- **Frontend:** React 18, Vite, Tailwind (inline classes), tRPC, TanStack Query, React Router. `index.ts` re-exports; no `../` imports. One public component per file. Local error UX at the query/mutation; `meta.suppressGlobalErrorToast` when handled locally. Public routes set unique titles/canonicals with `PageMeta`; keep `docs/seo.md`, `packages/frontend/public/robots.txt`, and `SITEMAP_STATIC_PATHS` in sync when adding indexable pages.
 - **Backend:** Workers, tRPC (`src/index.ts`), KV DAOs, Zod in `src/types/schema.ts` (public vs internal parsers). Public routes: `publicProcedure` and omit `anonymousIdentifier`. Discord notifications production-only; e2e sends `x-polyratings-skip-notifications: 1`.
 - **General:** TypeScript; `@polyratings/eslint-config`; `npm run fix` before commit.
 

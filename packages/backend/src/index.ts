@@ -8,8 +8,10 @@ import { professorRouter } from "./routers/professor";
 import { ratingsRouter } from "./routers/rating";
 import { adminRouter } from "./routers/admin";
 import { authRouter } from "./routers/auth";
-import { professorParser, truncatedProfessorParser } from "./types/schema";
+import { professorParser } from "./types/schema";
+import { professorToTruncatedProfessor } from "./types/schemaHelpers";
 import { ALL_PROFESSOR_KEY } from "./utils/const";
+import { buildSitemapXml } from "./utils/sitemap";
 import { mapInBatches } from "./utils/chunkArray";
 import { AnonymousIdDao } from "./dao/anonymous-id-dao";
 import { SKIP_NOTIFICATIONS_HEADER } from "./dao/discord-notification-dao";
@@ -57,6 +59,29 @@ export default {
                 allowedSearchParams: /(.*)/,
             },
         });
+
+        const requestPath = new URL(request.url).pathname;
+        if (
+            request.method === "GET" &&
+            (requestPath === "/sitemap.xml" || requestPath === "/sitemap.xml/")
+        ) {
+            try {
+                const professors = await polyratingsEnv.kvDao.getAllProfessors();
+                return new Response(buildSitemapXml(professors), {
+                    headers: {
+                        "Content-Type": "application/xml; charset=utf-8",
+                        "Cache-Control": "public, max-age=3600",
+                        ...CORS_HEADERS,
+                    },
+                });
+            } catch (error) {
+                sentry.captureException(error);
+                return new Response("Sitemap unavailable", {
+                    status: 503,
+                    headers: CORS_HEADERS,
+                });
+            }
+        }
 
         return fetchRequestHandler({
             endpoint: "",
@@ -115,7 +140,7 @@ async function ensureLocalDb(cloudflareEnv: CloudflareEnv, polyratingsEnv: Env) 
     const githubJson = await githubReq.json();
     // Verify that professors are formed correctly
     const parsedProfessors = professorParser.array().parse(githubJson);
-    const truncatedProfessors = truncatedProfessorParser.array().parse(parsedProfessors);
+    const truncatedProfessors = parsedProfessors.map(professorToTruncatedProfessor);
     await cloudflareEnv.POLYRATINGS_TEACHERS.put(
         ALL_PROFESSOR_KEY,
         JSON.stringify(truncatedProfessors),
