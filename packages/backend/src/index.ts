@@ -8,7 +8,8 @@ import { professorRouter } from "./routers/professor";
 import { ratingsRouter } from "./routers/rating";
 import { adminRouter } from "./routers/admin";
 import { authRouter } from "./routers/auth";
-import { professorParser, truncatedProfessorParser } from "./types/schema";
+import { professorParser } from "./types/schema";
+import { professorToTruncatedProfessor } from "./types/schemaHelpers";
 import { ALL_PROFESSOR_KEY } from "./utils/const";
 import { mapInBatches } from "./utils/chunkArray";
 import { AnonymousIdDao } from "./dao/anonymous-id-dao";
@@ -115,7 +116,7 @@ async function ensureLocalDb(cloudflareEnv: CloudflareEnv, polyratingsEnv: Env) 
     const githubJson = await githubReq.json();
     // Verify that professors are formed correctly
     const parsedProfessors = professorParser.array().parse(githubJson);
-    const truncatedProfessors = truncatedProfessorParser.array().parse(parsedProfessors);
+    const truncatedProfessors = parsedProfessors.map(professorToTruncatedProfessor);
     await cloudflareEnv.POLYRATINGS_TEACHERS.put(
         ALL_PROFESSOR_KEY,
         JSON.stringify(truncatedProfessors),
