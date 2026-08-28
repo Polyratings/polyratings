@@ -11,6 +11,7 @@ import {
     PROFESSOR_TAGS,
     MAX_PROFESSOR_TAGS_PER_RATING,
 } from "@backend/utils/const";
+import { COURSE_NUM_HINT, courseNumParser } from "@backend/utils/courseNum";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { inferProcedureOutput } from "@trpc/server";
@@ -259,18 +260,24 @@ function EvaluateProfessorStep({
                         <TextInput
                             label="Course Num"
                             type="number"
-                            placeholder="class #"
+                            placeholder="101 or 1101"
+                            aria-describedby="unknown-course-num-hint"
                             {...register("unknownCourseNumber", {
                                 required: {
                                     value: !knownCourseValue,
                                     message: "Class Number is required",
                                 },
                             })}
-                            error={errors.unknownCourseDepartment?.message}
+                            error={errors.unknownCourseNumber?.message}
                         />
                     </>
                 )}
             </div>
+            <p id="unknown-course-num-hint" className="text-xs text-gray-600 mt-1 w-full">
+                {knownCourseValue
+                    ? "Fall 2026+ courses use 4-digit numbers. Choose Other if yours is not listed."
+                    : COURSE_NUM_HINT}
+            </p>
             <div className="flex sm:block justify-between">
                 <div className="mt-2 flex flex-col sm:flex-row gap-2 justify-between flex-wrap">
                     {NUMERICAL_RATINGS.map((rating) => (
@@ -423,11 +430,7 @@ const evaluateProfessorFormParser = z.object({
     presentsMaterialClearly: z.string().transform(Number),
     ratingText: z.string().min(20, { error: "Rating text must be at least 20 characters long" }),
     unknownCourseDepartment: z.enum(DEPARTMENT_LIST).optional(),
-    unknownCourseNumber: z.coerce
-        .number()
-        .min(100, { error: "Invalid" })
-        .max(599, { error: "Invalid" })
-        .optional(),
+    unknownCourseNumber: z.coerce.number().pipe(courseNumParser).optional(),
     gradeLevel: z.enum(GRADE_LEVELS),
     grade: z.enum(GRADES),
     courseType: z.enum(COURSE_TYPES),

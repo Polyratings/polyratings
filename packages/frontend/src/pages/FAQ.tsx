@@ -138,6 +138,17 @@ export function FAQ() {
                     pull request!
                 </p>
             </div>
+            <div className={cardStyle}>
+                <h2 className={subTitleStyle}>
+                    How do I rate a class after Cal Poly switched to semesters?
+                </h2>
+                <p className={paragraphStyle}>
+                    Starting Fall 2026, Cal Poly course numbers are 4 digits (for example PHIL
+                    2231). Older quarter courses stay 3 digits (PHIL 231) and are listed separately.
+                    If the semester course is not in the dropdown yet, choose Other and enter the
+                    4-digit number.
+                </p>
+            </div>
             <div className={`${cardStyle} rounded-b-md`}>
                 <h2 className={subTitleStyle}>
                     I&apos;m a student/professor, and I&apos;ve seen a comment <i>you</i> wrote on

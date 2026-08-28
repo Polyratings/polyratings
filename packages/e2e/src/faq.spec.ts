@@ -7,5 +7,10 @@ test("FAQ: faq page loads expected heading", async ({ page }) => {
         await expect(
             page.getByRole("heading", { name: "Frequently Asked Questions" }),
         ).toBeVisible();
+        await expect(
+            page.getByRole("heading", {
+                name: "How do I rate a class after Cal Poly switched to semesters?",
+            }),
+        ).toBeVisible();
     });
 });

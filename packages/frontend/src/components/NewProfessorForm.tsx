@@ -9,6 +9,7 @@ import {
     GRADE_LEVELS,
     PROFESSOR_TAGS,
 } from "@backend/utils/const";
+import { COURSE_NUM_HINT, courseNumParser } from "@backend/utils/courseNum";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useEffect } from "react";
@@ -37,10 +38,7 @@ const newProfessorFormParser = z.object({
         .trim()
         .min(20, { error: "Rating text must be at least 20 characters long" }),
     courseDepartment: z.enum(DEPARTMENT_LIST),
-    courseNum: z.preprocess(
-        (val) => parseInt(z.string().parse(val), 10),
-        z.number().min(100, { error: "Invalid" }).max(599, { error: "Invalid" }),
-    ),
+    courseNum: z.preprocess((val) => parseInt(z.string().parse(val), 10), courseNumParser),
     gradeLevel: z.enum(GRADE_LEVELS),
     grade: z.enum(GRADES),
     courseType: z.enum(COURSE_TYPES),
@@ -245,11 +243,15 @@ function NewProfessorStep({
                 <TextInput
                     label="Course Num"
                     type="number"
-                    placeholder="class #"
+                    placeholder="101 or 1101"
+                    aria-describedby="course-num-hint"
                     {...register("courseNum")}
                     error={errors.courseNum?.message}
                 />
             </div>
+            <p id="course-num-hint" className="text-xs text-gray-600 mt-1 w-full">
+                {COURSE_NUM_HINT}
+            </p>
             <div className="flex sm:block justify-between">
                 <div className="mt-2 flex flex-col sm:flex-row gap-3 sm:gap-2 justify-between flex-wrap">
                     {NUMERICAL_RATINGS.map((rating) => (

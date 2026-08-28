@@ -1,4 +1,5 @@
 import { ALL_PROFESSOR_KEY, BulkKey, BulkKeyMap } from "@backend/utils/const";
+import { courseReviewsKey } from "@backend/utils/courseNum";
 import { mapInBatches } from "@backend/utils/chunkArray";
 import { z } from "zod";
 import { TRPCError } from "@trpc/server";
@@ -230,7 +231,7 @@ export class KVDAO {
         addRatingToProfessor(
             professor,
             newRating,
-            `${newRating.department} ${newRating.courseNum}`,
+            courseReviewsKey(newRating.department, newRating.courseNum),
         );
 
         return this.putProfessor(professor);
