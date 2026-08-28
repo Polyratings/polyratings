@@ -13,11 +13,11 @@ The search route lets students query professors by name or course and narrow the
 
 ## Acceptance Criteria
 
-| ID       | Criterion                                                                                                  | Priority |
-| -------- | ---------------------------------------------------------------------------------------------------------- | -------- |
-| SEARCH-1 | Navigating to `/search/name?term=<unknown>` shows the heading "No Results Found." when no professors match | Must     |
-| SEARCH-2 | The no-results state shows a visible "Add a Professor?" link to `/new-professor`                           | Must     |
-| SEARCH-3 | Navigating to `/search/name` shows professor result cards when professors exist                            | Must     |
+| ID       | Criterion                                                                                                    | Priority |
+| -------- | ------------------------------------------------------------------------------------------------------------ | -------- |
+| SEARCH-1 | Navigating to `/search/name?term=<unknown>` shows the heading "No Results Found." when no professors match   | Must     |
+| SEARCH-2 | The no-results state shows a visible "Add a Professor?" link to `/new-professor`                             | Must     |
+| SEARCH-3 | Navigating to `/search/name` shows a "Filters" heading and professor result cards when professors exist      | Must     |
 | SEARCH-4 | Typing in the professor-list search bar keeps the typed value and continues to show matching professor cards | Must     |
 
 ## Test Scenarios

@@ -1,7 +1,12 @@
+export * from "./cn";
+export * from "./seo";
+export * from "./toSelectOptions";
 export * from "./getRandomSubarray";
 export * from "./intersectingDbEntities";
 export * from "./BasicBehaviorSubject";
 export * from "./getApiErrorMessage";
+export * from "./formErrors";
+export * from "./withClearErrorOnChange";
 export * from "./applyProfessorFilters";
-export * from "./seo";
+export * from "./groupCoursesByPrefix";
 export { chunkArray, mapInBatches } from "@backend/utils/chunkArray";

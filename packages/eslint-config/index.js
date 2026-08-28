@@ -7,6 +7,19 @@ module.exports = {
     parserOptions: {
         ecmaVersion: 2020,
     },
+    overrides: [
+        {
+            files: ["*.ts", "*.tsx"],
+            parserOptions: {
+                projectService: {
+                    allowDefaultProject: ["*.js", "*.mjs", "*.mts", "scripts/*.ts"],
+                },
+            },
+            rules: {
+                "@typescript-eslint/no-deprecated": "error",
+            },
+        },
+    ],
     extends: [
         // General Prettier defaults
         "airbnb",

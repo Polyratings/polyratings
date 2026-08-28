@@ -5,29 +5,31 @@ import {
     RouterProvider,
     Outlet,
     ScrollRestoration,
+    useLocation,
 } from "react-router";
-import { ToastContainer, toast } from "react-toastify";
+import { toast } from "sonner";
 import { MutationCache, QueryCache, QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { persistQueryClient } from "@tanstack/react-query-persist-client";
-import { useMemo, useState } from "react";
+import { useLayoutEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import {
     Home,
     ProfessorPageRoute,
     Login,
     NewProfessor,
+    EvaluateProfessorRoute,
     About,
     Admin,
     FAQ,
-    NotFoundRedirect,
+    NotFound,
     professorPageLoaderFactory,
     SearchWrapper,
 } from "./pages";
-import { Navbar } from "./components";
-import "react-toastify/dist/ReactToastify.css";
+import { Footer, Navbar } from "./components";
 import { trpc, trpcClientOptions } from "./trpc";
+import { Toaster } from "./components/ui/sonner";
 import { createIDBPersister } from "./utils/idbPersister";
 import { getApiErrorMessage, isExpectedSilentQueryError } from "./utils";
-import { AuthContext, useAuthState } from "./hooks";
+import { AuthContext, ThemeContext, useAuthState, useTheme, useThemeState } from "./hooks";
 
 /**
  * Bump this when persisted React Query data shape changes incompatibly
@@ -55,6 +57,7 @@ function shouldSuppressGlobalErrorToast(meta: GlobalQueryMeta | undefined): bool
 // TODO: Fix large screen size
 export default function App() {
     const authState = useAuthState();
+    const themeState = useThemeState();
 
     const [queryClient] = useState(() => {
         const queryClient = new QueryClient({
@@ -109,7 +112,9 @@ export default function App() {
         <trpc.Provider client={trpcClient} queryClient={queryClient}>
             <QueryClientProvider client={queryClient}>
                 <AuthContext.Provider value={authState}>
-                    <PolyratingsRouter />
+                    <ThemeContext.Provider value={themeState}>
+                        <PolyratingsRouter />
+                    </ThemeContext.Provider>
                 </AuthContext.Provider>
             </QueryClientProvider>
         </trpc.Provider>
@@ -130,13 +135,18 @@ function PolyratingsRouter() {
                             element={<ProfessorPageRoute />}
                             loader={professorPageLoaderFactory(trpcContext)}
                         />
+                        <Route
+                            path="professor/:id/eval"
+                            element={<EvaluateProfessorRoute />}
+                            loader={professorPageLoaderFactory(trpcContext)}
+                        />
                         <Route path="search/:searchType" element={<SearchWrapper />} />
                         <Route path="login" element={<Login />} />
                         <Route path="new-professor" element={<NewProfessor />} />
                         <Route path="about" element={<About />} />
                         <Route path="admin" element={<Admin />} />
                         <Route path="faq" element={<FAQ />} />
-                        <Route path="*" element={<NotFoundRedirect />} />
+                        <Route path="*" element={<NotFound />} />
                     </Route>,
                 ),
             ),
@@ -147,12 +157,58 @@ function PolyratingsRouter() {
 }
 
 function BaseComponent() {
+    // Sonner's own "system" theme reads prefers-color-scheme directly, which
+    // would ignore the navbar toggle, so feed it the theme we resolved.
+    const { theme } = useTheme();
+
     return (
-        <>
+        <div className="flex h-full flex-col overflow-hidden">
             <ScrollRestoration />
-            <ToastContainer pauseOnFocusLoss={false} pauseOnHover={false} />
+            <Toaster theme={theme} />
             <Navbar />
-            <Outlet />
-        </>
+            <AppScroll>
+                {/* Fills the scroll viewport so the footer sits at the bottom on short pages. The
+                    page row is a definite height, so pages can use `h-full` / `min-h-full`. */}
+                <div className="grid min-h-full grid-rows-[1fr_auto]">
+                    <div className="min-w-0">
+                        <Outlet />
+                    </div>
+                    <Footer />
+                </div>
+            </AppScroll>
+        </div>
+    );
+}
+
+function AppScroll({ children }: { children: ReactNode }) {
+    const location = useLocation();
+    const scrollRef = useRef<HTMLDivElement>(null);
+    const positions = useRef(new Map<string, number>());
+
+    useLayoutEffect(() => {
+        const el = scrollRef.current;
+        if (!el) {
+            return undefined;
+        }
+        const { key } = location;
+        const onScroll = () => {
+            positions.current.set(key, el.scrollTop);
+        };
+        el.addEventListener("scroll", onScroll, { passive: true });
+        return () => el.removeEventListener("scroll", onScroll);
+    }, [location]);
+
+    useLayoutEffect(() => {
+        const el = scrollRef.current;
+        if (!el) {
+            return;
+        }
+        el.scrollTop = positions.current.get(location.key) ?? 0;
+    }, [location.key]);
+
+    return (
+        <div ref={scrollRef} id="app-scroll" className="min-h-0 flex-1 overflow-y-auto">
+            {children}
+        </div>
     );
 }

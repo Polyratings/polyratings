@@ -47,6 +47,21 @@ export function createDefaultFilterState(): FilterState {
     };
 }
 
+export function hasActiveFilterState(value: FilterState) {
+    return (
+        value.sortBy !== "relevant" ||
+        value.reverseFilter ||
+        value.avgRatingFilter[0] !== 0 ||
+        value.avgRatingFilter[1] !== 4 ||
+        value.studentDifficultyFilter[0] !== 0 ||
+        value.studentDifficultyFilter[1] !== 4 ||
+        value.materialClearFilter[0] !== 0 ||
+        value.materialClearFilter[1] !== 4 ||
+        Boolean(value.numberOfEvaluationsFilter) ||
+        value.coursePrefixFilters.some((coursePrefixFilter) => coursePrefixFilter.state)
+    );
+}
+
 export function getEvaluationDomain(
     professors: TruncatedProfessor[] | undefined,
 ): [number, number] {

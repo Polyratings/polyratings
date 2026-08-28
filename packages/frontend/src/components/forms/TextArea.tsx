@@ -1,4 +1,6 @@
 import { forwardRef } from "react";
+import { Textarea } from "@/components/ui/textarea";
+import { cn } from "@/utils";
 
 export type TextAreaProps = {
     name: string;
@@ -18,21 +20,23 @@ export const TextArea = forwardRef<HTMLTextAreaElement, TextAreaProps>(
 
         return (
             <div
-                className={`flex flex-col ${
-                    error ? "text-red-500" : "text-inherit"
-                } ${wrapperClassName}`}
+                className={cn(
+                    "flex flex-col",
+                    error ? "text-red-500" : "text-inherit",
+                    wrapperClassName,
+                )}
             >
-                <label className="text-xs whitespace-nowrap" htmlFor={name}>
+                <label className="text-sm whitespace-nowrap" htmlFor={name}>
                     {label}
                 </label>
-                <textarea
+                <Textarea
                     id={name}
                     ref={ref}
                     name={name}
                     {...rest}
                     aria-invalid={error ? "true" : undefined}
                     aria-describedby={describedBy}
-                    className={`w-full h-48 rounded-sm text-black p-2 border-[#c3cdd5] bg-[#f2f5f8] active:bg-[#f2feff] border ${className}`}
+                    className={cn("h-48 min-h-48 field-sizing-fixed", className)}
                 />
                 {error && (
                     <p id={errorId} role="alert" className="text-sm text-red-500">
@@ -43,3 +47,4 @@ export const TextArea = forwardRef<HTMLTextAreaElement, TextAreaProps>(
         );
     },
 );
+TextArea.displayName = "TextArea";

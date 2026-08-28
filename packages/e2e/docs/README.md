@@ -28,11 +28,12 @@ Per-test customization uses `scanForA11yViolations((builder) => ...)` or builds 
 | -------------------------------------------------- | ------------------------------------------------------------------ | -------------------------------- | --------------------- |
 | [Home.md](./Home.md)                               | Home route hero + primary navigation entry points                  | `src/home.spec.ts`               | Implemented           |
 | [About.md](./About.md)                             | About page route and main heading                                  | `src/about.spec.ts`              | Implemented           |
-| [FAQ.md](./FAQ.md)                                 | FAQ page route and main heading                                    | `src/faq.spec.ts`                | Implemented           |
+| [FAQ.md](./FAQ.md)                                 | FAQ page route, main heading, and lawsuit / reporting item         | `src/faq.spec.ts`                | Implemented           |
+| [Layout.md](./Layout.md)                           | Site-wide Cal Poly non-affiliation footer                          | `src/layout.spec.ts`             | Implemented           |
 | [Search.md](./Search.md)                           | Professor list search, typing, and no-results fallback             | `src/search.spec.ts`             | Implemented           |
 | [PublicAccessibility.md](./PublicAccessibility.md) | WCAG scan baseline for public routes                               | `src/a11y/public-routes.spec.ts` | Implemented           |
 | [ProfessorPage.md](./ProfessorPage.md)             | Professor profile, ratings visibility, and evaluation entry points | `src/professor-page.spec.ts`     | Implemented           |
-| [NotFound.md](./NotFound.md)                       | Unknown routes and missing professors redirect home                | `src/not-found-redirect.spec.ts` | Implemented           |
+| [NotFound.md](./NotFound.md)                       | Unknown routes and missing professors stay on a not-found page     | `src/not-found.spec.ts`          | Implemented           |
 | [NewProfessor.md](./NewProfessor.md)               | Add-a-professor submission flow                                    | `src/new-professor.spec.ts`      | Implemented           |
 | [Login.md](./Login.md)                             | Admin login form and invalid-credential feedback                   | `src/login.spec.ts`              | Implemented           |
 | [Admin.md](./Admin.md)                             | Unauthenticated admin route redirect                               | `src/admin.spec.ts`              | Implemented           |

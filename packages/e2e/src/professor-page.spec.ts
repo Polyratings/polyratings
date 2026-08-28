@@ -44,6 +44,13 @@ test("PROF: professor page renders profile, ratings context, evaluate action, an
     await test.step("PROF-4: report controls are available for ratings", async () => {
         await expect(page.getByRole("button", { name: "Report Rating" }).first()).toBeVisible();
     });
+
+    await test.step("PROF-9: professor page links back to the professor list", async () => {
+        await expect(page.getByRole("link", { name: "Back to professor list" })).toHaveAttribute(
+            "href",
+            "/search/name",
+        );
+    });
 });
 
 test("PROF: report submission flow succeeds from professor page", { tag: "@write" }, async ({

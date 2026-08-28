@@ -1,7 +1,8 @@
-import { useCallback, useRef, useState } from "react";
-import { useCombobox } from "downshift";
+import { useMemo, useRef, useState } from "react";
 import { useVirtualizer } from "@tanstack/react-virtual";
 import { useTailwindBreakpoint } from "@/hooks";
+import { cn } from "@/utils";
+import { Command, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
 
 export interface AutoCompleteOption<U> {
     label: string;
@@ -20,6 +21,8 @@ export interface AutoCompleteProps<T, U> {
     disableDropdown: boolean;
 }
 
+const ROW_HEIGHT_REM = 2;
+
 export function AutoComplete<T, U>({
     placeholder,
     filterFn,
@@ -31,110 +34,126 @@ export function AutoComplete<T, U>({
     label,
     inputValue,
 }: AutoCompleteProps<T, U>) {
-    const [filteredItems, setFilteredItems] = useState(filterFn(items, ""));
-    const listRef = useRef<HTMLUListElement | null>(null);
+    const listRef = useRef<HTMLDivElement | null>(null);
+    const [highlighted, setHighlighted] = useState("");
+    const [allowHighlight, setAllowHighlight] = useState(false);
+    const [isFocused, setIsFocused] = useState(false);
 
     const remMultiplier =
         parseFloat(window.getComputedStyle(document.body).getPropertyValue("font-size") || "16") /
         16;
 
+    const filteredItems = useMemo(() => filterFn(items, inputValue), [filterFn, items, inputValue]);
+
     const rowVirtualizer = useVirtualizer({
-        estimateSize: useCallback(() => 28 * remMultiplier, []),
+        estimateSize: () => ROW_HEIGHT_REM * 16 * remMultiplier,
         count: filteredItems.length,
         getScrollElement: () => listRef.current,
         overscan: 2,
     });
 
-    // Disable autocomplete on small devices
     const deviceSupportsDropdown = useTailwindBreakpoint({ md: true }, false);
+    const dropdownVisible =
+        !disableDropdown && deviceSupportsDropdown && isFocused && filteredItems.length > 0;
 
-    const { isOpen, getMenuProps, getInputProps, highlightedIndex, getItemProps } = useCombobox({
-        stateReducer(state, actionAndChanges) {
-            const { changes, type } = actionAndChanges;
-            switch (type) {
-                case useCombobox.stateChangeTypes.InputClick:
-                    return {
-                        ...changes,
-                        isOpen: state.isOpen, // do not toggle the menu when input is clicked.
-                    };
-                default:
-                    return changes;
-            }
-        },
-        onInputValueChange({ inputValue }) {
-            const filteredItems = filterFn(items, inputValue ?? "");
-            setFilteredItems(filteredItems);
-            parentOnChange({
-                inputValue: inputValue ?? "",
-            });
-        },
-        onSelectedItemChange({ selectedItem, inputValue }) {
-            if (selectedItem) {
-                parentOnChange({
-                    inputValue: inputValue ?? "",
-                    selection: selectedItem.value,
-                });
-            }
-        },
-        items: filteredItems,
-        itemToString(item) {
-            return item ? item.label : "";
-        },
-        onHighlightedIndexChange({ highlightedIndex }) {
-            rowVirtualizer.scrollToIndex(highlightedIndex ?? 0);
-        },
-        inputValue,
-    });
+    const selectItem = (item: AutoCompleteOption<U>) => {
+        parentOnChange({
+            inputValue: item.label,
+            selection: item.value,
+        });
+        setHighlighted("");
+        setAllowHighlight(false);
+        setIsFocused(false);
+    };
+
     return (
-        <div className={`relative ${className}`}>
-            <input
-                className={`p-2 w-full h-full outline-hidden bg-white ${inputClassName}`}
-                type="text"
+        <Command
+            label={label}
+            shouldFilter={false}
+            value={allowHighlight ? highlighted : ""}
+            onValueChange={setHighlighted}
+            className={cn(
+                "relative overflow-visible rounded-none bg-transparent p-0 text-lg",
+                className,
+            )}
+            onKeyDown={(event) => {
+                if (event.key === "ArrowDown" || event.key === "ArrowUp") {
+                    setAllowHighlight(true);
+                }
+                if (event.key === "Enter" && !allowHighlight) {
+                    event.preventDefault();
+                    event.currentTarget.closest("form")?.requestSubmit();
+                }
+            }}
+        >
+            <CommandInput
+                value={inputValue}
+                onValueChange={(nextValue) => {
+                    setAllowHighlight(false);
+                    setHighlighted("");
+                    parentOnChange({ inputValue: nextValue });
+                }}
                 placeholder={placeholder}
-                {...getInputProps({
-                    "aria-label": label,
-                    onKeyDown: (event) => {
-                        if (event.key === "Enter" && highlightedIndex === -1) {
-                            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                            (event.nativeEvent as any).preventDownshiftDefault = true;
-                        }
-                    },
-                })}
+                aria-label={label}
+                aria-expanded={dropdownVisible}
+                role="combobox"
+                autoComplete="off"
+                onFocus={() => setIsFocused(true)}
+                onBlur={() => {
+                    // Pointer selection uses preventDefault on the item so this only
+                    // runs for real focus loss (tab away, click outside).
+                    window.setTimeout(() => setIsFocused(false), 0);
+                }}
+                className={cn(
+                    "h-full bg-card p-2 text-lg leading-normal outline-hidden placeholder:text-lg",
+                    inputClassName,
+                )}
             />
 
-            <ul
-                {...getMenuProps({ ref: listRef })}
-                className={`absolute top-full left-0 w-full bg-white shadow-xl max-h-28 overflow-y-auto ${
-                    isOpen && !disableDropdown && deviceSupportsDropdown
-                        ? "border border-black"
-                        : "border-none"
-                }`}
+            <CommandList
+                className={cn(
+                    "absolute top-[calc(100%+0.25rem)] left-0 z-50 w-full max-h-none overflow-visible border-0 p-0 shadow-none",
+                    !dropdownVisible && "hidden",
+                )}
+                onMouseDown={(event) => {
+                    // Keep input focus so the list is not hidden before the click selects.
+                    event.preventDefault();
+                }}
             >
-                {isOpen && !disableDropdown && deviceSupportsDropdown && (
-                    <div style={{ height: `${rowVirtualizer.getTotalSize()}px` }}>
+                <div
+                    ref={listRef}
+                    className={cn(
+                        "max-h-52 overflow-y-auto overscroll-contain text-sm",
+                        "rounded-md border border-input bg-popover p-1 shadow-lg",
+                    )}
+                >
+                    <div
+                        className="relative w-full"
+                        style={{ height: `${rowVirtualizer.getTotalSize()}px` }}
+                    >
                         {rowVirtualizer.getVirtualItems().map((virtualElement) => {
                             const item = filteredItems[virtualElement.index];
                             return (
-                                <li
+                                <CommandItem
                                     key={`${item.label}${item.value}`}
-                                    className={`pl-1 absolute top-0 left-0 w-full ${
-                                        highlightedIndex === virtualElement.index
-                                            ? "bg-gray-300"
-                                            : ""
-                                    }`}
+                                    value={`${item.label}__${String(item.value)}`}
+                                    className="absolute top-0 left-0 w-full"
                                     style={{
                                         height: `${virtualElement.size}px`,
                                         transform: `translateY(${virtualElement.start}px)`,
                                     }}
-                                    {...getItemProps({ item, index: virtualElement.index })}
+                                    onPointerDown={(event) => {
+                                        event.preventDefault();
+                                    }}
+                                    onSelect={() => selectItem(item)}
                                 >
                                     {item.label}
-                                </li>
+                                </CommandItem>
                             );
                         })}
                     </div>
-                )}
-            </ul>
-        </div>
+                </div>
+            </CommandList>
+        </Command>
     );
 }

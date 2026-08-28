@@ -1,6 +1,4 @@
-import Slider, { SliderProps } from "rc-slider";
-import "rc-slider/assets/index.css";
-import { cloneElement } from "react";
+import { Slider } from "@/components/ui/slider";
 
 interface MinMaxSliderProps {
     domain: [number, number];
@@ -9,78 +7,65 @@ interface MinMaxSliderProps {
     resolution?: number;
 }
 
-// TODO: Remove hacky media query to reflow on 4k screens
-const overrideHoverCss = `
-.rc-slider-handle-dragging.rc-slider-handle-dragging.rc-slider-handle-dragging {
-    border-color: #1F4715;
-    box-shadow: 0 0 0 5px rgb(31, 71, 21, 0.5);
-}
-@media (min-width: 2500px) { 
-    .rc-slider-handle {
-        transform: translate(-50%, -25%) !important;
+function formatSliderNumber(value: number, step: number) {
+    if (step >= 1) {
+        return String(Math.round(value));
     }
-  }
+    return String(Number(value.toFixed(1)));
+}
 
-`;
+function isAtBound(value: number, bound: number, step: number) {
+    return Math.abs(value - bound) < Math.max(step / 2, 1e-6);
+}
+
+function thumbPercent(value: number, min: number, max: number) {
+    if (max === min) {
+        return 0;
+    }
+    return ((value - min) / (max - min)) * 100;
+}
 
 export function MinMaxSlider({
     domain: [min, max],
-    value,
+    value: [low, high],
     onchange,
     resolution = (max - min) / 20,
 }: MinMaxSliderProps) {
-    const marks = {
-        [min]: min,
-        [max]: max,
-    };
-    const handleStyles = {
-        borderColor: "#1F4715",
-        width: "0.875rem",
-        height: "0.875rem",
-    };
+    const showLow = !isAtBound(low, min, resolution);
+    const showHigh = !isAtBound(high, max, resolution);
+
     return (
-        <div className="w-full h-10">
-            <style>{overrideHoverCss}</style>
+        <div className="w-full">
+            <div className="relative h-4 text-xs font-medium tabular-nums text-foreground">
+                {showLow && (
+                    <span
+                        className="absolute top-0 -translate-x-1/2"
+                        style={{ left: `${thumbPercent(low, min, max)}%` }}
+                    >
+                        {formatSliderNumber(low, resolution)}
+                    </span>
+                )}
+                {showHigh && (
+                    <span
+                        className="absolute top-0 -translate-x-1/2"
+                        style={{ left: `${thumbPercent(high, min, max)}%` }}
+                    >
+                        {formatSliderNumber(high, resolution)}
+                    </span>
+                )}
+            </div>
             <Slider
-                range
-                allowCross={false}
-                onChange={(v) => onchange(v as [number, number])}
-                value={value}
-                trackStyle={[{ backgroundColor: "#1F4715" }]}
-                handleStyle={[handleStyles, handleStyles]}
                 min={min}
                 max={max}
-                defaultValue={[min, max]}
                 step={resolution}
-                marks={marks}
-                handleRender={handleRender}
+                value={[low, high]}
+                onValueChange={(next) => onchange(next as [number, number])}
+                minStepsBetweenThumbs={0}
             />
+            <div className="mt-1 flex justify-between text-xs text-muted-foreground tabular-nums">
+                <span>{formatSliderNumber(min, resolution)}</span>
+                <span>{formatSliderNumber(max, resolution)}</span>
+            </div>
         </div>
     );
 }
-
-const handleRender: SliderProps["handleRender"] = (handle, sliderProps) => {
-    const { value, dragging } = sliderProps;
-    const popup = (
-        <div
-            // Have to set key since it is force inserted as a child to an element
-            key="custom-slider-popup-key"
-            className={`absolute flex flex-col items-center	bottom-[0.6rem] left-[0.3rem] transform -translate-x-1/2 ${
-                dragging ? "opacity-1" : "opacity-0"
-            }`}
-        >
-            <div className=" bg-gray-900 text-white p-1 text-sm rounded-sm min-w-6 text-center">
-                {value}
-            </div>
-            <div className="w-3 overflow-hidden inline-block">
-                <div className=" h-2 w-2 bg-gray-900 -rotate-45 transform origin-top-left" />
-            </div>
-        </div>
-    );
-    const modifiedHandle = cloneElement(handle, {
-        ...handle.props,
-        className: `${handle.props.className ?? ""} relative`,
-        children: [popup],
-    });
-    return <div>{modifiedHandle}</div>;
-};

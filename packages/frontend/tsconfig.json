@@ -14,5 +14,5 @@
             "@backend/*": ["../backend/src/*"]
         }
     },
-    "include": ["./src"]
+    "include": ["./src", "./vitest-setup.ts", "./vite.config.mts"]
 }

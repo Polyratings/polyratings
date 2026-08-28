@@ -11,9 +11,7 @@ test("SEARCH: search route handles no-results state", async ({ page }) => {
     });
 });
 
-test("SEARCH: professor list shows results and stays populated while typing", async ({
-    page,
-}) => {
+test("SEARCH: professor list shows results and stays populated while typing", async ({ page }) => {
     test.setTimeout(60_000);
     await page.setViewportSize({ width: 1440, height: 1000 });
     await page.goto("/search/name");
@@ -22,7 +20,7 @@ test("SEARCH: professor list shows results and stays populated while typing", as
     const searchInput = page.getByRole("combobox", { name: "Professor Auto-complete" }).first();
 
     await test.step("SEARCH-3: professor list renders result cards", async () => {
-        await expect(page.getByRole("heading", { name: "Sort by:" })).toBeVisible({
+        await expect(page.getByRole("heading", { name: "Filters" })).toBeVisible({
             timeout: 15_000,
         });
         await expect(professorCards.first()).toBeVisible();

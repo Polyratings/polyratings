@@ -1,22 +1,29 @@
-/* eslint-disable no-restricted-syntax */
-/* eslint-disable react/no-unstable-nested-components */
-import { Fragment, lazy, Suspense, useState } from "react";
+import { Fragment, useState } from "react";
 import { Professor, RatingReport, TruncatedProfessor } from "@backend/types/schema";
 import { useQueryClient } from "@tanstack/react-query";
-import { ExpanderComponentProps, TableProps } from "react-data-table-component";
 import { Department, DEPARTMENT_LIST } from "@backend/utils/const";
 import { ArrowTopRightOnSquareIcon } from "@heroicons/react/24/solid";
-import { toast } from "react-toastify";
+import { ChevronRight } from "lucide-react";
+import { toast } from "sonner";
 import { Navigate } from "react-router";
 import { useAuth } from "@/hooks";
 import { trpc } from "@/trpc";
 import { bulkInvalidationKey, useDbValues } from "@/hooks/useDbValues";
-import { Button } from "@/components/forms/Button";
-import { AutoComplete, InlineQueryState, Select, TextInput } from "@/components";
+import { AutoComplete, Button, InlineQueryState, PageMeta, Select, TextInput } from "@/components";
+import { Button as UiButton } from "@/components/ui/button";
+import {
+    Table,
+    TableBody,
+    TableCell,
+    TableHead,
+    TableHeader,
+    TableRow,
+} from "@/components/ui/table";
 import { professorSearch } from "@/utils/ProfessorSearch";
-import { getApiErrorMessage } from "@/utils";
+import { cn, getApiErrorMessage, toSelectOptions } from "@/utils";
 
-const DataTableLazy = lazy(() => import("react-data-table-component"));
+/** Same default page size as react-data-table-component; prev/next only (no per-page selector). */
+const ADMIN_TABLE_PAGE_SIZE = 10;
 
 function createAdminMutationErrorHandler(action: string) {
     return (error: unknown) => {
@@ -24,12 +31,66 @@ function createAdminMutationErrorHandler(action: string) {
     };
 }
 
-function DataTable<T>({ ...rest }: TableProps<T>) {
+function getAdminTablePage<T>(rows: T[], page: number) {
+    const pageCount = Math.max(1, Math.ceil(rows.length / ADMIN_TABLE_PAGE_SIZE));
+    const currentPage = Math.min(Math.max(0, page), pageCount - 1);
+    const start = currentPage * ADMIN_TABLE_PAGE_SIZE;
+    return {
+        pageRows: rows.slice(start, start + ADMIN_TABLE_PAGE_SIZE),
+        pageCount,
+        currentPage,
+        total: rows.length,
+    };
+}
+
+function AdminTablePagination({
+    total,
+    page,
+    pageCount,
+    onPrevious,
+    onNext,
+}: {
+    total: number;
+    page: number;
+    pageCount: number;
+    onPrevious: () => void;
+    onNext: () => void;
+}) {
+    const start = total === 0 ? 0 : page * ADMIN_TABLE_PAGE_SIZE + 1;
+    const end = Math.min(total, (page + 1) * ADMIN_TABLE_PAGE_SIZE);
+
     return (
-        <Suspense fallback={<>Data Table is Loading</>}>
-            {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
-            <DataTableLazy {...(rest as any)} />
-        </Suspense>
+        <div className="flex items-center justify-end gap-3 px-2 py-2 text-sm text-foreground">
+            <span>{total === 0 ? "0 of 0" : `${start}–${end} of ${total}`}</span>
+            <UiButton
+                type="button"
+                variant="outline"
+                size="sm"
+                disabled={page <= 0 || total === 0}
+                onClick={onPrevious}
+            >
+                Previous
+            </UiButton>
+            <UiButton
+                type="button"
+                variant="outline"
+                size="sm"
+                disabled={page >= pageCount - 1 || total === 0}
+                onClick={onNext}
+            >
+                Next
+            </UiButton>
+        </div>
+    );
+}
+
+function AdminTableEmptyRow({ colSpan }: { colSpan: number }) {
+    return (
+        <TableRow className="hover:bg-transparent">
+            <TableCell colSpan={colSpan} className="py-6 text-center text-muted-foreground">
+                There are no records to display
+            </TableCell>
+        </TableRow>
     );
 }
 
@@ -39,7 +100,8 @@ export function Admin() {
         return <Navigate to="/login" replace />;
     }
     return (
-        <div>
+        <div id="main" tabIndex={-1} className="outline-none">
+            <PageMeta title="Admin" description="Polyratings admin tools." path="/admin" noindex />
             <h1 className="text-center text-6xl font-semibold my-4">Polyratings Admin Panel</h1>
             <div className="container m-auto text-lg">
                 <PendingProfessors />
@@ -48,6 +110,16 @@ export function Admin() {
             </div>
         </div>
     );
+}
+
+function findProfessor(professors: Professor[] | undefined, professorId: string) {
+    return professors?.find((professor) => professor.id === professorId);
+}
+
+function findRating(professor: Professor | undefined, ratingId: string) {
+    return Object.values(professor?.reviews ?? {})
+        .flat()
+        .find((rating) => rating.id === ratingId);
 }
 
 function ReportedRatings() {
@@ -78,6 +150,7 @@ function ReportedRatings() {
             queryClient.invalidateQueries({ queryKey: bulkInvalidationKey("reports") }),
         onError: createAdminMutationErrorHandler("remove the reported rating"),
     });
+    const [page, setPage] = useState(0);
 
     const reportsBlocked = !ratingReports && (reportsPending || Boolean(reportsError));
     const professorsBlocked = !professorsResult && (professorsPending || Boolean(professorsError));
@@ -95,90 +168,10 @@ function ReportedRatings() {
         );
     }
 
-    const findProfessor = (professorId: string): Professor | undefined =>
-        professors?.find((p) => p.id === professorId);
-
-    const columns = [
-        {
-            name: "Professor",
-            grow: 0.5,
-            cell: (row: RatingReport) => {
-                const professor = findProfessor(row.professorId);
-                if (!professor) return "Professor record missing";
-                return `${professor.lastName}, ${professor.firstName}`;
-            },
-        },
-        {
-            name: "Department",
-            grow: 0.5,
-            selector: (row: RatingReport) => findProfessor(row.professorId)?.department ?? "",
-        },
-        {
-            name: "Reason",
-            wrap: true,
-            grow: 1.5,
-            cell: (row: RatingReport) => (
-                <div className="flex flex-col w-full">
-                    {row.reports.map((report, idx) => (
-                        // Need to use index to help out with making each key unique
-                        // eslint-disable-next-line react/no-array-index-key
-                        <Fragment key={idx + report.reason + report.email}>
-                            {idx !== 0 && <div className="w-full h-1 bg-black my-2" />}
-                            {report.anonymousIdentifier && (
-                                <div>Submitted By: {report.anonymousIdentifier}</div>
-                            )}
-                            {report.email && <div>Email: {report.email}</div>}
-                            <div>Reason: {report.reason}</div>
-                        </Fragment>
-                    ))}
-                </div>
-            ),
-        },
-        {
-            name: "Rating",
-            wrap: true,
-            grow: 3,
-            selector: (row: RatingReport) => {
-                const professor = findProfessor(row.professorId);
-                const ratings = Object.values(professor?.reviews ?? {}).flat();
-                return ratings.find((rating) => rating.id === row.ratingId)?.rating ?? "";
-            },
-        },
-        {
-            name: "Rating By",
-            grow: 0.5,
-            selector: (row: RatingReport) => {
-                const professor = professors?.find((p) => p?.id === row.professorId);
-                return (
-                    Object.values(professor?.reviews ?? {})
-                        .flat()
-                        .find((rating) => rating.id === row.ratingId)?.anonymousIdentifier ?? ""
-                );
-            },
-        },
-        {
-            name: "Keep",
-            cell: (row: RatingReport) => (
-                <ConfirmationButton
-                    action={() => removeReport(row.ratingId)}
-                    buttonClassName="p-2 bg-green-500 text-white rounded-sm"
-                    buttonText="K"
-                />
-            ),
-            grow: 0,
-        },
-        {
-            name: "Remove",
-            cell: (row: RatingReport) => (
-                <ConfirmationButton
-                    action={() => actOnReport(row.ratingId)}
-                    buttonClassName="p-2 bg-red-500 text-white rounded-sm"
-                    buttonText="R"
-                />
-            ),
-            grow: 0,
-        },
-    ];
+    const { pageRows, pageCount, currentPage, total } = getAdminTablePage(
+        ratingReports ?? [],
+        page,
+    );
 
     return (
         <div className="mt-4">
@@ -189,7 +182,91 @@ function ReportedRatings() {
                 />
             )}
             <h2 className="ml-1">Reported Ratings:</h2>
-            <DataTable columns={columns} data={ratingReports ?? []} pagination />
+            <div className="overflow-hidden rounded-xl bg-card ring-1 ring-border">
+                <Table aria-label="Reported Ratings">
+                    <TableHeader>
+                        <TableRow>
+                            <TableHead>Professor</TableHead>
+                            <TableHead>Department</TableHead>
+                            <TableHead>Reason</TableHead>
+                            <TableHead>Rating</TableHead>
+                            <TableHead>Rating By</TableHead>
+                            <TableHead>Keep</TableHead>
+                            <TableHead>Remove</TableHead>
+                        </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                        {pageRows.length === 0 ? (
+                            <AdminTableEmptyRow colSpan={7} />
+                        ) : (
+                            pageRows.map((row: RatingReport) => {
+                                const professor = findProfessor(professors, row.professorId);
+                                const rating = findRating(professor, row.ratingId);
+                                return (
+                                    <TableRow key={row.ratingId}>
+                                        <TableCell>
+                                            {professor
+                                                ? `${professor.lastName}, ${professor.firstName}`
+                                                : "Professor record missing"}
+                                        </TableCell>
+                                        <TableCell>{professor?.department ?? ""}</TableCell>
+                                        <TableCell className="max-w-sm whitespace-normal">
+                                            <div className="flex flex-col w-full">
+                                                {row.reports.map((report, idx) => (
+                                                    <Fragment
+                                                        // Need to use index to help out with making each key unique
+                                                        // eslint-disable-next-line react/no-array-index-key
+                                                        key={idx + report.reason + report.email}
+                                                    >
+                                                        {idx !== 0 && (
+                                                            <div className="w-full h-1 bg-border my-2" />
+                                                        )}
+                                                        {report.anonymousIdentifier && (
+                                                            <div>
+                                                                Submitted By:{" "}
+                                                                {report.anonymousIdentifier}
+                                                            </div>
+                                                        )}
+                                                        {report.email && (
+                                                            <div>Email: {report.email}</div>
+                                                        )}
+                                                        <div>Reason: {report.reason}</div>
+                                                    </Fragment>
+                                                ))}
+                                            </div>
+                                        </TableCell>
+                                        <TableCell className="max-w-lg whitespace-normal">
+                                            {rating?.rating ?? ""}
+                                        </TableCell>
+                                        <TableCell>{rating?.anonymousIdentifier ?? ""}</TableCell>
+                                        <TableCell>
+                                            <ConfirmationButton
+                                                action={() => removeReport(row.ratingId)}
+                                                buttonClassName="p-2 bg-primary text-primary-foreground rounded-sm"
+                                                buttonText="K"
+                                            />
+                                        </TableCell>
+                                        <TableCell>
+                                            <ConfirmationButton
+                                                action={() => actOnReport(row.ratingId)}
+                                                buttonClassName="p-2 bg-destructive text-white rounded-sm"
+                                                buttonText="R"
+                                            />
+                                        </TableCell>
+                                    </TableRow>
+                                );
+                            })
+                        )}
+                    </TableBody>
+                </Table>
+                <AdminTablePagination
+                    total={total}
+                    page={currentPage}
+                    pageCount={pageCount}
+                    onPrevious={() => setPage(currentPage - 1)}
+                    onNext={() => setPage(currentPage + 1)}
+                />
+            </div>
         </div>
     );
 }
@@ -207,6 +284,8 @@ function PendingProfessors() {
             queryClient.invalidateQueries({ queryKey: bulkInvalidationKey("professor-queue") }),
         onError: createAdminMutationErrorHandler("reject pending professor"),
     });
+    const [page, setPage] = useState(0);
+    const [expandedIds, setExpandedIds] = useState<ReadonlySet<string>>(() => new Set());
 
     if (!pendingProfessors && (error || isPending)) {
         return (
@@ -221,57 +300,22 @@ function PendingProfessors() {
         );
     }
 
-    const columns = [
-        {
-            name: "Professor",
-            cell: (row: Professor) => (
-                <a
-                    href={`http://www.google.com/search?q=${row.lastName}+${row.firstName}+Cal+Poly`}
-                    className="underline text-blue-600 hover:text-blue-800 visited:text-purple-600"
-                    target="_blank"
-                    rel="noreferrer"
-                >
-                    {row.lastName}, {row.firstName}
-                </a>
-            ),
-        },
-        {
-            name: "Department",
-            selector: (row: Professor) => row.department,
-        },
-        {
-            name: "Rating Course",
-            selector: (row: Professor) => Object.keys(row.reviews ?? {})[0],
-        },
-        {
-            name: "Rating",
-            wrap: true,
-            grow: 3,
-            selector: (row: Professor) => Object.values(row.reviews ?? {})[0][0].rating,
-        },
-        {
-            name: "Approve",
-            cell: (row: Professor) => (
-                <ConfirmationButton
-                    action={async () => approvePendingProfessor(row.id)}
-                    buttonClassName="p-2 bg-green-500 text-white rounded-sm"
-                    buttonText="✓"
-                />
-            ),
-            grow: 0,
-        },
-        {
-            name: "Deny",
-            cell: (row: Professor) => (
-                <ConfirmationButton
-                    action={async () => rejectPendingProfessor(row.id)}
-                    buttonClassName="p-2 bg-red-500 text-white rounded-sm"
-                    buttonText="X"
-                />
-            ),
-            grow: 0,
-        },
-    ];
+    const { pageRows, pageCount, currentPage, total } = getAdminTablePage(
+        pendingProfessors ?? [],
+        page,
+    );
+
+    const toggleExpanded = (id: string) => {
+        setExpandedIds((current) => {
+            const next = new Set(current);
+            if (next.has(id)) {
+                next.delete(id);
+            } else {
+                next.add(id);
+            }
+            return next;
+        });
+    };
 
     return (
         <div className="mt-4">
@@ -282,20 +326,129 @@ function PendingProfessors() {
                 />
             )}
             <h2 className="ml-1">Pending Professors:</h2>
-            <DataTable
-                expandableRows
-                expandableRowsComponent={PendingProfessorActions}
-                columns={columns}
-                data={pendingProfessors ?? []}
-                pagination
-            />
+            <div className="overflow-hidden rounded-xl bg-card ring-1 ring-border">
+                <Table aria-label="Pending Professors">
+                    <TableHeader>
+                        <TableRow>
+                            <TableHead className="w-10">
+                                <span className="sr-only">Expand row</span>
+                            </TableHead>
+                            <TableHead>Professor</TableHead>
+                            <TableHead>Department</TableHead>
+                            <TableHead>Rating Course</TableHead>
+                            <TableHead>Rating</TableHead>
+                            <TableHead>Approve</TableHead>
+                            <TableHead>Deny</TableHead>
+                        </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                        {pageRows.length === 0 ? (
+                            <AdminTableEmptyRow colSpan={7} />
+                        ) : (
+                            pageRows.map((row: Professor) => {
+                                const isExpanded = expandedIds.has(row.id);
+                                const actionsId = `pending-professor-actions-${row.id}`;
+                                const displayName = `${row.lastName}, ${row.firstName}`;
+                                const course = Object.keys(row.reviews ?? {})[0];
+                                const ratingText = Object.values(row.reviews ?? {})[0]?.[0]?.rating;
+
+                                return (
+                                    <Fragment key={row.id}>
+                                        <TableRow
+                                            className={cn(
+                                                "has-aria-expanded:bg-transparent",
+                                                isExpanded && "bg-muted/50",
+                                            )}
+                                        >
+                                            <TableCell>
+                                                <UiButton
+                                                    type="button"
+                                                    variant="ghost"
+                                                    size="icon-sm"
+                                                    aria-expanded={isExpanded}
+                                                    aria-controls={actionsId}
+                                                    aria-label={
+                                                        isExpanded
+                                                            ? `Collapse actions for ${displayName}`
+                                                            : `Expand actions for ${displayName}`
+                                                    }
+                                                    onClick={() => toggleExpanded(row.id)}
+                                                >
+                                                    <ChevronRight
+                                                        className={cn(
+                                                            "size-4 transition-transform",
+                                                            isExpanded && "rotate-90",
+                                                        )}
+                                                    />
+                                                </UiButton>
+                                            </TableCell>
+                                            <TableCell>
+                                                <a
+                                                    href={`http://www.google.com/search?q=${row.lastName}+${row.firstName}+Cal+Poly`}
+                                                    className="underline text-brand hover:text-accent visited:text-brand/70"
+                                                    target="_blank"
+                                                    rel="noreferrer"
+                                                >
+                                                    {displayName}
+                                                </a>
+                                            </TableCell>
+                                            <TableCell>{row.department}</TableCell>
+                                            <TableCell>{course}</TableCell>
+                                            <TableCell className="max-w-lg whitespace-normal">
+                                                {ratingText}
+                                            </TableCell>
+                                            <TableCell>
+                                                <ConfirmationButton
+                                                    action={async () =>
+                                                        approvePendingProfessor(row.id)
+                                                    }
+                                                    buttonClassName="p-2 bg-primary text-primary-foreground rounded-sm"
+                                                    buttonText="✓"
+                                                />
+                                            </TableCell>
+                                            <TableCell>
+                                                <ConfirmationButton
+                                                    action={async () =>
+                                                        rejectPendingProfessor(row.id)
+                                                    }
+                                                    buttonClassName="p-2 bg-destructive text-white rounded-sm"
+                                                    buttonText="X"
+                                                />
+                                            </TableCell>
+                                        </TableRow>
+                                        {isExpanded && (
+                                            <TableRow className="hover:bg-transparent has-aria-expanded:bg-transparent">
+                                                <TableCell
+                                                    colSpan={7}
+                                                    className="whitespace-normal bg-muted/40"
+                                                >
+                                                    <div id={actionsId}>
+                                                        <PendingProfessorActions professor={row} />
+                                                    </div>
+                                                </TableCell>
+                                            </TableRow>
+                                        )}
+                                    </Fragment>
+                                );
+                            })
+                        )}
+                    </TableBody>
+                </Table>
+                <AdminTablePagination
+                    total={total}
+                    page={currentPage}
+                    pageCount={pageCount}
+                    onPrevious={() => setPage(currentPage - 1)}
+                    onNext={() => setPage(currentPage + 1)}
+                />
+            </div>
         </div>
     );
 }
 
-function PendingProfessorActions({ data: professor }: ExpanderComponentProps<Professor>) {
+function PendingProfessorActions({ professor }: { professor: Professor }) {
     return (
-        <div className="flex flex-col gap-2 pl-2 pt-4">
+        <div className="flex flex-col gap-2 pl-2 pt-2">
             <SubmitUnderAction professor={professor} />
             <ChangeNameAction professor={professor} />
             <ChangeNameDepartment professor={professor} />
@@ -353,10 +506,10 @@ function SubmitUnderAction({ professor }: PendingProfessorAction) {
             </div>
             <AutoComplete
                 className="w-80 z-50"
-                inputClassName="border border-black"
+                inputClassName="border border-input"
                 items={allProfessors ?? []}
                 filterFn={(items, inputValue) =>
-                    professorSearch(items, "name", inputValue).map((t) => ({
+                    professorSearch(items, "name", inputValue, { includeStale: true }).map((t) => ({
                         label: `${t.lastName}, ${t.firstName}`,
                         value: t.id,
                     }))
@@ -428,7 +581,7 @@ function ChangeNameAction({ professor }: PendingProfessorAction) {
                 Submit
             </Button>
             {error && (
-                <span className="text-red text-sm">
+                <span className="text-destructive text-sm">
                     {getApiErrorMessage(error, "Failed to update pending professor name.")}
                 </span>
             )}
@@ -455,7 +608,7 @@ function ChangeNameDepartment({ professor }: PendingProfessorAction) {
             <span>Change Department</span>
             <Select
                 label=""
-                options={DEPARTMENT_LIST.map((dep) => ({ label: dep, value: dep }))}
+                options={toSelectOptions(DEPARTMENT_LIST)}
                 value={department}
                 onChange={(e) => setDepartment(e.target.value as Department)}
             />
@@ -471,7 +624,7 @@ function ChangeNameDepartment({ professor }: PendingProfessorAction) {
                 Submit
             </Button>
             {error && (
-                <span className="text-red text-sm">
+                <span className="text-destructive text-sm">
                     {getApiErrorMessage(error, "Failed to update pending professor department.")}
                 </span>
             )}
@@ -482,6 +635,8 @@ function ChangeNameDepartment({ professor }: PendingProfessorAction) {
 function ProcessedRatings() {
     const { data: processedRatings, isPending, error } = useDbValues("rating-log");
     type PendingRating = NonNullable<typeof processedRatings>[0];
+    const [page, setPage] = useState(0);
+
     if (!processedRatings && (error || isPending)) {
         return (
             <InlineQueryState
@@ -495,59 +650,13 @@ function ProcessedRatings() {
         );
     }
 
-    const sortedProcessedRatings =
-        (processedRatings ?? []).sort(
-            (ratingA, ratingB) => Date.parse(ratingB.postDate) - Date.parse(ratingA.postDate),
-        ) ?? [];
-
-    const columns = [
-        {
-            name: "Status",
-            selector: (row: PendingRating) => row.status,
-            grow: 0.5,
-        },
-        {
-            name: "Scores",
-            grow: 1.5,
-            cell: (row: PendingRating) => {
-                let scores;
-
-                if (row.analyzedScores && "category_scores" in row.analyzedScores) {
-                    scores = row.analyzedScores.category_scores;
-                } else {
-                    // Handle old Perspective ratings
-                    scores = row.analyzedScores ?? {};
-                }
-
-                return (
-                    <div className="flex flex-col">
-                        {Object.entries(scores).map(([name, score]) => (
-                            <div key={name}>
-                                {name}: {score}
-                            </div>
-                        ))}
-                    </div>
-                );
-            },
-        },
-        {
-            name: "Rating",
-            wrap: true,
-            grow: 3,
-            selector: (row: PendingRating) => row.rating,
-        },
-        {
-            name: "Open",
-            grow: 0.5,
-            cell: (row: PendingRating) => (
-                <Button
-                    onClick={() => window.open(`/professor/${row.professor}`, "_blank")?.focus()}
-                >
-                    <ArrowTopRightOnSquareIcon className="text-white w-6 h-6" />
-                </Button>
-            ),
-        },
-    ];
+    const sortedProcessedRatings = [...(processedRatings ?? [])].sort(
+        (ratingA, ratingB) => Date.parse(ratingB.postDate) - Date.parse(ratingA.postDate),
+    );
+    const { pageRows, pageCount, currentPage, total } = getAdminTablePage(
+        sortedProcessedRatings,
+        page,
+    );
 
     return (
         <div className="mt-4">
@@ -558,7 +667,73 @@ function ProcessedRatings() {
                 />
             )}
             <h2 className="ml-1">Processed Ratings:</h2>
-            <DataTable columns={columns} data={sortedProcessedRatings} pagination />
+            <div className="overflow-hidden rounded-xl bg-card ring-1 ring-border">
+                <Table aria-label="Processed Ratings">
+                    <TableHeader>
+                        <TableRow>
+                            <TableHead>Status</TableHead>
+                            <TableHead>Scores</TableHead>
+                            <TableHead>Rating</TableHead>
+                            <TableHead>Open</TableHead>
+                        </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                        {pageRows.length === 0 ? (
+                            <AdminTableEmptyRow colSpan={4} />
+                        ) : (
+                            pageRows.map((row: PendingRating) => {
+                                let scores;
+
+                                if (row.analyzedScores && "category_scores" in row.analyzedScores) {
+                                    scores = row.analyzedScores.category_scores;
+                                } else {
+                                    // Handle old Perspective ratings
+                                    scores = row.analyzedScores ?? {};
+                                }
+
+                                return (
+                                    <TableRow key={row.id}>
+                                        <TableCell>{row.status}</TableCell>
+                                        <TableCell className="whitespace-normal">
+                                            <div className="flex flex-col">
+                                                {Object.entries(scores).map(([name, score]) => (
+                                                    <div key={name}>
+                                                        {name}: {score}
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        </TableCell>
+                                        <TableCell className="max-w-lg whitespace-normal">
+                                            {row.rating}
+                                        </TableCell>
+                                        <TableCell>
+                                            <Button
+                                                onClick={() =>
+                                                    window
+                                                        .open(
+                                                            `/professor/${row.professor}`,
+                                                            "_blank",
+                                                        )
+                                                        ?.focus()
+                                                }
+                                            >
+                                                <ArrowTopRightOnSquareIcon className="w-6 h-6" />
+                                            </Button>
+                                        </TableCell>
+                                    </TableRow>
+                                );
+                            })
+                        )}
+                    </TableBody>
+                </Table>
+                <AdminTablePagination
+                    total={total}
+                    page={currentPage}
+                    pageCount={pageCount}
+                    onPrevious={() => setPage(currentPage - 1)}
+                    onNext={() => setPage(currentPage + 1)}
+                />
+            </div>
         </div>
     );
 }
@@ -590,18 +765,18 @@ export function ConfirmationButton({
                 {buttonText}
             </button>
             {confirmationOpen && (
-                <div className="absolute p-2 w-28 z-50 bg-white shadow-sm top-0 right-0">
+                <div className="absolute p-2 w-28 z-50 bg-card text-foreground shadow-sm top-0 right-0 ring-1 ring-border rounded-md">
                     <div>Are You Sure?</div>
                     <div className="flex justify-between mt-1">
                         <button
-                            className="bg-green-500 px-2 py-1 text-white"
+                            className="bg-primary px-2 py-1 text-primary-foreground"
                             type="button"
                             onClick={() => handleConfirmation()}
                             onMouseDown={(e) => e.preventDefault()}
                         >
                             YES
                         </button>
-                        <button className="bg-red-500 px-2 py-1 text-white" type="button">
+                        <button className="bg-destructive px-2 py-1 text-white" type="button">
                             NO
                         </button>
                     </div>

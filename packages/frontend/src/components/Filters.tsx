@@ -1,6 +1,14 @@
 import { ArrowLongUpIcon } from "@heroicons/react/24/outline";
+import {
+    createDefaultFilterState,
+    FilterState,
+    hasActiveFilterState,
+    SortingOptions,
+} from "@/utils/applyProfessorFilters";
+import { cn } from "@/utils";
 import { MinMaxSlider } from "./MinMaxSlider";
-import { FilterState, SortingOptions } from "@/utils/applyProfessorFilters";
+import { Select } from "./forms";
+import { CoursePrefixMultiSelect } from "./CoursePrefixMultiSelect";
 
 export type { FilterState, SortingOptions };
 
@@ -9,143 +17,156 @@ export interface FilterProps {
     onChange: (value: FilterState) => void;
     evaluationDomain: [number, number];
     className?: string;
+    showHeading?: boolean;
 }
 
-export function Filters({ value, onChange, evaluationDomain, className }: FilterProps) {
+const sortByOptions: { value: SortingOptions; label: string }[] = [
+    { value: "relevant", label: "Relevant" },
+    { value: "alphabetical", label: "Alphabetical" },
+    { value: "overallRating", label: "Overall Rating" },
+    { value: "recognizesStudentDifficulties", label: "Recognizes Student Difficulty" },
+    { value: "presentsMaterialClearly", label: "Presents Material Clearly" },
+];
+
+export function Filters({
+    value,
+    onChange,
+    evaluationDomain,
+    className,
+    showHeading = true,
+}: FilterProps) {
     const update = (patch: Partial<FilterState>) => onChange({ ...value, ...patch });
-    const selectedPrefixIndex = value.coursePrefixFilters.findIndex(
-        (coursePrefixFilter) => coursePrefixFilter.state,
-    );
+    const selectedPrefixes = value.coursePrefixFilters
+        .filter((coursePrefixFilter) => coursePrefixFilter.state)
+        .map((coursePrefixFilter) => coursePrefixFilter.name);
+    const hasActiveFilters = hasActiveFilterState(value);
 
     return (
-        <div className={className ?? ""}>
-            <h2 className="text-xl font-bold transform -translate-x-4 pb-1">Sort by:</h2>
-            <div className="flex items-center">
-                <select
-                    className="block w-[106%] mt-1 h-7 border-2 border-black rounded-md transform -translate-x-2"
-                    value={value.sortBy}
-                    onChange={(e) => update({ sortBy: e.target.value as SortingOptions })}
-                >
-                    <option value="relevant">Relevant</option>
-                    <option value="alphabetical">Alphabetical</option>
-                    <option value="overallRating">Overall Rating</option>
-                    <option value="recognizesStudentDifficulties">
-                        Recognizes Student Difficulty
-                    </option>
-                    <option value="presentsMaterialClearly">Presents Material Clearly</option>
-                </select>
-                <button
-                    aria-label="Reverse Order"
-                    type="button"
-                    onClick={() => update({ reverseFilter: !value.reverseFilter })}
-                >
-                    <ArrowLongUpIcon
-                        className={`h-5 w-5 hover:text-cal-poly-green transform transition-all ${
-                            value.reverseFilter ? "rotate-180" : "rotate-0"
-                        }`}
-                    />
-                </button>
-            </div>
+        <aside
+            className={cn(
+                "rounded-xl border border-input bg-card p-5 shadow-sm xl:sticky xl:top-6",
+                className,
+            )}
+        >
+            {showHeading && (
+                <div className="flex items-start justify-between gap-4">
+                    <h2 className="text-xl font-semibold tracking-tight">Filters</h2>
+                    {hasActiveFilters && (
+                        <button
+                            className="mt-1 text-sm font-semibold text-brand underline-offset-4 hover:underline"
+                            type="button"
+                            onClick={() => onChange(createDefaultFilterState())}
+                        >
+                            Clear all
+                        </button>
+                    )}
+                </div>
+            )}
 
-            <h2 className="text-xl font-bold transform -translate-x-4 py-1">Filters:</h2>
-
-            <div className="block xl:hidden mb-2">
-                <h3>CoursePrefix:</h3>
-                <select
-                    className="w-[106%] mt-1 h-7 border-2 border-black rounded-md transform -translate-x-2"
-                    value={selectedPrefixIndex === -1 ? "-1" : String(selectedPrefixIndex)}
-                    onChange={(e) => {
-                        const selectedIndex = parseInt(e.target.value, 10);
-                        update({
-                            coursePrefixFilters: value.coursePrefixFilters.map(
-                                (coursePrefix, i) => ({
-                                    name: coursePrefix.name,
-                                    state: i === selectedIndex,
-                                }),
-                            ),
-                        });
-                    }}
-                >
-                    <option value="-1">Any</option>
-                    {value.coursePrefixFilters.map(({ name }, i) => (
-                        <option value={i} key={name}>
-                            {name}
-                        </option>
-                    ))}
-                </select>
-            </div>
-
-            {(
-                [
-                    {
-                        name: "Overall Rating:",
-                        filterKey: "avgRatingFilter",
-                        range: value.avgRatingFilter,
-                    },
-                    {
-                        name: "Recognizes Student Difficulties:",
-                        filterKey: "studentDifficultyFilter",
-                        range: value.studentDifficultyFilter,
-                    },
-                    {
-                        name: "Presents Material Clearly:",
-                        filterKey: "materialClearFilter",
-                        range: value.materialClearFilter,
-                    },
-                ] as const
-            ).map(({ name, filterKey, range }) => (
-                <div key={name}>
-                    <h3>{name}</h3>
-                    <div className="mt-1">
-                        <MinMaxSlider
-                            value={range}
-                            onchange={(nextRange) => update({ [filterKey]: nextRange })}
-                            domain={[0, 4]}
+            <section className={cn(showHeading ? "mt-5 border-t border-border pt-5" : "mt-0")}>
+                <h3 className="text-sm font-semibold">Sort</h3>
+                <div className="mt-2 flex items-center gap-2">
+                    <div className="min-w-0 flex-1">
+                        <Select
+                            name="sortBy"
+                            label="Sort results"
+                            hideLabel
+                            wrapperClassName="w-full"
+                            className="w-full"
+                            value={value.sortBy}
+                            onChange={(e) => update({ sortBy: e.target.value as SortingOptions })}
+                            options={sortByOptions}
                         />
                     </div>
+                    <button
+                        aria-label="Reverse Order"
+                        type="button"
+                        onClick={() => update({ reverseFilter: !value.reverseFilter })}
+                        className={cn(
+                            "flex size-10 shrink-0 cursor-pointer items-center justify-center rounded-md",
+                            "border border-input bg-card transition-colors hover:border-brand/45 hover:bg-muted",
+                            "focus-visible:outline-hidden focus-visible:ring-3 focus-visible:ring-ring/35",
+                        )}
+                    >
+                        <ArrowLongUpIcon
+                            className={cn(
+                                "size-5 transition-transform",
+                                value.reverseFilter && "rotate-180",
+                            )}
+                        />
+                    </button>
                 </div>
-            ))}
-            <div>
-                <h3>Number of Ratings:</h3>
-                <div className="mt-1">
-                    <MinMaxSlider
-                        value={value.numberOfEvaluationsFilter ?? evaluationDomain}
-                        onchange={(nextRange) => update({ numberOfEvaluationsFilter: nextRange })}
-                        domain={evaluationDomain}
-                        resolution={1}
+            </section>
+
+            <section className="mt-5 border-t border-border pt-5">
+                <h3 className="text-sm font-semibold">Course Prefix</h3>
+                <div className="mt-2">
+                    <CoursePrefixMultiSelect
+                        options={value.coursePrefixFilters.map(({ name }) => name)}
+                        selected={selectedPrefixes}
+                        onChange={(nextSelectedPrefixes) => {
+                            const nextSelectedSet = new Set(nextSelectedPrefixes);
+                            update({
+                                coursePrefixFilters: value.coursePrefixFilters.map(
+                                    (coursePrefix) => ({
+                                        name: coursePrefix.name,
+                                        state: nextSelectedSet.has(coursePrefix.name),
+                                    }),
+                                ),
+                            });
+                        }}
                     />
                 </div>
-            </div>
+            </section>
 
-            <div className="hidden xl:block">
-                <h3>Course Prefix:</h3>
-                <div className="grid grid-cols-2 gap-x-2">
-                    {value.coursePrefixFilters.map(({ name, state }, i) => (
-                        <label htmlFor={name} key={name} className="mt-1 flex items-center">
-                            <input
-                                type="checkbox"
-                                checked={state}
-                                id={name}
-                                className="h-5 w-5"
-                                onChange={(e) => {
-                                    update({
-                                        coursePrefixFilters: value.coursePrefixFilters.map(
-                                            (coursePrefix, index) =>
-                                                index === i
-                                                    ? {
-                                                          name: coursePrefix.name,
-                                                          state: e.target.checked,
-                                                      }
-                                                    : coursePrefix,
-                                        ),
-                                    });
-                                }}
-                            />
-                            <span className="ml-2 text-gray-700">{name}</span>
-                        </label>
+            <section className="mt-5 border-t border-border pt-5">
+                <h3 className="text-sm font-semibold">Ratings</h3>
+                <div className="mt-4 space-y-4">
+                    {(
+                        [
+                            {
+                                name: "Overall rating",
+                                filterKey: "avgRatingFilter",
+                                range: value.avgRatingFilter,
+                            },
+                            {
+                                name: "Recognizes difficulties",
+                                filterKey: "studentDifficultyFilter",
+                                range: value.studentDifficultyFilter,
+                            },
+                            {
+                                name: "Presents clearly",
+                                filterKey: "materialClearFilter",
+                                range: value.materialClearFilter,
+                            },
+                        ] as const
+                    ).map(({ name, filterKey, range }) => (
+                        <div key={name}>
+                            <h4 className="text-sm font-medium">{name}</h4>
+                            <div className="mt-1">
+                                <MinMaxSlider
+                                    value={range}
+                                    onchange={(nextRange) => update({ [filterKey]: nextRange })}
+                                    domain={[0, 4]}
+                                />
+                            </div>
+                        </div>
                     ))}
+                    <div>
+                        <h4 className="text-sm font-medium">Number of evaluations</h4>
+                        <div className="mt-1">
+                            <MinMaxSlider
+                                value={value.numberOfEvaluationsFilter ?? evaluationDomain}
+                                onchange={(nextRange) =>
+                                    update({ numberOfEvaluationsFilter: nextRange })
+                                }
+                                domain={evaluationDomain}
+                                resolution={1}
+                            />
+                        </div>
+                    </div>
                 </div>
-            </div>
-        </div>
+            </section>
+        </aside>
     );
 }

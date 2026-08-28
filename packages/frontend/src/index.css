@@ -1,13 +1,215 @@
 @import 'tailwindcss';
 @import 'tailwind-scrollbar-hide/v4';
+@import 'tw-animate-css';
+@import 'shadcn/tailwind.css';
 
-@config '../tailwind.config.js';
+/*
+  Class-based rather than a bare `prefers-color-scheme` media query, because the
+  navbar toggle has to be able to override the OS setting. The inline script in
+  index.html resolves the stored preference (or the OS, when set to "system")
+  and puts `.dark` on <html> before first paint; `useTheme` keeps it in sync
+  afterwards. Nothing reads `prefers-color-scheme` from CSS.
+*/
+@custom-variant dark (&:where(.dark, .dark *));
 
 @theme {
   /* Navbar is h-14 (3.5rem). Tailwind v4 does not emit legacy JS `theme.extend.height`
      keys as utilities; define tokens here so `h-screen-wo-nav` / `min-h-screen-wo-nav` work. */
   --height-screen-wo-nav: calc(100dvh - 3.5rem);
   --min-height-screen-wo-nav: calc(100dvh - 3.5rem);
+  --height-screen3/5: calc(100vh / 5 * 3);
+
+  --font-nunito: Nunito, sans-serif;
+
+  /* Poly Green and Mustang Gold, per https://ucm.calpoly.edu/color-guidelines */
+  --color-cal-poly-green: #154734;
+  /* Light tint of Poly Green, kept in step with its 157° hue. */
+  --color-cal-poly-light-green: #cdeadf;
+  --color-cal-poly-gold: #bd8b13;
+  --color-field: #f2f5f8;
+  --color-field-border: #c3cdd5;
+  --color-field-active: #f2feff;
+
+  /*
+    Cal Poly secondary/muted palette, verbatim from the university brand
+    guidelines (https://ucm.calpoly.edu/color-guidelines) and named after the
+    official swatches. Poly Green peaks around 2:1 against any dark background,
+    so dark mode draws brand text, accents and borders from these instead of
+    lightening the primaries ad hoc.
+  */
+  --color-dexter-green: #a4d65e;
+  --color-poly-canyon: #f2c75c;
+  --color-mission-beige: #e4e3d3;
+  --color-kennedy-gray: #8e9089;
+  --color-seal-gray: #54585a;
+
+  /* The brand palette has no dark neutrals, so the dark surfaces are Poly
+     Green's hue (157°) held at low lightness and saturation. Four steps:
+     page, raised (cards/popovers), sunken (field fills), hover. */
+  --color-surface-dark: #0e1411;
+  --color-surface-dark-raised: #171f1c;
+  --color-surface-dark-sunken: #232f2a;
+  --color-surface-dark-hover: #2e3d37;
+
+  --border-width: 0.0625rem;
+  --border-width-0: 0;
+  --border-width-2: 0.125rem;
+  --border-width-4: 0.25rem;
+  --border-width-8: 0.5rem;
+}
+
+/*
+  shadcn semantic tokens map onto the Phase 0 Cal Poly palette above.
+  Do not introduce a second color system — :root values reference --color-* tokens.
+*/
+@theme inline {
+  --color-sidebar-ring: var(--sidebar-ring);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar: var(--sidebar);
+  --color-chart-5: var(--chart-5);
+  --color-chart-4: var(--chart-4);
+  --color-chart-3: var(--chart-3);
+  --color-chart-2: var(--chart-2);
+  --color-chart-1: var(--chart-1);
+  --color-ring: var(--ring);
+  --color-input: var(--input);
+  --color-border: var(--border);
+  --color-destructive: var(--destructive);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-accent: var(--accent);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-muted: var(--muted);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-secondary: var(--secondary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary: var(--primary);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-popover: var(--popover);
+  --color-card-foreground: var(--card-foreground);
+  --color-card: var(--card);
+  --color-foreground: var(--foreground);
+  --color-background: var(--background);
+  --color-brand: var(--brand);
+  --radius-sm: calc(var(--radius) * 0.6);
+  --radius-md: calc(var(--radius) * 0.8);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) * 1.4);
+  --radius-2xl: calc(var(--radius) * 1.8);
+  --radius-3xl: calc(var(--radius) * 2.2);
+  --radius-4xl: calc(var(--radius) * 2.6);
+}
+
+:root {
+  /* Drives UA-rendered scrollbars, native controls and autofill. Set per scheme
+     rather than `light dark` so it follows the toggle, not just the OS. */
+  color-scheme: light;
+
+  --radius: 0.625rem;
+  --default-border-color: var(--color-gray-200);
+  /*
+    Two brand tokens, because one color cannot do both jobs in dark mode:
+      --primary  filled brand surfaces, always paired with --primary-foreground
+                 (`bg-primary`). Cal Poly green in both schemes.
+      --brand    the brand color drawn *on* a surface — text, icons, borders,
+                 focus rings (`text-brand`, `border-brand`). Lightens in dark
+                 mode so it keeps contrast against dark surfaces.
+  */
+  --brand: var(--color-cal-poly-green);
+  --background: var(--color-field);
+  --foreground: var(--color-black);
+  --card: var(--color-white);
+  --card-foreground: var(--color-black);
+  --popover: var(--color-white);
+  --popover-foreground: var(--color-black);
+  --primary: var(--color-cal-poly-green);
+  --primary-foreground: var(--color-white);
+  --secondary: var(--color-field);
+  --secondary-foreground: var(--color-black);
+  --muted: var(--color-cal-poly-light-green);
+  --muted-foreground: var(--color-gray-600);
+  --accent: var(--color-cal-poly-gold);
+  --accent-foreground: var(--color-white);
+  --destructive: var(--color-red-500);
+  --border: var(--color-field-border);
+  --input: var(--color-field-border);
+  --ring: var(--color-cal-poly-green);
+  --chart-1: var(--color-cal-poly-green);
+  --chart-2: var(--color-cal-poly-gold);
+  --chart-3: var(--color-cal-poly-light-green);
+  --chart-4: var(--color-field-border);
+  --chart-5: var(--color-field);
+  --sidebar: var(--color-field);
+  --sidebar-foreground: var(--color-cal-poly-green);
+  --sidebar-primary: var(--color-cal-poly-green);
+  --sidebar-primary-foreground: var(--color-white);
+  --sidebar-accent: var(--color-cal-poly-light-green);
+  --sidebar-accent-foreground: var(--color-cal-poly-green);
+  --sidebar-border: var(--color-field-border);
+  --sidebar-ring: var(--color-cal-poly-green);
+}
+
+/*
+  Overriding the `--color-*` tokens as well as the semantic ones means the
+  utilities built from them (`bg-field`, `focus-visible:bg-field-active`, …)
+  flip too, so components do not need a `dark:` variant for every surface.
+*/
+:root.dark {
+  color-scheme: dark;
+
+  --default-border-color: var(--color-seal-gray);
+
+  --color-field: var(--color-surface-dark-sunken);
+  --color-field-border: var(--color-kennedy-gray);
+  --color-field-active: var(--color-surface-dark-hover);
+  /* Pale mint reads as a deep green chip on dark surfaces. */
+  --color-cal-poly-light-green: #154734;
+
+  /*
+    --primary and --primary-foreground are deliberately absent: filled brand
+    surfaces stay Cal Poly green under white text in both schemes.
+  */
+  --brand: var(--color-dexter-green);
+  --background: var(--color-surface-dark);
+  --foreground: var(--color-mission-beige);
+  --card: var(--color-surface-dark-raised);
+  --card-foreground: var(--color-mission-beige);
+  --popover: var(--color-surface-dark-raised);
+  --popover-foreground: var(--color-mission-beige);
+  --secondary: var(--color-surface-dark-sunken);
+  --secondary-foreground: var(--color-mission-beige);
+  /* One step above --secondary so `hover:bg-muted` stays visible on top of
+     the `dark:bg-secondary` fills the form controls use. */
+  --muted: var(--color-surface-dark-hover);
+  --muted-foreground: var(--color-kennedy-gray);
+  /* Poly Canyon is light enough that --accent-foreground has to flip dark. */
+  --accent: var(--color-poly-canyon);
+  --accent-foreground: var(--color-cal-poly-green);
+  /* Unchanged: red-500 clears AA on both the light and dark card surfaces,
+     and `bg-destructive` pairs with white text in both modes. Heritage
+     Orange is the palette's nearest match but reads as a warning, not an
+     error. */
+  --destructive: var(--color-red-500);
+  --border: var(--color-seal-gray);
+  /* Kennedy Gray rather than Seal Gray: control outlines need the 3:1
+     non-text contrast WCAG 1.4.11 asks for against --card. */
+  --input: var(--color-kennedy-gray);
+  --ring: var(--brand);
+  --chart-1: var(--brand);
+  --chart-2: var(--color-poly-canyon);
+  --chart-3: var(--color-cal-poly-light-green);
+  --chart-4: var(--color-field-border);
+  --chart-5: var(--color-field);
+  --sidebar: var(--color-surface-dark-raised);
+  --sidebar-foreground: var(--brand);
+  --sidebar-accent: var(--color-cal-poly-light-green);
+  --sidebar-accent-foreground: var(--brand);
+  --sidebar-border: var(--color-seal-gray);
+  --sidebar-ring: var(--brand);
 }
 
 /*
@@ -24,14 +226,58 @@
   ::before,
   ::backdrop,
   ::file-selector-button {
-    border-color: var(--color-gray-200, currentcolor);
+    border-color: var(--default-border-color, currentcolor);
   }
+}
+
+html,
+body,
+#root {
+  height: 100%;
+  overflow: hidden;
 }
 
 body,
 html {
-  @apply bg-gray-100;
+  @apply bg-background text-foreground antialiased;
   width: 100%;
+}
+
+/*
+  Browsers (and Tailwind preflight) keep the default arrow on buttons and
+  similar controls. Interactive elements should show a pointer; disabled
+  ones keep not-allowed. Text fields stay on the I-beam.
+*/
+@layer base {
+  a[href],
+  button,
+  summary,
+  label,
+  select,
+  [role='button'],
+  [role='menuitem'],
+  [role='option'],
+  [role='tab'],
+  [role='switch'],
+  [role='checkbox'],
+  [role='radio'],
+  input:where(
+    [type='button'],
+    [type='submit'],
+    [type='reset'],
+    [type='checkbox'],
+    [type='radio'],
+    [type='file']
+  ),
+  ::file-selector-button {
+    cursor: pointer;
+  }
+
+  :disabled,
+  [aria-disabled='true'],
+  [data-disabled]:not([data-disabled='false']) {
+    cursor: not-allowed;
+  }
 }
 
 
@@ -48,9 +294,3 @@ input[type='number'] {
   -moz-appearance: textfield;
 }
 
-
-@counter-style home-list {
-  system: cyclic;
-  symbols: ◇;
-  suffix: " ";
-}
