@@ -1,10 +1,10 @@
 import { TRPCError } from "@trpc/server";
-import type { output, infer as zodInfer, ZodSafeParseResult, ZodTypeAny } from "zod";
+import type { output, infer as zodInfer, ZodSafeParseResult, ZodType } from "zod";
 
 export class KvWrapper {
     constructor(private kv: KVNamespace) {}
 
-    async get<T extends ZodTypeAny>(parser: T, key: string): Promise<zodInfer<T>> {
+    async get<T extends ZodType>(parser: T, key: string): Promise<zodInfer<T>> {
         const json = await this.kv.get(key, "json");
         if (!json) {
             throw new TRPCError({ code: "NOT_FOUND" });
@@ -12,7 +12,7 @@ export class KvWrapper {
         return parser.parse(json);
     }
 
-    async safeGet<T extends ZodTypeAny>(
+    async safeGet<T extends ZodType>(
         parser: T,
         key: string,
     ): Promise<ZodSafeParseResult<output<T>>> {
@@ -20,10 +20,7 @@ export class KvWrapper {
         return parser.safeParse(json);
     }
 
-    async getOptional<T extends ZodTypeAny>(
-        parser: T,
-        key: string,
-    ): Promise<zodInfer<T> | undefined> {
+    async getOptional<T extends ZodType>(parser: T, key: string): Promise<zodInfer<T> | undefined> {
         try {
             const value = await this.get(parser, key);
             return value;
@@ -39,7 +36,7 @@ export class KvWrapper {
         return this.kv.get(key, "json");
     }
 
-    async getAll<T extends ZodTypeAny>(parser: T): Promise<zodInfer<T>[]> {
+    async getAll<T extends ZodType>(parser: T): Promise<zodInfer<T>[]> {
         const list = await this.kv.list();
         const possiblyNullJson = await Promise.all(
             list.keys.map((key) => this.kv.get(key.name, "json")),
@@ -47,7 +44,7 @@ export class KvWrapper {
         return possiblyNullJson.filter((exists) => exists).map((json) => parser.parse(json));
     }
 
-    put<T extends ZodTypeAny, U extends zodInfer<T>>(
+    put<T extends ZodType, U extends zodInfer<T>>(
         parser: T,
         key: string,
         data: U,
