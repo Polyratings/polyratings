@@ -69,8 +69,8 @@ export class KVDAO {
         return this.polyratingsNamespace.getOptional(professorParser, id);
     }
 
-    getBulkNamespace(bulkKey: BulkKey): { namespace: KvWrapper; parser: z.ZodTypeAny } {
-        const namespaceMap: Record<BulkKey, { namespace: KvWrapper; parser: z.ZodTypeAny }> = {
+    getBulkNamespace(bulkKey: BulkKey): { namespace: KvWrapper; parser: z.ZodType } {
+        const namespaceMap: Record<BulkKey, { namespace: KvWrapper; parser: z.ZodType }> = {
             professors: { namespace: this.polyratingsNamespace, parser: professorParser },
             "professor-queue": {
                 namespace: this.professorApprovalQueueNamespace,
