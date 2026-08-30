@@ -73,6 +73,8 @@ Additionally, you're going to need to configure some [Secrets using Wrangler.](h
 
 - `OPENAI_API_KEY` - API key received when following [Preliminary Setup](#preliminary-setup)
 - `JWT_SIGNING_KEY` - @mfish33 (if you want to explain how to gen it)
+- `SCHEDULE_READ_API_KEY` - Bearer token for the [Schedule API](../cal-poly-schedule-scraper/docs/plan.md) read routes (set per environment; never expose to the frontend)
+- `SCHEDULE_API_URL` - Optional override for the Schedule API base URL (default in `wrangler.toml` points at the prod scraper Worker for all environments)
 
 #### Deploying/Publishing
 

@@ -113,3 +113,18 @@ test("PROF: rating submission via Other and known 4-digit course paths", { tag: 
         );
     });
 });
+
+test(
+    "PROF: professor page shows teaching schedule when Schedule API is configured",
+    { tag: "@schedule" },
+    async ({ page }) => {
+        await openInteractiveProfessorPage(page);
+
+        await test.step("PROF-9: Teaching this term schedule block is visible", async () => {
+            await expect(page.getByRole("region", { name: "Teaching this term" })).toBeVisible({
+                timeout: 20_000,
+            });
+            await expect(page.getByRole("heading", { name: "Teaching this term" })).toBeVisible();
+        });
+    },
+);

@@ -22,6 +22,7 @@ command = "npm run build"
 watch_dir = [
     "src/dao",
     "src/routers",
+    "src/schedule",
     "src/types",
     "src/utils",
     "src/index.ts",
@@ -39,6 +40,8 @@ simple = { limit = 20, period = 10 } # 20 requests every 10 seconds (local / def
 # Discord webhooks are opt-in outside prod (e2e write tests hit beta/dev).
 [vars]
 ENABLE_DISCORD_NOTIFICATIONS = "false"
+# Schedule API (prod scraper for local + deployed envs). Override in .dev.vars if needed.
+SCHEDULE_API_URL = "https://cal-poly-schedule-scraper.cp-scraper.workers.dev"
 
 [env.dev]
 name = 'polyratings-dev-backend'
@@ -75,6 +78,7 @@ kv_namespaces = [
 
 [env.beta.vars]
 ENABLE_DISCORD_NOTIFICATIONS = "false"
+SCHEDULE_API_URL = "https://cal-poly-schedule-scraper.cp-scraper.workers.dev"
 
 [[env.beta.ratelimits]]
 name = "RATE_LIMITER"
@@ -95,6 +99,7 @@ kv_namespaces = [
 
 [env.prod.vars]
 ENABLE_DISCORD_NOTIFICATIONS = "true"
+SCHEDULE_API_URL = "https://cal-poly-schedule-scraper.cp-scraper.workers.dev"
 
 [[env.prod.ratelimits]]
 name = "RATE_LIMITER"

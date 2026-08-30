@@ -6,4 +6,5 @@ export * from "./ProfessorPage";
 export * from "./About";
 export * from "./Admin";
 export * from "./FAQ";
+export * from "./ScheduleCourseSearch";
 export * from "./NotFoundRedirect";
