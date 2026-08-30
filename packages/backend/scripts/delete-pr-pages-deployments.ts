@@ -82,10 +82,12 @@ async function listPreviewDeployments(): Promise<PagesDeployment[]> {
     );
 }
 
-const deployments = await listPreviewDeployments();
-if (deployments.length === 0) {
-    console.log(`No Pages preview deployments found for branch ${branch}`);
-} else {
+async function main(): Promise<void> {
+    const deployments = await listPreviewDeployments();
+    if (deployments.length === 0) {
+        console.log(`No Pages preview deployments found for branch ${branch}`);
+        return;
+    }
     await Promise.all(
         deployments.map(async (deployment) => {
             await cfFetch(
@@ -96,3 +98,8 @@ if (deployments.length === 0) {
         }),
     );
 }
+
+main().catch((error: unknown) => {
+    console.error(error);
+    process.exit(1);
+});
