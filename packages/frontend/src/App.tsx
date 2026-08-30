@@ -21,6 +21,7 @@ import {
     NotFoundRedirect,
     professorPageLoaderFactory,
     SearchWrapper,
+    ScheduleCourseSearch,
 } from "./pages";
 import { Navbar } from "./components";
 import "react-toastify/dist/ReactToastify.css";
@@ -131,6 +132,7 @@ function PolyratingsRouter() {
                             loader={professorPageLoaderFactory(trpcContext)}
                         />
                         <Route path="search/:searchType" element={<SearchWrapper />} />
+                        <Route path="schedule/course" element={<ScheduleCourseSearch />} />
                         <Route path="login" element={<Login />} />
                         <Route path="new-professor" element={<NewProfessor />} />
                         <Route path="about" element={<About />} />

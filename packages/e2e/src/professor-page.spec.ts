@@ -83,3 +83,18 @@ test("PROF: rating submission flow succeeds from professor page", { tag: "@write
         await expect(page.getByRole("heading", { name: /Evaluate .+, .+/ })).not.toBeVisible();
     });
 });
+
+test(
+    "PROF: professor page shows teaching schedule when Schedule API is configured",
+    { tag: "@schedule" },
+    async ({ page }) => {
+        await openInteractiveProfessorPage(page);
+
+        await test.step("PROF-8: Teaching this term schedule block is visible", async () => {
+            await expect(page.getByRole("region", { name: "Teaching this term" })).toBeVisible({
+                timeout: 20_000,
+            });
+            await expect(page.getByRole("heading", { name: "Teaching this term" })).toBeVisible();
+        });
+    },
+);

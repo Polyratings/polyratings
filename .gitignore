@@ -6,5 +6,6 @@ playwright-report/
 test-results/
 blob-report/
 packages/e2e/playwright/.cache/
+audit-output/
 
 .claude/worktrees

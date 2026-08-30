@@ -14,6 +14,8 @@ If this file is wrong, update it.
 | `@polyratings/e2e` | `packages/e2e/` | Playwright |
 | `@polyratings/eslint-config` | `packages/eslint-config/` | Shared ESLint |
 
+Schedule scraping lives in sibling repo **[cal-poly-schedule-scraper](../cal-poly-schedule-scraper/)** (Worker + scraper + Docker). Polyratings consumes the read API only.
+
 Frontend and cron depend on backend.
 
 ## Commands (repo root)
@@ -28,7 +30,7 @@ Frontend and cron depend on backend.
 | `npm run e2e` | Playwright (local Vite) |
 | `npm run e2e:prod` | Production host, skip `@write` |
 
-Per-package: `start:local` (frontend/backend), `npm t` (frontend Vitest), `run:local` (cron). Rebuild backend after router/type changes (generates types for frontend).
+Per-package: `start:local` (frontend/backend), `npm t` (frontend Vitest), `run:local` (cron). Schedule service plan: [cal-poly-schedule-scraper/docs/plan.md](../cal-poly-schedule-scraper/docs/plan.md). Rebuild backend after router/type changes (generates types for frontend).
 
 ## Stack and conventions
 

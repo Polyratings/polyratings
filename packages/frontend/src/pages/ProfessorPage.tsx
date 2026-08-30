@@ -20,6 +20,7 @@ import {
     TextArea,
     TextInput,
     EvaluateProfessorFormLinear,
+    ProfessorTeachingSchedule,
 } from "@/components";
 import { trpc } from "@/trpc";
 import { REACT_MODAL_STYLES } from "@/constants";
@@ -458,6 +459,7 @@ export function ProfessorPage() {
             <div className="hidden sm:block lg:max-w-5xl mx-auto mt-2 px-2">
                 <div className="bg-cal-poly-green h-1 w-full" />
             </div>
+            {professorData && <ProfessorTeachingSchedule professor={professorData} />}
             <AnimateHeight duration={500} height={professorEvaluationShownMobile ? "auto" : 0}>
                 <div className="bg-cal-poly-green text-white p-5">
                     <EvaluateProfessorFormLinear
