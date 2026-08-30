@@ -1,5 +1,6 @@
 import { cloudflareNamespaceInformation } from "@backend/generated/tomlGenerated";
-import { truncatedProfessorParser } from "@backend/types/schema";
+import { Professor, truncatedProfessorParser } from "@backend/types/schema";
+import { professorToTruncatedProfessor } from "@backend/types/schemaHelpers";
 import { ALL_PROFESSOR_KEY } from "@backend/utils/const";
 import { bulkRecord } from "../utils/bulkRecord";
 import { CronEnv } from "../entry";
@@ -14,7 +15,11 @@ export async function generateAllProfessorEntry(env: CronEnv) {
 
     const truncatedProfessorList = truncatedProfessorParser
         .array()
-        .parse(Object.values(allProfessors));
+        .parse(
+            Object.values(allProfessors).map((professor) =>
+                professorToTruncatedProfessor(professor as Professor),
+            ),
+        );
 
     const prodProfessors = new env.KVWrapper(
         cloudflareNamespaceInformation.POLYRATINGS_TEACHERS.prod,
