@@ -28,7 +28,7 @@
         "toml": "^5.0.0",
         "tsx": "^4.23.12",
         "typescript": "~6.0.3",
-        "wrangler": "^4.125.0"
+        "wrangler": "^4.131.1"
     },
     "dependencies": {
         "@trpc/server": "11.18.0",
