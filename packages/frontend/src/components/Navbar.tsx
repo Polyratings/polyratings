@@ -8,7 +8,13 @@ import Logo from "@/assets/Logo.svg";
 import DiscordLogo from "@/assets/Discord-Logo-White.svg";
 import GithubLogo from "@/assets/github.svg";
 
-const HIDE_SEARCH_BAR_ROUTES = ["/", "/search/name", "/search/class", "/search/department"];
+const HIDE_SEARCH_BAR_ROUTES = [
+    "/",
+    "/search/name",
+    "/search/class",
+    "/search/department",
+    "/schedule/course",
+];
 
 export function Navbar() {
     const [mobileNavOpen, setMobileNav] = useState(false);
@@ -72,6 +78,9 @@ export function Navbar() {
                     <Link className="my-1" to="/search/name">
                         Professor List
                     </Link>
+                    <Link className="my-1" to="/schedule/course">
+                        Class Schedule
+                    </Link>
                     <Link className="my-1" to="/about">
                         About
                     </Link>
@@ -95,6 +104,9 @@ export function Navbar() {
                 <Link className="mr-7" to="/search/name">
                     {" "}
                     Professor List
+                </Link>
+                <Link className="mr-7" to="/schedule/course">
+                    Class Schedule
                 </Link>
                 <Link className="mr-7" to="/about">
                     {" "}

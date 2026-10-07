@@ -14,7 +14,9 @@
         "deploy:dev": "wrangler deploy --env dev",
         "lint": "eslint --max-warnings=0 .",
         "fix": "eslint . --fix",
-        "assert-dev-kv-allowlist": "tsx scripts/assert-dev-kv-allowlist.ts"
+        "assert-dev-kv-allowlist": "tsx scripts/assert-dev-kv-allowlist.ts",
+        "audit:instructor-mappings": "tsx scripts/audit-instructor-mappings.ts",
+        "analyze:instructor-mappings": "tsx scripts/analyze-instructor-mappings.ts"
     },
     "author": "Addison Tustin <addison@atustin.dev>",
     "license": "GPL-3.0",

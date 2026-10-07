@@ -174,6 +174,52 @@ export function professorToTruncatedProfessor({
     };
 }
 
+export type RatingPatch = {
+    overallRating?: number;
+    presentsMaterialClearly?: number;
+    recognizesStudentDifficulties?: number;
+    course?: string;
+};
+
+/** Update star fields and/or move a rating to another course bucket (same rating id). */
+export function patchRating(professor: Professor, ratingId: string, patch: RatingPatch): Rating {
+    const located = Object.entries(professor.reviews).find(([, courseReviews]) =>
+        courseReviews.some((review) => review.id === ratingId),
+    );
+
+    if (!located) {
+        throw new Error("Review Does not exist");
+    }
+
+    const [oldCourse, reviews] = located;
+    const reviewIndex = reviews.findIndex((review) => review.id === ratingId);
+    const rating = professor.reviews[oldCourse][reviewIndex];
+
+    if (patch.overallRating !== undefined) {
+        rating.overallRating = patch.overallRating;
+    }
+    if (patch.presentsMaterialClearly !== undefined) {
+        rating.presentsMaterialClearly = patch.presentsMaterialClearly;
+    }
+    if (patch.recognizesStudentDifficulties !== undefined) {
+        rating.recognizesStudentDifficulties = patch.recognizesStudentDifficulties;
+    }
+
+    if (patch.course && patch.course !== oldCourse) {
+        professor.reviews[oldCourse].splice(reviewIndex, 1);
+        if (professor.reviews[oldCourse].length === 0) {
+            delete professor.reviews[oldCourse];
+        }
+        const nextCourse = patch.course;
+        professor.reviews[nextCourse] ??= [];
+        professor.reviews[nextCourse].push(rating);
+        professor.courses = Object.keys(professor.reviews);
+    }
+
+    recomputeProfessorAggregates(professor);
+    return rating;
+}
+
 /** Recompute aggregate stats and tag counts from remaining reviews (fixes drift after bulk deletes). */
 export function recomputeProfessorAggregates(professor: Professor): void {
     const all: Rating[] = [];

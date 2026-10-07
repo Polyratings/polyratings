@@ -1,6 +1,6 @@
 import { t, protectedProcedure, type Context } from "@backend/trpc";
 import { z } from "zod";
-import { addRating } from "@backend/types/schemaHelpers";
+import { addRating, patchRating } from "@backend/types/schemaHelpers";
 import { bulkKeys, DEPARTMENT_LIST } from "@backend/utils/const";
 import { TRPCError } from "@trpc/server";
 import { Professor, professorParser, RatingReport } from "@backend/types/schema";
@@ -87,6 +87,17 @@ async function removeReportBestEffort(
     }
 }
 
+function getRatingsByAnonymousIdentifier(
+    professor: { reviews: Record<string, { anonymousIdentifier?: string }[]> },
+    anonymousIdentifier: string,
+) {
+    return Object.entries(professor.reviews).flatMap(([course, ratings]) =>
+        ratings
+            .filter((rating) => rating.anonymousIdentifier === anonymousIdentifier)
+            .map((rating) => ({ course, ...rating })),
+    );
+}
+
 export const adminRouter = t.router({
     removeRating: protectedProcedure
         .input(z.object({ professorId: z.uuid(), ratingId: z.uuid() }))
@@ -149,6 +160,7 @@ export const adminRouter = t.router({
                     reason,
                 ),
             );
+            return { removed };
         }),
     getPendingProfessors: protectedProcedure.query(({ ctx }) =>
         ctx.env.kvDao.getAllPendingProfessors(),
@@ -288,6 +300,63 @@ export const adminRouter = t.router({
             return {
                 professors: results.filter((p): p is Professor => p !== undefined),
                 missingIds: input.ids.filter((_, index) => !results[index]),
+            };
+        }),
+    getRatingsByAnonymousIdentifier: protectedProcedure
+        .input(
+            z.object({
+                professorId: z.uuid(),
+                anonymousIdentifier: z.string().trim().min(1).max(256),
+            }),
+        )
+        .query(async ({ ctx, input: { professorId, anonymousIdentifier } }) => {
+            const professor = await ctx.env.kvDao.getProfessor(professorId);
+            return getRatingsByAnonymousIdentifier(professor, anonymousIdentifier);
+        }),
+    patchRating: protectedProcedure
+        .input(
+            z
+                .object({
+                    professorId: z.uuid(),
+                    ratingId: z.uuid(),
+                    overallRating: z.number().min(0).max(4).optional(),
+                    presentsMaterialClearly: z.number().min(0).max(4).optional(),
+                    recognizesStudentDifficulties: z.number().min(0).max(4).optional(),
+                    course: z.string().trim().min(1).optional(),
+                })
+                .refine(
+                    (input) =>
+                        input.overallRating !== undefined ||
+                        input.presentsMaterialClearly !== undefined ||
+                        input.recognizesStudentDifficulties !== undefined ||
+                        input.course !== undefined,
+                    { message: "At least one field to patch must be provided." },
+                ),
+        )
+        .mutation(async ({ ctx, input: { professorId, ratingId, ...patch } }) => {
+            const professor = await requireProfessor(ctx, professorId);
+            if (!getProfessorRatingIds(professor).has(ratingId)) {
+                throw new TRPCError({
+                    code: "NOT_FOUND",
+                    message: `Rating with id ${ratingId} does not exist on professor ${professorId}.`,
+                });
+            }
+            const oldCourse = findRatingCourse(professor.reviews, ratingId);
+            if (patch.course && professor.reviews[patch.course]?.some((r) => r.id === ratingId)) {
+                throw new TRPCError({
+                    code: "PRECONDITION_FAILED",
+                    message: `Rating ${ratingId} is already listed under ${patch.course}.`,
+                });
+            }
+            const updated = patchRating(professor, ratingId, patch);
+            await ctx.env.kvDao.putProfessor(professor);
+            return {
+                success: true,
+                ratingId,
+                course: findRatingCourse(professor.reviews, ratingId) ?? oldCourse,
+                overallRating: updated.overallRating,
+                presentsMaterialClearly: updated.presentsMaterialClearly,
+                recognizesStudentDifficulties: updated.recognizesStudentDifficulties,
             };
         }),
     removeReport: protectedProcedure.input(z.uuid()).mutation(async ({ ctx, input }) => {

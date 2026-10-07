@@ -13,6 +13,9 @@ If this file is wrong, update it.
 | `@polyratings/cron` | `packages/cron/` | Nightly sync / backup |
 | `@polyratings/e2e` | `packages/e2e/` | Playwright |
 | `@polyratings/eslint-config` | `packages/eslint-config/` | Shared ESLint |
+| `@polyratings/mcp-server` | `packages/mcp-server/` | Local MCP server for public and admin tools |
+
+Schedule scraping lives in sibling repo **[cal-poly-schedule-scraper](../cal-poly-schedule-scraper/)** (Worker + scraper + Docker). Polyratings consumes the read API only.
 
 Frontend and cron depend on backend.
 
@@ -28,12 +31,13 @@ Frontend and cron depend on backend.
 | `npm run e2e` | Playwright (local Vite) |
 | `npm run e2e:prod` | Production host, skip `@write` |
 
-Per-package: `start:local` (frontend/backend), `npm t` (frontend Vitest), `run:local` (cron). Rebuild backend after router/type changes (generates types for frontend).
+Per-package: `start:local` (frontend/backend), `npm t` (frontend Vitest), `run:local` (cron), `dev` (mcp-server). Schedule service plan: [cal-poly-schedule-scraper/docs/plan.md](../cal-poly-schedule-scraper/docs/plan.md). Rebuild backend after router/type changes (generates types for frontend).
 
 ## Stack and conventions
 
 - **Frontend:** React 18, Vite, Tailwind (inline classes), tRPC, TanStack Query, React Router. `index.ts` re-exports; no `../` imports. One public component per file. Local error UX at the query/mutation; `meta.suppressGlobalErrorToast` when handled locally.
 - **Backend:** Workers, tRPC (`src/index.ts`), KV DAOs, Zod in `src/types/schema.ts` (public vs internal parsers). Public routes: `publicProcedure` and omit `anonymousIdentifier`. Discord notifications production-only; e2e sends `x-polyratings-skip-notifications: 1`.
+- **MCP Server:** Node stdio MCP over the backend (`packages/mcp-server/`, `npm run dev`).
 - **General:** TypeScript; `@polyratings/eslint-config`; `npm run fix` before commit.
 
 ## E2E 1:1 with specs
