@@ -1,2 +1,7 @@
 User-agent: *
 Allow: /
+
+Disallow: /login
+Disallow: /admin
+
+Sitemap: https://polyratings.dev/sitemap.xml

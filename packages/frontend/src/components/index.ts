@@ -1,5 +1,6 @@
 export * from "./EvaluateProfessorForm";
 export * from "./Navbar";
+export * from "./PageMeta";
 export * from "./NewProfessorForm";
 export * from "./SearchBar";
 export * from "./ProfessorCard";
