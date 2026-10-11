@@ -58,7 +58,7 @@ export const truncatedProfessorParser = z.object({
     courses: z.string().array(),
     tags: z.partialRecord(z.enum(PROFESSOR_TAGS), z.number()).optional(),
     // ISO timestamp of the most recent review; omitted on older index blobs.
-    lastRatingDate: z.string().optional(),
+    lastRatingDate: z.string().trim().pipe(z.iso.datetime()).optional(),
 });
 export type TruncatedProfessor = z.infer<typeof truncatedProfessorParser>;
 
