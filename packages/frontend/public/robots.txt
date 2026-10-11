@@ -4,4 +4,4 @@ Allow: /
 Disallow: /login
 Disallow: /admin
 
-Sitemap: https://polyratings.dev/sitemap.xml
+Sitemap: https://api-prod.polyratings.org/sitemap.xml
