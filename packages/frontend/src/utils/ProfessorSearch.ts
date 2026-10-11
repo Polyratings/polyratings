@@ -13,8 +13,6 @@ const GLOBAL_MEAN = 2.75;
 const MS_PER_YEAR = 365.25 * 24 * 60 * 60 * 1000;
 /** Hide from casual search if the latest rating is older than this. */
 export const STALE_RATING_YEARS = 3;
-/** Exact last name (100 + 5) or first+last can still surface a stale professor. */
-const STRONG_NAME_SCORE = 101;
 
 interface NameIndex {
     firstParts: string[];
@@ -40,16 +38,20 @@ export function professorSearch(
             }
 
             return allProfessors
-                .map((professor) => ({
-                    professor,
-                    nameScore: nameMatchScore(tokens, indexName(professor)),
-                }))
+                .map((professor) => {
+                    const name = indexName(professor);
+                    return {
+                        professor,
+                        nameScore: nameMatchScore(tokens, name),
+                        strongMatch: isStrongNameMatch(tokens, name),
+                    };
+                })
                 .filter(
                     (entry) =>
                         entry.nameScore > 0 &&
                         (includeStale ||
                             !isStaleProfessor(entry.professor, now) ||
-                            entry.nameScore >= STRONG_NAME_SCORE),
+                            entry.strongMatch),
                 )
                 .sort((a, b) => compareByRelevance(a, b, now))
                 .map((entry) => entry.professor);
@@ -162,6 +164,47 @@ function indexName(professor: TruncatedProfessor): NameIndex {
         firstCollapsed: firstParts.join(""),
         lastCollapsed: lastParts.join(""),
     };
+}
+
+/**
+ * Exact last name alone, or exact first+last (either order), can still surface a
+ * stale professor. Prefix/partial scores must not bypass the staleness filter.
+ */
+function isStrongNameMatch(tokens: string[], name: NameIndex): boolean {
+    if (tokens.length === 1) {
+        return isExactName(tokens[0], name.lastParts, name.lastCollapsed);
+    }
+
+    for (let i = 1; i < tokens.length; i += 1) {
+        const left = tokens.slice(0, i);
+        const right = tokens.slice(i);
+        if (
+            (isExactPhrase(left, name.firstParts, name.firstCollapsed) &&
+                isExactPhrase(right, name.lastParts, name.lastCollapsed)) ||
+            (isExactPhrase(left, name.lastParts, name.lastCollapsed) &&
+                isExactPhrase(right, name.firstParts, name.firstCollapsed))
+        ) {
+            return true;
+        }
+    }
+    return false;
+}
+
+function isExactName(token: string, parts: string[], collapsed: string): boolean {
+    return parts.some((part) => part === token) || collapsed === token;
+}
+
+function isExactPhrase(tokens: string[], parts: string[], collapsed: string): boolean {
+    if (tokens.join("") === collapsed) {
+        return true;
+    }
+    if (tokens.length === 1) {
+        return isExactName(tokens[0], parts, collapsed);
+    }
+    if (tokens.length !== parts.length) {
+        return false;
+    }
+    return tokens.every((token, i) => token === parts[i]);
 }
 
 function nameMatchScore(tokens: string[], name: NameIndex): number {

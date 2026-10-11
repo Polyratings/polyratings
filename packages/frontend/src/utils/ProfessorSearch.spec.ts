@@ -163,6 +163,8 @@ describe("professorSearch quality ranking", () => {
         expect(search("lovelace")).toContain("Lovelace, Ada");
         expect(search("ada lovelace")[0]).toBe("Lovelace, Ada");
         expect(search("ada")).not.toContain("Lovelace, Ada");
+        // Partial multi-token matches must not bypass the staleness filter while typing.
+        expect(search("ada l")).not.toContain("Lovelace, Ada");
     });
 
     test("includeStale keeps inactive professors in admin-style search", () => {
