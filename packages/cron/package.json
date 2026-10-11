@@ -20,7 +20,7 @@
     "fix": "eslint . --fix"
   },
   "devDependencies": {
-    "@cloudflare/workers-types": "^5.20260822.1",
+    "@cloudflare/workers-types": "^5.20261011.1",
     "@polyratings/eslint-config": "^0.0.1",
     "@tsconfig/node-lts": "^24.0.1",
     "@types/node-fetch": "^2.6.13",
@@ -29,7 +29,7 @@
     "eslint": "^8.57.1",
     "node-fetch": "^3.3.2",
     "typescript": "~6.0.3",
-    "wrangler": "^4.147.0"
+    "wrangler": "^4.149.0"
   },
   "dependencies": {
     "@polyratings/backend": "^0.1.0",

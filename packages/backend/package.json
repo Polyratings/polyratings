@@ -19,16 +19,16 @@
     "author": "Addison Tustin <addison@atustin.dev>",
     "license": "GPL-3.0",
     "devDependencies": {
-        "@cloudflare/workers-types": "^5.20260822.1",
+        "@cloudflare/workers-types": "^5.20261011.1",
         "@polyratings/eslint-config": "^0.0.1",
         "@tsconfig/node-lts": "^24.0.1",
         "esbuild": "^0.28.2",
         "esbuild-visualizer": "^0.7.0",
         "eslint": "^8.57.1",
         "toml": "^5.0.0",
-        "tsx": "^4.23.12",
+        "tsx": "^4.23.15",
         "typescript": "~6.0.3",
-        "wrangler": "^4.147.0"
+        "wrangler": "^4.149.0"
     },
     "dependencies": {
         "@trpc/server": "11.18.0",

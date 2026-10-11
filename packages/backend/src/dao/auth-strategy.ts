@@ -27,8 +27,8 @@ export class AuthStrategy {
     async verifyHash(hashedPassword: string, password: string): Promise<boolean> {
         const textEncoder = new TextEncoder();
 
-        const salt = hashedPassword.substr(0, AuthStrategy.SALT_SIZE);
-        const storedHash = hashedPassword.substr(AuthStrategy.SALT_SIZE);
+        const salt = hashedPassword.slice(0, AuthStrategy.SALT_SIZE);
+        const storedHash = hashedPassword.slice(AuthStrategy.SALT_SIZE);
 
         const combined = salt + password;
 

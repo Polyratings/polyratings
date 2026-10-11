@@ -150,27 +150,32 @@ export function removeRatingsBulk(professor: Professor, ratingIds: string[]): nu
     return removedRatings.length;
 }
 
-export function professorToTruncatedProfessor({
-    id,
-    firstName,
-    lastName,
-    department,
-    courses,
-    numEvals,
-    overallRating,
-    materialClear,
-    studentDifficulties,
-}: Professor): TruncatedProfessor {
+export function getLastRatingDate(professor: Pick<Professor, "reviews">): string | undefined {
+    let latest = Number.NaN;
+    for (const ratings of Object.values(professor.reviews ?? {})) {
+        for (const rating of ratings) {
+            const time = Date.parse(rating.postDate);
+            if (Number.isFinite(time) && (Number.isNaN(latest) || time > latest)) {
+                latest = time;
+            }
+        }
+    }
+    return Number.isNaN(latest) ? undefined : new Date(latest).toISOString();
+}
+
+export function professorToTruncatedProfessor(professor: Professor): TruncatedProfessor {
     return {
-        id,
-        firstName,
-        lastName,
-        department,
-        courses,
-        numEvals,
-        overallRating,
-        materialClear,
-        studentDifficulties,
+        id: professor.id,
+        firstName: professor.firstName,
+        lastName: professor.lastName,
+        department: professor.department,
+        courses: professor.courses,
+        numEvals: professor.numEvals,
+        overallRating: professor.overallRating,
+        materialClear: professor.materialClear,
+        studentDifficulties: professor.studentDifficulties,
+        tags: professor.tags,
+        lastRatingDate: getLastRatingDate(professor),
     };
 }
 
