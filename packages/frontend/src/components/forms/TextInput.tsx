@@ -28,7 +28,7 @@ export const TextInput = forwardRef<HTMLInputElement, TextInputProps>(
 
         return (
             <div
-                className={`flex flex-col w-42 ${
+                className={`flex w-42 flex-col ${
                     error ? "text-red-500" : "text-inherit"
                 } ${wrapperClassName}`}
             >
@@ -36,7 +36,7 @@ export const TextInput = forwardRef<HTMLInputElement, TextInputProps>(
                     {label}
                 </label>
                 <input
-                    className={`py-2 pl-4 pr-10 rounded  cursor-pointer appearance-none border ${
+                    className={`cursor-pointer appearance-none rounded border py-2 pr-10 pl-4 ${
                         error ? "border-red-500 bg-red-50" : "border-[#c3cdd5] bg-[#f2f5f8]"
                     } active:bg-[#f2feff] ${className}`}
                     id={name}

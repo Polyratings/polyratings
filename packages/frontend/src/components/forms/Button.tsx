@@ -17,7 +17,7 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
         ref,
     ) => (
         <button
-            className={`px-5 py-2 shadow rounded-md font-medium ${variantMap[variant]} ${
+            className={`rounded-md px-5 py-2 font-medium shadow ${variantMap[variant]} ${
                 disabled === true ? "bg-gray-600" : ""
             } ${className}`}
             ref={ref}

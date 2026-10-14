@@ -38,8 +38,9 @@ export function AutoComplete<T, U>({
         parseFloat(window.getComputedStyle(document.body).getPropertyValue("font-size") || "16") /
         16;
 
+    // oxlint-disable-next-line react/incompatible-library -- TanStack Virtual returns unstable refs by design
     const rowVirtualizer = useVirtualizer({
-        estimateSize: useCallback(() => 28 * remMultiplier, []),
+        estimateSize: useCallback(() => 28 * remMultiplier, [remMultiplier]),
         count: filteredItems.length,
         getScrollElement: () => listRef.current,
         overscan: 2,
@@ -88,7 +89,7 @@ export function AutoComplete<T, U>({
     return (
         <div className={`relative ${className}`}>
             <input
-                className={`p-2 w-full h-full outline-hidden bg-white ${inputClassName}`}
+                className={`h-full w-full bg-white p-2 outline-hidden ${inputClassName}`}
                 type="text"
                 placeholder={placeholder}
                 {...getInputProps({
@@ -104,7 +105,7 @@ export function AutoComplete<T, U>({
 
             <ul
                 {...getMenuProps({ ref: listRef })}
-                className={`absolute top-full left-0 w-full bg-white shadow-xl max-h-28 overflow-y-auto ${
+                className={`absolute top-full left-0 max-h-28 w-full overflow-y-auto bg-white shadow-xl ${
                     isOpen && !disableDropdown && deviceSupportsDropdown
                         ? "border border-black"
                         : "border-none"
@@ -116,8 +117,8 @@ export function AutoComplete<T, U>({
                             const item = filteredItems[virtualElement.index];
                             return (
                                 <li
-                                    key={`${item.label}${item.value}`}
-                                    className={`pl-1 absolute top-0 left-0 w-full ${
+                                    key={`${item.label}${String(item.value)}`}
+                                    className={`absolute top-0 left-0 w-full pl-1 ${
                                         highlightedIndex === virtualElement.index
                                             ? "bg-gray-300"
                                             : ""

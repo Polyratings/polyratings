@@ -66,7 +66,7 @@ export function professorSearch(
             return rankByQuality(matches, now, includeStale);
         }
         default:
-            throw new Error(`Invalid Search Type: ${type}`);
+            throw new Error(`Invalid Search Type: ${String(type)}`);
     }
 }
 

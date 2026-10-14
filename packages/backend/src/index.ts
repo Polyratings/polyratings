@@ -46,7 +46,11 @@ export default {
 
         const cloudflareEnv = getCloudflareEnv({ HASHED_IP, IS_DEPLOYED: isDeployed, ...rawEnv });
         const skipNotifications = request.headers.get(SKIP_NOTIFICATIONS_HEADER) === "1";
-        const polyratingsEnv = new Env(cloudflareEnv, { skipNotifications });
+        const executionCtx = cloudflareCtx as unknown as ExecutionContext;
+        const polyratingsEnv = new Env(cloudflareEnv, {
+            skipNotifications,
+            waitUntil: (promise) => executionCtx.waitUntil(promise),
+        });
 
         if (!cloudflareEnv.IS_DEPLOYED) {
             await ensureLocalDb(cloudflareEnv, polyratingsEnv);
@@ -128,14 +132,14 @@ async function ensureLocalDb(cloudflareEnv: CloudflareEnv, polyratingsEnv: Env) 
     const allProfessorKey = await cloudflareEnv.POLYRATINGS_TEACHERS.get(ALL_PROFESSOR_KEY);
     if (allProfessorKey) {
         // It will be defined. Typescript does not understand promise escaping
-        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+        // oxlint-disable-next-line @typescript-eslint/no-non-null-assertion
         initPromiseResolver!();
         return initPromise;
     }
 
     const reqUrl =
         "https://raw.githubusercontent.com/Polyratings/polyratings-data/data/professor-dump.json";
-    // eslint-disable-next-line no-console
+    // oxlint-disable-next-line no-console
     console.log(`Retrieving professor data from ${reqUrl}`);
     const githubReq = await fetch(reqUrl);
     const githubJson = await githubReq.json();
@@ -153,13 +157,13 @@ async function ensureLocalDb(cloudflareEnv: CloudflareEnv, polyratingsEnv: Env) 
     );
 
     const password = await polyratingsEnv.authStrategy.hashPassword("password");
-    polyratingsEnv.kvDao.putUser({
+    await polyratingsEnv.kvDao.putUser({
         username: "local",
         password,
     });
 
     // It will be defined. Typescript does not understand promise escaping
-    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+    // oxlint-disable-next-line @typescript-eslint/no-non-null-assertion
     initPromiseResolver!();
     return initPromise;
 }

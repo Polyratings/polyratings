@@ -1,5 +1,5 @@
 import { jwtDecode } from "jwt-decode";
-import { createContext, useContext, useEffect, useState } from "react";
+import { createContext, useContext, useEffect, useMemo, useState } from "react";
 
 export const JWT_KEY = "AUTH_TOKEN" as const;
 
@@ -40,7 +40,7 @@ export const AuthContext = createContext<{
 export function useAuthState() {
     const { storedJwt, user } = loadStoredJwt();
     const [jwt, setJwtMemory] = useState(storedJwt);
-    const setJwt = setJwtWrapper(setJwtMemory);
+    const setJwt = useMemo(() => setJwtWrapper(setJwtMemory), [setJwtMemory]);
 
     // eslint-disable-next-line consistent-return
     useEffect(() => {
@@ -53,7 +53,7 @@ export function useAuthState() {
             );
             return () => clearTimeout(timer);
         }
-    }, [user]);
+    }, [user, setJwt]);
 
     return {
         jwt,

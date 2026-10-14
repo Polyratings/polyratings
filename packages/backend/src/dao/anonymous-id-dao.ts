@@ -21,17 +21,19 @@ on a roll over period we can loose the benefit of having sessions in the first p
 the session gets extended by another 7 days. Once the 7 days are up the session id gets deleted. The only disadvantage of this strategy is that a
 read and write is always needed since the ttl has to be extended
 
-We decided to go with the second option due to the administrative advantage. To compensate for the performance difference we can decide to not await
-the write to the KV. Worst case-scenario the extended TTL is not written to the KV but this is an extremely unlikely outcome since other kv writes 
-will happen in other daos after the `getIdentifier` function call.
+We decided to go with the second option due to the administrative advantage. Writes are intentionally not awaited on the request path; instead
+they are registered with `waitUntil` so Workers keep the isolate alive long enough for the TTL extension to land.
 */
 
 const ONE_WEEK = 60 * 60 * 24 * 7;
+
+export type WaitUntil = (promise: Promise<unknown>) => void;
 
 export class AnonymousIdDao {
     constructor(
         private hashedIp: string,
         private sessionTable: KVNamespace,
+        private waitUntil?: WaitUntil,
     ) {}
 
     private session: string | null = null;
@@ -44,15 +46,20 @@ export class AnonymousIdDao {
         const session =
             (await this.sessionTable.get(this.hashedIp)) ??
             (await AnonymousIdDao.hashIp(this.hashedIp, `${Date.now()}`));
-        // Do not await the store session as there is no need explained above
-        this.storeSession(session);
+        const storePromise = this.storeSession(session);
+        if (this.waitUntil) {
+            this.waitUntil(storePromise);
+        } else {
+            // Local/tests without an execution context: best-effort fire-and-forget.
+            void storePromise;
+        }
         this.session = session;
 
         return session;
     }
 
-    private async storeSession(session: string) {
-        this.sessionTable.put(this.hashedIp, session, { expirationTtl: ONE_WEEK });
+    private storeSession(session: string) {
+        return this.sessionTable.put(this.hashedIp, session, { expirationTtl: ONE_WEEK });
     }
 
     static async hashIp(ip: string, salt = "") {

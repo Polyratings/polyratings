@@ -12,9 +12,8 @@ If this file is wrong, update it.
 | `@polyratings/backend` | `packages/backend/` | Workers tRPC API |
 | `@polyratings/cron` | `packages/cron/` | Nightly sync / backup |
 | `@polyratings/e2e` | `packages/e2e/` | Playwright |
-| `@polyratings/eslint-config` | `packages/eslint-config/` | Shared ESLint |
 
-Frontend and cron depend on backend.
+Frontend and cron depend on backend. Lint/format: root `.oxlintrc.json` + `.oxfmtrc.json` (Oxlint / Oxfmt).
 
 ## Commands (repo root)
 
@@ -24,7 +23,7 @@ Frontend and cron depend on backend.
 | `npm run build` | Build all (dependency order) |
 | `npm run start:local` | Frontend + backend, hot reload, local KV |
 | `npm run start:dev` | Same with Cloudflare dev KV |
-| `npm run test` / `lint` / `fix` | Tests, lint, auto-fix |
+| `npm run test` / `lint` / `fmt` / `fix` | Tests, Oxlint (type-aware), Oxfmt, fix |
 | `npm run e2e` | Playwright (local Vite) |
 | `npm run e2e:prod` | Production host, skip `@write` |
 
@@ -34,7 +33,7 @@ Per-package: `start:local` (frontend/backend), `npm t` (frontend Vitest), `run:l
 
 - **Frontend:** React 18, Vite, Tailwind (inline classes), tRPC, TanStack Query, React Router. `index.ts` re-exports; no `../` imports. One public component per file. Local error UX at the query/mutation; `meta.suppressGlobalErrorToast` when handled locally. Public routes set unique titles/canonicals with `PageMeta`; keep `packages/frontend/public/robots.txt` and `SITEMAP_STATIC_PATHS` in sync when adding indexable pages. `robots.txt` points `Sitemap:` at the API worker sitemap (cross-host is supported).
 - **Backend:** Workers, tRPC (`src/index.ts`), KV DAOs, Zod in `src/types/schema.ts` (public vs internal parsers). Public routes: `publicProcedure` and omit `anonymousIdentifier`. Discord notifications production-only; e2e sends `x-polyratings-skip-notifications: 1`.
-- **General:** TypeScript; `@polyratings/eslint-config`; `npm run fix` before commit.
+- **General:** TypeScript; root Oxlint (`oxlint-tsgolint` type-aware) + Oxfmt; `npm run fix` before commit.
 
 ## E2E 1:1 with specs
 
@@ -43,7 +42,7 @@ Requirement **specs** in `packages/e2e/docs/*.md` define the tests. Playwright i
 Keep **1:1 parity**: each spec file ↔ one suite; each acceptance ID ↔ a `test` or `test.step`; scenario titles match test names. Change the spec first, then the `.spec.ts`.
 
 - Local: `npm run e2e` (`http://localhost:5173`). Beta/prod: `e2e:beta` / `e2e:prod`. `@write` skipped in production.
-- A11y: WCAG 2.1 AA; `npm run e2e:a11y` (`@a11y`, axe in `src/support/axe-test.ts`). Frontend also uses `eslint-plugin-jsx-a11y` and jest-axe on new UI primitives.
+- A11y: WCAG 2.1 AA; `npm run e2e:a11y` (`@a11y`, axe in `src/support/axe-test.ts`). Frontend also uses Oxlint `jsx-a11y` and jest-axe on new UI primitives.
 
 ## Deploy (GitHub Actions)
 

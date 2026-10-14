@@ -1,26 +1,27 @@
 {
-  "[typescript][javascript][typescriptreact]": {
-    "editor.codeActionsOnSave": {
-      "source.fixAll.eslint": "explicit",
+    "[typescript][javascript][typescriptreact][javascriptreact][json][jsonc]": {
+        "editor.defaultFormatter": "oxc.oxc-vscode",
+        "editor.formatOnSave": true,
+        "editor.codeActionsOnSave": {
+            "source.fixAll.oxc": "explicit"
+        }
     },
-    "editor.formatOnSave": true,
-    "editor.defaultFormatter": "dbaeumer.vscode-eslint",
-  },
-  "eslint.format.enable": true,
-  "yaml.schemas": {
-    "https://json.schemastore.org/github-workflow.json": "file:///Users/maxfisher/shadow/polyratings/.github/workflows/deploy.yml"
-  },
-  "files.eol": "\n",
-  "files.insertFinalNewline": true,
-  "typescript.tsdk": "node_modules\\typescript\\lib",
-  "cSpell.words": [
-    "Connor",
-    "Dahms",
-    "Evals",
-    "Krier",
-    "Lanning",
-    "Polyratings",
-    "Scroller",
-    "Thattayathu"
-  ],
+    "yaml.schemas": {
+        "https://json.schemastore.org/github-workflow.json": "file:///Users/maxfisher/shadow/polyratings/.github/workflows/deploy.yml"
+    },
+    "files.eol": "\n",
+    "files.insertFinalNewline": true,
+    "typescript.tsdk": "node_modules/typescript/lib",
+    "cSpell.words": [
+        "Connor",
+        "Dahms",
+        "Evals",
+        "Krier",
+        "Lanning",
+        "Oxfmt",
+        "Oxlint",
+        "Polyratings",
+        "Scroller",
+        "Thattayathu"
+    ]
 }

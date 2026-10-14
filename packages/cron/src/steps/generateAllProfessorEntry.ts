@@ -28,13 +28,26 @@ export async function generateAllProfessorEntry(env: CronEnv) {
         cloudflareNamespaceInformation.POLYRATINGS_TEACHERS.dev,
     );
 
-    prodProfessors.putValues([
-        { key: ALL_PROFESSOR_KEY, value: JSON.stringify(truncatedProfessorList) },
-    ]);
-    betaProfessors.putValues([
-        { key: ALL_PROFESSOR_KEY, value: JSON.stringify(truncatedProfessorList) },
-    ]);
-    devProfessors.putValues([
-        { key: ALL_PROFESSOR_KEY, value: JSON.stringify(truncatedProfessorList) },
-    ]);
+    const payload = JSON.stringify(truncatedProfessorList);
+    const writes = [
+        {
+            name: "prod",
+            promise: prodProfessors.putValues([{ key: ALL_PROFESSOR_KEY, value: payload }]),
+        },
+        {
+            name: "beta",
+            promise: betaProfessors.putValues([{ key: ALL_PROFESSOR_KEY, value: payload }]),
+        },
+        {
+            name: "dev",
+            promise: devProfessors.putValues([{ key: ALL_PROFESSOR_KEY, value: payload }]),
+        },
+    ];
+    const results = await Promise.allSettled(writes.map((write) => write.promise));
+    const failures = results.flatMap((result, index) =>
+        result.status === "rejected" ? [`${writes[index].name}: ${String(result.reason)}`] : [],
+    );
+    if (failures.length) {
+        throw new Error(`Failed to write all-professor entry: ${failures.join("; ")}`);
+    }
 }

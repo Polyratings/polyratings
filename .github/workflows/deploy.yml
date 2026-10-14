@@ -44,8 +44,11 @@ jobs:
         with:
           main-branch-name: master
 
-      - name: Lint affected packages
-        run: npx nx affected --target=lint --parallel
+      - name: Lint
+        run: npm run lint
+
+      - name: Check formatting
+        run: npm run fmt:check
 
       - name: Build affected packages
         run: npx nx affected --target=build --parallel

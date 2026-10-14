@@ -40,20 +40,20 @@ export function Login() {
     useEffect(() => {
         if (jwt) {
             setJwt(jwt);
-            navigate("/admin");
+            void navigate("/admin");
         }
-    }, [jwt]);
+    }, [jwt, navigate, setJwt]);
 
     return (
         <div
-            className="flex min-h-screen-wo-nav flex-col justify-center items-center bg-cover bg-center bg-no-repeat px-4 py-8"
+            className="flex min-h-screen-wo-nav flex-col items-center justify-center bg-cover bg-center bg-no-repeat px-4 py-8"
             style={{
                 backgroundImage: `url(${loginBackground})`,
             }}
         >
             <div className="w-full max-w-[500px] p-5">
-                <div id="main" className="bg-white shadow-lg rounded-sm p-10">
-                    <h2 className="text-3xl font-bold mb-8">Sign In</h2>
+                <div id="main" className="rounded-sm bg-white p-10 shadow-lg">
+                    <h2 className="mb-8 text-3xl font-bold">Sign In</h2>
                     <form onSubmit={handleSubmit((data) => login(data))}>
                         <TextInput
                             wrapperClassName="w-full!"
@@ -69,7 +69,7 @@ export function Login() {
                             error={errors.password?.message}
                         />
                         {networkError && (
-                            <p className="text-red-500 text-sm">
+                            <p className="text-sm text-red-500">
                                 {getApiErrorMessage(
                                     networkError,
                                     "Sign-in failed. Please check your username and password.",

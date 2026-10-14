@@ -1,8 +1,10 @@
 {
     "name": "@polyratings/backend",
     "version": "0.1.0",
-    "description": "Cloudflare Workers project for the Polyratings site backend",
     "private": true,
+    "description": "Cloudflare Workers project for the Polyratings site backend",
+    "license": "GPL-3.0",
+    "author": "Addison Tustin <addison@atustin.dev>",
     "scripts": {
         "start:dev": "wrangler dev --env dev --remote",
         "start:local": "wrangler dev",
@@ -12,23 +14,7 @@
         "deploy:prod": "wrangler deploy --env prod",
         "deploy:beta": "wrangler deploy --env beta",
         "deploy:dev": "wrangler deploy --env dev",
-        "lint": "eslint --max-warnings=0 .",
-        "fix": "eslint . --fix",
         "assert-dev-kv-allowlist": "tsx scripts/assert-dev-kv-allowlist.ts"
-    },
-    "author": "Addison Tustin <addison@atustin.dev>",
-    "license": "GPL-3.0",
-    "devDependencies": {
-        "@cloudflare/workers-types": "^5.20261011.1",
-        "@polyratings/eslint-config": "^0.0.1",
-        "@tsconfig/node-lts": "^24.0.1",
-        "esbuild": "^0.28.2",
-        "esbuild-visualizer": "^0.7.0",
-        "eslint": "^8.57.1",
-        "toml": "^5.0.0",
-        "tsx": "^4.23.15",
-        "typescript": "~6.0.3",
-        "wrangler": "^4.149.0"
     },
     "dependencies": {
         "@trpc/server": "11.18.0",
@@ -37,5 +23,15 @@
         "openai": "^7.5.0",
         "toucan-js": "^4.1.1",
         "zod": "^4.4.3"
+    },
+    "devDependencies": {
+        "@cloudflare/workers-types": "^5.20261011.1",
+        "@tsconfig/node-lts": "^24.0.1",
+        "esbuild": "^0.28.2",
+        "esbuild-visualizer": "^0.7.0",
+        "toml": "^5.0.0",
+        "tsx": "^4.23.15",
+        "typescript": "~6.0.3",
+        "wrangler": "^4.149.0"
     }
 }

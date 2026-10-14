@@ -82,14 +82,14 @@ export const professorRouter = t.router({
                 overallRating: input.rating.overallRating,
                 materialClear: input.rating.presentsMaterialClearly,
                 studentDifficulties: input.rating.recognizesStudentDifficulties,
-                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                // oxlint-disable-next-line @typescript-eslint/no-explicit-any
                 tags: tags as any,
                 reviews: {
                     [courseReviewsKey(input.rating.department, input.rating.courseNum)]: [
                         {
                             professor: professorId,
                             id: crypto.randomUUID(),
-                            postDate: `${new Date()}`,
+                            postDate: new Date().toISOString(),
                             ...input.rating,
                         },
                     ],

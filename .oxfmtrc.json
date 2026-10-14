@@ -1,0 +1,22 @@
+{
+    "$schema": "./node_modules/oxfmt/configuration_schema.json",
+    "tabWidth": 4,
+    "sortPackageJson": false,
+    "sortTailwindcss": {
+        "stylesheet": "./packages/frontend/src/index.css"
+    },
+    "ignorePatterns": [
+        "**/dist/**",
+        "**/.wrangler/**",
+        "**/stats/**",
+        "**/playwright-report/**",
+        "**/test-results/**",
+        "**/blob-report/**",
+        "package-lock.json",
+        "packages/backend/src/generated/**",
+        "packages/frontend/src/styles/hamburgers.css",
+        "**/*.{yml,yaml,md,toml,html,css}",
+        "packages/e2e/**",
+        "lerna.json"
+    ]
+}
