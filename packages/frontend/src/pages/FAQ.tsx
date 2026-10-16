@@ -144,9 +144,9 @@ export function FAQ() {
                 </h2>
                 <p className={paragraphStyle}>
                     Starting Fall 2026, Cal Poly course numbers are 4 digits (for example PHIL
-                    2231). Older quarter courses stay 3 digits (PHIL 231) and are listed separately.
-                    If the semester course is not in the dropdown yet, choose Other and enter the
-                    4-digit number.
+                    2231). New ratings only accept 4-digit numbers; older quarter courses remain
+                    visible on professor pages but are not offered in the rating dropdown. If your
+                    course is not listed yet, choose Other and enter the 4-digit number.
                 </p>
             </div>
             <div className={`${cardStyle} rounded-b-md`}>

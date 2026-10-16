@@ -8,7 +8,7 @@ import {
     PENDING_RATING_STATUSES,
     PROFESSOR_TAGS,
 } from "@backend/utils/const";
-import { courseNumParser } from "@backend/utils/courseNum";
+import { historicalCourseNumParser } from "@backend/utils/courseNum";
 import type { Moderation } from "openai/resources/moderations";
 
 export const ratingBaseParser = z.object({
@@ -41,7 +41,8 @@ export const pendingRatingParser = ratingParser.extend({
             (mod) => typeof mod === "object",
         )
         .nullable(),
-    courseNum: courseNumParser,
+    // Historical logs may still have quarter (3-digit) numbers; new submissions use courseNumParser.
+    courseNum: historicalCourseNumParser,
     department: z.enum(DEPARTMENT_LIST),
 });
 export type PendingRating = z.infer<typeof pendingRatingParser>;

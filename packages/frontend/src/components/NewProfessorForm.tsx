@@ -243,7 +243,7 @@ function NewProfessorStep({
                 <TextInput
                     label="Course Num"
                     type="number"
-                    placeholder="101 or 1101"
+                    placeholder="1101"
                     aria-describedby="course-num-hint"
                     {...register("courseNum")}
                     error={errors.courseNum?.message}

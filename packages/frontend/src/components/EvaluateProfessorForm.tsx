@@ -11,7 +11,7 @@ import {
     PROFESSOR_TAGS,
     MAX_PROFESSOR_TAGS_PER_RATING,
 } from "@backend/utils/const";
-import { COURSE_NUM_HINT, courseNumParser } from "@backend/utils/courseNum";
+import { COURSE_NUM_HINT, courseNumParser, isSemesterCourseKey } from "@backend/utils/courseNum";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { inferProcedureOutput } from "@trpc/server";
@@ -234,7 +234,9 @@ function EvaluateProfessorStep({
     Pick<EvaluateProfessorFormProps, "professor">) {
     const knownCourseValue = watch("knownCourse");
 
-    const sortedCourses = useSortedCourses(professor?.id).map(({ courseName }) => courseName);
+    const sortedCourses = useSortedCourses(professor?.id)
+        .map(({ courseName }) => courseName)
+        .filter(isSemesterCourseKey);
 
     return (
         <>
@@ -260,7 +262,7 @@ function EvaluateProfessorStep({
                         <TextInput
                             label="Course Num"
                             type="number"
-                            placeholder="101 or 1101"
+                            placeholder="1101"
                             aria-describedby="unknown-course-num-hint"
                             {...register("unknownCourseNumber", {
                                 required: {
@@ -274,9 +276,7 @@ function EvaluateProfessorStep({
                 )}
             </div>
             <p id="unknown-course-num-hint" className="mt-1 w-full text-xs text-gray-600">
-                {knownCourseValue
-                    ? "Fall 2026+ courses use 4-digit numbers. Choose Other if yours is not listed."
-                    : COURSE_NUM_HINT}
+                {COURSE_NUM_HINT}
             </p>
             <div className="flex justify-between sm:block">
                 <div className="mt-2 flex flex-col flex-wrap justify-between gap-2 sm:flex-row">
@@ -450,7 +450,7 @@ function useEvaluationForm(
     const hookForm = useForm<EvaluateProfessorFormInputs, unknown, EvaluateProfessorFormOutputs>({
         resolver: zodResolver(evaluateProfessorFormParser),
         defaultValues: {
-            knownCourse: Object.keys(professor.reviews || {})[0],
+            knownCourse: Object.keys(professor.reviews || {}).find(isSemesterCourseKey) ?? "",
         },
     });
     const { setError } = hookForm;
