@@ -20,7 +20,7 @@ export function InlineQueryState({
     title,
     wrapperClassName = "mt-4",
     titleClassName = "",
-    loadingClassName = "text-cal-poly-green",
+    loadingClassName = "text-brand",
     errorClassName = "text-red-500",
 }: InlineQueryStateProps) {
     if (!isPending && !error) return null;

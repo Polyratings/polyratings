@@ -1,4 +1,6 @@
 import { forwardRef } from "react";
+import { Input } from "@/components/ui/input";
+import { cn } from "@/utils";
 
 export interface TextInputProps extends React.ComponentProps<"input"> {
     label: string;
@@ -28,17 +30,17 @@ export const TextInput = forwardRef<HTMLInputElement, TextInputProps>(
 
         return (
             <div
-                className={`flex w-42 flex-col ${
-                    error ? "text-red-500" : "text-inherit"
-                } ${wrapperClassName}`}
+                className={cn(
+                    "flex flex-col w-42",
+                    error ? "text-destructive" : "text-inherit",
+                    wrapperClassName,
+                )}
             >
-                <label className="text-xs whitespace-nowrap" htmlFor={name}>
+                <label className="text-sm whitespace-nowrap" htmlFor={name}>
                     {label}
                 </label>
-                <input
-                    className={`cursor-pointer appearance-none rounded border py-2 pr-10 pl-4 ${
-                        error ? "border-red-500 bg-red-50" : "border-[#c3cdd5] bg-[#f2f5f8]"
-                    } active:bg-[#f2feff] ${className}`}
+                <Input
+                    className={cn("cursor-text", className)}
                     id={name}
                     ref={ref}
                     type={type}
@@ -48,7 +50,7 @@ export const TextInput = forwardRef<HTMLInputElement, TextInputProps>(
                     aria-describedby={describedBy}
                 />
                 {error && (
-                    <p id={errorId} role="alert" className="text-sm text-red-500">
+                    <p id={errorId} role="alert" className="text-sm text-destructive">
                         {error}
                     </p>
                 )}
@@ -56,3 +58,4 @@ export const TextInput = forwardRef<HTMLInputElement, TextInputProps>(
         );
     },
 );
+TextInput.displayName = "TextInput";

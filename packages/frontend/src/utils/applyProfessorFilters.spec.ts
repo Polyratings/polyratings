@@ -5,6 +5,7 @@ import {
     createDefaultFilterState,
     FilterState,
     getEvaluationDomain,
+    hasActiveFilterState,
 } from "./applyProfessorFilters";
 
 function makeProfessor(
@@ -44,6 +45,11 @@ function filters(overrides: Partial<FilterState> = {}): FilterState {
 }
 
 describe("applyProfessorFilters", () => {
+    test("hasActiveFilterState is false for defaults and true when a filter is set", () => {
+        expect(hasActiveFilterState(createDefaultFilterState())).toBe(false);
+        expect(hasActiveFilterState(filters({ reverseFilter: true }))).toBe(true);
+    });
+
     test("returns all professors in original order with default filters", () => {
         expect(applyProfessorFilters([ada, alsu], createDefaultFilterState())).toEqual([ada, alsu]);
     });
