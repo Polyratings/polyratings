@@ -9,6 +9,7 @@ import { professorRouter } from "./routers/professor";
 import { ratingsRouter } from "./routers/rating";
 import { adminRouter } from "./routers/admin";
 import { authRouter } from "./routers/auth";
+import { scheduleRouter } from "./routers/schedule";
 import { professorParser } from "./types/schema";
 import { professorToTruncatedProfessor } from "./types/schemaHelpers";
 import { ALL_PROFESSOR_KEY } from "./utils/const";
@@ -22,6 +23,7 @@ export const appRouter = t.router({
     ratings: ratingsRouter,
     admin: adminRouter,
     auth: authRouter,
+    schedule: scheduleRouter,
 });
 export type AppRouter = typeof appRouter;
 

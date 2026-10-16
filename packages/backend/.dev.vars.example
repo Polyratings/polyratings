@@ -1,0 +1,3 @@
+# Copy to packages/backend/.dev.vars for local development (not committed).
+# Schedule API uses the prod scraper Worker (see wrangler.toml SCHEDULE_API_URL).
+SCHEDULE_READ_API_KEY=

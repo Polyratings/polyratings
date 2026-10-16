@@ -10,6 +10,7 @@ The professor detail route shows professor stats, ratings by course, and user ac
 - As a student, I want to view existing ratings grouped by course so I can assess teaching experience.
 - As a student, I want to evaluate a professor when submissions are open.
 - As a student, I want to report problematic ratings for moderation review.
+- As a student, I want to see this professor’s current-term teaching schedule when Schedule API data is available.
 
 ## Acceptance Criteria
 
@@ -22,6 +23,7 @@ The professor detail route shows professor stats, ratings by course, and user ac
 | PROF-6 | Submitting a report from a rating card succeeds and surfaces success feedback                                     | Must     |
 | PROF-7 | Submitting a rating via Other with a typed 4-digit course number succeeds and surfaces success feedback           | Must     |
 | PROF-8 | Submitting a rating by selecting an existing 4-digit course from the dropdown succeeds and surfaces success feedback | Must     |
+| PROF-9 | When Schedule API is configured, the page shows a “Teaching this term” schedule block                             | Must     |
 
 ## Test Scenarios
 
@@ -31,9 +33,11 @@ The professor detail route shows professor stats, ratings by course, and user ac
 | Report submission succeeds from professor page                           | PROF-6                     | `professor-page.spec.ts` | Implemented |
 | Rating submission via Other 4-digit course number                        | PROF-7                     | `professor-page.spec.ts` | Implemented |
 | Rating submission via known 4-digit course dropdown                      | PROF-8                     | `professor-page.spec.ts` | Implemented |
+| Professor page shows current-term teaching schedule                      | PROF-9                     | `professor-page.spec.ts` | Implemented |
 
 ## Implementation
 
 - **Spec file:** `packages/e2e/src/professor-page.spec.ts`
-- **Tests:** `PROF: professor page renders profile, ratings context, evaluate action, and report controls`, `PROF: report submission flow succeeds from professor page` (`@write`), `PROF: rating submission via Other and known 4-digit course paths` (`@write`; PROF-7 then PROF-8)
+- **Tests:** `PROF: professor page renders profile, ratings context, evaluate action, and report controls`, `PROF: report submission flow succeeds from professor page` (`@write`), `PROF: rating submission via Other and known 4-digit course paths` (`@write`; PROF-7 then PROF-8), `PROF: professor page shows teaching schedule when Schedule API is configured` (`@schedule`; PROF-9)
 - **Status:** Implemented
+- **Note:** PROF-9 requires backend `SCHEDULE_API_URL` + `SCHEDULE_READ_API_KEY` (local `.dev.vars` or deployed secrets) and a populated Schedule API. Run with `npx playwright test --grep @schedule` from `packages/e2e`.

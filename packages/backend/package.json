@@ -14,7 +14,9 @@
         "deploy:prod": "wrangler deploy --env prod",
         "deploy:beta": "wrangler deploy --env beta",
         "deploy:dev": "wrangler deploy --env dev",
-        "assert-dev-kv-allowlist": "tsx scripts/assert-dev-kv-allowlist.ts"
+        "assert-dev-kv-allowlist": "tsx scripts/assert-dev-kv-allowlist.ts",
+        "audit:instructor-mappings": "tsx scripts/audit-instructor-mappings.ts",
+        "analyze:instructor-mappings": "tsx scripts/analyze-instructor-mappings.ts"
     },
     "dependencies": {
         "@trpc/server": "11.18.0",
