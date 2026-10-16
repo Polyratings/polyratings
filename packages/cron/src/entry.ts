@@ -19,7 +19,7 @@ export async function main(env: Record<string, string | undefined>, sentry?: Tou
         runtimeEnv = await createRuntimeEnvironment(env);
     } catch (e) {
         sentry?.captureException(e);
-        Logger.error(`Failed to create cron runtime environment\nReceived Error: ${e}`);
+        Logger.error(`Failed to create cron runtime environment\nReceived Error: ${String(e)}`);
         return;
     }
 
@@ -44,7 +44,7 @@ export async function main(env: Record<string, string | undefined>, sentry?: Tou
             await task(runtimeEnv);
         } catch (e) {
             sentry?.captureException(e);
-            Logger.error(`Failed to run \`${name}\`\n`, `Got Error: ${e}`);
+            Logger.error(`Failed to run \`${name}\`\n`, `Got Error: ${String(e)}`);
         }
     }
 }

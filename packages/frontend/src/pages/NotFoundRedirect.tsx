@@ -69,8 +69,8 @@ export function NotFoundRedirect({ variant = "page" }: NotFoundRedirectProps) {
     }
 
     return (
-        <main className="flex flex-col items-center justify-center min-h-screen-wo-nav px-6 text-center">
-            <h1 className="text-4xl font-semibold text-cal-poly-green mb-4">{title}</h1>
+        <main className="flex min-h-screen-wo-nav flex-col items-center justify-center px-6 text-center">
+            <h1 className="mb-4 text-4xl font-semibold text-cal-poly-green">{title}</h1>
             <p className="sr-only">
                 We will redirect you to the home page in {REDIRECT_DELAY_SECONDS} seconds.
             </p>

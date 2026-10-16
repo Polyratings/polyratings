@@ -1,4 +1,3 @@
-import { useEffect, useState } from "react";
 import { useWindowSize } from "./useWindowSize";
 
 export interface TailwindBreakpoints<T> {
@@ -21,7 +20,6 @@ type breakpointRangeEntry = [keyof typeof breakpointRanges, [number, number]];
 
 export function useTailwindBreakpoint<T>(breakpoints: TailwindBreakpoints<T>, defaultValue: T): T {
     const windowSize = useWindowSize();
-    const [outputValue, setOutputValue] = useState<T>(defaultValue);
     const internalValues: TailwindBreakpoints<T> = {};
     internalValues.sm = breakpoints.sm ?? defaultValue;
     internalValues.md = breakpoints.md ?? internalValues.sm;
@@ -29,20 +27,14 @@ export function useTailwindBreakpoint<T>(breakpoints: TailwindBreakpoints<T>, de
     internalValues.xl = breakpoints.xl ?? internalValues.lg;
     internalValues["2xl"] = breakpoints["2xl"] ?? internalValues.xl;
 
-    useEffect(() => {
-        const windowWidth = window.innerWidth;
-        const entry = (Object.entries(breakpointRanges) as breakpointRangeEntry[]).find(
-            ([, [lower, upper]]) => windowWidth >= lower && windowWidth < upper,
-        );
+    const windowWidth = windowSize.width;
+    const entry = (Object.entries(breakpointRanges) as breakpointRangeEntry[]).find(
+        ([, [lower, upper]]) => windowWidth >= lower && windowWidth < upper,
+    );
 
-        if (entry) {
-            // If we have a key T will be defined due to the internalValues setup above
-            const [key] = entry;
-            setOutputValue(internalValues[key] as T);
-        } else {
-            setOutputValue(defaultValue);
-        }
-    }, [windowSize.width]);
-
-    return outputValue;
+    if (entry) {
+        const [key] = entry;
+        return internalValues[key] as T;
+    }
+    return defaultValue;
 }

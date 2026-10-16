@@ -13,14 +13,15 @@ The professor detail route shows professor stats, ratings by course, and user ac
 
 ## Acceptance Criteria
 
-| ID     | Criterion                                                                            | Priority |
-| ------ | ------------------------------------------------------------------------------------ | -------- |
-| PROF-1 | Navigating to `/professor/:id` renders the professor header with name and department | Must     |
-| PROF-2 | The page renders rating sections by course when ratings exist                        | Must     |
-| PROF-3 | The page renders "Evaluate Professor" action when professor is not locked            | Must     |
-| PROF-4 | The page renders report controls for existing ratings                                | Must     |
-| PROF-6 | Submitting a report from a rating card succeeds and surfaces success feedback        | Must     |
-| PROF-7 | Submitting a rating from the evaluate flow succeeds and surfaces success feedback    | Must     |
+| ID     | Criterion                                                                                                         | Priority |
+| ------ | ----------------------------------------------------------------------------------------------------------------- | -------- |
+| PROF-1 | Navigating to `/professor/:id` renders the professor header with name and department                              | Must     |
+| PROF-2 | The page renders rating sections by course when ratings exist                                                     | Must     |
+| PROF-3 | The page renders "Evaluate Professor" action when professor is not locked                                         | Must     |
+| PROF-4 | The page renders report controls for existing ratings                                                             | Must     |
+| PROF-6 | Submitting a report from a rating card succeeds and surfaces success feedback                                     | Must     |
+| PROF-7 | Submitting a rating via Other with a typed 4-digit course number succeeds and surfaces success feedback           | Must     |
+| PROF-8 | Submitting a rating by selecting an existing 4-digit course from the dropdown succeeds and surfaces success feedback | Must     |
 
 ## Test Scenarios
 
@@ -28,10 +29,11 @@ The professor detail route shows professor stats, ratings by course, and user ac
 | ------------------------------------------------------------------------ | -------------------------- | ------------------------ | ----------- |
 | Professor page renders profile, ratings context, evaluate, and report UI | PROF-1 through PROF-4      | `professor-page.spec.ts` | Implemented |
 | Report submission succeeds from professor page                           | PROF-6                     | `professor-page.spec.ts` | Implemented |
-| Rating submission succeeds from professor page                           | PROF-7                     | `professor-page.spec.ts` | Implemented |
+| Rating submission via Other 4-digit course number                        | PROF-7                     | `professor-page.spec.ts` | Implemented |
+| Rating submission via known 4-digit course dropdown                      | PROF-8                     | `professor-page.spec.ts` | Implemented |
 
 ## Implementation
 
 - **Spec file:** `packages/e2e/src/professor-page.spec.ts`
-- **Tests:** `PROF: professor page renders profile, ratings context, evaluate action, and report controls`, `PROF: report submission flow succeeds from professor page` (`@write`), `PROF: rating submission flow succeeds from professor page` (`@write`)
+- **Tests:** `PROF: professor page renders profile, ratings context, evaluate action, and report controls`, `PROF: report submission flow succeeds from professor page` (`@write`), `PROF: rating submission via Other and known 4-digit course paths` (`@write`; PROF-7 then PROF-8)
 - **Status:** Implemented

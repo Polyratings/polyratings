@@ -12,7 +12,7 @@ import {
 } from "@backend/dao/discord-notification-dao";
 import { z } from "zod";
 import { KvWrapper } from "./dao/kv-wrapper";
-import { AnonymousIdDao } from "./dao/anonymous-id-dao";
+import { AnonymousIdDao, type WaitUntil } from "./dao/anonymous-id-dao";
 import { cloudflareAccountId } from "./generated/tomlGenerated";
 
 export function getCloudflareEnv(rawEnv: Record<string, unknown>): CloudflareEnv {
@@ -59,7 +59,10 @@ export class Env {
     /** Anonymous mutation limits use `${tRPC path}_${anonId}`; one binding is enough. */
     rateLimiter: RateLimit;
 
-    constructor(env: CloudflareEnv, options: { skipNotifications?: boolean } = {}) {
+    constructor(
+        env: CloudflareEnv,
+        options: { skipNotifications?: boolean; waitUntil?: WaitUntil } = {},
+    ) {
         this.kvDao = new KVDAO(
             new KvWrapper(env.POLYRATINGS_TEACHERS),
             new KvWrapper(env.POLYRATINGS_USERS),
@@ -92,7 +95,11 @@ export class Env {
 
         this.authStrategy = new AuthStrategy(env.JWT_SIGNING_KEY);
 
-        this.anonymousIdDao = new AnonymousIdDao(env.HASHED_IP, env.POLYRATINGS_SESSIONS);
+        this.anonymousIdDao = new AnonymousIdDao(
+            env.HASHED_IP,
+            env.POLYRATINGS_SESSIONS,
+            options.waitUntil,
+        );
 
         this.rateLimiter = env.RATE_LIMITER;
     }

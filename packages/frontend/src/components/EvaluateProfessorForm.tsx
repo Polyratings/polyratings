@@ -11,7 +11,7 @@ import {
     PROFESSOR_TAGS,
     MAX_PROFESSOR_TAGS_PER_RATING,
 } from "@backend/utils/const";
-import { COURSE_NUM_HINT, courseNumParser } from "@backend/utils/courseNum";
+import { COURSE_NUM_HINT, courseNumParser, isSemesterCourseKey } from "@backend/utils/courseNum";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { inferProcedureOutput } from "@trpc/server";
@@ -43,16 +43,16 @@ export function TwoStepEvaluateProfessor({ professor, closeForm }: EvaluateProfe
     return (
         <form className="relative w-full" onSubmit={onSubmit}>
             <button
-                className="absolute right-0 top-0 p-3 font-bold cursor-pointer hidden sm:block"
+                className="absolute top-0 right-0 hidden cursor-pointer p-3 font-bold sm:block"
                 onClick={closeForm}
                 type="button"
             >
                 X
             </button>
 
-            <div className="flex mb-4 items-end">
-                <UserIcon className="w-6 h-6 mb-[0.1rem] mr-2 fill-cal-poly-green" />
-                <h2 className="text-2xl font-bold hidden sm:block">
+            <div className="mb-4 flex items-end">
+                <UserIcon className="mr-2 mb-[0.1rem] h-6 w-6 fill-cal-poly-green" />
+                <h2 className="hidden text-2xl font-bold sm:block">
                     Evaluate {professor.lastName}, {professor.firstName}
                 </h2>
             </div>
@@ -72,7 +72,7 @@ export function TwoStepEvaluateProfessor({ professor, closeForm }: EvaluateProfe
                 triggerValidation={triggerValidation}
             />
 
-            <div className="text-red-500 text-sm">
+            <div className="text-sm text-red-500">
                 {networkError
                     ? getApiErrorMessage(networkError, "We could not submit this rating.")
                     : null}
@@ -95,8 +95,8 @@ export function FormBar({ isLoading, triggerValidation, firstStep, secondStep }:
 
     return (
         <>
-            <div className="w-[24rem] my-4 m-auto">
-                <div className="flex mb-1">
+            <div className="m-auto my-4 w-[24rem]">
+                <div className="mb-1 flex">
                     <div
                         className={`w-1/2 text-center text-sm ${
                             formStep === "first" ? "font-semibold" : "font-normal"
@@ -112,9 +112,9 @@ export function FormBar({ isLoading, triggerValidation, firstStep, secondStep }:
                         Course Accessibility
                     </div>
                 </div>
-                <div className="h-1 rounded-sm bg-gray-200 relative transition-all">
+                <div className="relative h-1 rounded-sm bg-gray-200 transition-all">
                     <div
-                        className={`absolute w-1/2 h-1 rounded bg-cal-poly-green ${
+                        className={`absolute h-1 w-1/2 rounded bg-cal-poly-green ${
                             formStep === "first" ? "left-0" : "left-1/2"
                         }`}
                     />
@@ -125,7 +125,7 @@ export function FormBar({ isLoading, triggerValidation, firstStep, secondStep }:
             {formStep === "second" && secondStep()}
 
             <div
-                className={`flex justify-center gap-6 mt-2 ${
+                className={`mt-2 flex justify-center gap-6 ${
                     isLoading || formStep !== "first" ? "hidden" : "block"
                 } `}
             >
@@ -144,7 +144,7 @@ export function FormBar({ isLoading, triggerValidation, firstStep, secondStep }:
             </div>
 
             <div
-                className={`flex justify-center gap-6 mt-2 ${
+                className={`mt-2 flex justify-center gap-6 ${
                     isLoading || formStep !== "second" ? "hidden" : "block"
                 } `}
             >
@@ -192,7 +192,7 @@ export function EvaluateProfessorFormLinear({ professor, closeForm }: EvaluatePr
                 {/* Exact size for no layer shift */}
                 <ClipLoader color="white" loading={isPending} size={34} />
             </div>
-            <div className="text-red-500 text-sm">
+            <div className="text-sm text-red-500">
                 {networkError
                     ? getApiErrorMessage(networkError, "We could not submit this rating.")
                     : null}
@@ -234,11 +234,13 @@ function EvaluateProfessorStep({
     Pick<EvaluateProfessorFormProps, "professor">) {
     const knownCourseValue = watch("knownCourse");
 
-    const sortedCourses = useSortedCourses(professor?.id).map(({ courseName }) => courseName);
+    const sortedCourses = useSortedCourses(professor?.id)
+        .map(({ courseName }) => courseName)
+        .filter(isSemesterCourseKey);
 
     return (
         <>
-            <div className="flex justify-between flex-wrap">
+            <div className="flex flex-wrap justify-between">
                 <Select
                     label="Course"
                     options={[
@@ -260,7 +262,7 @@ function EvaluateProfessorStep({
                         <TextInput
                             label="Course Num"
                             type="number"
-                            placeholder="101 or 1101"
+                            placeholder="1101"
                             aria-describedby="unknown-course-num-hint"
                             {...register("unknownCourseNumber", {
                                 required: {
@@ -273,13 +275,11 @@ function EvaluateProfessorStep({
                     </>
                 )}
             </div>
-            <p id="unknown-course-num-hint" className="text-xs text-gray-600 mt-1 w-full">
-                {knownCourseValue
-                    ? "Fall 2026+ courses use 4-digit numbers. Choose Other if yours is not listed."
-                    : COURSE_NUM_HINT}
+            <p id="unknown-course-num-hint" className="mt-1 w-full text-xs text-gray-600">
+                {COURSE_NUM_HINT}
             </p>
-            <div className="flex sm:block justify-between">
-                <div className="mt-2 flex flex-col sm:flex-row gap-2 justify-between flex-wrap">
+            <div className="flex justify-between sm:block">
+                <div className="mt-2 flex flex-col flex-wrap justify-between gap-2 sm:flex-row">
                     {NUMERICAL_RATINGS.map((rating) => (
                         <Select
                             key={rating.label}
@@ -293,7 +293,7 @@ function EvaluateProfessorStep({
                         />
                     ))}
                 </div>
-                <div className="mt-2 flex flex-col sm:flex-row gap-2 justify-between flex-wrap">
+                <div className="mt-2 flex flex-col flex-wrap justify-between gap-2 sm:flex-row">
                     {CLASS_INFORMATION.map((dropdown) => (
                         <Select
                             key={dropdown.label}
@@ -319,7 +319,10 @@ function EvaluateProfessorStep({
 }
 
 type TagSelectionVariant =
-    "desktop-primary" | "desktop-secondary" | "mobile-primary" | "mobile-secondary";
+    | "desktop-primary"
+    | "desktop-secondary"
+    | "mobile-primary"
+    | "mobile-secondary";
 
 export type TagSelectionProps = {
     onChange: (tags: string[]) => void;
@@ -342,16 +345,16 @@ export function TagSelection({ onChange, variant }: TagSelectionProps) {
     return (
         <>
             {variant.startsWith("desktop") && (
-                <h2 className="font-bold text-2xl mb-4">
+                <h2 className="mb-4 text-2xl font-bold">
                     Select up to {MAX_PROFESSOR_TAGS_PER_RATING} tags (Optional)
                 </h2>
             )}
             {variant.startsWith("mobile") && (
-                <h3 className="text-xs mb-2">
+                <h3 className="mb-2 text-xs">
                     Select up to {MAX_PROFESSOR_TAGS_PER_RATING} tags (Optional)
                 </h3>
             )}
-            <div className="flex gap-2 flex-wrap mb-4">
+            <div className="mb-4 flex flex-wrap gap-2">
                 {tagState.map((tag, i) => (
                     <SelectableTag
                         variant={variantMap[variant]}
@@ -416,7 +419,7 @@ function SelectableTag({
             title={tagText}
             disabled={disabled && !selected}
             // Use different y padding to account for weird font height
-            className={`${className} pb-1 pt-[.313rem] px-2 h-9 text-cal-poly-green rounded-lg font-nunito`}
+            className={`${className} h-9 rounded-lg px-2 pt-[.313rem] pb-1 font-nunito text-cal-poly-green`}
         >
             {tagText}
         </button>
@@ -447,7 +450,7 @@ function useEvaluationForm(
     const hookForm = useForm<EvaluateProfessorFormInputs, unknown, EvaluateProfessorFormOutputs>({
         resolver: zodResolver(evaluateProfessorFormParser),
         defaultValues: {
-            knownCourse: Object.keys(professor.reviews || {})[0],
+            knownCourse: Object.keys(professor.reviews || {}).find(isSemesterCourseKey) ?? "",
         },
     });
     const { setError } = hookForm;

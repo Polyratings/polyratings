@@ -31,7 +31,7 @@ export async function addRating(input: z.infer<typeof addRatingParser>, ctx: { e
     const pendingRating: PendingRating = {
         id: crypto.randomUUID(),
         ...input,
-        postDate: new Date().toString(),
+        postDate: new Date().toISOString(),
         status: "Failed",
         error: null,
         analyzedScores: null,

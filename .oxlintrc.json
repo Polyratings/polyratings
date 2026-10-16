@@ -1,0 +1,49 @@
+{
+    "$schema": "./node_modules/oxlint/configuration_schema.json",
+    "plugins": ["typescript", "react", "import", "jsx-a11y", "unicorn", "oxc", "vitest"],
+    "categories": {
+        "correctness": "error"
+    },
+    "env": {
+        "builtin": true
+    },
+    "options": {
+        "typeAware": true,
+        "maxWarnings": 0
+    },
+    "ignorePatterns": [
+        "**/dist/**",
+        "**/.wrangler/**",
+        "**/stats/**",
+        "**/playwright-report/**",
+        "**/test-results/**",
+        "**/blob-report/**",
+        "packages/backend/src/generated/**"
+    ],
+    "overrides": [
+        {
+            "files": ["packages/frontend/**/*.{js,jsx,ts,tsx}"],
+            "env": {
+                "browser": true
+            },
+            "rules": {
+                "no-restricted-imports": [
+                    "error",
+                    {
+                        "patterns": ["..*", "!@/*"]
+                    }
+                ]
+            }
+        },
+        {
+            "files": [
+                "packages/**/scripts/**/*.{js,ts}",
+                "packages/backend/generateBackendTypes.js",
+                "packages/**/src/logger.ts"
+            ],
+            "rules": {
+                "no-console": "off"
+            }
+        }
+    ]
+}

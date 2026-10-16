@@ -54,7 +54,7 @@ test("NEWPROF: successful submission surfaces user feedback", { tag: "@write" },
         await page
             .locator('input[name="professorLastName"]:visible')
             .fill(`Professor${uniqueSuffix}`);
-        await page.locator('input[name="courseNum"]:visible').fill("123");
+        await page.locator('input[name="courseNum"]:visible').fill("1123");
         await page
             .locator('textarea[name="ratingText"]:visible')
             .fill("This is an end-to-end rating body with enough characters.");

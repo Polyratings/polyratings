@@ -1,5 +1,5 @@
 import { cloudflareNamespaceInformation } from "@backend/generated/tomlGenerated";
-import { Professor, truncatedProfessorParser } from "@backend/types/schema";
+import { professorParser, truncatedProfessorParser } from "@backend/types/schema";
 import { professorToTruncatedProfessor } from "@backend/types/schemaHelpers";
 import { ALL_PROFESSOR_KEY } from "@backend/utils/const";
 import { bulkRecord } from "../utils/bulkRecord";
@@ -13,13 +13,10 @@ export async function generateAllProfessorEntry(env: CronEnv) {
     // Remove all professor key since we are generating it here
     delete allProfessors.all;
 
+    const professors = professorParser.array().parse(Object.values(allProfessors));
     const truncatedProfessorList = truncatedProfessorParser
         .array()
-        .parse(
-            Object.values(allProfessors).map((professor) =>
-                professorToTruncatedProfessor(professor as Professor),
-            ),
-        );
+        .parse(professors.map(professorToTruncatedProfessor));
 
     const prodProfessors = new env.KVWrapper(
         cloudflareNamespaceInformation.POLYRATINGS_TEACHERS.prod,
@@ -31,13 +28,26 @@ export async function generateAllProfessorEntry(env: CronEnv) {
         cloudflareNamespaceInformation.POLYRATINGS_TEACHERS.dev,
     );
 
-    prodProfessors.putValues([
-        { key: ALL_PROFESSOR_KEY, value: JSON.stringify(truncatedProfessorList) },
-    ]);
-    betaProfessors.putValues([
-        { key: ALL_PROFESSOR_KEY, value: JSON.stringify(truncatedProfessorList) },
-    ]);
-    devProfessors.putValues([
-        { key: ALL_PROFESSOR_KEY, value: JSON.stringify(truncatedProfessorList) },
-    ]);
+    const payload = JSON.stringify(truncatedProfessorList);
+    const writes = [
+        {
+            name: "prod",
+            promise: prodProfessors.putValues([{ key: ALL_PROFESSOR_KEY, value: payload }]),
+        },
+        {
+            name: "beta",
+            promise: betaProfessors.putValues([{ key: ALL_PROFESSOR_KEY, value: payload }]),
+        },
+        {
+            name: "dev",
+            promise: devProfessors.putValues([{ key: ALL_PROFESSOR_KEY, value: payload }]),
+        },
+    ];
+    const results = await Promise.allSettled(writes.map((write) => write.promise));
+    const failures = results.flatMap((result, index) =>
+        result.status === "rejected" ? [`${writes[index].name}: ${String(result.reason)}`] : [],
+    );
+    if (failures.length) {
+        throw new Error(`Failed to write all-professor entry: ${failures.join("; ")}`);
+    }
 }

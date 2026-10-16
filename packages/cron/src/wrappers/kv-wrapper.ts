@@ -1,5 +1,5 @@
 // Disable any since there is no types when dealing with cloudflare API
-/* eslint-disable @typescript-eslint/no-explicit-any */
+/* oxlint-disable @typescript-eslint/no-explicit-any */
 import { chunkArray } from "@backend/utils/chunkArray";
 import { Logger } from "../logger";
 
@@ -32,7 +32,7 @@ export function cloudflareKVInit(apiToken: string, accountId: string) {
             do {
                 let url = `${CLOUDFLARE_API_BASE_URL}accounts/${accountId}/storage/kv/namespaces/${this.namespaceId}/keys`;
                 if (cursor) {
-                    url = `${url}?${new URLSearchParams({ cursor })}`;
+                    url = `${url}?${new URLSearchParams({ cursor }).toString()}`;
                 }
                 const res = await this.cloudflareFetch(url);
                 const body = (await res.json()) as any;

@@ -1,4 +1,4 @@
-/* eslint-disable no-console */
+/* oxlint-disable no-console */
 const accountId = process.env.CF_ACCOUNT_ID;
 const apiToken = process.env.CLOUDFLARE_API_TOKEN;
 const projectName = process.env.CF_PAGES_PROJECT_NAME ?? "polyratings";
@@ -30,13 +30,12 @@ type ListResponse = {
 };
 
 async function cfFetch(path: string, init?: RequestInit): Promise<Response> {
+    const headers = new Headers(init?.headers);
+    headers.set("Authorization", `Bearer ${apiToken}`);
+    headers.set("Content-Type", "application/json");
     const response = await fetch(`https://api.cloudflare.com/client/v4${path}`, {
         ...init,
-        headers: {
-            Authorization: `Bearer ${apiToken}`,
-            "Content-Type": "application/json",
-            ...init?.headers,
-        },
+        headers,
     });
     if (!response.ok) {
         const body = await response.text();

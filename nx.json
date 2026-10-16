@@ -1,60 +1,40 @@
 {
-  "namedInputs": {
-    "default": [
-      "{projectRoot}/**/*"
-    ],
-    "production": [
-      "default",
-      "!{projectRoot}/**/*.spec.ts",
-      "!{projectRoot}/**/*.md",
-      "!{projectRoot}/vitest-setup.js",
-      "!{projectRoot}/.eslintrc.json"
-    ]
-  },
-  "targetDefaults": {
-    "build:fast": {
-      "inputs": [
-        "production",
-        "^production"
-      ],
-      "outputs": [
-        "{projectRoot}/dist"
-      ],
-      "cache": true
+    "namedInputs": {
+        "default": ["{projectRoot}/**/*"],
+        "production": [
+            "default",
+            "!{projectRoot}/**/*.spec.ts",
+            "!{projectRoot}/**/*.md",
+            "!{projectRoot}/vitest-setup.js",
+            "!{projectRoot}/.oxlintrc.json"
+        ]
     },
-    "build": {
-      "inputs": [
-        "production",
-        "^production"
-      ],
-      "outputs": [
-        "{projectRoot}/dist"
-      ],
-      "cache": true
+    "targetDefaults": {
+        "build:fast": {
+            "inputs": ["production", "^production"],
+            "outputs": ["{projectRoot}/dist"],
+            "cache": true
+        },
+        "build": {
+            "inputs": ["production", "^production"],
+            "outputs": ["{projectRoot}/dist"],
+            "cache": true
+        },
+        "build:local": {
+            "inputs": ["production", "^production"],
+            "outputs": ["{projectRoot}/dist"],
+            "cache": true
+        },
+        "test": {
+            "inputs": ["default", "^production"],
+            "cache": true
+        },
+        "lint": {
+            "cache": true
+        },
+        "fix": {
+            "cache": true
+        }
     },
-    "build:local": {
-      "inputs": [
-        "production",
-        "^production"
-      ],
-      "outputs": [
-        "{projectRoot}/dist"
-      ],
-      "cache": true
-    },
-    "test": {
-      "inputs": [
-        "default",
-        "^production"
-      ],
-      "cache": true
-    },
-    "lint": {
-      "cache": true
-    },
-    "fix": {
-      "cache": true
-    }
-  },
-  "nxCloudAccessToken": "MmQ1ODQwODQtZTg3Ni00OWY4LTg4MGYtNTczMjFiMTMyZDVkfHJlYWQ="
+    "nxCloudAccessToken": "MmQ1ODQwODQtZTg3Ni00OWY4LTg4MGYtNTczMjFiMTMyZDVkfHJlYWQ="
 }

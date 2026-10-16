@@ -40,7 +40,7 @@ export function Admin() {
     }
     return (
         <div>
-            <h1 className="text-center text-6xl font-semibold my-4">Polyratings Admin Panel</h1>
+            <h1 className="my-4 text-center text-6xl font-semibold">Polyratings Admin Panel</h1>
             <div className="container m-auto text-lg">
                 <PendingProfessors />
                 <ReportedRatings />
@@ -118,12 +118,12 @@ function ReportedRatings() {
             wrap: true,
             grow: 1.5,
             cell: (row: RatingReport) => (
-                <div className="flex flex-col w-full">
+                <div className="flex w-full flex-col">
                     {row.reports.map((report, idx) => (
                         // Need to use index to help out with making each key unique
                         // eslint-disable-next-line react/no-array-index-key
                         <Fragment key={idx + report.reason + report.email}>
-                            {idx !== 0 && <div className="w-full h-1 bg-black my-2" />}
+                            {idx !== 0 && <div className="my-2 h-1 w-full bg-black" />}
                             {report.anonymousIdentifier && (
                                 <div>Submitted By: {report.anonymousIdentifier}</div>
                             )}
@@ -227,7 +227,7 @@ function PendingProfessors() {
             cell: (row: Professor) => (
                 <a
                     href={`http://www.google.com/search?q=${row.lastName}+${row.firstName}+Cal+Poly`}
-                    className="underline text-blue-600 hover:text-blue-800 visited:text-purple-600"
+                    className="text-blue-600 underline visited:text-purple-600 hover:text-blue-800"
                     target="_blank"
                     rel="noreferrer"
                 >
@@ -295,7 +295,7 @@ function PendingProfessors() {
 
 function PendingProfessorActions({ data: professor }: ExpanderComponentProps<Professor>) {
     return (
-        <div className="flex flex-col gap-2 pl-2 pt-4">
+        <div className="flex flex-col gap-2 pt-4 pl-2">
             <SubmitUnderAction professor={professor} />
             <ChangeNameAction professor={professor} />
             <ChangeNameDepartment professor={professor} />
@@ -342,7 +342,7 @@ function SubmitUnderAction({ professor }: PendingProfessorAction) {
     };
 
     return (
-        <div className="flex gap-2 items-center">
+        <div className="flex items-center gap-2">
             <div className="text-sm">
                 <span>Submit under </span>
                 <span className="font-bold">
@@ -352,7 +352,7 @@ function SubmitUnderAction({ professor }: PendingProfessorAction) {
                 </span>
             </div>
             <AutoComplete
-                className="w-80 z-50"
+                className="z-50 w-80"
                 inputClassName="border border-black"
                 items={allProfessors ?? []}
                 filterFn={(items, inputValue) =>
@@ -399,7 +399,7 @@ function ChangeNameAction({ professor }: PendingProfessorAction) {
     });
 
     return (
-        <div className="flex gap-2 items-center text-sm">
+        <div className="flex items-center gap-2 text-sm">
             <span>Change Name</span>
             <TextInput
                 className="w-40"
@@ -451,7 +451,7 @@ function ChangeNameDepartment({ professor }: PendingProfessorAction) {
     });
 
     return (
-        <div className="flex gap-2 items-center text-sm">
+        <div className="flex items-center gap-2 text-sm">
             <span>Change Department</span>
             <Select
                 label=""
@@ -543,7 +543,7 @@ function ProcessedRatings() {
                 <Button
                     onClick={() => window.open(`/professor/${row.professor}`, "_blank")?.focus()}
                 >
-                    <ArrowTopRightOnSquareIcon className="text-white w-6 h-6" />
+                    <ArrowTopRightOnSquareIcon className="h-6 w-6 text-white" />
                 </Button>
             ),
         },
@@ -577,7 +577,7 @@ export function ConfirmationButton({
 
     const handleConfirmation = () => {
         setConfirmationOpen(false);
-        action();
+        void action();
     };
 
     return (
@@ -590,9 +590,9 @@ export function ConfirmationButton({
                 {buttonText}
             </button>
             {confirmationOpen && (
-                <div className="absolute p-2 w-28 z-50 bg-white shadow-sm top-0 right-0">
+                <div className="absolute top-0 right-0 z-50 w-28 bg-white p-2 shadow-sm">
                     <div>Are You Sure?</div>
-                    <div className="flex justify-between mt-1">
+                    <div className="mt-1 flex justify-between">
                         <button
                             className="bg-green-500 px-2 py-1 text-white"
                             type="button"

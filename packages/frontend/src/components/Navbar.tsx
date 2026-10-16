@@ -1,7 +1,7 @@
 import { Link, useLocation } from "react-router";
 import "@/styles/hamburgers.css";
 import AnimateHeight from "react-animate-height";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useAuth } from "@/hooks";
 import { SearchState, TruncatedSearchBar } from "./SearchBar";
 import Logo from "@/assets/Logo.svg";
@@ -15,12 +15,7 @@ export function Navbar() {
     const triggerMobileNav = () => setMobileNav(!mobileNavOpen);
     const { isAuthenticated, setJwt } = useAuth();
     const location = useLocation();
-    const [showInputBar, setShowInputBar] = useState(true);
-
-    useEffect(() => {
-        const matchingRoute = HIDE_SEARCH_BAR_ROUTES.find((route) => location.pathname === route);
-        setShowInputBar(!matchingRoute);
-    }, [location]);
+    const showInputBar = !HIDE_SEARCH_BAR_ROUTES.some((route) => location.pathname === route);
 
     const [searchState, setSearchState] = useState<SearchState>({ searchValue: "", type: "name" });
 
@@ -28,9 +23,9 @@ export function Navbar() {
         <div
             className={`w-full ${
                 isAuthenticated ? "bg-red-800" : "bg-cal-poly-green"
-            } h-14 flex justify-between px-5 items-center`}
+            } flex h-14 items-center justify-between px-5`}
         >
-            <a className="absolute w-px h-px z-[-1]" href="#main">
+            <a className="absolute z-[-1] h-px w-px" href="#main">
                 Skip to main content
             </a>
 
@@ -41,7 +36,7 @@ export function Navbar() {
             <button
                 onClick={triggerMobileNav}
                 aria-label="Open Navbar"
-                className={`hamburger hamburger--slider block md:hidden  ${
+                className={`hamburger hamburger--slider block md:hidden ${
                     mobileNavOpen ? "is-active hamburgerTurn" : ""
                 }`}
                 type="button"
@@ -55,10 +50,10 @@ export function Navbar() {
             <AnimateHeight
                 duration={500}
                 height={mobileNavOpen ? "auto" : 0}
-                className="absolute top-12 left-0 bg-cal-poly-green w-full z-50 transform -translate-y-1"
+                className="absolute top-12 left-0 z-50 w-full -translate-y-1 transform bg-cal-poly-green"
             >
                 <button
-                    className="flex flex-col items-center w-full text-xl text-white"
+                    className="flex w-full flex-col items-center text-xl text-white"
                     onClick={triggerMobileNav}
                     type="button"
                 >
@@ -81,9 +76,9 @@ export function Navbar() {
                 </button>
             </AnimateHeight>
 
-            <div className="text-white hidden md:flex items-center text-lg font-semibold">
+            <div className="hidden items-center text-lg font-semibold text-white md:flex">
                 {showInputBar && (
-                    <div className="text-black mr-7 hidden lg:block">
+                    <div className="mr-7 hidden text-black lg:block">
                         <TruncatedSearchBar value={searchState} onChange={setSearchState} />
                     </div>
                 )}
@@ -108,7 +103,7 @@ export function Navbar() {
                     <img
                         src={DiscordLogo}
                         alt="Discord Link"
-                        className="w-9 opacity-80 hover:opacity-100 transition-all mr-7 hidden lg:block mt-[0.15rem]"
+                        className="mt-[0.15rem] mr-7 hidden w-9 opacity-80 transition-all hover:opacity-100 lg:block"
                     />
                 </a>
                 <a
@@ -119,7 +114,7 @@ export function Navbar() {
                     <img
                         src={GithubLogo}
                         alt="Github Link"
-                        className="w-8 opacity-80 hover:opacity-100 transition-all mr-1 hidden lg:block"
+                        className="mr-1 hidden w-8 opacity-80 transition-all hover:opacity-100 lg:block"
                     />
                 </a>
                 {isAuthenticated && (
@@ -131,7 +126,7 @@ export function Navbar() {
                 {isAuthenticated && (
                     <button
                         onClick={() => setJwt(null)}
-                        className="rounded-full border-white pl-3 pr-3 border-2 pt-px pb-px cursor-pointer"
+                        className="cursor-pointer rounded-full border-2 border-white pt-px pr-3 pb-px pl-3"
                         type="button"
                     >
                         SIGN OUT

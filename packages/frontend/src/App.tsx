@@ -93,10 +93,13 @@ export default function App() {
                 mutations: { retry: 0 },
             },
         });
-        persistQueryClient({
+        const [, persistPromise] = persistQueryClient({
             queryClient,
             persister: createIDBPersister(),
             buster: PERSISTED_QUERY_CACHE_BUSTER,
+        });
+        void persistPromise.catch(() => {
+            // IndexedDB persistence is best-effort; failures should not break the app.
         });
         return queryClient;
     });

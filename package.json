@@ -1,30 +1,36 @@
 {
-  "name": "root",
-  "private": true,
-  "workspaces": [
-    "packages/*"
-  ],
-  "scripts": {
-    "bootstrap": "npm install",
-    "build": "lerna run build",
-    "start:dev": "lerna run start:dev --stream",
-    "start:local": "lerna run start:local --stream",
-    "test": "lerna run test --stream",
-    "e2e": "lerna run e2e --stream --",
-    "e2e:a11y": "lerna run e2e --scope @polyratings/e2e --stream -- --grep @a11y",
-    "e2e:beta": "lerna run e2e:beta --stream --",
-    "e2e:prod": "lerna run e2e:prod --stream --",
-    "e2e:dev": "lerna run e2e:dev --scope @polyratings/e2e --stream --",
-    "e2e:ui": "lerna run e2e:ui --stream --",
-    "e2e:headed": "lerna run e2e:headed --stream --",
-    "e2e:install": "lerna run e2e:install --stream --",
-    "lint": "lerna run lint --stream",
-    "fix": "lerna run fix --stream",
-    "deploy:prod": "lerna run deploy:prod --stream",
-    "deploy:beta": "lerna run deploy:beta --stream",
-    "deploy:dev": "lerna run deploy:dev --stream"
-  },
-  "devDependencies": {
-    "lerna": "^10.1.0"
-  }
+    "name": "root",
+    "private": true,
+    "workspaces": [
+        "packages/*"
+    ],
+    "scripts": {
+        "bootstrap": "npm install",
+        "build": "lerna run build",
+        "start:dev": "lerna run start:dev --stream",
+        "start:local": "lerna run start:local --stream",
+        "test": "lerna run test --stream",
+        "e2e": "lerna run e2e --stream --",
+        "e2e:a11y": "lerna run e2e --scope @polyratings/e2e --stream -- --grep @a11y",
+        "e2e:beta": "lerna run e2e:beta --stream --",
+        "e2e:prod": "lerna run e2e:prod --stream --",
+        "e2e:dev": "lerna run e2e:dev --scope @polyratings/e2e --stream --",
+        "e2e:ui": "lerna run e2e:ui --stream --",
+        "e2e:headed": "lerna run e2e:headed --stream --",
+        "e2e:install": "lerna run e2e:install --stream --",
+        "lint": "oxlint --deny-warnings",
+        "lint:fix": "oxlint --fix --deny-warnings",
+        "fmt": "oxfmt",
+        "fmt:check": "oxfmt --check",
+        "fix": "oxlint --fix --deny-warnings && oxfmt",
+        "deploy:prod": "lerna run deploy:prod --stream",
+        "deploy:beta": "lerna run deploy:beta --stream",
+        "deploy:dev": "lerna run deploy:dev --stream"
+    },
+    "devDependencies": {
+        "lerna": "^10.1.0",
+        "oxfmt": "^0.73.0",
+        "oxlint": "^1.88.0",
+        "oxlint-tsgolint": "^7.0.2004"
+    }
 }
