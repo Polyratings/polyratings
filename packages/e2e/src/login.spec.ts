@@ -20,8 +20,8 @@ test("LOGIN: required field validation on submit", async ({ page }) => {
         await expect(page.getByLabel("Password")).toHaveAttribute("aria-invalid", "true");
         await expect(page.locator("#username-error")).toHaveAttribute("role", "alert");
         await expect(page.locator("#password-error")).toHaveAttribute("role", "alert");
-        await expect(page.locator("#username-error")).toHaveText("Required");
-        await expect(page.locator("#password-error")).toHaveText("Required");
+        await expect(page.locator("#username-error")).toHaveText("Enter a username");
+        await expect(page.locator("#password-error")).toHaveText("Enter a password");
     });
 });
 

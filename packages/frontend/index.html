@@ -4,7 +4,39 @@
     <meta charset="UTF-8" />
     <link rel="icon" type="image/x-icon" href="/src/assets/favicon.ico" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="description" content="Cal Poly Professor Rating Website"/>
+    <meta name="description" content="Student ratings of Cal Poly professors. Read reviews, compare courses, and find the right instructor." />
+    <link rel="canonical" href="https://polyratings.dev/" />
+    <meta property="og:site_name" content="Polyratings" />
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Polyratings" />
+    <meta property="og:description" content="Student ratings of Cal Poly professors. Read reviews, compare courses, and find the right instructor." />
+    <meta property="og:url" content="https://polyratings.dev/" />
+    <meta name="twitter:card" content="summary" />
+    <meta name="twitter:title" content="Polyratings" />
+    <meta name="twitter:description" content="Student ratings of Cal Poly professors. Read reviews, compare courses, and find the right instructor." />
+    <!-- Applies before the stylesheet loads so the first paint is not a white flash on dark systems. -->
+    <meta name="color-scheme" content="light dark" />
+    <!-- The navbar stays Cal Poly green in both color schemes. -->
+    <meta name="theme-color" content="#154734" />
+    <script>
+      /*
+        Resolves the theme before first paint so the chosen scheme never flashes.
+        Must stay in sync with THEME_STORAGE_KEY in src/hooks/useTheme.ts.
+      */
+      (function () {
+          try {
+              var stored = window.localStorage.getItem("polyratings-theme");
+              var isDark =
+                  stored === "dark" ||
+                  (stored !== "light" &&
+                      window.matchMedia("(prefers-color-scheme: dark)").matches);
+              document.documentElement.classList.toggle("dark", isDark);
+              document.documentElement.style.colorScheme = isDark ? "dark" : "light";
+          } catch (error) {
+              /* Private-mode localStorage access can throw; light mode is the fallback. */
+          }
+      })();
+    </script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Nunito:ital,wght@0,400;0,500;0,600;0,700;0,900;1,300;1,400;1,500;1,600;1,800&display=swap" rel="stylesheet">
