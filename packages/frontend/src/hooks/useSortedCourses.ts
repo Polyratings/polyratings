@@ -1,5 +1,6 @@
 import { AppRouter } from "@backend/index";
 import { inferProcedureOutput } from "@trpc/server";
+import { compareCourseNames } from "@/utils";
 import { trpc } from "@/trpc";
 
 type ValueOf<T> = T[keyof T];
@@ -36,13 +37,9 @@ export function useSortedCourses(professorId: string | undefined) {
         {} as { [department: string]: CourseRatings[] },
     );
 
-    // Sort departments by class number
+    // Sort departments by class number, prioritizing post-semester 4-digit courses.
     Object.values(professorByDepartments).forEach((department) =>
-        department.sort((a, b) => {
-            const [, aNumber] = a.courseName.split(" ");
-            const [, bNumber] = b.courseName.split(" ");
-            return parseInt(aNumber, 10) - parseInt(bNumber, 10);
-        }),
+        department.sort((a, b) => compareCourseNames(a.courseName, b.courseName)),
     );
 
     const primaryClasses = professorByDepartments[professorData?.department ?? ""] ?? [];
