@@ -15,6 +15,7 @@ The FAQ route answers common questions about rating authenticity, moderation sta
 | FAQ-1 | Navigating to `/faq` renders the main heading "Frequently Asked Questions" | Must     |
 | FAQ-2 | The FAQ explains how to rate Fall 2026+ 4-digit semester courses           | Must     |
 | FAQ-3 | The FAQ item about threatened lawsuits tells people to report the rating, does not claim they cannot sue, explains that Section 230 may apply to visitor comments, and links to the Congressional Research Service overview of Section 230 | Must     |
+| FAQ-4 | Navigating to `/faq#reporting` (cold load or same-document hash change) opens only the lawsuit / reporting FAQ item (others closed), scrolls `#reporting` near the top of the app scrollport, and shows its answer | Must     |
 
 ## Test Scenarios
 
@@ -22,9 +23,10 @@ The FAQ route answers common questions about rating authenticity, moderation sta
 | ------------------------------- | ---------------- | ------------- | ----------- |
 | FAQ page loads expected heading | FAQ-1, FAQ-2     | `faq.spec.ts` | Implemented |
 | Lawsuit FAQ explains reporting and limits of Section 230 | FAQ-3            | `faq.spec.ts` | Implemented |
+| Reporting deep link opens lawsuit FAQ | FAQ-4            | `faq.spec.ts` | Implemented |
 
 ## Implementation
 
 - **Spec file:** `packages/e2e/src/faq.spec.ts`
-- **Tests:** `FAQ: faq page loads expected heading`, `FAQ: lawsuit FAQ explains reporting and limits of Section 230`
+- **Tests:** `FAQ: faq page loads expected heading`, `FAQ: lawsuit FAQ explains reporting and limits of Section 230`, `FAQ: reporting deep link opens lawsuit FAQ`
 - **Status:** Implemented

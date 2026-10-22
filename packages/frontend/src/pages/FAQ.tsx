@@ -1,21 +1,48 @@
 import { ChevronDown } from "lucide-react";
-import { useId, useState, type ReactNode } from "react";
+import { useEffect, useId, useState, type ReactNode } from "react";
+import { useLocation } from "react-router";
 
 import { PageMeta, StaticPageHeader } from "@/components";
 import { cn } from "@/utils";
 
 interface FAQItemProps {
     children: ReactNode;
+    id?: string;
+    /** When a hash deep-link is active, only the matching item stays open. */
+    activeHashId?: string | null;
     initiallyOpen?: boolean;
     question: ReactNode;
 }
 
-function FAQItem({ children, initiallyOpen = false, question }: FAQItemProps) {
-    const [isOpen, setIsOpen] = useState(initiallyOpen);
+function FAQItem({
+    children,
+    id,
+    activeHashId = null,
+    initiallyOpen = false,
+    question,
+}: FAQItemProps) {
     const contentId = useId();
+    const [isOpen, setIsOpen] = useState(() => {
+        if (id && activeHashId) {
+            return activeHashId === id;
+        }
+        return initiallyOpen && !activeHashId;
+    });
+
+    useEffect(() => {
+        if (!activeHashId) {
+            return;
+        }
+        // Close every item that is not the hash target (including id-less initiallyOpen items).
+        // oxlint-disable-next-line react/set-state-in-effect -- sync open state to the deep-linked FAQ entry
+        setIsOpen(id === activeHashId);
+    }, [activeHashId, id]);
 
     return (
-        <section className="overflow-hidden rounded-lg border border-border bg-card shadow-sm">
+        <section
+            id={id}
+            className="scroll-mt-4 overflow-hidden rounded-lg border border-border bg-card shadow-sm"
+        >
             <h2>
                 <button
                     type="button"
@@ -43,7 +70,52 @@ function FAQItem({ children, initiallyOpen = false, question }: FAQItemProps) {
     );
 }
 
+function scrollFaqIntoAppScroll(id: string) {
+    const target = document.getElementById(id);
+    const scroller = document.getElementById("app-scroll");
+    if (!target || !scroller) {
+        target?.scrollIntoView({ behavior: "smooth", block: "start" });
+        return;
+    }
+    const scrollerRect = scroller.getBoundingClientRect();
+    const targetRect = target.getBoundingClientRect();
+    // Prefer upper portion of the scrollport (not strict top) so we need less bottom spacer.
+    const nextTop =
+        scroller.scrollTop +
+        (targetRect.top - scrollerRect.top) -
+        Math.min(24, scroller.clientHeight * 0.08);
+    scroller.scrollTo({ top: Math.max(0, nextTop), behavior: "smooth" });
+}
+
 export function FAQ() {
+    const { hash } = useLocation();
+    const activeHashId = hash.replace(/^#/, "") || null;
+
+    useEffect(() => {
+        if (!activeHashId) {
+            return undefined;
+        }
+
+        let cancelled = false;
+        const run = () => {
+            if (!cancelled) {
+                scrollFaqIntoAppScroll(activeHashId);
+            }
+        };
+
+        // Wait for the matching item to expand before measuring scroll offset.
+        requestAnimationFrame(() => {
+            requestAnimationFrame(() => {
+                run();
+                window.setTimeout(run, 80);
+            });
+        });
+
+        return () => {
+            cancelled = true;
+        };
+    }, [activeHashId]);
+
     const linkStyle = cn(
         "font-semibold text-brand underline decoration-accent decoration-2 underline-offset-4",
         "transition-colors hover:text-brand/75 focus-visible:rounded-sm",
@@ -65,6 +137,7 @@ export function FAQ() {
 
             <div className="space-y-4">
                 <FAQItem
+                    activeHashId={activeHashId}
                     initiallyOpen
                     question="How do I know the ratings on a professor's page come from students?"
                 >
@@ -95,7 +168,10 @@ export function FAQ() {
                     </p>
                 </FAQItem>
 
-                <FAQItem question="What are your guidelines regarding comments?">
+                <FAQItem
+                    activeHashId={activeHashId}
+                    question="What are your guidelines regarding comments?"
+                >
                     <p>The standard by which we judge all comments is a simple one: value.</p>
                     <p>
                         We do not judge comments based upon the words they contain or the way they
@@ -119,7 +195,10 @@ export function FAQ() {
                     </p>
                 </FAQItem>
 
-                <FAQItem question="Why do you let inappropriate comments be posted in the first place?">
+                <FAQItem
+                    activeHashId={activeHashId}
+                    question="Why do you let inappropriate comments be posted in the first place?"
+                >
                     <p>
                         Polyratings&apos; staff does not have time to read and approve every
                         comment.
@@ -137,6 +216,7 @@ export function FAQ() {
                 </FAQItem>
 
                 <FAQItem
+                    activeHashId={activeHashId}
                     question={
                         <>
                             I made a comment about a professor, but I&apos;ve thought about it, and
@@ -157,7 +237,10 @@ export function FAQ() {
                     <p>As such, any requests to edit or delete comments will be ignored.</p>
                 </FAQItem>
 
-                <FAQItem question="I have this really cool feature I'd like you to implement; will you write it for me and put it in Polyratings?">
+                <FAQItem
+                    activeHashId={activeHashId}
+                    question="I have this really cool feature I'd like you to implement; will you write it for me and put it in Polyratings?"
+                >
                     <p>
                         Write us an issue on{" "}
                         <a
@@ -187,7 +270,10 @@ export function FAQ() {
                     </p>
                 </FAQItem>
 
-                <FAQItem question="How do I rate a class after Cal Poly switched to semesters?">
+                <FAQItem
+                    activeHashId={activeHashId}
+                    question="How do I rate a class after Cal Poly switched to semesters?"
+                >
                     <p>
                         Starting Fall 2026, Cal Poly course numbers are 4 digits (for example PHIL
                         2231). Older quarter courses stay 3 digits (PHIL 231) and are listed
@@ -197,6 +283,8 @@ export function FAQ() {
                 </FAQItem>
 
                 <FAQItem
+                    id="reporting"
+                    activeHashId={activeHashId}
                     question={
                         <>
                             I&apos;m a student/professor, and I&apos;ve seen a comment <i>you</i>{" "}
@@ -235,6 +323,9 @@ export function FAQ() {
                     </p>
                 </FAQItem>
             </div>
+
+            {/* Modest pad so last-item hash targets can settle near the top of #app-scroll. */}
+            <div className="h-28 md:h-36" aria-hidden="true" />
         </main>
     );
 }

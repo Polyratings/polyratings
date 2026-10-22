@@ -129,6 +129,11 @@ export function CourseFilterBar({ courses }: { courses: string[] }) {
                         </SelectTrigger>
                         <SelectContent
                             position="popper"
+                            side="bottom"
+                            align="start"
+                            sideOffset={4}
+                            // Sticky navbar + filter bar; keep long lists (e.g. Retsek) scrollable.
+                            collisionPadding={{ top: 96, bottom: 16, left: 8, right: 8 }}
                             className="w-(--radix-select-trigger-width)"
                         >
                             <SelectItem value="all">All courses</SelectItem>

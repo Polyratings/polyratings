@@ -20,6 +20,9 @@ export function MinMaxSlider({
     onchange,
     resolution = (max - min) / 20,
 }: MinMaxSliderProps) {
+    const lowChanged = low > min;
+    const highChanged = high < max;
+
     return (
         <div className="w-full">
             <Slider
@@ -30,9 +33,21 @@ export function MinMaxSlider({
                 onValueChange={(next) => onchange(next as [number, number])}
                 minStepsBetweenThumbs={0}
             />
-            <div className="mt-1 flex justify-between text-xs text-muted-foreground tabular-nums">
-                <span>{formatSliderNumber(min, resolution)}</span>
-                <span>{formatSliderNumber(max, resolution)}</span>
+            <div className="mt-1 flex justify-between text-xs tabular-nums">
+                <span
+                    aria-live="polite"
+                    className={lowChanged ? "font-medium text-foreground" : "text-muted-foreground"}
+                >
+                    {formatSliderNumber(low, resolution)}
+                </span>
+                <span
+                    aria-live="polite"
+                    className={
+                        highChanged ? "font-medium text-foreground" : "text-muted-foreground"
+                    }
+                >
+                    {formatSliderNumber(high, resolution)}
+                </span>
             </div>
         </div>
     );

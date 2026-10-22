@@ -138,7 +138,7 @@ test("PROF: rating submission flow succeeds from professor page", { tag: "@write
         ).toBeVisible();
         await page
             .getByRole("checkbox", {
-                name: "I took this class, this review is my opinion, and I license Polyratings to host, moderate, display, and republish it.",
+                name: "I took this class, this is my opinion, and I license Polyratings to host, moderate, display, and republish it.",
             })
             .check();
         await page.getByRole("button", { name: "Submit", exact: true }).click();

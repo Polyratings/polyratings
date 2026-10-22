@@ -2,6 +2,7 @@
 import { Controller, FormProvider, useForm, useFormContext, useFormState } from "react-hook-form";
 import { toast } from "sonner";
 import { ChevronLeftIcon } from "@heroicons/react/24/outline";
+import { TagIcon } from "@heroicons/react/24/solid";
 import { Link, useNavigate } from "react-router";
 import {
     COURSE_TYPES,
@@ -230,17 +231,10 @@ export function ReviewFormPageLayout({
 
 export function ReviewForm(props: ReviewFormProps) {
     const { mode } = props;
-    const professor = professorFromProps(props);
     const isDesktop = useDesktopReviewForm();
     const { hookForm, onSubmit, isLoading, networkError } = useReviewForm(props);
     const { control, watch } = hookForm;
     const values = watch();
-    const professorName =
-        mode === "evaluate" && professor
-            ? { firstName: professor.firstName, lastName: professor.lastName }
-            : { firstName: values.professorFirstName, lastName: values.professorLastName };
-    const department =
-        mode === "evaluate" && professor ? professor.department : values.professorDepartment;
     const errorFallback =
         mode === "new-professor"
             ? "We could not add this professor."
@@ -248,6 +242,7 @@ export function ReviewForm(props: ReviewFormProps) {
     const tagsStep = (
         <FormSection
             title="Tags"
+            className="mx-auto w-full max-w-lg"
             description={
                 values.tags?.length
                     ? `${values.tags.length} of ${MAX_PROFESSOR_TAGS_PER_RATING} selected`
@@ -266,9 +261,6 @@ export function ReviewForm(props: ReviewFormProps) {
     const preview = (
         <>
             <ReviewPreview
-                lastName={professorName.lastName}
-                firstName={professorName.firstName}
-                department={department}
                 courseName={`${values.courseDepartment} ${values.courseNum}`.trim()}
                 overallRating={values.overallRating}
                 ratingText={values.ratingText}
@@ -662,6 +654,7 @@ const TAG_GROUPS = [
             "Zoom Office Hours",
             "High In-Person Availability",
             "Fast Response Time",
+            "Honor DRC Accommodations",
         ],
     },
     {
@@ -682,7 +675,6 @@ const TAG_GROUPS = [
             "Inflexible Deadline Policy",
             "Flexible Grading Policy",
             "Inflexible Grading Policy",
-            "Honor DRC Accommodations",
         ],
     },
     {
@@ -764,50 +756,34 @@ export type TagSelectionProps = {
 
 export function TagSelection({ value = [], onChange }: TagSelectionProps) {
     return (
-        <div className="flex flex-col gap-5">
+        <div className="flex flex-col gap-6">
             {TAG_GROUPS.map((group) => {
                 const pairs = exclusivePairsIn(group.tags);
                 const singles = unpairedTags(group.tags);
                 return (
                     <fieldset key={group.label} className="min-w-0">
-                        <legend className="mb-2 text-sm font-medium text-foreground">
+                        <legend className="mb-2.5 text-sm font-semibold text-foreground">
                             {group.label}
                         </legend>
-                        <div className="flex flex-col gap-3">
-                            {pairs.map(([left, right]) => {
-                                const topic = pairTopic(left);
-                                return (
-                                    <div
-                                        key={left}
-                                        className="flex flex-col gap-1.5 sm:flex-row sm:items-center sm:gap-3"
-                                    >
-                                        <p className="text-sm text-muted-foreground sm:w-40 sm:shrink-0">
-                                            {topic}
-                                        </p>
-                                        <fieldset
-                                            className="m-0 flex min-w-0 flex-wrap gap-2 border-0 p-0"
-                                            aria-label={topic}
-                                        >
-                                            <TagChoice
-                                                tagText={left}
-                                                label="Flexible"
-                                                value={value}
-                                                onChange={onChange}
-                                            />
-                                            <TagChoice
-                                                tagText={right}
-                                                label="Inflexible"
-                                                value={value}
-                                                onChange={onChange}
-                                            />
-                                        </fieldset>
-                                    </div>
-                                );
-                            })}
-                            {singles.length ? (
-                                <div className="flex flex-wrap gap-2">
+                        <div className="flex flex-col gap-2">
+                            {pairs.map(([left, right]) => (
+                                <ExclusiveTagSegment
+                                    key={left}
+                                    left={left}
+                                    right={right}
+                                    value={value}
+                                    onChange={onChange}
+                                />
+                            ))}
+                            {singles.length > 0 && (
+                                <div
+                                    className={cn(
+                                        "grid grid-cols-2 gap-2",
+                                        singles.length === 1 && "grid-cols-1",
+                                    )}
+                                >
                                     {singles.map((tagText) => (
-                                        <TagChoice
+                                        <TagToggle
                                             key={tagText}
                                             tagText={tagText}
                                             value={value}
@@ -815,7 +791,7 @@ export function TagSelection({ value = [], onChange }: TagSelectionProps) {
                                         />
                                     ))}
                                 </div>
-                            ) : null}
+                            )}
                         </div>
                     </fieldset>
                 );
@@ -824,65 +800,97 @@ export function TagSelection({ value = [], onChange }: TagSelectionProps) {
     );
 }
 
-function TagChoice({
+function ExclusiveTagSegment({
+    left,
+    right,
+    value,
+    onChange,
+}: {
+    left: ProfessorTag;
+    right: ProfessorTag;
+    value: ProfessorTag[];
+    onChange: (tags: ProfessorTag[]) => void;
+}) {
+    const topic = pairTopic(left);
+    const leftState = tagButtonState(value, left);
+    const rightState = tagButtonState(value, right);
+
+    return (
+        <fieldset className="m-0 min-w-0">
+            <legend className="mb-1.5 text-xs font-medium tracking-wide text-muted-foreground uppercase">
+                {topic}
+            </legend>
+            <div className="grid grid-cols-2 overflow-hidden rounded-md border border-brand/40 bg-card">
+                <TagToggle
+                    tagText={left}
+                    label="Flexible"
+                    value={value}
+                    onChange={onChange}
+                    selected={leftState.selected}
+                    disabled={leftState.disabled}
+                    className="rounded-none border-0 border-r border-brand/40"
+                />
+                <TagToggle
+                    tagText={right}
+                    label="Inflexible"
+                    value={value}
+                    onChange={onChange}
+                    selected={rightState.selected}
+                    disabled={rightState.disabled}
+                    className="rounded-none border-0"
+                />
+            </div>
+        </fieldset>
+    );
+}
+
+function TagToggle({
     tagText,
     label,
     value,
     onChange,
+    selected: selectedOverride,
+    disabled: disabledOverride,
+    className,
 }: {
     tagText: ProfessorTag;
     label?: string;
     value: ProfessorTag[];
     onChange: (tags: ProfessorTag[]) => void;
+    selected?: boolean;
+    disabled?: boolean;
+    className?: string;
 }) {
-    const { selected, nextSelection, disabled } = tagButtonState(value, tagText);
-    return (
-        <SelectableTag
-            tagText={tagText}
-            label={label}
-            selected={selected}
-            disabled={disabled}
-            onClick={() => onChange(nextSelection)}
-        />
-    );
-}
-
-function SelectableTag({
-    tagText,
-    label,
-    selected,
-    className: buttonClassName,
-    disabled,
-    ...buttonProps
-}: React.ComponentProps<"button"> & {
-    tagText: string;
-    label?: string;
-    selected: boolean;
-}) {
-    const visibleLabel = label ?? tagText;
-    const pseudoExpander =
-        "after:content-[attr(data-label)] after:block after:font-bold after:h-1 after:text-transparent after:overflow-hidden";
+    const state = tagButtonState(value, tagText);
+    const selected = selectedOverride ?? state.selected;
+    const disabled = disabledOverride ?? state.disabled;
 
     return (
         <button
             type="button"
-            {...buttonProps}
             title={tagText}
-            data-label={visibleLabel}
             aria-label={tagText}
             aria-pressed={selected}
             disabled={disabled && !selected}
+            onClick={() => onChange(state.nextSelection)}
             className={cn(
-                pseudoExpander,
-                "min-h-11 rounded-lg border-[0.1rem] px-2.5 py-2 font-nunito text-brand",
-                "focus-visible:outline-hidden focus-visible:ring-3 focus-visible:ring-ring/50",
+                "flex min-h-10 w-full items-center justify-center gap-1.5 px-2.5 py-2 text-center",
+                "rounded-md border text-sm leading-snug font-medium whitespace-nowrap font-nunito",
+                "transition-colors focus-visible:z-10 focus-visible:outline-hidden",
+                "focus-visible:ring-3 focus-visible:ring-ring/50",
                 selected
-                    ? "border-brand bg-cal-poly-light-green font-semibold"
-                    : cn("border-brand font-[350]", disabled ? "bg-field" : "bg-card"),
-                buttonClassName,
+                    ? "border-primary bg-primary text-primary-foreground"
+                    : cn(
+                          "border-brand/40 bg-card text-brand",
+                          disabled
+                              ? "cursor-not-allowed opacity-50"
+                              : "hover:border-brand hover:bg-cal-poly-light-green",
+                      ),
+                className,
             )}
         >
-            {visibleLabel}
+            <TagIcon className="size-3.5 shrink-0" aria-hidden />
+            <span>{label ?? tagText}</span>
         </button>
     );
 }

@@ -146,7 +146,7 @@ export function Home() {
                     reviewed.
                     <br />
                     Learn more about{" "}
-                    <Link className={linkClassName} to="/faq">
+                    <Link className={linkClassName} to="/faq#reporting">
                         how reporting works
                     </Link>
                     .

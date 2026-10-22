@@ -55,7 +55,7 @@ export const Checkbox = forwardRef<HTMLInputElement, CheckboxProps>(
                     aria-describedby={describedBy}
                     aria-invalid={error ? true : ariaInvalid}
                     checked={checked}
-                    className={cn("mt-0.5", className)}
+                    className={cn("shrink-0 self-center", className)}
                     defaultChecked={defaultChecked}
                     disabled={disabled}
                     id={checkboxId}
@@ -66,7 +66,7 @@ export const Checkbox = forwardRef<HTMLInputElement, CheckboxProps>(
                     onBlur={(event) => onBlur?.(event as unknown as FocusEvent<HTMLInputElement>)}
                     onCheckedChange={emitChange}
                 />
-                <div className="ml-2">
+                <div className="ml-2 min-w-0">
                     <label
                         htmlFor={checkboxId}
                         className="cursor-pointer py-2 text-sm leading-5 md:py-0"

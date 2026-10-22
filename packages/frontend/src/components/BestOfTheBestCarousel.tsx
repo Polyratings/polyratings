@@ -145,19 +145,26 @@ export function BestOfTheBestCarousel({
                     <div className="mt-12">
                         <Carousel
                             setApi={setApi}
-                            opts={{ align: "center", loop: slideCount > 1 }}
+                            opts={{
+                                // Center snap so the gold band lands on the middle of the 3-up row.
+                                align: "center",
+                                loop: slideCount > 1,
+                                slidesToScroll: 1,
+                            }}
                             plugins={shouldAutoplay ? [autoplayPlugin] : []}
-                            className="px-12 sm:px-14"
+                            // Outer pad = arrow gutter; inner clip so a 4th card cannot paint under arrows.
+                            className="px-14 sm:px-16"
                             aria-label="Featured professors"
                         >
-                            <CarouselContent className="-ml-4 md:-ml-6">
+                            <CarouselContent className="ml-0 gap-4">
                                 {professors.map((professor, index) => (
                                     <CarouselItem
                                         key={professor.id}
                                         className={cn(
-                                            // Vertical pad keeps drop shadows inside Embla's overflow:hidden viewport.
-                                            "basis-[min(20.5rem,100%)] py-2 pl-4 sm:basis-[19rem]",
-                                            "md:basis-[20rem] md:pl-6 lg:basis-[21rem]",
+                                            // Gap-based widths (not % + -ml) so exactly 1/2/3 fit with no peek.
+                                            "py-2 pl-0 basis-full",
+                                            "sm:basis-[calc(50%-0.5rem)]",
+                                            "lg:basis-[calc((100%-2rem)/3)]",
                                         )}
                                         aria-label={`${index + 1} of ${slideCount}`}
                                     >
@@ -259,12 +266,12 @@ function FeaturedProfessorSlide({
             <article
                 className={cn(
                     // Horizontal inset keeps the border inside Embla's overflow clip (flush edges get shaved).
-                    "mx-1 flex h-full min-h-80 flex-col rounded-2xl border bg-card p-6 text-foreground shadow-lg",
-                    "motion-safe:transition-[transform,opacity,box-shadow,border-color] motion-safe:duration-300",
-                    // Prefer border-2 over ring: Embla's overflow-hidden clips box-shadow rings.
+                    // Keep border-2 in both states so inactive scale/peek hacks are unnecessary.
+                    "mx-1 flex h-full min-h-80 flex-col rounded-2xl border-2 bg-card p-6 text-foreground shadow-lg",
+                    "motion-safe:transition-[opacity,box-shadow,border-color] motion-safe:duration-300",
                     isActive
-                        ? "scale-100 border-2 border-accent shadow-md shadow-accent/25"
-                        : "border border-white/50 opacity-70 motion-safe:scale-[0.94]",
+                        ? "border-accent shadow-md shadow-accent/30 ring-1 ring-accent/40"
+                        : "border-white/50 opacity-70",
                 )}
             >
                 <div className="flex min-w-0 items-center justify-between gap-3">

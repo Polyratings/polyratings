@@ -10,7 +10,8 @@ export type RatingCardData = {
     courseType: string;
     gradeLevel: string;
     tags?: string[];
-    postDate: string;
+    /** ISO date string; omit for a live preview that should show "Today". */
+    postDate?: string;
 };
 
 export type RatingCardProps = {
@@ -20,12 +21,14 @@ export type RatingCardProps = {
 };
 
 export function RatingCard({ rating, actions, className }: RatingCardProps) {
-    const posted = new Date(rating.postDate);
-    const showStars = posted.getFullYear() >= 2022;
-    const postedLabel = posted.toLocaleString("en-US", {
-        year: "numeric",
-        month: "short",
-    });
+    const posted = rating.postDate ? new Date(rating.postDate) : null;
+    const showStars = !posted || posted.getFullYear() >= 2022;
+    const postedLabel = posted
+        ? posted.toLocaleString("en-US", {
+              year: "numeric",
+              month: "short",
+          })
+        : "Today";
     const metadata = [
         rating.grade !== "N/A" ? `Grade Received: ${rating.grade}` : null,
         rating.courseType,

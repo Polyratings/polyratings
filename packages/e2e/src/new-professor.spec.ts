@@ -84,7 +84,7 @@ test("NEWPROF: mobile route renders linear submit flow", async ({ page }) => {
         await expect(page.getByRole("group", { name: "Tags" })).toBeVisible();
         await expect(
             page.getByRole("checkbox", {
-                name: "I took this class, this review is my opinion, and I license Polyratings to host, moderate, display, and republish it.",
+                name: "I took this class, this is my opinion, and I license Polyratings to host, moderate, display, and republish it.",
             }),
         ).toBeVisible();
         await expect(page.getByRole("button", { name: "Submit", exact: true })).toBeVisible();
@@ -134,7 +134,7 @@ test("NEWPROF: successful submission surfaces user feedback", { tag: "@write" },
 
         await page
             .getByRole("checkbox", {
-                name: "I took this class, this review is my opinion, and I license Polyratings to host, moderate, display, and republish it.",
+                name: "I took this class, this is my opinion, and I license Polyratings to host, moderate, display, and republish it.",
             })
             .check();
 
@@ -187,7 +187,7 @@ test("NEWPROF: desktop stepper confirms review before submit", async ({ page }) 
         await expect(page.getByText(reviewText)).toBeVisible();
         await expect(
             page.getByRole("checkbox", {
-                name: "I took this class, this review is my opinion, and I license Polyratings to host, moderate, display, and republish it.",
+                name: "I took this class, this is my opinion, and I license Polyratings to host, moderate, display, and republish it.",
             }),
         ).toBeVisible();
         await expect(page.getByRole("button", { name: "Submit", exact: true })).toBeVisible();
@@ -215,7 +215,7 @@ test("NEWPROF: successful submission with a 4-digit semester course number", { t
             .fill("This is an end-to-end rating body with enough characters.");
         await page
             .getByRole("checkbox", {
-                name: "I took this class, this review is my opinion, and I license Polyratings to host, moderate, display, and republish it.",
+                name: "I took this class, this is my opinion, and I license Polyratings to host, moderate, display, and republish it.",
             })
             .check();
 
