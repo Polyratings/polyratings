@@ -183,7 +183,8 @@ test("NEWPROF: desktop stepper confirms review before submit", async ({ page }) 
         await expect(
             page.getByText("This is how your review will appear on the professor page"),
         ).toBeVisible();
-        await expect(page.getByRole("heading", { name: "Lovelace, Ada" })).toBeVisible();
+        await expect(page.getByRole("heading", { name: "CSC 1101" })).toBeVisible();
+        await expect(page.getByText("Today")).toBeVisible();
         await expect(page.getByText(reviewText)).toBeVisible();
         await expect(
             page.getByRole("checkbox", {
