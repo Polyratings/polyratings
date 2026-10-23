@@ -86,8 +86,7 @@ test("LAYOUT: professor page keeps navbar search on mobile", async ({ page }) =>
         await page.goto("/professor/0038ea39-3910-4f80-9353-41dce33c754d");
 
         await openNavbarSearch();
-        await page.getByRole("combobox", { name: "Professor Auto-complete" }).fill("smith");
-        await expect(page.getByRole("option").first()).toBeVisible();
+        await expect(page.getByRole("combobox", { name: "Professor Auto-complete" })).toBeVisible();
     });
 
     await test.step("LAYOUT-7: at tablet width search stays an icon beside desktop nav", async () => {

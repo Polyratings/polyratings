@@ -20,7 +20,7 @@ Site-wide chrome states that Polyratings is independent of Cal Poly.
 | LAYOUT-3 | On a first visit the rendered color scheme follows the operating system setting                                                                                                | Must     |
 | LAYOUT-4 | The navbar theme control switches between light and dark, and its accessible name names the scheme the click applies                                                           | Must     |
 | LAYOUT-5 | A chosen theme survives a reload and overrides the operating system setting                                                                                                   | Must     |
-| LAYOUT-6 | On a professor page at a phone-sized viewport, the navbar exposes a "Search professors" control that opens a near-full-screen panel with the professor search combobox; typing shows autocomplete options | Must     |
+| LAYOUT-6 | On a professor page at a phone-sized viewport, the navbar exposes a "Search professors" control that opens a panel with the professor search combobox                          | Must     |
 | LAYOUT-7 | On a professor page at a tablet width where desktop nav links are visible, search is an icon control (not a crushed inline pill) that opens the same search panel               | Must     |
 
 ## Test Scenarios

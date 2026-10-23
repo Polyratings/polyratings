@@ -113,43 +113,27 @@ export function Navbar() {
                     <SheetContent
                         side="top"
                         showCloseButton={false}
-                        overlayClassName="top-14 bg-black/50 dark:bg-black/70"
+                        overlayClassName="top-14 bg-black/40 dark:bg-black/60"
                         className={cn(
-                            // Google-style expanding panel: fill the viewport under the header.
-                            "top-14 bottom-0 h-auto max-h-none gap-4 overflow-y-auto border-none",
-                            "p-4 pb-[max(1rem,env(safe-area-inset-bottom))] text-foreground",
-                            "data-[side=top]:top-14 data-[side=top]:bottom-0",
+                            "top-14 gap-3 border-none p-4 pb-[max(1rem,env(safe-area-inset-bottom))] text-foreground",
+                            "data-[side=top]:top-14",
                             isAuthenticated ? "!bg-red-800" : "!bg-cal-poly-green",
                         )}
                     >
-                        <div className="flex items-center justify-between gap-3">
-                            <SheetTitle className="text-base font-semibold text-white">
-                                Search professors
-                            </SheetTitle>
-                            <button
-                                type="button"
-                                aria-label="Close search"
-                                className={headerIconButtonClassName}
-                                onClick={() => setSearchOpen(false)}
-                            >
-                                <XIcon className="size-6" aria-hidden />
-                            </button>
-                        </div>
+                        <SheetTitle className="text-base font-semibold text-white">
+                            Search professors
+                        </SheetTitle>
                         <SheetDescription className="sr-only">
-                            Search for a professor by name. Suggestions update as you type.
+                            Search for a professor by name
                         </SheetDescription>
-                        <div className="flex min-h-0 flex-1 flex-col">
-                            <TruncatedSearchBar
-                                key={searchOpen ? "open" : "closed"}
-                                fill
-                                forceDropdown
-                                focusOnMount
-                                placeholder="Search professors"
-                                value={searchState}
-                                onChange={setSearchState}
-                                listClassName="max-h-[min(28rem,calc(100dvh-11rem))] text-lg"
-                            />
-                        </div>
+                        <TruncatedSearchBar
+                            fill
+                            // No mobile suggestions until a full-screen search surface (keyboard conflict).
+                            disableAutoComplete
+                            placeholder="Search professors"
+                            value={searchState}
+                            onChange={setSearchState}
+                        />
                     </SheetContent>
                 </Sheet>
             ) : null}

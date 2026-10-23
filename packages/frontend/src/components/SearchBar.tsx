@@ -22,12 +22,6 @@ export interface SearchBarProps {
     /** Show suggestions below `md` (used by the navbar search panel). */
     forceDropdown?: boolean;
     placeholder?: string;
-    /** Extra classes for the suggestion list panel (e.g. taller overlay lists). */
-    listClassName?: string;
-    /** Focus the combobox when mounted (mobile overlay). */
-    focusOnMount?: boolean;
-    /** Stretch suggestions to the full search pill width with larger tap targets. */
-    listMatchForm?: boolean;
 }
 export function SearchBar({ size = "default", ...props }: Omit<SearchBarProps, "className">) {
     const isHero = size === "hero";
@@ -99,12 +93,8 @@ export function TruncatedSearchBar({
     value,
     size = "default",
     fill = false,
-    // Mobile/truncated bar: show suggestions by default (desktop ExtendedSearchBar already does).
-    forceDropdown = true,
+    forceDropdown = false,
     placeholder,
-    listClassName,
-    focusOnMount = false,
-    listMatchForm = true,
 }: SearchBarProps) {
     const isHero = size === "hero";
     return (
@@ -118,9 +108,6 @@ export function TruncatedSearchBar({
             fill={fill}
             forceDropdown={forceDropdown}
             placeholder={placeholder}
-            listClassName={listClassName}
-            focusOnMount={focusOnMount}
-            listMatchForm={listMatchForm}
             inputClassName="pl-0"
             LeftSlot={
                 <div className={cn("rounded-l-full bg-card", isHero ? "h-12 w-6" : "h-10 w-5")} />
@@ -130,7 +117,7 @@ export function TruncatedSearchBar({
                     type="submit"
                     aria-label="Search"
                     className={cn(
-                        "rounded-l-none rounded-r-full bg-card text-brand -ml-px",
+                        "rounded-l-none rounded-r-full bg-card text-brand",
                         "hover:bg-muted focus-visible:outline-hidden",
                         "focus-visible:ring-3 focus-visible:ring-ring/35",
                         isHero ? "px-3 py-1" : "px-2 py-1",
@@ -217,9 +204,6 @@ interface SearchBaseProps {
     fill?: boolean;
     forceDropdown?: boolean;
     placeholder?: string;
-    listClassName?: string;
-    focusOnMount?: boolean;
-    listMatchForm?: boolean;
 }
 function SearchBase({
     value,
@@ -234,9 +218,6 @@ function SearchBase({
     fill = false,
     forceDropdown = false,
     placeholder,
-    listClassName,
-    focusOnMount = false,
-    listMatchForm = false,
 }: SearchBaseProps) {
     const { data: allProfessors } = trpc.professors.all.useQuery(undefined, {
         meta: { suppressGlobalErrorToast: true },
@@ -298,7 +279,6 @@ function SearchBase({
                 "flex w-full min-w-0 justify-center sm:w-auto",
                 // One shadow on the whole pill — per-segment shadows leave a seam at the chevron.
                 "shadow-2xl",
-                listMatchForm && "relative",
                 className,
             )}
             onSubmit={onFormSubmit}
@@ -331,9 +311,6 @@ function SearchBase({
                 )}
                 disableDropdown={disableAutoComplete ?? false}
                 forceDropdown={forceDropdown}
-                listClassName={listClassName}
-                focusOnMount={focusOnMount}
-                listMatchForm={listMatchForm}
             />
             {RightSlot}
         </form>
