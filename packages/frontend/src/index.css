@@ -34,6 +34,16 @@
 */
 @custom-variant dark (&:where(.dark, .dark *));
 
+/*
+  Width-only `sm`/`md` treat phone landscape (e.g. iPhone 14 ≈ 844×390) as desktop:
+  the Professor/Course search bar and inline nav crush into a short viewport.
+  These variants also require enough height so landscape phones keep mobile chrome.
+*/
+@custom-variant tall-sm (@media (min-width: 640px) and (min-height: 500px));
+@custom-variant tall-md (@media (min-width: 768px) and (min-height: 500px));
+/* Phone landscape / short browser chrome — compress hero and decorative bands. */
+@custom-variant short (@media (max-height: 500px));
+
 @theme {
   /* Navbar is h-14 (3.5rem). Tailwind v4 does not emit legacy JS `theme.extend.height`
      keys as utilities; define tokens here so `h-screen-wo-nav` / `min-h-screen-wo-nav` work. */

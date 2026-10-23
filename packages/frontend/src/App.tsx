@@ -21,7 +21,14 @@ import { trpc, trpcClientOptions } from "./trpc";
 import { Toaster } from "./components/ui/sonner";
 import { createIDBPersister } from "./utils/idbPersister";
 import { getApiErrorMessage, isExpectedSilentQueryError } from "./utils";
-import { AuthContext, ThemeContext, useAuthState, useTheme, useThemeState } from "./hooks";
+import {
+    AuthContext,
+    MobileSearchProvider,
+    ThemeContext,
+    useAuthState,
+    useTheme,
+    useThemeState,
+} from "./hooks";
 
 /**
  * Bump this when persisted React Query data shape changes incompatibly
@@ -227,23 +234,25 @@ function BaseComponent() {
     const { theme } = useTheme();
 
     return (
-        <div className="flex h-full flex-col overflow-hidden">
-            <ScrollRestoration />
-            <Toaster theme={theme} />
-            <Navbar />
-            <AppScroll>
-                {/* Fills the scroll viewport so the footer sits at the bottom on short pages. The
+        <MobileSearchProvider>
+            <div className="flex h-full flex-col overflow-hidden">
+                <ScrollRestoration />
+                <Toaster theme={theme} />
+                <Navbar />
+                <AppScroll>
+                    {/* Fills the scroll viewport so the footer sits at the bottom on short pages. The
                     page row is a definite height, so pages can use `h-full` / `min-h-full`. */}
-                <div className="grid min-h-full grid-rows-[1fr_auto]">
-                    <div className="min-w-0">
-                        <Suspense fallback={<RouteFallback />}>
-                            <Outlet />
-                        </Suspense>
+                    <div className="grid min-h-full grid-rows-[1fr_auto]">
+                        <div className="min-w-0">
+                            <Suspense fallback={<RouteFallback />}>
+                                <Outlet />
+                            </Suspense>
+                        </div>
+                        <Footer />
                     </div>
-                    <Footer />
-                </div>
-            </AppScroll>
-        </div>
+                </AppScroll>
+            </div>
+        </MobileSearchProvider>
     );
 }
 
