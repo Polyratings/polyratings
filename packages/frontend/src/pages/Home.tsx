@@ -7,7 +7,9 @@ import { cn, DEFAULT_DESCRIPTION, getRandomSubarray } from "@/utils";
 import Logo from "@/assets/Logo.svg";
 import homeHeader from "@/assets/home-header.webp";
 import duskCampus from "@/assets/worst-of-worst-background.webp";
-import { BestOfTheBestCarousel, PageMeta, SearchBar, SearchState } from "@/components";
+import { PageMeta } from "@/components/PageMeta";
+import { SearchBar, type SearchState } from "@/components/SearchBar";
+import { BestOfTheBestCarousel } from "@/components/BestOfTheBestCarousel";
 import { useParallax } from "@/hooks";
 import { trpc } from "@/trpc";
 
