@@ -1,4 +1,5 @@
-import { PageMeta, StaticPageHeader } from "@/components";
+import { PageMeta } from "@/components/PageMeta";
+import { StaticPageHeader } from "@/components/StaticPageHeader";
 import { cn } from "@/utils";
 
 export function About() {
