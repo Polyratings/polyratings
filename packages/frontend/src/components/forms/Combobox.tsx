@@ -43,6 +43,7 @@ export interface ComboboxProps extends Omit<React.ComponentProps<"select">, "chi
     wrapperClassName?: string;
     hideLabel?: boolean;
     placeholder?: string;
+    /** Always shown at the end of the list (e.g. "Other" for manual course entry). */
     noResultsOption?: { value: string; label: string };
 }
 
@@ -335,23 +336,15 @@ export const Combobox = forwardRef<HTMLSelectElement, ComboboxProps>(
                             hidden={!isOpen}
                             onMouseDown={(event) => event.preventDefault()}
                         >
-                            {matchingOptions.length === 0 && noResultsOption ? (
-                                <>
+                            {matchingOptions.length === 0 ? (
+                                noResultsOption ? (
                                     <p className="px-2 py-1.5 text-sm text-muted-foreground">
                                         No results found.
                                     </p>
-                                    <CommandItem
-                                        key={noResultsOption.value || "empty"}
-                                        value={toItemValue(noResultsOption.value)}
-                                        onPointerDown={(event) => event.preventDefault()}
-                                        onSelect={() => emitChange(noResultsOption.value)}
-                                    >
-                                        {noResultsOption.label}
-                                    </CommandItem>
-                                </>
-                            ) : (
-                                <CommandEmpty>No results found.</CommandEmpty>
-                            )}
+                                ) : (
+                                    <CommandEmpty>No results found.</CommandEmpty>
+                                )
+                            ) : null}
                             {matchingOptions.map((option) => (
                                 <CommandItem
                                     key={option.value || "empty"}
@@ -362,6 +355,17 @@ export const Combobox = forwardRef<HTMLSelectElement, ComboboxProps>(
                                     {option.label}
                                 </CommandItem>
                             ))}
+                            {noResultsOption &&
+                            !options.some((option) => option.value === noResultsOption.value) ? (
+                                <CommandItem
+                                    key={noResultsOption.value || "empty"}
+                                    value={toItemValue(noResultsOption.value)}
+                                    onPointerDown={(event) => event.preventDefault()}
+                                    onSelect={() => emitChange(noResultsOption.value)}
+                                >
+                                    {noResultsOption.label}
+                                </CommandItem>
+                            ) : null}
                         </CommandList>,
                         document.body,
                     )}

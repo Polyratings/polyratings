@@ -227,8 +227,8 @@ describe("form wrappers (accessibility)", () => {
         expect(getByRole("combobox", { name: "Course" })).toHaveValue("Other");
     });
 
-    it("does not offer Other until the course search has no matches", () => {
-        const { getByRole, queryByRole } = render(
+    it("always offers Other alongside matching course options", () => {
+        const { getByRole } = render(
             <Combobox
                 name="knownCourse"
                 label="Course"
@@ -240,7 +240,7 @@ describe("form wrappers (accessibility)", () => {
         fireEvent.focus(getByRole("combobox", { name: "Course" }));
 
         expect(getByRole("option", { name: "CSC 101" })).toBeTruthy();
-        expect(queryByRole("option", { name: "Other" })).toBeNull();
+        expect(getByRole("option", { name: "Other" })).toBeTruthy();
     });
 
     it("does not submit a value when the combobox is untouched", async () => {
