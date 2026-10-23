@@ -1,32 +1,53 @@
-/* eslint-disable react/no-unstable-nested-components */
-import { type ChangeEvent, Fragment, type FormEvent, useState } from "react";
-import { IndexRouteObject, Navigate, useLoaderData, useParams } from "react-router";
-import AnimateHeight from "react-animate-height";
-import AnchorLink from "react-anchor-link-smooth-scroll";
-import StarRatings from "react-star-ratings";
-import Modal from "react-modal";
-import { TagIcon } from "@heroicons/react/24/solid";
-import { FlagIcon, LockClosedIcon, LockOpenIcon } from "@heroicons/react/24/outline";
+import { type ChangeEvent, type FormEvent, useState } from "react";
+import {
+    IndexRouteObject,
+    Link,
+    Navigate,
+    useLoaderData,
+    useParams,
+    useSearchParams,
+} from "react-router";
+import {
+    ChevronLeftIcon,
+    FlagIcon,
+    LockClosedIcon,
+    LockOpenIcon,
+} from "@heroicons/react/24/outline";
 import { z } from "zod";
 import { SubmitHandler, useForm } from "react-hook-form";
-import { toast } from "react-toastify";
+import { toast } from "sonner";
 import { TRPCClientError } from "@trpc/client";
 import { inferProcedureOutput } from "@trpc/server";
 import { AppRouter } from "@backend/index";
-import { InView } from "react-intersection-observer";
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
-    TwoStepEvaluateProfessor,
     TextArea,
     TextInput,
-    EvaluateProfessorFormLinear,
+    Button,
+    Rating,
+    FilledStar,
+    RatingCard,
+    ProfessorTag,
+    CourseFilterBar,
+    PageMeta,
 } from "@/components";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog";
+import { Textarea } from "@/components/ui/textarea";
 import { trpc } from "@/trpc";
-import { REACT_MODAL_STYLES } from "@/constants";
-import { Button } from "@/components/forms/Button";
-import { useAuth, useSortedCourses } from "@/hooks";
-import { getApiErrorMessage } from "@/utils";
-import { NotFoundRedirect } from "./NotFoundRedirect";
+import { useAuth, useSortedCourses, type CourseRatings } from "@/hooks";
+import {
+    cn,
+    formError,
+    formErrors,
+    getApiErrorMessage,
+    getCoursePrefix,
+    professorJsonLd,
+    professorPageDescription,
+    professorPageTitle,
+    withClearErrorOnChange,
+} from "@/utils";
+import { NotFound } from "./NotFound";
 
 type ValueOf<T> = T[keyof T];
 
@@ -40,7 +61,7 @@ export function ProfessorPageRoute() {
     const loaderData = useLoaderData() as ProfessorPageLoaderData;
 
     if (loaderData.notFound) {
-        return <NotFoundRedirect variant="professor" />;
+        return <NotFound variant="professor" />;
     }
 
     return <ProfessorPage />;
@@ -87,7 +108,6 @@ function LockProfessorModal({
     onConfirm,
     isPending,
 }: LockProfessorModalProps) {
-    // Parent remounts this modal with a key when opening so currentMessage is fresh.
     const [message, setMessage] = useState(currentMessage ?? "");
 
     const handleSubmit = (e: FormEvent) => {
@@ -96,35 +116,42 @@ function LockProfessorModal({
     };
 
     return (
-        <Modal isOpen={isOpen} onRequestClose={onClose} style={REACT_MODAL_STYLES}>
-            <div className="w-screen rounded-sm bg-white p-5 shadow-sm sm:w-140">
+        <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
+            <DialogContent
+                showCloseButton={false}
+                className="w-screen max-w-[min(35rem,calc(100vw-2rem))] rounded-xl bg-card p-5 sm:w-140 sm:max-w-140"
+            >
                 <form className="relative text-left" onSubmit={handleSubmit}>
                     <button
-                        className="absolute top-0 right-0 cursor-pointer p-3 font-bold"
+                        className={cn(
+                            "absolute right-0 top-0 cursor-pointer rounded-md p-3 font-bold",
+                            "focus-visible:outline-hidden focus-visible:ring-3 focus-visible:ring-ring/50",
+                        )}
                         onClick={onClose}
                         type="button"
                     >
                         X
                     </button>
-                    <h2 className="mb-4 text-3xl font-semibold">Lock Professor</h2>
-                    <p className="mb-4 text-gray-600">
+                    <DialogTitle className="mb-4 pr-10 text-2xl font-semibold sm:text-3xl">
+                        Lock Professor
+                    </DialogTitle>
+                    <DialogDescription className="mb-4 text-muted-foreground">
                         Enter the banner message shown to visitors when this professor is locked.
                         New ratings will be disabled.
-                    </p>
+                    </DialogDescription>
                     <div className="mb-4 flex w-full flex-col text-inherit">
-                        <label className="text-xs whitespace-nowrap" htmlFor="lockProfessorMessage">
-                            Banner message
-                            <textarea
-                                id="lockProfessorMessage"
-                                name="lockedMessage"
-                                placeholder="This professor is not accepting new ratings."
-                                className="mt-1 block h-24 w-full rounded-sm border border-[#c3cdd5] bg-[#f2f5f8] p-2 text-black active:bg-[#f2feff]"
-                                value={message}
-                                onChange={(e: ChangeEvent<HTMLTextAreaElement>) =>
-                                    setMessage(e.target.value)
-                                }
-                            />
-                        </label>
+                        <span className="text-sm whitespace-nowrap">Banner message</span>
+                        <Textarea
+                            aria-label="Banner message"
+                            id="lockProfessorMessage"
+                            name="lockedMessage"
+                            placeholder="This professor is not accepting new ratings."
+                            className="mt-1 block field-sizing-fixed h-24 min-h-24"
+                            value={message}
+                            onChange={(e: ChangeEvent<HTMLTextAreaElement>) =>
+                                setMessage(e.target.value)
+                            }
+                        />
                     </div>
                     <div className="mt-4 flex justify-center">
                         <Button type="submit" disabled={isPending}>
@@ -132,28 +159,18 @@ function LockProfessorModal({
                         </Button>
                     </div>
                 </form>
-            </div>
-        </Modal>
+            </DialogContent>
+        </Dialog>
     );
 }
 
 export function ProfessorPage() {
     const { id } = useParams<{ id: string }>();
+    const [searchParams] = useSearchParams();
 
-    const [courseVisibility, setCourseVisibility] = useState<boolean[]>([]);
-    const firstVisibleCourseIndex = courseVisibility.findIndex(Boolean);
     const [selectedRatingIds, setSelectedRatingIds] = useState<Set<string>>(new Set());
     const [bulkDeleteConfirmShown, setBulkDeleteConfirmShown] = useState(false);
     const [bulkDeleteReason, setBulkDeleteReason] = useState("");
-    const [bulkDeleteScopeId, setBulkDeleteScopeId] = useState(id);
-
-    // Reset bulk-delete UI when navigating to a different professor (during render).
-    if (id !== bulkDeleteScopeId) {
-        setBulkDeleteScopeId(id);
-        setSelectedRatingIds(new Set());
-        setBulkDeleteConfirmShown(false);
-        setBulkDeleteReason("");
-    }
 
     const { data: professorData, error: fetchError } = trpc.professors.get.useQuery(
         {
@@ -162,6 +179,16 @@ export function ProfessorPage() {
         { meta: { suppressGlobalErrorToast: true } },
     );
     const trpcContext = trpc.useUtils();
+
+    const professorRouteKey = professorData?.id ?? id ?? "";
+    const [bulkResetKey, setBulkResetKey] = useState(professorRouteKey);
+    if (bulkResetKey !== professorRouteKey) {
+        setBulkResetKey(professorRouteKey);
+        setSelectedRatingIds(new Set());
+        setBulkDeleteConfirmShown(false);
+        setBulkDeleteReason("");
+    }
+
     const { isAuthenticated } = useAuth();
     const [lockModalShown, setLockModalShown] = useState(false);
     const lockProfessorMutation = trpc.admin.lockProfessor.useMutation({
@@ -200,31 +227,34 @@ export function ProfessorPage() {
         .slice(0, 4);
 
     const sortedCourses = useSortedCourses(id);
-
-    const [professorEvaluationShownDesktop, setProfessorEvaluationShownDesktop] = useState(false);
-    const [professorEvaluationShownMobile, setProfessorEvaluationShownMobile] = useState(false);
+    const visibleCourses = coursesVisibleForFilter(
+        sortedCourses,
+        searchParams.get("course"),
+        searchParams.get("prefix"),
+    );
 
     if (fetchError && !professorData) {
         return <Navigate to="/" replace />;
     }
 
     return (
-        <div>
-            <Modal
-                isOpen={professorEvaluationShownDesktop}
-                onRequestClose={() => setProfessorEvaluationShownDesktop(false)}
-                style={REACT_MODAL_STYLES}
-            >
-                <div className="w-162 rounded-sm bg-white p-5 opacity-100 shadow-sm">
-                    <TwoStepEvaluateProfessor
-                        professor={professorData}
-                        closeForm={() => setProfessorEvaluationShownDesktop(false)}
-                    />
-                </div>
-            </Modal>
-
+        <div id="main" tabIndex={-1} className="outline-none">
+            {professorData ? (
+                <PageMeta
+                    title={professorPageTitle(professorData)}
+                    description={professorPageDescription(professorData)}
+                    path={`/professor/${professorData.id}`}
+                    jsonLd={professorJsonLd(professorData, `/professor/${professorData.id}`)}
+                />
+            ) : (
+                <PageMeta
+                    title="Professor"
+                    description="Student ratings of a Cal Poly professor on Polyratings."
+                    path={`/professor/${id ?? ""}`}
+                />
+            )}
             <LockProfessorModal
-                key={lockModalShown ? `open:${professorData?.lockedMessage ?? ""}` : "closed"}
+                key={lockModalShown ? `open-${professorData?.lockedMessage ?? ""}` : "closed"}
                 isOpen={lockModalShown}
                 onClose={() => setLockModalShown(false)}
                 currentMessage={professorData?.lockedMessage}
@@ -238,38 +268,43 @@ export function ProfessorPage() {
                 isPending={lockProfessorMutation.isPending}
             />
 
-            <Modal
-                isOpen={bulkDeleteConfirmShown}
-                onRequestClose={() =>
-                    !bulkDeleteRatingsMutation.isPending && setBulkDeleteConfirmShown(false)
+            <Dialog
+                open={bulkDeleteConfirmShown}
+                onOpenChange={(open) =>
+                    !open &&
+                    !bulkDeleteRatingsMutation.isPending &&
+                    setBulkDeleteConfirmShown(false)
                 }
-                style={REACT_MODAL_STYLES}
             >
-                <div className="w-screen max-w-md rounded-sm bg-white p-5 shadow-sm">
-                    <h2 className="mb-2 text-xl font-semibold">Delete selected ratings?</h2>
-                    <p className="mb-4 text-gray-600">
+                <DialogContent
+                    showCloseButton={false}
+                    className="w-screen max-w-[min(28rem,calc(100vw-2rem))] rounded-xl bg-card p-5"
+                >
+                    <DialogTitle className="mb-2 text-xl font-semibold">
+                        Delete selected ratings?
+                    </DialogTitle>
+                    <DialogDescription className="mb-4 text-muted-foreground">
                         You are about to permanently delete {selectedRatingIds.size} rating
                         {selectedRatingIds.size === 1 ? "" : "s"}. This action will be logged to
                         Discord.
-                    </p>
-                    <label
-                        className="mb-1 block text-sm font-medium text-gray-700"
-                        htmlFor="bulk-delete-reason"
-                    >
+                    </DialogDescription>
+                    <span className="mb-1 block text-sm font-medium text-foreground">
                         Reason for deletion (required, included in audit log)
-                        <textarea
-                            id="bulk-delete-reason"
-                            placeholder="e.g. Spam, off-topic, policy violation"
-                            className="mt-1 mb-4 block h-24 w-full resize-y rounded-sm border border-gray-300 bg-gray-50 p-2 text-black"
-                            value={bulkDeleteReason}
-                            onChange={(e: ChangeEvent<HTMLTextAreaElement>) =>
-                                setBulkDeleteReason(e.target.value)
-                            }
-                        />
-                    </label>
+                    </span>
+                    <Textarea
+                        id="bulk-delete-reason"
+                        aria-label="Reason for deletion (required, included in audit log)"
+                        placeholder="e.g. Spam, off-topic, policy violation"
+                        className="mt-1 mb-4 field-sizing-fixed h-24 min-h-24"
+                        value={bulkDeleteReason}
+                        onChange={(e: ChangeEvent<HTMLTextAreaElement>) =>
+                            setBulkDeleteReason(e.target.value)
+                        }
+                    />
                     <div className="flex justify-end gap-2">
                         <Button
                             type="button"
+                            variant="outline"
                             onClick={() => setBulkDeleteConfirmShown(false)}
                             disabled={bulkDeleteRatingsMutation.isPending}
                         >
@@ -277,6 +312,7 @@ export function ProfessorPage() {
                         </Button>
                         <Button
                             type="button"
+                            variant="destructive"
                             onClick={() => {
                                 if (!professorData?.id) return;
                                 const validIds = new Set(
@@ -297,7 +333,7 @@ export function ProfessorPage() {
                                 }
                                 if (idsToSend.length < selectedRatingIds.size) {
                                     const n = selectedRatingIds.size;
-                                    toast.warn(
+                                    toast.warning(
                                         `${idsToSend.length} of ${n} selected still on professor. Deleting those.`,
                                     );
                                 }
@@ -314,16 +350,33 @@ export function ProfessorPage() {
                             {bulkDeleteRatingsMutation.isPending ? "Deleting…" : "Delete"}
                         </Button>
                     </div>
-                </div>
-            </Modal>
+                </DialogContent>
+            </Dialog>
 
-            <div className="mx-auto flex w-full justify-center px-2 pt-4 pb-3 md:justify-between md:pt-10 lg:max-w-5xl">
-                <div className="flex flex-col">
-                    <h2 className="text-lg font-semibold">{professorData?.department} Professor</h2>
-
-                    <h1 className="text-5xl font-bold">
+            <header
+                className={cn(
+                    "mx-auto flex w-full max-w-5xl flex-col items-center justify-center px-4 pt-8 pb-6",
+                    "md:flex-row md:items-start md:justify-between md:pt-10",
+                )}
+            >
+                <div className="flex w-full min-w-0 flex-col md:w-auto">
+                    <Link
+                        to="/search/name"
+                        className={cn(
+                            "mb-4 inline-flex items-center gap-1 self-start text-sm font-medium text-brand",
+                            "hover:underline",
+                            "focus-visible:outline-hidden focus-visible:ring-3 focus-visible:ring-ring/50",
+                        )}
+                    >
+                        <ChevronLeftIcon className="size-4" aria-hidden />
+                        Back to professor list
+                    </Link>
+                    <h1 className="text-3xl font-bold tracking-tight break-words sm:text-4xl md:text-5xl">
                         {professorData?.lastName}, {professorData?.firstName}
                     </h1>
+                    <h2 className="mt-2 text-base font-medium text-muted-foreground">
+                        {professorData?.department} Professor
+                    </h2>
 
                     {Boolean(topTags.length) && (
                         <div className="mt-4 mb-2 flex flex-wrap gap-2">
@@ -336,12 +389,11 @@ export function ProfessorPage() {
                     <StatsCard className="mt-4 mb-3 block md:hidden" professor={professorData} />
 
                     <div className="mt-4 hidden md:flex md:flex-wrap md:items-center md:gap-2">
-                        {!professorData?.locked && (
-                            <Button
-                                onClick={() => setProfessorEvaluationShownDesktop(true)}
-                                type="button"
-                            >
-                                Evaluate Professor
+                        {!professorData?.locked && professorData && (
+                            <Button size="lg" className="text-base" asChild>
+                                <Link to={`/professor/${professorData.id}/eval`}>
+                                    Evaluate Professor
+                                </Link>
                             </Button>
                         )}
                         {isAuthenticated &&
@@ -349,6 +401,8 @@ export function ProfessorPage() {
                             (professorData.locked ? (
                                 <Button
                                     type="button"
+                                    size="lg"
+                                    variant="outline"
                                     onClick={() =>
                                         lockProfessorMutation.mutate({
                                             professorId: professorData.id,
@@ -361,24 +415,24 @@ export function ProfessorPage() {
                                     Unlock Professor
                                 </Button>
                             ) : (
-                                <Button type="button" onClick={() => setLockModalShown(true)}>
+                                <Button
+                                    type="button"
+                                    size="lg"
+                                    variant="outline"
+                                    onClick={() => setLockModalShown(true)}
+                                >
                                     <LockClosedIcon className="mr-1 inline h-4 w-4" />
                                     Lock Professor
                                 </Button>
                             ))}
                     </div>
 
-                    <div className="m-auto mt-4 flex flex-wrap items-center justify-center gap-2 md:hidden">
-                        {!professorData?.locked && (
-                            <Button
-                                onClick={() =>
-                                    setProfessorEvaluationShownMobile(
-                                        !professorEvaluationShownMobile,
-                                    )
-                                }
-                                type="button"
-                            >
-                                Evaluate Professor
+                    <div className="mt-4 flex w-full flex-col gap-2 md:hidden">
+                        {!professorData?.locked && professorData && (
+                            <Button size="lg" className="w-full text-base" asChild>
+                                <Link to={`/professor/${professorData.id}/eval`}>
+                                    Evaluate Professor
+                                </Link>
                             </Button>
                         )}
                         {isAuthenticated &&
@@ -386,6 +440,8 @@ export function ProfessorPage() {
                             (professorData.locked ? (
                                 <Button
                                     type="button"
+                                    size="lg"
+                                    variant="outline"
                                     onClick={() =>
                                         lockProfessorMutation.mutate({
                                             professorId: professorData.id,
@@ -398,26 +454,29 @@ export function ProfessorPage() {
                                     Unlock Professor
                                 </Button>
                             ) : (
-                                <Button type="button" onClick={() => setLockModalShown(true)}>
+                                <Button
+                                    type="button"
+                                    size="lg"
+                                    variant="outline"
+                                    onClick={() => setLockModalShown(true)}
+                                >
                                     <LockClosedIcon className="mr-1 inline h-4 w-4" />
                                     Lock Professor
                                 </Button>
                             ))}
                     </div>
-                </div>{" "}
-                <div>
-                    <StatsCard
-                        className="mt-4 mb-3 ml-8 hidden md:block"
-                        professor={professorData}
-                    />
                 </div>
-            </div>
+                <StatsCard
+                    className="mt-4 mb-3 hidden md:ml-8 md:block"
+                    professor={professorData}
+                />
+            </header>
 
             {professorData?.locked && (
-                <div className="mx-auto mt-2 w-full px-2 lg:max-w-5xl">
-                    <div className="flex items-center gap-2 rounded-lg border border-amber-300 bg-amber-100 px-4 py-3 text-amber-900">
-                        <LockClosedIcon className="h-5 w-5 shrink-0" />
-                        <p className="font-medium">
+                <div className="mx-auto mt-4 mb-4 w-full max-w-5xl px-4">
+                    <div className="flex items-center gap-2 rounded-lg border border-input bg-card px-4 py-4 text-foreground">
+                        <LockClosedIcon className="h-5 w-5 shrink-0 text-muted-foreground" />
+                        <p className="text-base font-medium">
                             {professorData.lockedMessage ||
                                 "This professor is not accepting new ratings."}
                         </p>
@@ -425,39 +484,28 @@ export function ProfessorPage() {
                 </div>
             )}
 
-            {/* Mobile divider */}
-            <div className="h-1 w-full bg-cal-poly-green sm:hidden" />
-
-            {/* Desktop Divider */}
-            <div className="mx-auto mt-2 hidden px-2 sm:block lg:max-w-5xl">
-                <div className="h-1 w-full bg-cal-poly-green" />
-            </div>
-            <AnimateHeight duration={500} height={professorEvaluationShownMobile ? "auto" : 0}>
-                <div className="bg-cal-poly-green p-5 text-white">
-                    <EvaluateProfessorFormLinear
-                        professor={professorData}
-                        closeForm={() => setProfessorEvaluationShownMobile(false)}
-                    />
-                </div>
-            </AnimateHeight>
+            {sortedCourses.length <= 1 && (
+                <div className="mx-auto w-full max-w-5xl border-b border-border px-4" />
+            )}
 
             {isAuthenticated && selectedRatingIds.size > 0 && (
-                <div className="mx-auto mt-4 w-full px-2 lg:max-w-5xl">
-                    <div className="flex items-center justify-between rounded-lg border border-red-200 bg-red-50 px-4 py-3">
-                        <span className="font-medium text-red-900">
+                <div className="mx-auto mt-4 w-full max-w-5xl px-4">
+                    <div className="flex flex-col gap-3 rounded-xl border border-destructive/30 bg-destructive/10 px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
+                        <span className="font-medium text-red-900 dark:text-red-200">
                             {selectedRatingIds.size} rating{selectedRatingIds.size === 1 ? "" : "s"}{" "}
                             selected
                         </span>
-                        <div className="flex items-center gap-3">
+                        <div className="flex flex-wrap items-center gap-3">
                             <button
                                 type="button"
                                 onClick={() => setSelectedRatingIds(new Set())}
-                                className="text-sm text-red-700 underline"
+                                className="min-h-11 text-sm text-red-700 underline dark:text-red-300"
                             >
                                 Clear selection
                             </button>
                             <Button
                                 type="button"
+                                variant="destructive"
                                 onClick={() => setBulkDeleteConfirmShown(true)}
                                 disabled={bulkDeleteRatingsMutation.isPending}
                             >
@@ -468,90 +516,59 @@ export function ProfessorPage() {
                 </div>
             )}
 
+            {sortedCourses.length > 1 && (
+                <CourseFilterBar courses={sortedCourses.map((course) => course.courseName)} />
+            )}
+
             {professorData &&
-                sortedCourses &&
-                sortedCourses.map(({ courseName, ratings }, i) => (
-                    <Fragment key={courseName}>
-                        <InView
-                            as="div"
-                            className="relative pt-4"
-                            id={courseName}
-                            onChange={(status) => {
-                                courseVisibility[i] = status;
-                                setCourseVisibility([...courseVisibility]);
-                            }}
-                        >
-                            <div className="container m-auto flex flex-col px-2 md:max-w-5xl">
-                                <h3 className="my-3 ml-2 text-4xl font-semibold">{courseName}</h3>
-                                {ratings.map((rating) => (
-                                    <RatingCard
-                                        key={rating.id}
-                                        rating={rating}
-                                        professorId={professorData.id}
-                                        showBulkDeleteCheckbox={isAuthenticated}
-                                        isSelected={selectedRatingIds.has(rating.id)}
-                                        onToggleSelect={() => toggleRatingSelection(rating.id)}
-                                    />
-                                ))}
-                            </div>
-                        </InView>
-                        {/* Add space outside the interaction observer to get scroll to highlight correct course */}
-                        <div className="block h-2 w-full" />
-                    </Fragment>
+                visibleCourses.map(({ courseName, ratings }, courseIndex) => (
+                    <section key={courseName} className="pt-4">
+                        <div className="mx-auto flex w-full max-w-5xl flex-col px-4">
+                            <h3
+                                className={cn(
+                                    "mb-2 scroll-mt-20 text-2xl font-semibold tracking-tight md:text-3xl",
+                                    courseIndex > 0 && "mt-7",
+                                )}
+                            >
+                                {courseName}
+                            </h3>
+                            {ratings.map((rating) => (
+                                <ProfessorRatingCard
+                                    key={rating.id}
+                                    rating={rating}
+                                    professorId={professorData.id}
+                                    showBulkDeleteCheckbox={isAuthenticated}
+                                    isSelected={selectedRatingIds.has(rating.id)}
+                                    onToggleSelect={() => toggleRatingSelection(rating.id)}
+                                />
+                            ))}
+                        </div>
+                    </section>
                 ))}
-            {!sortedCourses?.length && (
-                <h2 className="mt-10 text-center text-4xl text-cal-poly-green">
+            {!sortedCourses.length && (
+                <h2 className="mt-10 text-center text-3xl font-semibold tracking-tight text-foreground">
                     Be the first to add a rating!
                 </h2>
             )}
-            <ClassScroll
-                courses={sortedCourses}
-                outerClassName="hidden xl:flex flex-col fixed ml-4 top-1/2 transform -translate-y-1/2 max-h-10/12 overflow-y-auto"
-                innerClassName={(_, i) =>
-                    `text-lg font-semibold mt-2 rounded-xl px-2 py-[0.1rem] text-center ${
-                        firstVisibleCourseIndex === i
-                            ? "bg-cal-poly-gold text-white"
-                            : "text-cal-poly-green"
-                    }`
-                }
-            />
-            {/* Mobile class scroll needs room to see all ratings */}
-            <div className="block h-16 w-full xl:hidden" />
-            <ClassScroll
-                courses={sortedCourses}
-                outerClassName={`${
-                    professorEvaluationShownMobile ? "hidden" : "flex"
-                } items-center xl:hidden h-14 fixed bg-cal-poly-green w-full bottom-0 overflow-x-auto scrollbar-hide`}
-                innerClassName={() =>
-                    "text-md font-semibold h-8 bg-cal-poly-gold text-white ml-4 rounded-xl py-1 px-2 whitespace-nowrap"
-                }
-            />
         </div>
     );
 }
 
-function ClassScroll({
-    courses,
-    outerClassName,
-    innerClassName,
-}: {
-    courses: ReturnType<typeof useSortedCourses>;
-    outerClassName: string;
-    innerClassName: (course: string, index: number) => string;
-}) {
-    return (
-        <div className={outerClassName}>
-            {courses?.map(({ courseName }, i) => (
-                <AnchorLink
-                    key={courseName}
-                    href={`#${courseName}`}
-                    className={innerClassName(courseName, i)}
-                >
-                    {courseName}
-                </AnchorLink>
-            ))}
-        </div>
-    );
+function coursesVisibleForFilter(
+    sortedCourses: CourseRatings[],
+    courseParam: string | null,
+    prefixParam: string | null,
+) {
+    if (courseParam && sortedCourses.some((course) => course.courseName === courseParam)) {
+        return sortedCourses.filter((course) => course.courseName === courseParam);
+    }
+    if (
+        prefixParam &&
+        sortedCourses.some((course) => getCoursePrefix(course.courseName) === prefixParam)
+    ) {
+        return sortedCourses.filter((course) => getCoursePrefix(course.courseName) === prefixParam);
+    }
+    return sortedCourses;
 }
 
 type StatsCardProps = {
@@ -567,173 +584,101 @@ function StatsCard({ professor, className = "" }: StatsCardProps) {
     };
 
     return (
-        // Box shadow taken from figma
         <div
-            className={`flex min-w-88 flex-col gap-1 rounded-lg px-6 py-5 shadow-[0_0_50px_rgba(0,0,0,0.15)] sm:min-w-108 ${className}`}
+            className={cn(
+                "flex w-full min-w-0 flex-col rounded-lg border border-input bg-card px-5 py-5 md:w-auto md:min-w-80 md:shrink-0 md:px-6",
+                className,
+            )}
         >
-            <div className="mb-3 flex justify-between align-bottom">
-                <div className="flex items-center">
-                    <span className="text-6xl font-bold">
+            <div className="flex items-end justify-between gap-4">
+                <div className="flex items-baseline gap-1.5">
+                    <span className="text-5xl leading-none font-semibold tabular-nums md:text-6xl">
                         {naEvalZero(professor?.overallRating)}
                     </span>
-                    <span className="ml-1 hidden text-4xl font-bold sm:block">/4</span>
+                    <FilledStar className="self-center md:hidden" size="1.75rem" />
+                    <span className="text-xl font-medium text-muted-foreground">/4</span>
                 </div>
-                <div className="flex flex-col justify-end gap-0.5">
-                    <p className="text-right text-sm font-medium">
+                <div className="flex flex-col items-end gap-1">
+                    <Rating
+                        value={professor?.overallRating}
+                        size="1.5rem"
+                        gap="2px"
+                        className="hidden md:inline-flex"
+                    />
+                    <p className="text-base text-muted-foreground">
                         {professor?.numEvals} Evaluations
                     </p>
-                    <StarRatings
-                        rating={professor?.overallRating}
-                        starRatedColor="#BD8B13"
-                        numberOfStars={4}
-                        starDimension="1.8em"
-                        starSpacing="3px"
-                    />
                 </div>
             </div>
-            <div className="flex justify-between rounded-sm bg-gray-200 px-3 py-2 font-medium">
-                <p>Recognizes Difficulties</p>
-                <div className="flex items-center">
-                    {/* Hack since star ratings will not items-center properly */}
-                    <div className="mb-[0.13rem]">
-                        <StarRatings
-                            rating={professor?.studentDifficulties}
-                            starRatedColor="#BD8B13"
-                            numberOfStars={4}
-                            starDimension="1.1rem"
-                            starSpacing="1px"
+            <dl className="mt-5 space-y-1 border-t border-border pt-4">
+                <div className="flex items-center justify-between gap-4 py-2.5">
+                    <dt className="min-w-0 text-base text-muted-foreground">
+                        Recognizes Difficulties
+                    </dt>
+                    <dd className="flex shrink-0 items-center gap-3">
+                        <Rating
+                            value={professor?.studentDifficulties}
+                            size="1.25rem"
+                            gap="1px"
+                            className="hidden md:inline-flex"
                         />
-                    </div>
-                    <span className="mr-1 ml-4 hidden sm:block">
-                        {naEvalZero(professor?.studentDifficulties)}
-                    </span>
+                        <FilledStar className="md:hidden" size="1.25rem" />
+                        <span className="w-10 text-right text-lg tabular-nums">
+                            {naEvalZero(professor?.studentDifficulties)}
+                        </span>
+                    </dd>
                 </div>
-            </div>
-            <div className="mt-2 flex justify-between rounded-sm bg-gray-200 px-3 py-2 font-medium">
-                <p>Presents Clearly</p>
-                <div className="flex items-center">
-                    {/* Hack since star ratings will not items-center properly */}
-                    <div className="mb-[0.13rem]">
-                        <StarRatings
-                            rating={professor?.materialClear}
-                            starRatedColor="#BD8B13"
-                            numberOfStars={4}
-                            starDimension="1.1rem"
-                            starSpacing="1px"
+                <div className="flex items-center justify-between gap-4 py-2.5">
+                    <dt className="min-w-0 text-base text-muted-foreground">Presents Clearly</dt>
+                    <dd className="flex shrink-0 items-center gap-3">
+                        <Rating
+                            value={professor?.materialClear}
+                            size="1.25rem"
+                            gap="1px"
+                            className="hidden md:inline-flex"
                         />
-                    </div>
-                    <span className="mr-1 ml-4 hidden sm:block">
-                        {naEvalZero(professor?.materialClear)}
-                    </span>
+                        <FilledStar className="md:hidden" size="1.25rem" />
+                        <span className="w-10 text-right text-lg tabular-nums">
+                            {naEvalZero(professor?.materialClear)}
+                        </span>
+                    </dd>
                 </div>
-            </div>
+            </dl>
         </div>
     );
 }
 
-interface RatingCardProps {
+interface ProfessorRatingCardProps {
     professorId: string;
     rating: ValueOf<inferProcedureOutput<AppRouter["professors"]["get"]>["reviews"]>[0];
     showBulkDeleteCheckbox?: boolean;
     isSelected?: boolean;
     onToggleSelect?: () => void;
 }
-function RatingCard({
+function ProfessorRatingCard({
     rating,
     professorId,
     showBulkDeleteCheckbox = false,
     isSelected = false,
     onToggleSelect,
-}: RatingCardProps) {
+}: ProfessorRatingCardProps) {
     return (
-        <div className="relative my-2 flex w-full flex-col rounded-3xl border-4 border-cal-poly-green bg-white px-6 py-3 md:flex-row">
-            <div className="mr-4 hidden shrink-0 flex-col gap-1 text-center md:flex">
-                <div className="mb-2">
-                    {/* Only show stars for ratings from the new site */}
-                    {new Date(rating.postDate).getFullYear() >= 2022 && (
-                        <StarRatings
-                            rating={rating?.overallRating}
-                            starRatedColor="#BD8B13"
-                            numberOfStars={4}
-                            starDimension="1.1rem"
-                            starSpacing="1px"
+        <RatingCard
+            rating={rating}
+            actions={
+                <>
+                    {showBulkDeleteCheckbox && (
+                        <Checkbox
+                            id={`rating-select-${rating.id}`}
+                            checked={isSelected}
+                            onCheckedChange={() => onToggleSelect?.()}
+                            aria-label="Select rating for bulk delete"
                         />
                     )}
-                </div>
-                <p className="whitespace-nowrap"> Grade Received: {rating.grade}</p>
-                <p>{rating.courseType}</p>
-                <p>{rating.gradeLevel}</p>
-            </div>
-
-            <div className="m-auto flex gap-4 align-middle text-sm md:hidden">
-                {/* Only show stars for ratings from the new site */}
-                {new Date(rating.postDate).getFullYear() >= 2022 && (
-                    <StarRatings
-                        rating={rating?.overallRating}
-                        starRatedColor="#BD8B13"
-                        numberOfStars={4}
-                        starDimension="1.1rem"
-                        starSpacing="1px"
-                    />
-                )}
-                {/* Weird padding to algin star ratings */}
-                <p className="pt-[0.07rem]"> Grade Received: {rating.grade}</p>
-                <p className="pt-[0.07rem]">{rating.gradeLevel}</p>
-            </div>
-
-            {/* Desktop divider */}
-            <div className="mt-2 mr-4 mb-2 hidden w-[0.08rem] shrink-0 bg-black md:flex" />
-            {/* Mobile divider */}
-            <div className="m-auto my-2 flex h-[0.08rem] w-4/5 bg-black md:hidden" />
-
-            <div className="grow py-3">
-                <p className="mb-2 text-xl font-semibold">
-                    {new Date(rating.postDate).toLocaleString("en-US", {
-                        year: "numeric",
-                        month: "short",
-                    })}
-                </p>
-                <p>{rating.rating}</p>
-                <div className="mt-2 flex justify-between">
-                    {/* A little hack to get the desired behavior with overflowing line and keeping report at bottom right */}
-                    <div className="pt-0.5">
-                        <div className="flex flex-wrap gap-1 md:gap-3">
-                            {rating.tags
-                                // Attempt to sort tags from small to large to have them on the same line
-                                ?.sort((a, b) => a.length - b.length)
-                                ?.map((tag) => (
-                                    <ProfessorTag key={tag} tagName={tag} />
-                                ))}
-                        </div>
-                    </div>
-                    <div className="flex flex-col-reverse items-end gap-2">
-                        <div className="flex items-center gap-2">
-                            {showBulkDeleteCheckbox && (
-                                <label
-                                    className="flex cursor-pointer items-center gap-2"
-                                    htmlFor={`rating-select-${rating.id}`}
-                                >
-                                    <input
-                                        id={`rating-select-${rating.id}`}
-                                        type="checkbox"
-                                        checked={isSelected}
-                                        onChange={onToggleSelect}
-                                        className="rounded border-gray-300"
-                                        aria-label="Select rating for bulk delete"
-                                    />
-                                    <span className="text-sm text-gray-600">Select</span>
-                                </label>
-                            )}
-                            <ReportButton
-                                className="ml-2 md:ml-10"
-                                professorId={professorId}
-                                ratingId={rating.id}
-                            />
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
+                    <ReportButton professorId={professorId} ratingId={rating.id} />
+                </>
+            }
+        />
     );
 }
 
@@ -746,22 +691,26 @@ function ReportButton({ professorId, ratingId, className = "" }: ReportButtonPro
     const [formShown, setFormShown] = useState(false);
     return (
         <div className={className}>
-            <Modal
-                isOpen={formShown}
-                style={REACT_MODAL_STYLES}
-                onRequestClose={() => setFormShown(false)}
-            >
-                <div className="w-screen rounded-sm bg-white p-5 shadow-sm sm:w-140">
+            <Dialog open={formShown} onOpenChange={setFormShown}>
+                <DialogContent
+                    showCloseButton={false}
+                    className="w-screen max-w-[min(35rem,calc(100vw-2rem))] rounded-xl bg-card p-5 sm:w-140 sm:max-w-140"
+                >
                     <ReportForm
                         professorId={professorId}
                         ratingId={ratingId}
                         closeForm={() => setFormShown(false)}
                     />
-                </div>
-            </Modal>
+                </DialogContent>
+            </Dialog>
 
-            <button aria-label="Report Rating" type="button" onClick={() => setFormShown(true)}>
-                <FlagIcon className="m-auto mt-1 h-6 w-6 cursor-pointer text-gray-500 transition-all hover:text-red-500" />
+            <button
+                aria-label="Report Rating"
+                type="button"
+                onClick={() => setFormShown(true)}
+                className="grid size-11 place-items-center rounded-md focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:outline-hidden"
+            >
+                <FlagIcon className="size-6 cursor-pointer text-muted-foreground transition-all hover:text-destructive" />
             </button>
         </div>
     );
@@ -778,10 +727,8 @@ const reportFormParser = z.object({
         .string()
         .optional()
         .transform((val) => (val === "" ? undefined : val))
-        .pipe(z.email().optional()),
-    reason: z
-        .string()
-        .min(1, { error: "Leaving a reason will help the team make an informed decision" }),
+        .pipe(z.email(formError(formErrors.email)).optional()),
+    reason: z.string().trim().min(1, formError(formErrors.reportReason)),
 });
 
 type ReportFormInputs = z.infer<typeof reportFormParser>;
@@ -789,11 +736,14 @@ type ReportFormInputs = z.infer<typeof reportFormParser>;
 function ReportForm({ closeForm, professorId, ratingId }: ReportFormProps) {
     const {
         register,
+        clearErrors,
         handleSubmit,
         formState: { errors },
     } = useForm<ReportFormInputs>({
         resolver: zodResolver(reportFormParser),
+        reValidateMode: "onSubmit",
     });
+    const registerField = withClearErrorOnChange(register, clearErrors);
 
     const reportMutation = trpc.ratings.report.useMutation({
         meta: { suppressGlobalErrorToast: true },
@@ -815,27 +765,32 @@ function ReportForm({ closeForm, professorId, ratingId }: ReportFormProps) {
     return (
         <form className="relative text-left" onSubmit={handleSubmit(onSubmit)}>
             <button
-                className="absolute top-0 right-0 cursor-pointer p-3 font-bold"
+                className={cn(
+                    "absolute right-0 top-0 cursor-pointer rounded-md p-3 font-bold",
+                    "focus-visible:outline-hidden focus-visible:ring-3 focus-visible:ring-ring/50",
+                )}
                 onClick={closeForm}
                 type="button"
             >
                 X
             </button>
-            <h2 className="mb-4 text-3xl font-semibold">Report Rating</h2>
+            <DialogTitle className="mb-4 pr-10 text-2xl font-semibold sm:text-3xl">
+                Report Rating
+            </DialogTitle>
             <TextInput
                 wrapperClassName="w-full!"
                 label="Email (Optional)"
                 placeholder="name@example.com"
                 error={errors.email?.message}
-                {...register("email")}
+                {...registerField("email")}
             />
             <TextArea
                 label="Reason For Reporting"
                 placeholder="This Review was offensive and contained inappropriate language."
                 wrapperClassName="mt-2"
-                className="h-40!"
+                className="h-32! sm:h-40!"
                 error={errors.reason?.message}
-                {...register("reason")}
+                {...registerField("reason")}
             />
             {reportMutation.error && (
                 <p className="mt-2 text-sm text-red-500">
@@ -851,17 +806,5 @@ function ReportForm({ closeForm, professorId, ratingId }: ReportFormProps) {
                 </Button>
             </div>
         </form>
-    );
-}
-
-type ProfessorTagProps = {
-    tagName: string;
-};
-function ProfessorTag({ tagName }: ProfessorTagProps) {
-    return (
-        <div className="flex items-center rounded-sm bg-cal-poly-light-green px-2 py-0.5 text-xs text-cal-poly-green md:text-base">
-            <TagIcon className="h-2 w-2 md:h-3 md:w-3" />
-            <span className="ml-1 font-medium md:ml-2">{tagName}</span>
-        </div>
     );
 }
