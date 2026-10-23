@@ -12,7 +12,7 @@ export function StaticPageHeader({ children, className }: StaticPageHeaderProps)
             <h1 className="text-4xl font-bold tracking-tight break-words text-brand md:text-5xl">
                 {children}
             </h1>
-            <div aria-hidden="true" className="mt-4 h-1 w-16 rounded-full bg-accent" />
+            <div aria-hidden="true" className="mt-2 h-1 w-16 rounded-full bg-accent" />
         </header>
     );
 }

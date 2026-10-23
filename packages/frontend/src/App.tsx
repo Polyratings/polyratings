@@ -25,6 +25,7 @@ import {
     SearchWrapper,
 } from "./pages";
 import { Footer, Navbar } from "./components";
+import { MobileSearchProvider } from "./hooks";
 import { trpc, trpcClientOptions } from "./trpc";
 import { Toaster } from "./components/ui/sonner";
 import { createIDBPersister } from "./utils/idbPersister";
@@ -165,21 +166,23 @@ function BaseComponent() {
     const { theme } = useTheme();
 
     return (
-        <div className="flex h-full flex-col overflow-hidden">
-            <ScrollRestoration />
-            <Toaster theme={theme} />
-            <Navbar />
-            <AppScroll>
-                {/* Fills the scroll viewport so the footer sits at the bottom on short pages. The
+        <MobileSearchProvider>
+            <div className="flex h-full flex-col overflow-hidden">
+                <ScrollRestoration />
+                <Toaster theme={theme} />
+                <Navbar />
+                <AppScroll>
+                    {/* Fills the scroll viewport so the footer sits at the bottom on short pages. The
                     page row is a definite height, so pages can use `h-full` / `min-h-full`. */}
-                <div className="grid min-h-full grid-rows-[1fr_auto]">
-                    <div className="min-w-0">
-                        <Outlet />
+                    <div className="grid min-h-full grid-rows-[1fr_auto]">
+                        <div className="min-w-0">
+                            <Outlet />
+                        </div>
+                        <Footer />
                     </div>
-                    <Footer />
-                </div>
-            </AppScroll>
-        </div>
+                </AppScroll>
+            </div>
+        </MobileSearchProvider>
     );
 }
 

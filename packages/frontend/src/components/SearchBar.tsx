@@ -1,10 +1,19 @@
+import { useCallback, useMemo, type RefObject } from "react";
 import { useNavigate } from "react-router";
 import { ChevronRightIcon, MagnifyingGlassIcon } from "@heroicons/react/24/solid";
-import { AutoComplete } from "./AutoComplete";
+import { AutoComplete, type AutoCompleteOption } from "./AutoComplete";
 import { trpc } from "@/trpc";
 import { ProfessorSearchType, professorSearch } from "@/utils/ProfessorSearch";
 import { Button } from "./forms";
 import { cn } from "@/utils";
+
+/** Cap autocomplete rows — full search page still ranks the complete list. */
+const AUTOCOMPLETE_LIMIT = 40;
+
+/** Visible placeholder for professor-name search (hero, navbar sheet, desktop bars). */
+export const PROFESSOR_SEARCH_PLACEHOLDER = "Search professors";
+/** Visible placeholder when the desktop bar is in course mode. */
+export const COURSE_SEARCH_PLACEHOLDER = "Course Number";
 
 export interface SearchState {
     type: ProfessorSearchType;
@@ -19,23 +28,71 @@ export interface SearchBarProps {
     size?: "default" | "hero";
     /** Stretch to the parent width (navbar mid-slot) instead of fixed sm+ widths. */
     fill?: boolean;
-    /** Show suggestions below `md` (used by the navbar search panel). */
+    /** Show popover suggestions below `md` (desktop navbar mid-slot). */
     forceDropdown?: boolean;
     placeholder?: string;
+    /**
+     * Mobile truncated bar: open full-screen search instead of typing in the pill
+     * (avoids soft-keyboard vs dropdown conflict). Desktop ExtendedSearchBar unchanged.
+     * Pass the launch control so close can restore focus.
+     */
+    onMobileSearchOpen?: (opener?: HTMLElement) => void;
 }
-export function SearchBar({ size = "default", ...props }: Omit<SearchBarProps, "className">) {
+
+export interface FullScreenSearchProps {
+    value: SearchState;
+    onChange: (value: SearchState) => void | Promise<void>;
+    placeholder?: string;
+    /** Left of the input (optional; branding bar often owns the back control). */
+    LeadingAction?: React.ReactNode;
+    className?: string;
+    /** Focus target for `openSearch` (must be set before the tap handler returns). */
+    inputRef?: RefObject<HTMLInputElement>;
+}
+
+/**
+ * Full-viewport search body: input + in-flow suggestions above the soft keyboard.
+ */
+export function FullScreenSearch({
+    value,
+    onChange,
+    placeholder = PROFESSOR_SEARCH_PLACEHOLDER,
+    LeadingAction,
+    className,
+    inputRef,
+}: FullScreenSearchProps) {
+    return (
+        <SearchBase
+            className={className}
+            searchType="name"
+            value={value}
+            onChange={onChange}
+            placeholder={placeholder}
+            listPlacement="inline"
+            LeadingAction={LeadingAction}
+            inputRef={inputRef}
+        />
+    );
+}
+export function SearchBar({
+    size = "default",
+    onMobileSearchOpen,
+    ...props
+}: Omit<SearchBarProps, "className">) {
     const isHero = size === "hero";
     return (
         <>
             <ExtendedSearchBar
                 {...props}
                 size={size}
-                className={cn("hidden sm:flex", !isHero && "mt-5")}
+                // tall-sm: not bare `sm` — phone landscape is wide but short.
+                className={cn("hidden tall-sm:flex", !isHero && "mt-5")}
             />
             <TruncatedSearchBar
                 {...props}
                 size={size}
-                className={cn("flex w-full sm:hidden", !isHero && "mt-5")}
+                className={cn("flex w-full tall-sm:hidden", !isHero && "mt-5")}
+                onMobileSearchOpen={onMobileSearchOpen}
             />
         </>
     );
@@ -95,8 +152,54 @@ export function TruncatedSearchBar({
     fill = false,
     forceDropdown = false,
     placeholder,
+    onMobileSearchOpen,
 }: SearchBarProps) {
     const isHero = size === "hero";
+    const launchFullScreen = Boolean(onMobileSearchOpen);
+    const placeholderText = placeholder ?? PROFESSOR_SEARCH_PLACEHOLDER;
+
+    // Button launch-pad (no input) so the first tap can focus the sheet field
+    // without a competing hero caret — required for the iOS soft keyboard.
+    if (launchFullScreen) {
+        return (
+            <button
+                type="button"
+                aria-label={placeholderText}
+                className={cn(
+                    "flex w-full min-w-0 items-stretch justify-center shadow-2xl sm:w-auto",
+                    className,
+                )}
+                onClick={(event) => onMobileSearchOpen?.(event.currentTarget)}
+            >
+                <span
+                    className={cn("rounded-l-full bg-card", isHero ? "h-12 w-6" : "h-10 w-5")}
+                    aria-hidden
+                />
+                <span
+                    className={cn(
+                        "flex min-w-0 flex-1 items-center bg-card pl-0 text-left font-normal text-muted-foreground",
+                        isHero
+                            ? "h-12 w-full text-xl sm:w-80 md:w-96 lg:h-14 lg:w-md xl:w-lg 2xl:w-xl"
+                            : fill
+                              ? "h-10 w-full min-w-0 text-base sm:text-lg"
+                              : "h-10 w-full text-lg sm:w-60 xl:w-72 2xl:w-96",
+                    )}
+                >
+                    {placeholderText}
+                </span>
+                <span
+                    className={cn(
+                        "rounded-l-none rounded-r-full bg-card text-brand",
+                        isHero ? "px-3 py-1" : "px-2 py-1",
+                    )}
+                    aria-hidden
+                >
+                    <MagnifyingGlassIcon className={isHero ? "h-9 w-9" : "h-8 w-8"} aria-hidden />
+                </span>
+            </button>
+        );
+    }
+
     return (
         <SearchBase
             className={cn(fill && "w-full sm:w-full", className)}
@@ -204,6 +307,11 @@ interface SearchBaseProps {
     fill?: boolean;
     forceDropdown?: boolean;
     placeholder?: string;
+    listPlacement?: "popover" | "inline";
+    LeadingAction?: React.ReactNode;
+    inputReadOnly?: boolean;
+    onInputFocus?: () => void;
+    inputRef?: RefObject<HTMLInputElement>;
 }
 function SearchBase({
     value,
@@ -218,6 +326,11 @@ function SearchBase({
     fill = false,
     forceDropdown = false,
     placeholder,
+    listPlacement = "popover",
+    LeadingAction,
+    inputReadOnly = false,
+    onInputFocus,
+    inputRef,
 }: SearchBaseProps) {
     const { data: allProfessors } = trpc.professors.all.useQuery(undefined, {
         meta: { suppressGlobalErrorToast: true },
@@ -250,28 +363,70 @@ function SearchBase({
         }
     };
 
-    const autoCompleteFilter = (value: string) => {
-        // eslint-disable-next-line default-case
-        switch (searchType) {
-            case "name":
-                return professorSearch(allProfessors ?? [], searchType, value).map((t) => ({
-                    label: `${t.lastName}, ${t.firstName}`,
-                    value: t.id,
-                }));
-            case "class": {
-                const allCourses = new Set(allProfessors?.flatMap((t) => t.courses));
-                return [...allCourses]
-                    .filter((course) => course.includes(value.toUpperCase()))
-                    .map((course) => ({ label: course, value: course }));
+    const courseOptions = useMemo(() => {
+        const allCourses = new Set(allProfessors?.flatMap((professor) => professor.courses) ?? []);
+        return [...allCourses].sort();
+    }, [allProfessors]);
+
+    const autoCompleteFilter = useCallback(
+        (
+            _items: NonNullable<typeof allProfessors>,
+            inputValue: string,
+        ): AutoCompleteOption<string>[] => {
+            switch (searchType) {
+                case "name":
+                    return professorSearch(allProfessors ?? [], searchType, inputValue)
+                        .slice(0, AUTOCOMPLETE_LIMIT)
+                        .map((professor) => ({
+                            label: `${professor.lastName}, ${professor.firstName}`,
+                            value: professor.id,
+                        }));
+                case "class": {
+                    const needle = inputValue.trim().toUpperCase();
+                    if (!needle) {
+                        return [];
+                    }
+                    return courseOptions
+                        .filter((course) => course.includes(needle))
+                        .slice(0, AUTOCOMPLETE_LIMIT)
+                        .map((course) => ({ label: course, value: course }));
+                }
+                default: {
+                    throw new Error("Not all autocomplete cases handled");
+                }
             }
-            default: {
-                throw new Error("Not all autocomplete cases handled");
-            }
-        }
-    };
+        },
+        [allProfessors, courseOptions, searchType],
+    );
 
     const placeholderText =
-        placeholder ?? (searchType === "name" ? "Professor Name" : "Course Number");
+        placeholder ??
+        (searchType === "name" ? PROFESSOR_SEARCH_PLACEHOLDER : COURSE_SEARCH_PLACEHOLDER);
+
+    const inline = listPlacement === "inline";
+
+    if (inline) {
+        return (
+            <form
+                className={cn("flex min-h-0 w-full flex-1 flex-col", className)}
+                onSubmit={onFormSubmit}
+            >
+                <AutoComplete<NonNullable<typeof allProfessors>[0], string>
+                    onChange={(change) => onAutoCompleteChange(change)}
+                    placeholder={placeholderText}
+                    items={allProfessors ?? []}
+                    filterFn={autoCompleteFilter}
+                    label="Professor Auto-complete"
+                    inputValue={value.searchValue}
+                    className="flex min-h-0 w-full flex-1 flex-col font-normal"
+                    disableDropdown={disableAutoComplete ?? false}
+                    listPlacement="inline"
+                    inputLeading={LeadingAction}
+                    inputRef={inputRef}
+                />
+            </form>
+        );
+    }
 
     return (
         <form
@@ -298,7 +453,7 @@ function SearchBase({
                 )}
                 placeholder={placeholderText}
                 items={allProfessors ?? []}
-                filterFn={(_, inputValue) => autoCompleteFilter(inputValue)}
+                filterFn={autoCompleteFilter}
                 label="Professor Auto-complete"
                 inputValue={value.searchValue}
                 className={cn(
@@ -311,6 +466,8 @@ function SearchBase({
                 )}
                 disableDropdown={disableAutoComplete ?? false}
                 forceDropdown={forceDropdown}
+                inputReadOnly={inputReadOnly}
+                onInputFocus={onInputFocus}
             />
             {RightSlot}
         </form>
