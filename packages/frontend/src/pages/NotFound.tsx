@@ -1,5 +1,6 @@
 import { Link, useLocation } from "react-router";
-import { PageMeta, StaticPageHeader } from "@/components";
+import { PageMeta } from "@/components/PageMeta";
+import { StaticPageHeader } from "@/components/StaticPageHeader";
 import { cn } from "@/utils";
 
 type NotFoundVariant = "page" | "professor";
