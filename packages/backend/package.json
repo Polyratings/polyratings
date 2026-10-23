@@ -29,7 +29,7 @@
         "@tsconfig/node-lts": "^24.0.1",
         "esbuild": "^0.28.2",
         "esbuild-visualizer": "^0.7.0",
-        "toml": "^5.0.0",
+        "toml": "^5.0.1",
         "tsx": "^4.23.15",
         "typescript": "~6.0.3",
         "wrangler": "^4.149.0"
