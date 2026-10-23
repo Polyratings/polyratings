@@ -22,6 +22,12 @@ export interface SearchBarProps {
     /** Show suggestions below `md` (used by the navbar search panel). */
     forceDropdown?: boolean;
     placeholder?: string;
+    /** Extra classes for the suggestion list panel (e.g. taller overlay lists). */
+    listClassName?: string;
+    /** Focus the combobox when mounted (mobile overlay). */
+    focusOnMount?: boolean;
+    /** Stretch suggestions to the full search pill width with larger tap targets. */
+    listMatchForm?: boolean;
 }
 export function SearchBar({ size = "default", ...props }: Omit<SearchBarProps, "className">) {
     const isHero = size === "hero";
@@ -72,7 +78,9 @@ export function ExtendedSearchBar({
                 <Button
                     aria-label="Search"
                     className={cn(
-                        "rounded-l-none rounded-r-full px-3 py-1!",
+                        // Button defaults use bg-clip-padding + transparent border, which leaves a
+                        // 1px hero-photo "cap" seam against the input — fill the border box instead.
+                        "rounded-l-none rounded-r-full border-0 bg-clip-border px-3 py-1! shadow-none",
                         isHero ? "h-12 min-w-14 lg:h-14" : "h-10 min-w-11",
                     )}
                     type="submit"
@@ -91,8 +99,12 @@ export function TruncatedSearchBar({
     value,
     size = "default",
     fill = false,
-    forceDropdown = false,
+    // Mobile/truncated bar: show suggestions by default (desktop ExtendedSearchBar already does).
+    forceDropdown = true,
     placeholder,
+    listClassName,
+    focusOnMount = false,
+    listMatchForm = true,
 }: SearchBarProps) {
     const isHero = size === "hero";
     return (
@@ -106,6 +118,9 @@ export function TruncatedSearchBar({
             fill={fill}
             forceDropdown={forceDropdown}
             placeholder={placeholder}
+            listClassName={listClassName}
+            focusOnMount={focusOnMount}
+            listMatchForm={listMatchForm}
             inputClassName="pl-0"
             LeftSlot={
                 <div className={cn("rounded-l-full bg-card", isHero ? "h-12 w-6" : "h-10 w-5")} />
@@ -115,7 +130,7 @@ export function TruncatedSearchBar({
                     type="submit"
                     aria-label="Search"
                     className={cn(
-                        "rounded-l-none rounded-r-full bg-card text-brand",
+                        "rounded-l-none rounded-r-full bg-card text-brand -ml-px",
                         "hover:bg-muted focus-visible:outline-hidden",
                         "focus-visible:ring-3 focus-visible:ring-ring/35",
                         isHero ? "px-3 py-1" : "px-2 py-1",
@@ -202,6 +217,9 @@ interface SearchBaseProps {
     fill?: boolean;
     forceDropdown?: boolean;
     placeholder?: string;
+    listClassName?: string;
+    focusOnMount?: boolean;
+    listMatchForm?: boolean;
 }
 function SearchBase({
     value,
@@ -216,6 +234,9 @@ function SearchBase({
     fill = false,
     forceDropdown = false,
     placeholder,
+    listClassName,
+    focusOnMount = false,
+    listMatchForm = false,
 }: SearchBaseProps) {
     const { data: allProfessors } = trpc.professors.all.useQuery(undefined, {
         meta: { suppressGlobalErrorToast: true },
@@ -273,7 +294,13 @@ function SearchBase({
 
     return (
         <form
-            className={cn("flex w-full min-w-0 justify-center sm:w-auto", className)}
+            className={cn(
+                "flex w-full min-w-0 justify-center sm:w-auto",
+                // One shadow on the whole pill — per-segment shadows leave a seam at the chevron.
+                "shadow-2xl",
+                listMatchForm && "relative",
+                className,
+            )}
             onSubmit={onFormSubmit}
         >
             {LeftSlot}
@@ -281,7 +308,7 @@ function SearchBase({
                 onChange={(change) => onAutoCompleteChange(change)}
                 inputClassName={cn(
                     // Strip form-field chrome — Left/Right slots compose the search pill.
-                    "h-full rounded-none border-0 px-2 shadow-none",
+                    "h-full rounded-none border-0 bg-card px-2 shadow-none",
                     "focus-visible:border-transparent focus-visible:bg-card focus-visible:ring-0",
                     "dark:bg-card dark:focus-visible:bg-card",
                     isHero
@@ -295,7 +322,7 @@ function SearchBase({
                 label="Professor Auto-complete"
                 inputValue={value.searchValue}
                 className={cn(
-                    "min-w-0 rounded-none font-normal shadow-2xl",
+                    "min-w-0 rounded-none bg-card font-normal shadow-none",
                     isHero
                         ? "h-12 w-full text-xl sm:w-80 md:w-96 lg:h-14 lg:w-md xl:w-lg 2xl:w-xl"
                         : fill
@@ -304,6 +331,9 @@ function SearchBase({
                 )}
                 disableDropdown={disableAutoComplete ?? false}
                 forceDropdown={forceDropdown}
+                listClassName={listClassName}
+                focusOnMount={focusOnMount}
+                listMatchForm={listMatchForm}
             />
             {RightSlot}
         </form>

@@ -828,6 +828,7 @@ function ExclusiveTagSegment({
                     onChange={onChange}
                     selected={leftState.selected}
                     disabled={leftState.disabled}
+                    showIcon={false}
                     className="rounded-none border-0 border-r border-brand/40"
                 />
                 <TagToggle
@@ -837,6 +838,7 @@ function ExclusiveTagSegment({
                     onChange={onChange}
                     selected={rightState.selected}
                     disabled={rightState.disabled}
+                    showIcon={false}
                     className="rounded-none border-0"
                 />
             </div>
@@ -851,6 +853,7 @@ function TagToggle({
     onChange,
     selected: selectedOverride,
     disabled: disabledOverride,
+    showIcon = true,
     className,
 }: {
     tagText: ProfessorTag;
@@ -859,6 +862,7 @@ function TagToggle({
     onChange: (tags: ProfessorTag[]) => void;
     selected?: boolean;
     disabled?: boolean;
+    showIcon?: boolean;
     className?: string;
 }) {
     const state = tagButtonState(value, tagText);
@@ -874,7 +878,8 @@ function TagToggle({
             disabled={disabled && !selected}
             onClick={() => onChange(state.nextSelection)}
             className={cn(
-                "flex min-h-10 w-full items-center justify-center gap-1.5 px-2.5 py-2 text-center",
+                "flex min-h-10 w-full items-center gap-2 px-3 py-2",
+                showIcon ? "justify-start text-left" : "justify-center text-center",
                 "rounded-md border text-sm leading-snug font-medium whitespace-nowrap font-nunito",
                 "transition-colors focus-visible:z-10 focus-visible:outline-hidden",
                 "focus-visible:ring-3 focus-visible:ring-ring/50",
@@ -889,8 +894,8 @@ function TagToggle({
                 className,
             )}
         >
-            <TagIcon className="size-3.5 shrink-0" aria-hidden />
-            <span>{label ?? tagText}</span>
+            {showIcon ? <TagIcon className="size-4 shrink-0 opacity-90" aria-hidden /> : null}
+            <span className="min-w-0">{label ?? tagText}</span>
         </button>
     );
 }
