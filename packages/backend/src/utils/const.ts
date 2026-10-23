@@ -165,7 +165,10 @@ export type BulkKeyMap = {
     users: User[];
 };
 
-export const MAX_PROFESSOR_TAGS_PER_RATING = 3;
+// Grouped toggles (format / materials / policies / in-class) make a hard 3-cap feel
+// stingy once Flexible|Inflexible pairs are involved; 5 keeps a limit without
+// forcing users to drop obvious attributes.
+export const MAX_PROFESSOR_TAGS_PER_RATING = 5;
 
 export const PROFESSOR_TAGS = [
     "Hybrid Option",
