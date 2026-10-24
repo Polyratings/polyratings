@@ -125,7 +125,8 @@ async function processAuditBatch<T extends Record<string, number>>(
     const batchProfessors = profs.slice(startIndex, endIndex);
     const professorIds = batchProfessors.map((p: TruncatedProfessor) => p.id);
 
-    const professors = await ctx.env.kvDao.getBulkValues("professors", professorIds);
+    const professorEntries = await ctx.env.kvDao.getBulkValues("professors", professorIds);
+    const professors = professorEntries.map((entry) => entry.value);
 
     const { reportTasks, processedCount, metrics, messagePart } = await processor(professors, ctx);
 
@@ -623,5 +624,4 @@ export const adminRouter = t.router({
                 };
             });
         }),
-
 });
