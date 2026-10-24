@@ -39,8 +39,6 @@ export function RatingCard({ rating, actions, className }: RatingCardProps) {
         <article
             className={cn(
                 "relative my-3 flex w-full flex-col rounded-lg border border-input bg-card px-4 py-4 sm:px-6 sm:py-5",
-                // Room for flag (size-11) and optional admin checkbox.
-                actions ? "pr-24 sm:pr-28" : undefined,
                 className,
             )}
         >
@@ -50,7 +48,9 @@ export function RatingCard({ rating, actions, className }: RatingCardProps) {
             <div
                 className={cn(
                     "flex flex-wrap items-center gap-x-3 gap-y-1",
-                    actions ? "pr-2" : undefined,
+                    // Room for flag (size-11) and optional admin checkbox — header only so
+                    // the review body can use the full card width on mobile.
+                    actions ? "pr-24 sm:pr-28" : undefined,
                 )}
             >
                 {showStars && (
@@ -79,7 +79,9 @@ export function RatingCard({ rating, actions, className }: RatingCardProps) {
                     ))}
                 </ul>
             </div>
-            <p className="mt-3 text-base leading-7 text-foreground md:text-lg">{rating.rating}</p>
+            <p className="mt-3 w-full text-base leading-7 text-foreground md:text-lg">
+                {rating.rating}
+            </p>
 
             {Boolean(rating.tags?.length) && (
                 <div className="mt-4 flex flex-wrap gap-2">
