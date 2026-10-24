@@ -1,4 +1,4 @@
-import { Fragment, useMemo, useState } from "react";
+import { Fragment, useMemo, useRef, useState } from "react";
 import { Professor, RatingReport } from "@backend/types/schema";
 import { DEPARTMENT_LIST } from "@backend/utils/const";
 import { useQueryClient } from "@tanstack/react-query";
@@ -35,14 +35,16 @@ import {
 } from "@/pages/admin/shared";
 
 const DUPLICATE_RANGE_OPTIONS = [
-    { value: "43200", label: "12 hours" },
+    { value: "60", label: "1 minute" },
+    { value: "300", label: "5 minutes" },
+    { value: "600", label: "10 minutes" },
+    { value: "1800", label: "30 minutes" },
+    { value: "3600", label: "1 hour" },
+    { value: "21600", label: "6 hours" },
     { value: "86400", label: "1 day" },
-    { value: "172800", label: "2 days" },
-    { value: "259200", label: "3 days" },
-    { value: "604800", label: "7 days" },
-    { value: "1209600", label: "14 days" },
-    { value: "2592000", label: "30 days" },
 ] as const;
+
+const DEFAULT_DUPLICATE_RANGE_SECONDS = 600;
 
 function findProfessor(professors: Professor[] | undefined, professorId: string) {
     return professors?.find((professor) => professor.id === professorId);
@@ -85,28 +87,30 @@ export function ReportedRatings() {
     const [page, setPage] = useState(0);
     const [search, setSearch] = useState("");
     const [department, setDepartment] = useState("");
-    const [rangeSeconds, setRangeSeconds] = useState(86400);
-    const duplicateMutation = trpc.admin.autoReportDuplicateUsers.useMutation({
-        onSuccess: () =>
-            queryClient.invalidateQueries({ queryKey: bulkInvalidationKey("reports") }),
+    const [rangeSeconds, setRangeSeconds] = useState(DEFAULT_DUPLICATE_RANGE_SECONDS);
+    // Freeze the selected range for the duration of a run/resume so pause cycles stay consistent.
+    const activeDuplicateRangeRef = useRef({
+        seconds: DEFAULT_DUPLICATE_RANGE_SECONDS,
+        label: "10 minutes",
     });
-    const moderationMutation = trpc.admin.autoReportContentModeration.useMutation({
-        onSuccess: () =>
-            queryClient.invalidateQueries({ queryKey: bulkInvalidationKey("reports") }),
-    });
+    const invalidateReports = () => {
+        void queryClient.invalidateQueries({ queryKey: bulkInvalidationKey("reports") });
+    };
+    // No per-batch invalidation — reloading the full reports list every batch is very expensive.
+    const duplicateMutation = trpc.admin.autoReportDuplicateUsers.useMutation();
+    const moderationMutation = trpc.admin.autoReportContentModeration.useMutation();
     const duplicateAudit = useAuditRunner({
         mutate: (input) =>
             duplicateMutation.mutateAsync({
                 ...input,
-                withinSeconds: rangeSeconds,
-                rangeLabel:
-                    DUPLICATE_RANGE_OPTIONS.find((o) => o.value === String(rangeSeconds))?.label ??
-                    "1 day",
+                withinSeconds: activeDuplicateRangeRef.current.seconds,
+                rangeLabel: activeDuplicateRangeRef.current.label,
             }),
         isPending: duplicateMutation.isPending,
         getMetricCount: (result) => result.duplicatesFound,
         completeMessage: (processed, count) =>
             `Processed ${processed} professors, found ${count} duplicate ratings.`,
+        onSettled: invalidateReports,
     });
     const moderationAudit = useAuditRunner({
         mutate: moderationMutation.mutateAsync,
@@ -114,6 +118,7 @@ export function ReportedRatings() {
         getMetricCount: (result) => result.moderationFlagged,
         completeMessage: (processed, count) =>
             `Processed ${processed} professors, found ${count} ratings to flag.`,
+        onSettled: invalidateReports,
     });
 
     const reportsBlocked = !ratingReports && (reportsPending || Boolean(reportsError));
@@ -219,7 +224,16 @@ export function ReportedRatings() {
                 </div>
                 <AuditControls
                     progress={duplicateAudit.progress}
-                    onRun={() => void duplicateAudit.runAudit()}
+                    onRun={() => {
+                        activeDuplicateRangeRef.current = {
+                            seconds: rangeSeconds,
+                            label:
+                                DUPLICATE_RANGE_OPTIONS.find(
+                                    (o) => o.value === String(rangeSeconds),
+                                )?.label ?? "10 minutes",
+                        };
+                        void duplicateAudit.runAudit();
+                    }}
                     onPause={duplicateAudit.pauseAudit}
                     onResume={() =>
                         void duplicateAudit.runAudit(

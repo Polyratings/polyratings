@@ -96,6 +96,61 @@ async function removeReportBestEffort(
     }
 }
 
+const AUDIT_REPORT_LOOKUP_CHUNK = 1000;
+
+/** Prefetch existing reports for many rating IDs (missing keys omitted). */
+async function getReportsByRatingIds(
+    ctx: Context,
+    ratingIds: string[],
+): Promise<Map<string, RatingReport>> {
+    const uniqueIds = [...new Set(ratingIds)];
+    const reportsById = new Map<string, RatingReport>();
+
+    for (let i = 0; i < uniqueIds.length; i += AUDIT_REPORT_LOOKUP_CHUNK) {
+        const chunk = uniqueIds.slice(i, i + AUDIT_REPORT_LOOKUP_CHUNK);
+        // eslint-disable-next-line no-await-in-loop -- chunked to respect KV bulk limits
+        const entries = await ctx.env.kvDao.getBulkValues("reports", chunk);
+        for (const { key, value } of entries) {
+            reportsById.set(key, value);
+        }
+    }
+
+    return reportsById;
+}
+
+function hasAutomatedReport(report: RatingReport | undefined, tag: string): boolean {
+    return report?.reports.some((r) => r.reason.includes(tag)) ?? false;
+}
+
+/**
+ * Ratings whose postDate falls in any sliding window of size >= 2 within `withinMs`.
+ * Uses pairwise/cluster proximity — not first-to-last span of the entire user history.
+ */
+function ratingIdsInDuplicateWindows<T extends { ratingId: string; postDate: string }>(
+    ratings: T[],
+    withinMs: number,
+): Set<string> {
+    const sorted = [...ratings].sort(
+        (a, b) => new Date(a.postDate).getTime() - new Date(b.postDate).getTime(),
+    );
+    const toReport = new Set<string>();
+    let left = 0;
+
+    for (let right = 0; right < sorted.length; right += 1) {
+        const rightTime = new Date(sorted[right].postDate).getTime();
+        while (rightTime - new Date(sorted[left].postDate).getTime() > withinMs) {
+            left += 1;
+        }
+        if (right > left) {
+            for (let i = left; i <= right; i += 1) {
+                toReport.add(sorted[i].ratingId);
+            }
+        }
+    }
+
+    return toReport;
+}
+
 // Helper function for batch processing audits with cursor-based pagination
 async function processAuditBatch<T extends Record<string, number>>(
     ctx: Context,
@@ -117,7 +172,14 @@ async function processAuditBatch<T extends Record<string, number>>(
     let startIndex = 0;
     if (input?.cursor) {
         const cursorIndex = profs.findIndex((p: TruncatedProfessor) => p.id === input.cursor);
-        startIndex = cursorIndex >= 0 ? cursorIndex : 0;
+        if (cursorIndex === -1) {
+            throw new TRPCError({
+                code: "BAD_REQUEST",
+                message:
+                    "Invalid or stale audit cursor: professor not found. Restart the audit from the beginning.",
+            });
+        }
+        startIndex = cursorIndex;
     }
 
     // Process batch of professors
@@ -126,7 +188,11 @@ async function processAuditBatch<T extends Record<string, number>>(
     const professorIds = batchProfessors.map((p: TruncatedProfessor) => p.id);
 
     const professorEntries = await ctx.env.kvDao.getBulkValues("professors", professorIds);
-    const professors = professorEntries.map((entry) => entry.value);
+    const professorsById = new Map(professorEntries.map((entry) => [entry.key, entry.value]));
+    // Preserve list order; omit IDs missing from KV (deleted between list fetch and bulk read).
+    const professors = professorIds
+        .map((id) => professorsById.get(id))
+        .filter((p): p is Professor => p !== undefined);
 
     const { reportTasks, processedCount, metrics, messagePart } = await processor(professors, ctx);
 
@@ -381,7 +447,7 @@ export const adminRouter = t.router({
         )
         .mutation(async ({ ctx, input }) => {
             const BATCH_PROFESSOR_SIZE = 25;
-            const withinSeconds = input?.withinSeconds ?? 86400;
+            const withinSeconds = input?.withinSeconds ?? 600;
             const withinMs = withinSeconds * 1000;
             const rangeLabel = input?.rangeLabel ?? `${withinSeconds}s`;
             // Note: The getAllProfessors list could become out of sync if there are concurrent
@@ -397,11 +463,16 @@ export const adminRouter = t.router({
                 // Track ratingIds we've already reported in this batch to avoid duplicates
                 const reportedRatingIds = new Set<string>();
 
+                const candidateReports: {
+                    ratingId: string;
+                    professorId: string;
+                    anonymousId: string;
+                    clusterTimestamps: string[];
+                    clusterSize: number;
+                }[] = [];
+
                 // Process each professor in the chunk
                 for (const professor of professors) {
-                    // eslint-disable-next-line no-continue
-                    if (!professor) continue; // Skip null professors
-
                     processedCount += 1;
 
                     // Group ratings by anonymous ID
@@ -432,73 +503,80 @@ export const adminRouter = t.router({
                         });
                     });
 
-                    // Find duplicates and create reports
-                    // Only report duplicates if timestamps are within the selected time range
+                    // Report ratings that appear in any within-window cluster of 2+
                     for (const [anonymousId, ratings] of anonymousIdMap) {
-                        if (ratings.length > 1) {
-                            // Sort ratings by postDate to make comparison easier
-                            const sortedRatings = [...ratings].sort(
+                        if (ratings.length < 2) {
+                            // eslint-disable-next-line no-continue
+                            continue;
+                        }
+
+                        const duplicateIds = ratingIdsInDuplicateWindows(ratings, withinMs);
+                        if (duplicateIds.size === 0) {
+                            // eslint-disable-next-line no-continue
+                            continue;
+                        }
+
+                        const clusterRatings = ratings
+                            .filter((r) => duplicateIds.has(r.ratingId))
+                            .sort(
                                 (a, b) =>
                                     new Date(a.postDate).getTime() - new Date(b.postDate).getTime(),
                             );
+                        const clusterTimestamps = clusterRatings.map((r) => r.postDate);
 
-                            // Check if time span from first to last rating is within the selected range
-                            const firstTime = new Date(sortedRatings[0].postDate).getTime();
-                            const lastTime = new Date(
-                                sortedRatings[sortedRatings.length - 1].postDate,
-                            ).getTime();
-                            const timeSpan = lastTime - firstTime;
-
-                            if (timeSpan <= withinMs) {
-                                for (const ratingInfo of sortedRatings) {
-                                    // Skip if we've already reported this rating in this batch
-                                    if (reportedRatingIds.has(ratingInfo.ratingId)) {
-                                        // eslint-disable-next-line no-continue
-                                        continue;
-                                    }
-
-                                    // Skip if this rating already has a duplicate audit report (idempotent re-runs)
-                                    // eslint-disable-next-line no-await-in-loop
-                                    const existingReport = await ctx.env.kvDao.getReportOptional(
-                                        ratingInfo.ratingId,
-                                    );
-                                    const hasDuplicateReport =
-                                        existingReport?.reports.some((r) =>
-                                            r.reason.includes("[AUTOMATED/Dedupe]"),
-                                        ) ?? false;
-                                    if (hasDuplicateReport) {
-                                        // eslint-disable-next-line no-continue
-                                        continue;
-                                    }
-
-                                    // Mark as reported
-                                    reportedRatingIds.add(ratingInfo.ratingId);
-
-                                    // Increment counter when creating a report
-                                    duplicatesFound += 1;
-
-                                    const allTimestamps = sortedRatings
-                                        .map((r) => r.postDate)
-                                        .join("\n");
-                                    const reason =
-                                        `[AUTOMATED/Dedupe] ${sortedRatings.length} ratings by user ${anonymousId} ` +
-                                        `in ${rangeLabel}. Timestamps: ${allTimestamps}`;
-                                    const ratingReport = {
-                                        ratingId: ratingInfo.ratingId,
-                                        professorId: professor.id,
-                                        reports: [
-                                            {
-                                                email: null,
-                                                reason,
-                                                anonymousIdentifier: anonymousId,
-                                            },
-                                        ],
-                                    };
-                                    reportTasks.push(ctx.env.kvDao.putReport(ratingReport));
-                                }
+                        for (const ratingInfo of clusterRatings) {
+                            if (reportedRatingIds.has(ratingInfo.ratingId)) {
+                                // eslint-disable-next-line no-continue
+                                continue;
                             }
+                            reportedRatingIds.add(ratingInfo.ratingId);
+                            candidateReports.push({
+                                ratingId: ratingInfo.ratingId,
+                                professorId: professor.id,
+                                anonymousId,
+                                clusterTimestamps,
+                                clusterSize: clusterRatings.length,
+                            });
                         }
                     }
+                }
+
+                const existingReports = await getReportsByRatingIds(
+                    ctx,
+                    candidateReports.map((r) => r.ratingId),
+                );
+
+                for (const ratingInfo of candidateReports) {
+                    if (
+                        hasAutomatedReport(
+                            existingReports.get(ratingInfo.ratingId),
+                            "[AUTOMATED/Dedupe]",
+                        )
+                    ) {
+                        // eslint-disable-next-line no-continue
+                        continue;
+                    }
+
+                    duplicatesFound += 1;
+                    const reason =
+                        `[AUTOMATED/Dedupe] ${ratingInfo.clusterSize} ratings by user ${ratingInfo.anonymousId} ` +
+                        `with pairs within ${rangeLabel}. Timestamps: ${ratingInfo.clusterTimestamps.join("\n")}`;
+                    reportTasks.push(
+                        ctx.env.kvDao.putReport(
+                            {
+                                ratingId: ratingInfo.ratingId,
+                                professorId: ratingInfo.professorId,
+                                reports: [
+                                    {
+                                        email: null,
+                                        reason,
+                                        anonymousIdentifier: ratingInfo.anonymousId,
+                                    },
+                                ],
+                            },
+                            { existing: existingReports.get(ratingInfo.ratingId) },
+                        ),
+                    );
                 }
 
                 return {
@@ -514,93 +592,88 @@ export const adminRouter = t.router({
         .mutation(async ({ ctx, input }) => {
             const BATCH_PROFESSOR_SIZE = 25;
 
-            const pushModerationReport = (
-                rating: { id: string; anonymousIdentifier?: string },
-                professor: Professor,
-                reason: string,
-            ) =>
-                ctx.env.kvDao.putReport({
-                    ratingId: rating.id,
-                    professorId: professor.id,
-                    reports: [
-                        {
-                            email: null,
-                            reason: `[AUTOMATED/Content] ${reason}`,
-                            anonymousIdentifier: rating.anonymousIdentifier,
-                        },
-                    ],
-                });
-
             return processAuditBatch(ctx, input, BATCH_PROFESSOR_SIZE, async (professors) => {
                 const reportTasks: Promise<void>[] = [];
                 let processedCount = 0;
                 let moderationFlagged = 0;
                 const reportedRatingIds = new Set<string>();
+                const pendingFlags: {
+                    rating: { id: string; anonymousIdentifier?: string };
+                    professor: Professor;
+                    reason: string;
+                }[] = [];
+                const needsAnalysis: {
+                    rating: PendingRating;
+                    professor: Professor;
+                }[] = [];
 
-                const maybeFlag = async (
+                const queueFlag = (
                     rating: { id: string; anonymousIdentifier?: string },
                     professor: Professor,
                     reason: string,
                 ) => {
                     if (reportedRatingIds.has(rating.id)) return;
-
-                    // Skip if this rating already has a content moderation audit report (idempotent re-runs)
-                    const existingReport = await ctx.env.kvDao.getReportOptional(rating.id);
-                    const hasModerationReport =
-                        existingReport?.reports.some((r) =>
-                            r.reason.includes("[AUTOMATED/Content]"),
-                        ) ?? false;
-                    if (hasModerationReport) return;
-
                     reportedRatingIds.add(rating.id);
-                    moderationFlagged += 1;
-                    reportTasks.push(pushModerationReport(rating, professor, reason));
+                    pendingFlags.push({ rating, professor, reason });
                 };
 
-                for (const professor of professors) {
-                    // eslint-disable-next-line no-continue
-                    if (!professor) continue; // Skip null professors
+                const allRatingIds = professors.flatMap((professor) =>
+                    Object.values(professor.reviews).flatMap((ratings) =>
+                        ratings.map((rating) => rating.id),
+                    ),
+                );
+                // Prefetch before OpenAI so already-flagged ratings are skipped.
+                const existingReports = await getReportsByRatingIds(ctx, allRatingIds);
 
+                for (const professor of professors) {
                     processedCount += 1;
-                    const ratingMap: Record<string, PendingRating> = {};
                     const reviewRatings = Object.values(professor.reviews) as (Rating &
                         Partial<PendingRating>)[][];
 
                     for (const ratings of reviewRatings) {
                         for (const rating of ratings) {
+                            if (
+                                hasAutomatedReport(
+                                    existingReports.get(rating.id),
+                                    "[AUTOMATED/Content]",
+                                )
+                            ) {
+                                // eslint-disable-next-line no-continue
+                                continue;
+                            }
+
                             const categoryScores = rating.analyzedScores as
                                 | Moderation.CategoryScores
                                 | undefined;
                             if (categoryScores && typeof categoryScores === "object") {
                                 const violation = checkModerationThresholds(categoryScores);
                                 if (violation) {
-                                    // eslint-disable-next-line no-await-in-loop
-                                    await maybeFlag(rating, professor, violation.reason);
+                                    queueFlag(rating, professor, violation.reason);
                                 }
                             } else {
-                                ratingMap[rating.id] = {
-                                    ...rating,
-                                    status: rating.status ?? "Successful",
-                                    error: rating.error ?? null,
-                                    analyzedScores: rating.analyzedScores ?? null,
-                                    courseNum: rating.courseNum ?? 0,
-                                    department: rating.department ?? "AEPS",
-                                };
+                                needsAnalysis.push({
+                                    rating: {
+                                        ...rating,
+                                        status: rating.status ?? "Successful",
+                                        error: rating.error ?? null,
+                                        analyzedScores: rating.analyzedScores ?? null,
+                                        courseNum: rating.courseNum ?? 0,
+                                        department: rating.department ?? "AEPS",
+                                    },
+                                    professor,
+                                });
                             }
                         }
                     }
+                }
 
-                    const ratings = Object.values(ratingMap);
-                    if (ratings.length === 0) {
-                        // eslint-disable-next-line no-continue
-                        continue;
-                    }
+                if (needsAnalysis.length > 0) {
+                    const analyzedScores = await ctx.env.ratingAnalyzer.analyzeRatings(
+                        needsAnalysis.map((entry) => entry.rating),
+                    );
 
-                    // eslint-disable-next-line no-await-in-loop
-                    const analyzedScores = await ctx.env.ratingAnalyzer.analyzeRatings(ratings);
-
-                    for (let i = 0; i < ratings.length; i += 1) {
-                        const rating = ratings[i];
+                    for (let i = 0; i < needsAnalysis.length; i += 1) {
+                        const { rating, professor } = needsAnalysis[i];
                         const scores = analyzedScores[i];
                         if (scores?.category_scores) {
                             const violation = checkModerationThresholds(scores.category_scores);
@@ -609,11 +682,30 @@ export const adminRouter = t.router({
                                     violation.score <= 1
                                         ? `${violation.category}: ${(violation.score * 100).toFixed(1)}%`
                                         : `${violation.category}: ${violation.score.toFixed(2)}`;
-                                // eslint-disable-next-line no-await-in-loop
-                                await maybeFlag(rating, professor, shortReason);
+                                queueFlag(rating, professor, shortReason);
                             }
                         }
                     }
+                }
+
+                for (const { rating, professor, reason } of pendingFlags) {
+                    moderationFlagged += 1;
+                    reportTasks.push(
+                        ctx.env.kvDao.putReport(
+                            {
+                                ratingId: rating.id,
+                                professorId: professor.id,
+                                reports: [
+                                    {
+                                        email: null,
+                                        reason: `[AUTOMATED/Content] ${reason}`,
+                                        anonymousIdentifier: rating.anonymousIdentifier,
+                                    },
+                                ],
+                            },
+                            { existing: existingReports.get(rating.id) },
+                        ),
+                    );
                 }
 
                 return {
