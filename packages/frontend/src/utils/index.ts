@@ -1,6 +1,7 @@
 export * from "./cn";
 export * from "./seo";
 export * from "./toSelectOptions";
+export * from "./prioritizeDepartmentList";
 export * from "./getRandomSubarray";
 export * from "./intersectingDbEntities";
 export * from "./BasicBehaviorSubject";

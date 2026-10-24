@@ -1,13 +1,22 @@
 import { forwardRef } from "react";
 import { DEPARTMENT_LIST } from "@backend/utils/const";
-import { toSelectOptions } from "@/utils";
+import { prioritizeDepartmentList, toSelectOptions } from "@/utils";
 import { Combobox, type ComboboxProps } from "./Combobox";
 
 const DEPARTMENT_OPTIONS = toSelectOptions(DEPARTMENT_LIST);
 
-export const DepartmentCombobox = forwardRef<HTMLSelectElement, Omit<ComboboxProps, "options">>(
-    ({ placeholder = "Please select", ...props }, ref) => (
-        <Combobox ref={ref} options={DEPARTMENT_OPTIONS} placeholder={placeholder} {...props} />
-    ),
+export interface DepartmentComboboxProps extends Omit<ComboboxProps, "options"> {
+    /** Shown first in the list (e.g. prefixes the professor has taught). */
+    priorityValues?: readonly string[];
+}
+
+export const DepartmentCombobox = forwardRef<HTMLSelectElement, DepartmentComboboxProps>(
+    ({ placeholder = "Please select", priorityValues, ...props }, ref) => {
+        const options = priorityValues?.length
+            ? toSelectOptions(prioritizeDepartmentList(DEPARTMENT_LIST, priorityValues))
+            : DEPARTMENT_OPTIONS;
+
+        return <Combobox ref={ref} options={options} placeholder={placeholder} {...props} />;
+    },
 );
 DepartmentCombobox.displayName = "DepartmentCombobox";
