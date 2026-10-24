@@ -5,3 +5,4 @@ export * from "./usePrefersReducedMotion";
 export * from "./useAuth";
 export * from "./useTheme";
 export * from "./useSortedCourses";
+export * from "./useAuditRunner";
