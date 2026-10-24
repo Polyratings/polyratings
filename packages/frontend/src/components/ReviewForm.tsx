@@ -544,22 +544,44 @@ function professorFromProps(props: ReviewFormProps) {
     return professor;
 }
 
-function professorIdFromProps(props: ReviewFormProps) {
-    return professorFromProps(props)?.id;
+/** Home department first, then unique prefixes from taught courses (primary dept first). */
+function coursePrefixPriority(
+    professor: Professor | undefined,
+    taughtCourses: { courseName: string }[],
+) {
+    const seen = new Set<string>();
+    const prefixes: string[] = [];
+    const add = (prefix: string | undefined) => {
+        if (!prefix || seen.has(prefix)) {
+            return;
+        }
+        seen.add(prefix);
+        prefixes.push(prefix);
+    };
+
+    add(professor?.department);
+    for (const { courseName } of taughtCourses) {
+        add(courseName.split(" ")[0]);
+    }
+    return prefixes;
 }
 
 function ReviewStep(props: ReviewFormProps) {
     const { mode } = props;
-    const professorId = professorIdFromProps(props);
+    const professor = professorFromProps(props);
+    const professorId = professor?.id;
     const { register, clearErrors, control, watch } = useFormContext<ReviewFormValues>();
     const { errors } = useFormState({ control, name: [...REVIEW_FIELDS] });
     const registerField = withClearErrorOnChange(register, clearErrors);
     const knownCourseValue = watch("knownCourse");
+    const taughtCourses = useSortedCourses(professorId);
     // New ratings only: exclude legacy quarter catalog keys (master EvaluateProfessorForm).
-    const semesterCourses = useSortedCourses(professorId)
+    const semesterCourses = taughtCourses
         .map(({ courseName }) => courseName)
         .filter(isSemesterCourseKey);
     const showManualCourse = mode === "new-professor" || isOtherCourse(knownCourseValue);
+    const coursePrefixPriorityValues =
+        mode === "evaluate" ? coursePrefixPriority(professor, taughtCourses) : undefined;
 
     return (
         <div className="flex flex-col gap-8">
@@ -581,6 +603,7 @@ function ReviewStep(props: ReviewFormProps) {
                             <DepartmentCombobox
                                 label="Course Prefix"
                                 placeholder="Please select"
+                                priorityValues={coursePrefixPriorityValues}
                                 wrapperClassName={fieldClassName}
                                 {...registerField("courseDepartment")}
                                 error={errors.courseDepartment?.message}
