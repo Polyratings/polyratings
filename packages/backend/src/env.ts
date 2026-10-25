@@ -14,6 +14,7 @@ import { z } from "zod";
 import { KvWrapper } from "./dao/kv-wrapper";
 import { AnonymousIdDao, type WaitUntil } from "./dao/anonymous-id-dao";
 import { cloudflareAccountId } from "./generated/tomlGenerated";
+import { ScheduleApiClient } from "./schedule/client";
 
 export function getCloudflareEnv(rawEnv: Record<string, unknown>): CloudflareEnv {
     if (!rawEnv?.IS_DEPLOYED) {
@@ -59,6 +60,8 @@ export class Env {
     /** Anonymous mutation limits use `${tRPC path}_${anonId}`; one binding is enough. */
     rateLimiter: RateLimit;
 
+    scheduleClient: ScheduleApiClient;
+
     constructor(
         env: CloudflareEnv,
         options: { skipNotifications?: boolean; waitUntil?: WaitUntil } = {},
@@ -102,6 +105,18 @@ export class Env {
         );
 
         this.rateLimiter = env.RATE_LIMITER;
+
+        this.scheduleClient = new ScheduleApiClient(
+            env.SCHEDULE_API_URL,
+            env.SCHEDULE_READ_API_KEY,
+        );
+
+        if (!env.IS_DEPLOYED && !this.scheduleClient.isConfigured) {
+            // eslint-disable-next-line no-console
+            console.warn(
+                "Schedule API not configured. Set SCHEDULE_READ_API_KEY in .dev.vars to enable schedule match checks.",
+            );
+        }
     }
 }
 
@@ -126,4 +141,6 @@ const cloudflareEnvParser = z.object({
     IS_DEPLOYED: z.boolean(),
     HASHED_IP: z.string(),
     RATE_LIMITER: rateLimiterParser,
+    SCHEDULE_API_URL: z.string().optional(),
+    SCHEDULE_READ_API_KEY: z.string().optional(),
 });

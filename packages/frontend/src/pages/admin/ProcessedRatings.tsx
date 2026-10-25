@@ -13,6 +13,7 @@ import {
 } from "@/components/ui/table";
 import { useDbValues } from "@/hooks/useDbValues";
 import { RatingTextCell } from "@/pages/admin/RatingTextCell";
+import { ScheduleMatchBadge, scheduleMatchLabel } from "@/pages/admin/ScheduleMatchBadge";
 import { ScoreBars, extractAnalyzedScores } from "@/pages/admin/ScoreBars";
 import {
     AdminSearchInput,
@@ -65,7 +66,15 @@ export function ProcessedRatings() {
             const scores = Object.keys(extractAnalyzedScores(row.analyzedScores))
                 .join(" ")
                 .toLowerCase();
-            return ratingText.includes(query) || course.includes(query) || scores.includes(query);
+            const scheduleMatch = row.scheduleMatch
+                ? `${row.scheduleMatch.status} ${scheduleMatchLabel(row.scheduleMatch.status)} ${row.scheduleMatch.matchedCourseKeys.join(" ")}`.toLowerCase()
+                : "";
+            return (
+                ratingText.includes(query) ||
+                course.includes(query) ||
+                scores.includes(query) ||
+                scheduleMatch.includes(query)
+            );
         });
     }, [sortedProcessedRatings, search, status]);
 
@@ -134,6 +143,7 @@ export function ProcessedRatings() {
                     <TableHeader className="sticky top-0 z-10 bg-card">
                         <TableRow>
                             <TableHead>Status</TableHead>
+                            <TableHead>Schedule</TableHead>
                             <TableHead>Top risks</TableHead>
                             <TableHead>Rating</TableHead>
                             <TableHead className="w-16">
@@ -144,7 +154,7 @@ export function ProcessedRatings() {
                     <TableBody>
                         {pageRows.length === 0 ? (
                             <AdminTableEmptyRow
-                                colSpan={4}
+                                colSpan={5}
                                 message={emptyStateMessage({
                                     hasSourceData: sourceTotal > 0,
                                     hasFilters,
@@ -170,6 +180,9 @@ export function ProcessedRatings() {
                                                 {new Date(row.postDate).toLocaleDateString()}
                                             </span>
                                         </div>
+                                    </TableCell>
+                                    <TableCell className="align-top whitespace-normal">
+                                        <ScheduleMatchBadge scheduleMatch={row.scheduleMatch} />
                                     </TableCell>
                                     <TableCell className="align-top whitespace-normal">
                                         <ScoreBars analyzedScores={row.analyzedScores} />

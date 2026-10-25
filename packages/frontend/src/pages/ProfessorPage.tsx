@@ -1,5 +1,12 @@
-import { type ChangeEvent, type FormEvent, useState } from "react";
-import { Link, Navigate, useLoaderData, useParams, useSearchParams } from "react-router";
+import { type ChangeEvent, type FormEvent, useEffect, useState } from "react";
+import {
+    Link,
+    Navigate,
+    useLoaderData,
+    useLocation,
+    useParams,
+    useSearchParams,
+} from "react-router";
 import {
     ChevronLeftIcon,
     FlagIcon,
@@ -127,6 +134,7 @@ function LockProfessorModal({
 
 export function ProfessorPage() {
     const { id } = useParams<{ id: string }>();
+    const { hash } = useLocation();
     const [searchParams] = useSearchParams();
 
     const [selectedRatingIds, setSelectedRatingIds] = useState<Set<string>>(new Set());
@@ -188,11 +196,42 @@ export function ProfessorPage() {
         .slice(0, 4);
 
     const sortedCourses = useSortedCourses(id);
+    const highlightedRatingId = hash.startsWith("#rating-") ? hash.slice("#rating-".length) : null;
     const visibleCourses = coursesVisibleForFilter(
         sortedCourses,
         searchParams.get("course"),
         searchParams.get("prefix"),
     );
+
+    useEffect(() => {
+        if (!highlightedRatingId || !professorData) {
+            return undefined;
+        }
+        const elementId = `rating-${highlightedRatingId}`;
+        let cancelled = false;
+        const scrollToRating = () => {
+            if (cancelled) {
+                return;
+            }
+            const target = document.getElementById(elementId);
+            const scroller = document.getElementById("app-scroll");
+            if (!target || !scroller) {
+                return;
+            }
+            const nextTop =
+                scroller.scrollTop +
+                (target.getBoundingClientRect().top - scroller.getBoundingClientRect().top) -
+                24;
+            scroller.scrollTo({ top: Math.max(0, nextTop), behavior: "smooth" });
+        };
+        const frame = requestAnimationFrame(() => {
+            requestAnimationFrame(scrollToRating);
+        });
+        return () => {
+            cancelled = true;
+            cancelAnimationFrame(frame);
+        };
+    }, [highlightedRatingId, professorData, visibleCourses]);
 
     if (fetchError && !professorData) {
         return <Navigate to="/" replace />;
@@ -501,6 +540,7 @@ export function ProfessorPage() {
                                     showBulkDeleteCheckbox={isAuthenticated}
                                     isSelected={selectedRatingIds.has(rating.id)}
                                     onToggleSelect={() => toggleRatingSelection(rating.id)}
+                                    highlighted={rating.id === highlightedRatingId}
                                 />
                             ))}
                         </div>
@@ -615,6 +655,7 @@ interface ProfessorRatingCardProps {
     showBulkDeleteCheckbox?: boolean;
     isSelected?: boolean;
     onToggleSelect?: () => void;
+    highlighted?: boolean;
 }
 function ProfessorRatingCard({
     rating,
@@ -622,10 +663,13 @@ function ProfessorRatingCard({
     showBulkDeleteCheckbox = false,
     isSelected = false,
     onToggleSelect,
+    highlighted = false,
 }: ProfessorRatingCardProps) {
     return (
         <RatingCard
+            id={`rating-${rating.id}`}
             rating={rating}
+            className={highlighted ? "ring-2 ring-brand" : undefined}
             actions={
                 <>
                     {showBulkDeleteCheckbox && (
