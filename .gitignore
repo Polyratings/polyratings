@@ -2,6 +2,7 @@ node_modules/
 **/.wrangler
 nx-cloud.env
 .nx
+.cursor/mcp.json
 # Agent skills and subagents stay local (moderation playbooks are internal)
 .agents/
 .cursor/agents/

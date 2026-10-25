@@ -12,6 +12,7 @@ If this file is wrong, update it.
 | `@polyratings/backend` | `packages/backend/` | Workers tRPC API |
 | `@polyratings/cron` | `packages/cron/` | Nightly sync / backup |
 | `@polyratings/e2e` | `packages/e2e/` | Playwright |
+| `@polyratings/mcp-server` | `packages/mcp-server/` | Local MCP server for public and admin tools |
 
 Schedule scraping lives in sibling repo **[cal-poly-schedule-scraper](../cal-poly-schedule-scraper/)** (Worker + scraper + Docker). Polyratings does not publish a class schedule. The backend makes one Schedule read API call per rating (`GET /v1/instructors/course-match` with the professor's name, `subject`, `catalogNumber`, and the rating's `postedAt`) to attach non-blocking `scheduleMatch` metadata on rating logs and reports. The Schedule API decides coverage and matching: term windows, which covered terms count (any that had started by the post date, quarter terms included), and course-key aliases. Polyratings stores no term dates and only maps the returned `confirmed` / `course_not_taught` / `not_applicable`; a non-200, network error, 2.5 s timeout (the check runs inline before moderation), or unexpected body is `unavailable`, and unexpected 4xx responses are logged with `console.error` as contract bugs. A blank first name is left out of the query. Reporting a rating reuses its stored result unless that result is `unavailable`, which is re-checked. Admins see that status on processed ratings and reported ratings. The signal never blocks or deletes a rating.
 
@@ -29,13 +30,14 @@ Frontend and cron depend on backend. Lint/format: root `.oxlintrc.json` + `.oxfm
 | `npm run e2e` | Playwright (local Vite) |
 | `npm run e2e:prod` | Production host, skip `@write` |
 
-Per-package: `start:local` (frontend/backend), `npm t` (frontend Vitest), `run:local` (cron). Schedule service plan: [cal-poly-schedule-scraper/docs/plan.md](../cal-poly-schedule-scraper/docs/plan.md). Rebuild backend after router/type changes (generates types for frontend).
+Per-package: `start:local` (frontend/backend), `npm t` (frontend Vitest), `run:local` (cron), `dev` (mcp-server). Schedule service plan: [cal-poly-schedule-scraper/docs/plan.md](../cal-poly-schedule-scraper/docs/plan.md). Rebuild backend after router/type changes (generates types for frontend).
 
 ## Stack and conventions
 
 - **Frontend:** React 18, Vite, Tailwind (inline classes), tRPC, TanStack Query, React Router. `index.ts` re-exports; no `../` imports. One public component per file. Local error UX at the query/mutation; `meta.suppressGlobalErrorToast` when handled locally. Public routes set unique titles/canonicals with `PageMeta`; keep `packages/frontend/public/robots.txt` and `SITEMAP_STATIC_PATHS` in sync when adding indexable pages. `robots.txt` points `Sitemap:` at the API worker sitemap (cross-host is supported).
 - **Theming:** Tailwind v4 CSS-first; all tokens live in `packages/frontend/src/index.css`. Colors come from the [Cal Poly brand palette](https://ucm.calpoly.edu/color-guidelines). Dark mode is class-based (`:root.dark`): the inline script in `index.html` applies the stored theme — or the OS setting on a first visit — before first paint, and `useTheme` keeps it in sync; `ThemeToggle` in the navbar flips light/dark. There is no separate "system" mode, and CSS never reads `prefers-color-scheme`, so the storage key must stay in sync between that script and `useTheme`. Two brand tokens: `bg-primary` for filled brand surfaces (Poly Green + white in both schemes), `text-brand`/`border-brand` for brand color drawn on a surface (lightens to Dexter Green in dark). Prefer semantic tokens over raw palette classes so both schemes follow.
 - **Backend:** Workers, tRPC (`src/index.ts`), KV DAOs, Zod in `src/types/schema.ts` (public vs internal parsers). Public routes: `publicProcedure` and omit `anonymousIdentifier`. Discord notifications production-only; e2e sends `x-polyratings-skip-notifications: 1`.
+- **MCP Server:** Node stdio MCP over the backend (`packages/mcp-server/`, `npm run dev`).
 - **General:** TypeScript; root Oxlint (`oxlint-tsgolint` type-aware) + Oxfmt; `npm run fix` before commit.
 
 ## E2E 1:1 with specs
