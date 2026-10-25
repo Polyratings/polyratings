@@ -1,16 +1,16 @@
 import { inferProcedureOutput } from "@trpc/server";
 import { AppRouter } from "@backend/index";
 import { CalendarRange, Search, ShieldCheck } from "lucide-react";
-import { useMemo, useState, type CSSProperties, type ReactNode } from "react";
+import { useMemo, type CSSProperties, type ReactNode } from "react";
 import { Link } from "react-router";
 import { cn, DEFAULT_DESCRIPTION, getRandomSubarray } from "@/utils";
 import Logo from "@/assets/Logo.svg";
 import homeHeader from "@/assets/home-header.webp";
 import duskCampus from "@/assets/worst-of-worst-background.webp";
 import { PageMeta } from "@/components/PageMeta";
-import { SearchBar, type SearchState } from "@/components/SearchBar";
+import { SearchBar } from "@/components/SearchBar";
 import { BestOfTheBestCarousel } from "@/components/BestOfTheBestCarousel";
-import { useParallax } from "@/hooks";
+import { useMobileSearch, useParallax } from "@/hooks";
 import { trpc } from "@/trpc";
 
 const HERO_PARALLAX_SPEED = 0.25;
@@ -33,7 +33,7 @@ export function Home() {
         [allProfessors],
     );
 
-    const [searchState, setSearchState] = useState<SearchState>({ searchValue: "", type: "name" });
+    const { value: searchState, setValue: setSearchState, openSearch } = useMobileSearch();
 
     const { containerRef: heroRef, layerRef: heroImageRef } = useParallax(HERO_PARALLAX_SPEED);
 
@@ -42,9 +42,13 @@ export function Home() {
             <PageMeta description={DEFAULT_DESCRIPTION} path="/" />
             <div
                 ref={heroRef}
-                className="relative h-screen-wo-nav min-h-screen-wo-nav lg:h-screen3/5 lg:min-h-120"
+                className={cn(
+                    "relative h-screen-wo-nav min-h-screen-wo-nav lg:h-screen3/5 lg:min-h-120",
+                    // Phone landscape: don't force a full short viewport — size to content.
+                    "short:h-auto short:min-h-0 short:py-6",
+                )}
             >
-                <div className="absolute inset-0 overflow-hidden">
+                <div className="absolute inset-0 overflow-hidden short:rounded-none">
                     <div
                         ref={heroImageRef}
                         aria-hidden
@@ -64,8 +68,14 @@ export function Home() {
                         }
                     />
                 </div>
-                <div className="absolute inset-0 flex items-center justify-center px-4 lg:pb-36">
-                    <div className="flex flex-col items-center gap-3">
+                <div
+                    className={cn(
+                        "absolute inset-0 z-10 flex items-center justify-center px-4 lg:pb-36",
+                        // relative (not static) so z-10 stays above the absolute photo layer.
+                        "short:relative short:py-0 short:pb-0",
+                    )}
+                >
+                    <div className="flex flex-col items-center gap-3 short:gap-2">
                         <h1 className="relative flex justify-center">
                             {/* Lifts the logo off the bright photo. The dark hero art is
                                 already dark enough, so this is light-mode only. */}
@@ -77,7 +87,7 @@ export function Home() {
                                 // oxlint-disable-next-line jsx-a11y/prefer-tag-over-role -- CSS-masked logo, not a raster img
                                 role="img"
                                 aria-label="Polyratings"
-                                className="relative block aspect-397/78 h-16 bg-primary md:h-20 lg:h-24 dark:bg-brand"
+                                className="relative block aspect-397/78 h-16 bg-primary md:h-20 lg:h-24 dark:bg-brand short:h-10"
                                 style={{
                                     mask: `url(${Logo}) center / contain no-repeat`,
                                     WebkitMask: `url(${Logo}) center / contain no-repeat`,
@@ -85,17 +95,23 @@ export function Home() {
                             />
                         </h1>
                         <div className="w-full sm:w-auto">
-                            <SearchBar size="hero" value={searchState} onChange={setSearchState} />
+                            <SearchBar
+                                size="hero"
+                                value={searchState}
+                                onChange={setSearchState}
+                                onMobileSearchOpen={openSearch}
+                            />
                         </div>
                     </div>
                 </div>
                 {/* xs: flat gold rule. md+: curved wave (wide crop keeps the steep left
-                    tail off-screen so it does not show through "Recent Updates"). */}
+                    tail off-screen so it does not show through "Recent Updates").
+                    Short landscape: thin rule only — the tall wave clips the search pill. */}
                 <div
                     aria-hidden
-                    className="pointer-events-none absolute inset-x-0 bottom-0 h-2.5 bg-cal-poly-gold md:hidden"
+                    className="pointer-events-none absolute inset-x-0 bottom-0 h-2.5 bg-cal-poly-gold md:hidden short:h-1.5"
                 />
-                <div className="pointer-events-none absolute inset-x-0 -bottom-7 hidden justify-end overflow-hidden md:flex">
+                <div className="pointer-events-none absolute inset-x-0 -bottom-7 hidden justify-end overflow-hidden md:flex short:hidden">
                     <HeroCurve className="h-auto w-full max-w-none min-w-[110rem] select-none" />
                 </div>
             </div>

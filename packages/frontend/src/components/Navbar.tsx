@@ -1,7 +1,7 @@
 import { Link, useLocation } from "react-router";
-import { useState, type MouseEvent } from "react";
+import { useCallback, useState, type MouseEvent } from "react";
 import { MenuIcon, SearchIcon, XIcon } from "lucide-react";
-import { useAuth } from "@/hooks";
+import { useAuth, useMobileSearch } from "@/hooks";
 import { cn } from "@/utils";
 import {
     Sheet,
@@ -13,7 +13,8 @@ import {
 import Logo from "@/assets/Logo.svg";
 import DiscordLogo from "@/assets/Discord-Logo-White.svg";
 import GithubLogo from "@/assets/github.svg";
-import { SearchState, TruncatedSearchBar } from "./SearchBar";
+import { MobileSearchSheet } from "./MobileSearchSheet";
+import { TruncatedSearchBar } from "./SearchBar";
 import { ThemeToggle } from "./ThemeToggle";
 
 const HIDE_SEARCH_BAR_ROUTES = ["/", "/search/name", "/search/class", "/search/department"];
@@ -32,25 +33,34 @@ const headerIconButtonClassName = cn(
 
 export function Navbar() {
     const [mobileNavOpen, setMobileNav] = useState(false);
-    const [searchOpen, setSearchOpen] = useState(false);
+    const {
+        open: searchOpen,
+        openSearch,
+        closeSearch,
+        value: searchState,
+        setValue: setSearchState,
+    } = useMobileSearch();
     const { isAuthenticated, setJwt } = useAuth();
     const location = useLocation();
     const showSearchChrome = !HIDE_SEARCH_BAR_ROUTES.includes(location.pathname);
     const [menuPath, setMenuPath] = useState(location.pathname);
 
-    const [searchState, setSearchState] = useState<SearchState>({ searchValue: "", type: "name" });
-
     const closeMobileNav = () => setMobileNav(false);
+
+    const closeMobileSearch = useCallback(() => {
+        closeSearch({ clear: location.pathname !== "/" });
+    }, [closeSearch, location.pathname]);
 
     // Close overlay menus when the route changes (including browser back/forward).
     if (menuPath !== location.pathname) {
         setMenuPath(location.pathname);
-        setSearchOpen(false);
+        closeSearch();
         setMobileNav(false);
     }
 
     return (
         <header
+            data-slot="site-header"
             className={cn(
                 "relative z-[60] flex h-14 w-full shrink-0 items-center gap-2 px-4 sm:gap-3 sm:px-5",
                 "pt-[env(safe-area-inset-top)]",
@@ -90,24 +100,75 @@ export function Navbar() {
             {/* Grow so the search icon / hamburger sit on the right below xl. */}
             <div className={cn("min-w-0 flex-1", showSearchChrome && "xl:hidden")} aria-hidden />
 
-            {showSearchChrome ? (
+            <MobileSearchSheet
+                open={searchOpen}
+                onOpenChange={(nextOpen) => {
+                    if (nextOpen) {
+                        setMobileNav(false);
+                        openSearch();
+                    } else {
+                        closeMobileSearch();
+                    }
+                }}
+                value={searchState}
+                onChange={setSearchState}
+                trigger={
+                    showSearchChrome ? (
+                        <button
+                            type="button"
+                            aria-label="Search professors"
+                            aria-expanded={searchOpen}
+                            className={cn(
+                                headerIconButtonClassName,
+                                "xl:hidden",
+                                searchOpen && "pointer-events-none invisible",
+                            )}
+                            tabIndex={searchOpen ? -1 : undefined}
+                            onClick={(event) => {
+                                setMobileNav(false);
+                                openSearch(event.currentTarget);
+                            }}
+                        >
+                            <SearchIcon className="size-6" aria-hidden />
+                        </button>
+                    ) : undefined
+                }
+            />
+
+            {/* Far-right control: menu, or X to close search when the search sheet is open.
+                Always show Close while search is open — including tall-md tablet (LAYOUT-7). */}
+            {searchOpen ? (
+                <button
+                    type="button"
+                    aria-label="Close search"
+                    className={headerIconButtonClassName}
+                    onClick={() => closeMobileSearch()}
+                >
+                    <XIcon className="size-7" aria-hidden />
+                </button>
+            ) : (
                 <Sheet
-                    open={searchOpen}
+                    modal={false}
+                    open={mobileNavOpen}
                     onOpenChange={(open) => {
-                        setSearchOpen(open);
+                        setMobileNav(open);
                         if (open) {
-                            setMobileNav(false);
+                            closeSearch();
                         }
                     }}
                 >
                     <SheetTrigger asChild>
                         <button
+                            aria-label="Open Navbar"
+                            aria-expanded={mobileNavOpen}
+                            className={cn(headerIconButtonClassName, "tall-md:hidden")}
                             type="button"
-                            aria-label="Search professors"
-                            aria-expanded={searchOpen}
-                            className={cn(headerIconButtonClassName, "xl:hidden")}
                         >
-                            <SearchIcon className="size-6" aria-hidden />
+                            {mobileNavOpen ? (
+                                <XIcon className="size-7" />
+                            ) : (
+                                <MenuIcon className="size-7" />
+                            )}
                         </button>
                     </SheetTrigger>
                     <SheetContent
@@ -115,123 +176,84 @@ export function Navbar() {
                         showCloseButton={false}
                         overlayClassName="top-14 bg-black/40 dark:bg-black/60"
                         className={cn(
-                            "top-14 gap-3 border-none p-4 pb-[max(1rem,env(safe-area-inset-bottom))] text-foreground",
+                            "top-14 gap-0 border-none p-4 pb-[max(1rem,env(safe-area-inset-bottom))] text-white",
                             "data-[side=top]:top-14",
                             isAuthenticated ? "!bg-red-800" : "!bg-cal-poly-green",
                         )}
                     >
-                        <SheetTitle className="text-base font-semibold text-white">
-                            Search professors
-                        </SheetTitle>
+                        <SheetTitle className="sr-only">Navigation</SheetTitle>
                         <SheetDescription className="sr-only">
-                            Search for a professor by name
+                            Site navigation links
                         </SheetDescription>
-                        <TruncatedSearchBar
-                            fill
-                            // No mobile suggestions until a full-screen search surface (keyboard conflict).
-                            disableAutoComplete
-                            placeholder="Search professors"
-                            value={searchState}
-                            onChange={setSearchState}
-                        />
-                    </SheetContent>
-                </Sheet>
-            ) : null}
-
-            {/* modal=false keeps the header hamburger above the sheet; stronger overlay for dimming. */}
-            <Sheet
-                modal={false}
-                open={mobileNavOpen}
-                onOpenChange={(open) => {
-                    setMobileNav(open);
-                    if (open) {
-                        setSearchOpen(false);
-                    }
-                }}
-            >
-                <SheetTrigger asChild>
-                    <button
-                        aria-label="Open Navbar"
-                        aria-expanded={mobileNavOpen}
-                        className={cn(headerIconButtonClassName, "md:hidden")}
-                        type="button"
-                    >
-                        {mobileNavOpen ? (
-                            <XIcon className="size-7" />
-                        ) : (
-                            <MenuIcon className="size-7" />
-                        )}
-                    </button>
-                </SheetTrigger>
-                <SheetContent
-                    side="top"
-                    showCloseButton={false}
-                    overlayClassName="top-14 bg-black/40 dark:bg-black/60"
-                    className={cn(
-                        "top-14 gap-0 border-none p-4 pb-[max(1rem,env(safe-area-inset-bottom))] text-white",
-                        "data-[side=top]:top-14",
-                        isAuthenticated ? "!bg-red-800" : "!bg-cal-poly-green",
-                    )}
-                >
-                    <SheetTitle className="sr-only">Navigation</SheetTitle>
-                    <SheetDescription className="sr-only">Site navigation links</SheetDescription>
-                    <nav className="flex flex-col items-stretch text-white">
-                        <Link className={mobileNavLinkClassName} to="/" onClick={closeMobileNav}>
-                            Home
-                        </Link>
-                        <Link
-                            className={mobileNavLinkClassName}
-                            to="/new-professor"
-                            onClick={closeMobileNav}
-                        >
-                            Add a Professor
-                        </Link>
-                        <Link
-                            className={mobileNavLinkClassName}
-                            to="/search/name"
-                            onClick={closeMobileNav}
-                        >
-                            Professor List
-                        </Link>
-                        <Link
-                            className={mobileNavLinkClassName}
-                            to="/about"
-                            onClick={closeMobileNav}
-                        >
-                            About
-                        </Link>
-                        <Link className={mobileNavLinkClassName} to="/faq" onClick={closeMobileNav}>
-                            FAQ
-                        </Link>
-                        {isAuthenticated && (
+                        <nav className="flex flex-col items-stretch text-white">
                             <Link
                                 className={mobileNavLinkClassName}
-                                to="/admin"
+                                to="/"
                                 onClick={closeMobileNav}
                             >
-                                Admin
+                                Home
                             </Link>
-                        )}
-                        <div className="flex justify-center py-1">
-                            <ThemeToggle className="my-1" />
-                        </div>
-                        {isAuthenticated && (
-                            <button
-                                onClick={() => {
-                                    setJwt(null);
-                                    closeMobileNav();
-                                }}
-                                className={cn(mobileNavLinkClassName, "mt-2 border-2 border-white")}
-                                type="button"
+                            <Link
+                                className={mobileNavLinkClassName}
+                                to="/new-professor"
+                                onClick={closeMobileNav}
                             >
-                                SIGN OUT
-                            </button>
-                        )}
-                    </nav>
-                </SheetContent>
-            </Sheet>
+                                Add a Professor
+                            </Link>
+                            <Link
+                                className={mobileNavLinkClassName}
+                                to="/search/name"
+                                onClick={closeMobileNav}
+                            >
+                                Professor List
+                            </Link>
+                            <Link
+                                className={mobileNavLinkClassName}
+                                to="/about"
+                                onClick={closeMobileNav}
+                            >
+                                About
+                            </Link>
+                            <Link
+                                className={mobileNavLinkClassName}
+                                to="/faq"
+                                onClick={closeMobileNav}
+                            >
+                                FAQ
+                            </Link>
+                            {isAuthenticated && (
+                                <Link
+                                    className={mobileNavLinkClassName}
+                                    to="/admin"
+                                    onClick={closeMobileNav}
+                                >
+                                    Admin
+                                </Link>
+                            )}
+                            <div className="flex justify-center py-1">
+                                <ThemeToggle className="my-1" />
+                            </div>
+                            {isAuthenticated && (
+                                <button
+                                    onClick={() => {
+                                        setJwt(null);
+                                        closeMobileNav();
+                                    }}
+                                    className={cn(
+                                        mobileNavLinkClassName,
+                                        "mt-2 border-2 border-white",
+                                    )}
+                                    type="button"
+                                >
+                                    SIGN OUT
+                                </button>
+                            )}
+                        </nav>
+                    </SheetContent>
+                </Sheet>
+            )}
 
-            <div className="hidden shrink-0 items-center gap-x-5 text-lg font-semibold text-white md:flex">
+            <div className="hidden shrink-0 items-center gap-x-5 text-lg font-semibold text-white tall-md:flex">
                 <Link to="/new-professor">Add a Professor</Link>
                 <Link to="/search/name">Professor List</Link>
                 <Link to="/about">About</Link>
