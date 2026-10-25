@@ -12,6 +12,7 @@ If this file is wrong, update it.
 | `@polyratings/backend` | `packages/backend/` | Workers tRPC API |
 | `@polyratings/cron` | `packages/cron/` | Nightly sync / backup |
 | `@polyratings/e2e` | `packages/e2e/` | Playwright |
+| `@polyratings/mcp-server` | `packages/mcp-server/` | Local MCP server for public and admin tools |
 
 Frontend and cron depend on backend. Lint/format: root `.oxlintrc.json` + `.oxfmtrc.json` (Oxlint / Oxfmt).
 
@@ -27,13 +28,14 @@ Frontend and cron depend on backend. Lint/format: root `.oxlintrc.json` + `.oxfm
 | `npm run e2e` | Playwright (local Vite) |
 | `npm run e2e:prod` | Production host, skip `@write` |
 
-Per-package: `start:local` (frontend/backend), `npm t` (frontend Vitest), `run:local` (cron). Rebuild backend after router/type changes (generates types for frontend).
+Per-package: `start:local` (frontend/backend), `npm t` (frontend Vitest), `run:local` (cron), `dev` (mcp-server). Rebuild backend after router/type changes (generates types for frontend).
 
 ## Stack and conventions
 
 - **Frontend:** React 18, Vite, Tailwind (inline classes), tRPC, TanStack Query, React Router. `index.ts` re-exports; no `../` imports. One public component per file. Local error UX at the query/mutation; `meta.suppressGlobalErrorToast` when handled locally. Public routes set unique titles/canonicals with `PageMeta`; keep `packages/frontend/public/robots.txt` and `SITEMAP_STATIC_PATHS` in sync when adding indexable pages. `robots.txt` points `Sitemap:` at the API worker sitemap (cross-host is supported).
 - **Theming:** Tailwind v4 CSS-first; all tokens live in `packages/frontend/src/index.css`. Colors come from the [Cal Poly brand palette](https://ucm.calpoly.edu/color-guidelines). Dark mode is class-based (`:root.dark`): the inline script in `index.html` applies the stored theme — or the OS setting on a first visit — before first paint, and `useTheme` keeps it in sync; `ThemeToggle` in the navbar flips light/dark. There is no separate "system" mode, and CSS never reads `prefers-color-scheme`, so the storage key must stay in sync between that script and `useTheme`. Two brand tokens: `bg-primary` for filled brand surfaces (Poly Green + white in both schemes), `text-brand`/`border-brand` for brand color drawn on a surface (lightens to Dexter Green in dark). Prefer semantic tokens over raw palette classes so both schemes follow.
 - **Backend:** Workers, tRPC (`src/index.ts`), KV DAOs, Zod in `src/types/schema.ts` (public vs internal parsers). Public routes: `publicProcedure` and omit `anonymousIdentifier`. Discord notifications production-only; e2e sends `x-polyratings-skip-notifications: 1`.
+- **MCP Server:** Node stdio MCP over the backend (`packages/mcp-server/`, `npm run dev`).
 - **General:** TypeScript; root Oxlint (`oxlint-tsgolint` type-aware) + Oxfmt; `npm run fix` before commit.
 
 ## E2E 1:1 with specs
