@@ -303,6 +303,9 @@ export class KVDAO {
 
         if (existingReport) {
             existingReport.reports = existingReport.reports.concat(report.reports);
+            if (report.scheduleMatch) {
+                existingReport.scheduleMatch = report.scheduleMatch;
+            }
             await this.reportsNamespace.put(ratingReportParser, report.ratingId, existingReport);
         } else {
             await this.reportsNamespace.put(ratingReportParser, report.ratingId, report);

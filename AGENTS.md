@@ -13,6 +13,8 @@ If this file is wrong, update it.
 | `@polyratings/cron` | `packages/cron/` | Nightly sync / backup |
 | `@polyratings/e2e` | `packages/e2e/` | Playwright |
 
+Schedule scraping lives in sibling repo **[cal-poly-schedule-scraper](../cal-poly-schedule-scraper/)** (Worker + scraper + Docker). Polyratings does not publish a class schedule. The backend may call the Schedule read API to attach non-blocking `scheduleMatch` metadata on rating logs and reports: whether the submitted course appears among that professor’s sections in any covered term that has already started, not only the term the review was posted in. Reviews outside those term windows are `not_applicable`. Admins see that status on processed ratings and reported ratings. The signal never blocks or deletes a rating.
+
 Frontend and cron depend on backend. Lint/format: root `.oxlintrc.json` + `.oxfmtrc.json` (Oxlint / Oxfmt).
 
 ## Commands (repo root)
@@ -27,7 +29,7 @@ Frontend and cron depend on backend. Lint/format: root `.oxlintrc.json` + `.oxfm
 | `npm run e2e` | Playwright (local Vite) |
 | `npm run e2e:prod` | Production host, skip `@write` |
 
-Per-package: `start:local` (frontend/backend), `npm t` (frontend Vitest), `run:local` (cron). Rebuild backend after router/type changes (generates types for frontend).
+Per-package: `start:local` (frontend/backend), `npm t` (frontend Vitest), `run:local` (cron). Schedule service plan: [cal-poly-schedule-scraper/docs/plan.md](../cal-poly-schedule-scraper/docs/plan.md). Rebuild backend after router/type changes (generates types for frontend).
 
 ## Stack and conventions
 

@@ -18,6 +18,7 @@ import { bulkInvalidationKey, useDbValues } from "@/hooks/useDbValues";
 import { trpc } from "@/trpc";
 import { cn, toSelectOptions } from "@/utils";
 import { RatingTextCell } from "@/pages/admin/RatingTextCell";
+import { ScheduleMatchBadge, scheduleMatchLabel } from "@/pages/admin/ScheduleMatchBadge";
 import {
     AdminSearchInput,
     AdminSection,
@@ -98,10 +99,14 @@ export function ReportedRatings() {
                 .map((r) => r.reason)
                 .join(" ")
                 .toLowerCase();
+            const scheduleMatch = row.scheduleMatch
+                ? `${row.scheduleMatch.status} ${scheduleMatchLabel(row.scheduleMatch.status)} ${row.scheduleMatch.matchedCourseKeys.join(" ")}`.toLowerCase()
+                : "";
             return (
                 professorName.includes(query) ||
                 ratingText.includes(query) ||
-                reasons.includes(query)
+                reasons.includes(query) ||
+                scheduleMatch.includes(query)
             );
         });
     }, [ratingReports, professors, search, department]);
@@ -168,6 +173,7 @@ export function ReportedRatings() {
                     <TableHeader className="sticky top-0 z-10 bg-card">
                         <TableRow>
                             <TableHead>Professor</TableHead>
+                            <TableHead>Schedule</TableHead>
                             <TableHead>Reports</TableHead>
                             <TableHead>Rating</TableHead>
                             <TableHead className="text-right">Actions</TableHead>
@@ -176,7 +182,7 @@ export function ReportedRatings() {
                     <TableBody>
                         {pageRows.length === 0 ? (
                             <AdminTableEmptyRow
-                                colSpan={4}
+                                colSpan={5}
                                 message={emptyStateMessage({
                                     hasSourceData: sourceTotal > 0,
                                     hasFilters,
@@ -228,6 +234,9 @@ export function ReportedRatings() {
                                                     </span>
                                                 )}
                                             </div>
+                                        </TableCell>
+                                        <TableCell className="whitespace-normal">
+                                            <ScheduleMatchBadge scheduleMatch={row.scheduleMatch} />
                                         </TableCell>
                                         <TableCell className="max-w-sm whitespace-normal">
                                             <div className="flex flex-col gap-2 text-sm">

@@ -9,6 +9,7 @@ import {
     PROFESSOR_TAGS,
 } from "@backend/utils/const";
 import { historicalCourseNumParser } from "@backend/utils/courseNum";
+import { scheduleMatchParser } from "@backend/schedule/schema";
 import type { Moderation } from "openai/resources/moderations";
 
 export const ratingBaseParser = z.object({
@@ -44,6 +45,8 @@ export const pendingRatingParser = ratingParser.extend({
     // Historical logs may still have quarter (3-digit) numbers; new submissions use courseNumParser.
     courseNum: historicalCourseNumParser,
     department: z.enum(DEPARTMENT_LIST),
+    // Omitted on older logs. Not part of public ratings.
+    scheduleMatch: scheduleMatchParser.optional(),
 });
 export type PendingRating = z.infer<typeof pendingRatingParser>;
 
@@ -90,6 +93,7 @@ export const ratingReportParser = z.object({
     ratingId: z.uuid(),
     professorId: z.uuid(),
     reports: reportParser.array(),
+    scheduleMatch: scheduleMatchParser.optional(),
 });
 
 export type RatingReport = z.infer<typeof ratingReportParser>;

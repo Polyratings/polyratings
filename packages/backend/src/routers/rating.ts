@@ -15,6 +15,11 @@ import { Env } from "@backend/env";
 import type { Moderation } from "openai/resources/moderations";
 import { checkModerationThresholds } from "@backend/utils/moderation";
 import {
+    analyzeScheduleMatch,
+    notApplicableMatch,
+    parseSubmittedCourseKey,
+} from "@backend/schedule/analyzeScheduleMatch";
+import {
     autoDeletedRatingNotification,
     findRatingCourse,
     ratingReportNotification,
@@ -59,6 +64,16 @@ export async function addRating(input: z.infer<typeof addRatingParser>, ctx: { e
                 "This review has already been submitted, please contact dev@polyratings.org for assistance",
         });
     }
+
+    // Never reject or alter the rating based on this result.
+    pendingRating.scheduleMatch = await analyzeScheduleMatch({
+        client: ctx.env.scheduleClient,
+        firstName: professor.firstName,
+        lastName: professor.lastName,
+        department: pendingRating.department,
+        courseNum: pendingRating.courseNum,
+        postDate: pendingRating.postDate,
+    });
 
     const analysis = await ctx.env.ratingAnalyzer.analyzeRating(pendingRating);
 
@@ -122,6 +137,20 @@ export const ratingsRouter = t.router({
             }
             const course = findRatingCourse(professor.reviews, input.ratingId) ?? "Unknown course";
             const anonymousIdentifier = await ctx.env.anonymousIdDao.getIdentifier();
+            const existingLog = await ctx.env.kvDao.getRatingLog(input.ratingId);
+            const parsedCourse = parseSubmittedCourseKey(course);
+            const scheduleMatch =
+                existingLog?.scheduleMatch ??
+                (parsedCourse
+                    ? await analyzeScheduleMatch({
+                          client: ctx.env.scheduleClient,
+                          firstName: professor.firstName,
+                          lastName: professor.lastName,
+                          department: parsedCourse.department,
+                          courseNum: parsedCourse.courseNum,
+                          postDate: rating.postDate,
+                      })
+                    : notApplicableMatch(course));
 
             const ratingReport: RatingReport = {
                 ratingId: input.ratingId,
@@ -133,13 +162,13 @@ export const ratingsRouter = t.router({
                         anonymousIdentifier,
                     },
                 ],
+                scheduleMatch,
             };
 
             await ctx.env.kvDao.putReport(ratingReport);
 
             // Run unprocessed ratings through moderation; auto-delete if model rejects.
             // Skip moderation when analysis exists in rating log—it was vetted at submission.
-            const existingLog = await ctx.env.kvDao.getRatingLog(ratingReport.ratingId);
             if (!existingLog?.analyzedScores) {
                 const pendingForAnalysis: PendingRating = {
                     ...rating,
@@ -182,6 +211,7 @@ export const ratingsRouter = t.router({
                     rating,
                     ratingReport.reports[0].reason,
                     ratingReport.reports[0].anonymousIdentifier ?? "Unknown",
+                    scheduleMatch.status,
                 ),
             );
         }),
