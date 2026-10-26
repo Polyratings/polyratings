@@ -20,6 +20,8 @@ Useful commands:
 - `npm run e2e:dev` (alias for running the e2e package’s `playwright test`; pass extra args after `--`)
 - `npm run e2e:ui` (open Playwright UI mode)
 - `npm run e2e:headed` (headed browser run)
+- `npm run e2e:visual` (compare `@visual` screenshots to the committed `src/visual.spec.ts-snapshots/*-chromium-linux.png` baselines)
+- `npm run e2e:visual:update` (rewrite snapshots for this machine; commit only Linux replacements of those baselines)
 
 Spec-driven workflow:
 

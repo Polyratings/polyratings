@@ -42,8 +42,9 @@ Requirement **specs** in `packages/e2e/docs/*.md` define the tests. Playwright i
 
 Keep **1:1 parity**: each spec file ↔ one suite; each acceptance ID ↔ a `test` or `test.step`; scenario titles match test names. Change the spec first, then the `.spec.ts`.
 
-- Local: `npm run e2e` (`http://localhost:5173`). Beta/prod: `e2e:beta` / `e2e:prod`. `@write` skipped in production.
+- Local: `npm run e2e` (`http://localhost:5173`). Beta/prod: `e2e:beta` / `e2e:prod`. `@write` skipped in production. `@visual` is skipped here too.
 - A11y: WCAG 2.1 AA; `npm run e2e:a11y` (`@a11y`, axe in `src/support/axe-test.ts`). Frontend also uses Oxlint `jsx-a11y` and jest-axe on new UI primitives.
+- Visual: `npm run e2e:visual` compares `@visual` screenshots of pages end users cannot change. The post-deploy Playwright run sets `PLAYWRIGHT_VISUAL=compare` and checks the committed `*-chromium-linux.png` baselines.
 
 ## Deploy (GitHub Actions)
 
