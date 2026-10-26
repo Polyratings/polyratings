@@ -74,8 +74,7 @@ export function MobileSearchSheet({
                       aria-modal={open ? true : undefined}
                       data-slot="mobile-search"
                       aria-hidden={!open}
-                      // React 18 treats `inert` as a custom attr; omit when open.
-                      {...(!open ? { inert: "" } : {})}
+                      inert={!open}
                       aria-labelledby={open ? titleId : undefined}
                       aria-describedby={open ? descriptionId : undefined}
                       className={cn(

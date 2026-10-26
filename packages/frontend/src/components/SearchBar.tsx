@@ -47,7 +47,7 @@ export interface FullScreenSearchProps {
     LeadingAction?: React.ReactNode;
     className?: string;
     /** Focus target for `openSearch` (must be set before the tap handler returns). */
-    inputRef?: RefObject<HTMLInputElement>;
+    inputRef?: RefObject<HTMLInputElement | null>;
 }
 
 /**
@@ -311,7 +311,7 @@ interface SearchBaseProps {
     LeadingAction?: React.ReactNode;
     inputReadOnly?: boolean;
     onInputFocus?: () => void;
-    inputRef?: RefObject<HTMLInputElement>;
+    inputRef?: RefObject<HTMLInputElement | null>;
 }
 function SearchBase({
     value,

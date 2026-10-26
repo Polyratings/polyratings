@@ -36,7 +36,7 @@ export interface AutoCompleteProps<T, U> {
     inputReadOnly?: boolean;
     onInputFocus?: () => void;
     /** Set by mobile search so openSearch can focus synchronously on tap. */
-    inputRef?: RefObject<HTMLInputElement>;
+    inputRef?: RefObject<HTMLInputElement | null>;
 }
 
 /** Fixed row heights (16px root) — avoids getComputedStyle on every render. */

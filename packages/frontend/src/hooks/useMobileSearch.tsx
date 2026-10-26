@@ -25,8 +25,8 @@ interface MobileSearchContextValue {
     closeSearch: (options?: CloseSearchOptions) => void;
     value: SearchState;
     setValue: (value: SearchState) => void;
-    inputRef: RefObject<HTMLInputElement>;
-    panelRef: RefObject<HTMLDivElement>;
+    inputRef: RefObject<HTMLInputElement | null>;
+    panelRef: RefObject<HTMLDivElement | null>;
 }
 
 const MobileSearchContext = createContext<MobileSearchContextValue | null>(null);

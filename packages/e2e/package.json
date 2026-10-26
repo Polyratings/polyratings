@@ -14,8 +14,8 @@
         "e2e:visual:update": "PLAYWRIGHT_VISUAL=update playwright test --grep @visual --update-snapshots"
     },
     "devDependencies": {
-        "@axe-core/playwright": "^4.13.0",
-        "@playwright/test": "^1.64.0",
+        "@axe-core/playwright": "^4.14.0",
+        "@playwright/test": "^1.64.1",
         "axe-core": "^4.14.0"
     }
 }
