@@ -5,6 +5,15 @@ const baseURL = process.env.PLAYWRIGHT_BASE_URL || "http://localhost:5173";
 const useLocalWebServer =
     baseURL.startsWith("http://localhost:") || baseURL.startsWith("http://127.0.0.1:");
 
+// `@visual` needs the linux baselines recorded in GitHub Actions. A normal run has none.
+const grepInvert: RegExp[] = [];
+if (process.env.PLAYWRIGHT_EXCLUDE_WRITE === "true") {
+    grepInvert.push(/@write/);
+}
+if (!process.env.PLAYWRIGHT_VISUAL) {
+    grepInvert.push(/@visual/);
+}
+
 export default defineConfig({
     testDir: "./src",
     fullyParallel: true,
@@ -15,8 +24,8 @@ export default defineConfig({
         : [["list"]],
     outputDir: "test-results",
     timeout: 30_000,
-    // Playwright grep matches titles and `tag:` values. Exclude mutating specs in production.
-    ...(process.env.PLAYWRIGHT_EXCLUDE_WRITE === "true" ? { grepInvert: /@write/ } : {}),
+    // Playwright grep matches titles and `tag:` values.
+    ...(grepInvert.length > 0 ? { grepInvert } : {}),
     ...(useLocalWebServer
         ? {
               webServer: {
@@ -30,7 +39,15 @@ export default defineConfig({
         : {}),
     expect: {
         timeout: 10_000,
+        toHaveScreenshot: {
+            animations: "disabled",
+            caret: "hide",
+            scale: "css",
+            // A few antialiased edge pixels. A shifted control is well past this.
+            maxDiffPixelRatio: 0.001,
+        },
     },
+    snapshotPathTemplate: "{testDir}/{testFileName}-snapshots/{arg}-{projectName}-{platform}{ext}",
     use: {
         baseURL,
         extraHTTPHeaders: {
