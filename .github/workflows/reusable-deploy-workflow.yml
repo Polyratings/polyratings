@@ -218,6 +218,8 @@ jobs:
         env:
           PLAYWRIGHT_BASE_URL: ${{ inputs.PLAYWRIGHT_BASE_URL || steps.publish-pages.outputs.pages-deployment-alias-url || steps.publish-pages.outputs.deployment-url }}
           PLAYWRIGHT_EXCLUDE_WRITE: ${{ inputs.EXCLUDE_WRITE_TESTS }}
+          # Same run as the functional suite. Baselines are the committed linux pngs.
+          PLAYWRIGHT_VISUAL: compare
           CI: true
         run: npx playwright test
 

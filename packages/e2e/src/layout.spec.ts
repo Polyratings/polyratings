@@ -86,7 +86,22 @@ test("LAYOUT: professor page keeps navbar search on mobile", async ({ page }) =>
         await page.goto("/professor/0038ea39-3910-4f80-9353-41dce33c754d");
 
         await openNavbarSearch();
-        await expect(page.getByRole("combobox", { name: "Professor Auto-complete" })).toBeVisible();
+        const combobox = page
+            .locator('[data-slot="mobile-search"]')
+            .getByRole("combobox", { name: "Professor Auto-complete" });
+        await expect(combobox).toBeVisible();
+        await expect(combobox).toBeFocused();
+        await expect(page.getByRole("button", { name: "Close search" })).toBeVisible();
+        await combobox.fill("smith");
+        const firstOption = page.getByRole("option").first();
+        await expect(firstOption).toBeVisible();
+        // Suggestions must be in-flow (not an absolute dropdown under a clipped panel).
+        const optionBox = await firstOption.boundingBox();
+        const viewport = page.viewportSize();
+        expect(optionBox).toBeTruthy();
+        expect(viewport).toBeTruthy();
+        expect(optionBox!.y).toBeGreaterThanOrEqual(0);
+        expect(optionBox!.y + optionBox!.height).toBeLessThanOrEqual(viewport!.height);
     });
 
     await test.step("LAYOUT-7: at tablet width search stays an icon beside desktop nav", async () => {
@@ -103,6 +118,18 @@ test("LAYOUT: professor page keeps navbar search on mobile", async ({ page }) =>
         );
 
         await openNavbarSearch();
-        await expect(page.getByRole("combobox", { name: "Professor Auto-complete" })).toBeVisible();
+        await expect(
+            page.locator('[data-slot="mobile-search"]').getByRole("combobox", {
+                name: "Professor Auto-complete",
+            }),
+        ).toBeVisible();
+        // Close must stay visible on tall-md — Escape-only dismiss is not enough for touch.
+        const close = page.getByRole("button", { name: "Close search" });
+        await expect(close).toBeVisible();
+        await close.click();
+        await expect(page.locator('[data-slot="mobile-search"]')).toHaveAttribute(
+            "aria-hidden",
+            "true",
+        );
     });
 });

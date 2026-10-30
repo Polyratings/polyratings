@@ -4,6 +4,7 @@ export * from "./NewProfessor";
 export * from "./EvaluateProfessor";
 export * from "./Search";
 export * from "./ProfessorPage";
+export { professorPageLoaderFactory } from "./professorPageLoader";
 export * from "./About";
 export * from "./Admin";
 export * from "./FAQ";

@@ -8,7 +8,7 @@ This directory contains business logic requirement documents that drive E2E test
 - **Test Scenarios** – Concrete E2E scenarios that verify the criteria
 - **Implementation Status** – These specs define the tests 1:1. Playwright implements the IDs and scenario titles here; do not add tests the spec does not describe.
 
-Tests are implemented in `packages/e2e/src/` and run against local (`npm run e2e`) or deployed hosts via `PLAYWRIGHT_BASE_URL` (for example `npm run e2e:beta`). Production runs (`npm run e2e:prod` or CI on `master`) set `PLAYWRIGHT_EXCLUDE_WRITE=true` to skip tests tagged `@write`.
+Tests are implemented in `packages/e2e/src/` and run against local (`npm run e2e`) or deployed hosts via `PLAYWRIGHT_BASE_URL` (for example `npm run e2e:beta`). Production runs (`npm run e2e:prod` or CI on `master`) set `PLAYWRIGHT_EXCLUDE_WRITE=true` to skip tests tagged `@write`. Tests tagged `@visual` are skipped unless `PLAYWRIGHT_VISUAL` is set. The post-deploy Playwright run sets that and compares the committed Linux baselines. See [Visual.md](./Visual.md).
 
 ## Accessibility suite
 
@@ -37,3 +37,4 @@ Per-test customization uses `scanForA11yViolations((builder) => ...)` or builds 
 | [NewProfessor.md](./NewProfessor.md)               | Add-a-professor submission flow                                    | `src/new-professor.spec.ts`      | Implemented           |
 | [Login.md](./Login.md)                             | Admin login form and invalid-credential feedback                   | `src/login.spec.ts`              | Implemented           |
 | [Admin.md](./Admin.md)                             | Unauthenticated admin route redirect                               | `src/admin.spec.ts`              | Implemented           |
+| [Visual.md](./Visual.md)                           | Screenshot baselines recorded in CI and compared on pull requests  | `src/visual.spec.ts`             | Implemented           |

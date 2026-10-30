@@ -122,6 +122,7 @@ export function ratingReportNotification(
     rating: Rating,
     reporterReason: string,
     reporterId: string,
+    scheduleMatchStatus: string,
 ): DiscordNotification {
     return {
         content: contentLine(
@@ -137,6 +138,7 @@ export function ratingReportNotification(
             color: COLORS.WARNING,
             url: professorPageUrl(professor.id),
             fields: [
+                { name: "Schedule match", value: field(scheduleMatchStatus), inline: false },
                 { name: "Rating", value: field(rating.rating), inline: false },
                 { name: "Rating ID", value: rating.id, inline: false },
             ],

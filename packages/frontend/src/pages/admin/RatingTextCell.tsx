@@ -16,16 +16,16 @@ export function RatingTextCell({
     if (!trimmed) {
         return (
             <div className={cn("max-w-md whitespace-normal", className)}>
+                {byline ? <p className="text-xs text-muted-foreground">by {byline}</p> : null}
                 <span className="text-muted-foreground">—</span>
-                {byline ? <p className="mt-1 text-xs text-muted-foreground">by {byline}</p> : null}
             </div>
         );
     }
 
     return (
         <div className={cn("max-w-md whitespace-normal", className)}>
+            {byline ? <p className="mb-1 text-xs text-muted-foreground">by {byline}</p> : null}
             <p className="text-sm leading-relaxed whitespace-pre-wrap text-foreground">{trimmed}</p>
-            {byline ? <p className="mt-1 text-xs text-muted-foreground">by {byline}</p> : null}
         </div>
     );
 }

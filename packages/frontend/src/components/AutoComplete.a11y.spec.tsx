@@ -15,7 +15,7 @@ describe("AutoComplete (accessibility)", () => {
                         .map((item) => ({ label: item, value: item }))
                 }
                 onChange={() => {}}
-                placeholder="Professor Name"
+                placeholder="Search professors"
                 label="Professor Auto-complete"
                 inputValue=""
                 disableDropdown
