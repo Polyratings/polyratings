@@ -2,6 +2,7 @@ import { t, publicProcedure } from "@backend/trpc";
 import { rateLimitedPublicProcedure } from "@backend/middleware/rate-limiter";
 import { z } from "zod";
 import {
+    PendingProfessor,
     Professor,
     publicProfessorParser,
     ratingBaseParser,
@@ -11,6 +12,7 @@ import { DEPARTMENT_LIST } from "@backend/utils/const";
 import { courseNumParser, courseReviewsKey } from "@backend/utils/courseNum";
 import { addRating as addRatingToProfessor } from "@backend/types/schemaHelpers";
 import { pendingProfessorNotification } from "@backend/utils/discordNotifications";
+import { analyzePendingProfessorScheduleMatch } from "@backend/schedule/analyzeScheduleMatch";
 import { addRating } from "./rating";
 
 export const professorRouter = t.router({
@@ -72,7 +74,7 @@ export const professorRouter = t.router({
 
             const professorId = crypto.randomUUID();
             const tags = Object.fromEntries((input.rating.tags ?? []).map((tag) => [tag, 1]));
-            const professor: Professor = {
+            const professor: PendingProfessor = {
                 id: professorId,
                 firstName: input.firstName,
                 lastName: input.lastName,
@@ -105,8 +107,17 @@ export const professorRouter = t.router({
             if (duplicatePendingProfessor) {
                 const [[courseName, reviews]] = Object.entries(professor.reviews);
                 addRatingToProfessor(duplicatePendingProfessor, reviews[0], courseName);
+                duplicatePendingProfessor.scheduleMatch =
+                    await analyzePendingProfessorScheduleMatch(
+                        ctx.env.scheduleClient,
+                        duplicatePendingProfessor,
+                    );
                 await ctx.env.kvDao.putPendingProfessor(duplicatePendingProfessor);
             } else {
+                professor.scheduleMatch = await analyzePendingProfessorScheduleMatch(
+                    ctx.env.scheduleClient,
+                    professor,
+                );
                 await ctx.env.kvDao.putPendingProfessor(professor);
 
                 const [[courseName]] = Object.entries(professor.reviews);

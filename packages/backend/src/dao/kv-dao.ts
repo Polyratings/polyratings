@@ -4,6 +4,8 @@ import { mapInBatches } from "@backend/utils/chunkArray";
 import { z } from "zod";
 import { TRPCError } from "@trpc/server";
 import {
+    PendingProfessor,
+    pendingProfessorParser,
     PendingRating,
     pendingRatingParser,
     Professor,
@@ -74,7 +76,7 @@ export class KVDAO {
             professors: { namespace: this.polyratingsNamespace, parser: professorParser },
             "professor-queue": {
                 namespace: this.professorApprovalQueueNamespace,
-                parser: professorParser,
+                parser: pendingProfessorParser,
             },
             users: { namespace: this.usersNamespace, parser: userParser },
             reports: { namespace: this.reportsNamespace, parser: ratingReportParser },
@@ -267,20 +269,24 @@ export class KVDAO {
         return this.usersNamespace.put(userParser, user.username, user);
     }
 
-    putPendingProfessor(professor: Professor) {
-        return this.professorApprovalQueueNamespace.put(professorParser, professor.id, professor);
+    putPendingProfessor(professor: PendingProfessor) {
+        return this.professorApprovalQueueNamespace.put(
+            pendingProfessorParser,
+            professor.id,
+            professor,
+        );
     }
 
     async getPendingProfessor(id: string) {
-        return this.professorApprovalQueueNamespace.get(professorParser, id);
+        return this.professorApprovalQueueNamespace.get(pendingProfessorParser, id);
     }
 
     getPendingProfessorOptional(id: string) {
-        return this.professorApprovalQueueNamespace.getOptional(professorParser, id);
+        return this.professorApprovalQueueNamespace.getOptional(pendingProfessorParser, id);
     }
 
     async getAllPendingProfessors() {
-        return this.professorApprovalQueueNamespace.getAll(professorParser);
+        return this.professorApprovalQueueNamespace.getAll(pendingProfessorParser);
     }
 
     removePendingProfessor(id: string) {

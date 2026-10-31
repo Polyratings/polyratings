@@ -1,4 +1,10 @@
-import { PendingRating, Professor, RatingReport, User } from "@backend/types/schema";
+import {
+    PendingProfessor,
+    PendingRating,
+    Professor,
+    RatingReport,
+    User,
+} from "@backend/types/schema";
 
 /**
  * Department codes for professor home department and the department half of a
@@ -160,7 +166,7 @@ export type BulkKey = (typeof bulkKeys)[number];
 export type BulkKeyMap = {
     professors: Professor[];
     "rating-log": PendingRating[];
-    "professor-queue": Professor[];
+    "professor-queue": PendingProfessor[];
     reports: RatingReport[];
     users: User[];
 };

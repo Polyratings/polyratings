@@ -72,6 +72,11 @@ export const professorParser = truncatedProfessorParser.extend({
     lockedMessage: z.string().optional(),
 });
 export type Professor = z.infer<typeof professorParser>;
+// Queue-only. Not stored on published professors.
+export const pendingProfessorParser = professorParser.extend({
+    scheduleMatch: scheduleMatchParser.optional(),
+});
+export type PendingProfessor = z.infer<typeof pendingProfessorParser>;
 export const publicProfessorParser = professorParser.extend({
     reviews: z.record(z.string(), publicRatingParser.array()),
     // Intentionally omit sensitive per-rating metadata (e.g. anonymousIdentifier).

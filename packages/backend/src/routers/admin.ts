@@ -3,7 +3,8 @@ import { z } from "zod";
 import { addRating } from "@backend/types/schemaHelpers";
 import { bulkKeys, DEPARTMENT_LIST } from "@backend/utils/const";
 import { TRPCError } from "@trpc/server";
-import { Professor, professorParser, RatingReport } from "@backend/types/schema";
+import { analyzePendingProfessorScheduleMatch } from "@backend/schedule/analyzeScheduleMatch";
+import { PendingProfessor, Professor, professorParser, RatingReport } from "@backend/types/schema";
 import {
     bulkRatingDeletionNotification,
     adminRatingDeletionNotification,
@@ -47,7 +48,10 @@ async function requireProfessor(ctx: Context, professorId: string): Promise<Prof
     return professor;
 }
 
-async function requirePendingProfessor(ctx: Context, professorId: string): Promise<Professor> {
+async function requirePendingProfessor(
+    ctx: Context,
+    professorId: string,
+): Promise<PendingProfessor> {
     const professor = await ctx.env.kvDao.getPendingProfessorOptional(professorId);
     if (!professor) {
         throw new TRPCError({
@@ -156,7 +160,8 @@ export const adminRouter = t.router({
     approvePendingProfessor: protectedProcedure.input(z.uuid()).mutation(async ({ ctx, input }) => {
         const pendingProfessor = await requirePendingProfessor(ctx, input);
 
-        await ctx.env.kvDao.putProfessor(pendingProfessor);
+        // scheduleMatch is queue-only and must not be stored on the published professor.
+        await ctx.env.kvDao.putProfessor(professorParser.parse(pendingProfessor));
         await ctx.env.kvDao.removePendingProfessor(input);
     }),
     rejectPendingProfessor: protectedProcedure.input(z.uuid()).mutation(async ({ input, ctx }) => {
@@ -254,6 +259,10 @@ export const adminRouter = t.router({
             const professor = await requirePendingProfessor(ctx, professorId);
             professor.firstName = firstName;
             professor.lastName = lastName;
+            professor.scheduleMatch = await analyzePendingProfessorScheduleMatch(
+                ctx.env.scheduleClient,
+                professor,
+            );
             await ctx.env.kvDao.putPendingProfessor(professor);
         }),
     lockProfessor: protectedProcedure

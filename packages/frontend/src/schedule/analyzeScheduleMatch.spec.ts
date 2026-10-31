@@ -1,5 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 import {
+    analyzePendingProfessorScheduleMatch,
     analyzeScheduleMatch,
     notApplicableMatch,
     submissionMatchesCourseKey,
@@ -346,5 +347,70 @@ describe("analyzeScheduleMatch", () => {
                 postDate: "2026-10-15T00:00:00.000Z",
             }),
         ).resolves.toEqual(unavailableMatch("CSC 1101"));
+    });
+});
+
+describe("analyzePendingProfessorScheduleMatch", () => {
+    it("matches the first review against the pending name", async () => {
+        const matchProfessorInTerm = vi.fn<ScheduleMatchClient["matchProfessorInTerm"]>(
+            async () => ({
+                status: "ok",
+                data: [section("CSC 1101")],
+            }),
+        );
+        const client: ScheduleMatchClient = {
+            isConfigured: true,
+            listTerms: async () => [term(FALL_2026)],
+            matchProfessorInTerm,
+        };
+
+        const scheduleMatch = await analyzePendingProfessorScheduleMatch(client, {
+            firstName: "Ada",
+            lastName: "Lovelace",
+            reviews: {
+                "CSC 1101": [{ postDate: "2026-10-15T00:00:00.000Z" }],
+                "CSC 202": [{ postDate: "2026-10-15T00:00:00.000Z" }],
+            },
+        });
+
+        expect(scheduleMatch?.status).toBe("confirmed");
+        expect(scheduleMatch?.submittedCourseKey).toBe("CSC 1101");
+        expect(matchProfessorInTerm).toHaveBeenCalledWith(FALL_2026, "Ada", "Lovelace");
+    });
+
+    it("returns not applicable when the course key cannot be parsed", async () => {
+        const listTerms = vi.fn<ScheduleMatchClient["listTerms"]>();
+        const client: ScheduleMatchClient = {
+            isConfigured: true,
+            listTerms,
+            matchProfessorInTerm: vi.fn<ScheduleMatchClient["matchProfessorInTerm"]>(),
+        };
+
+        await expect(
+            analyzePendingProfessorScheduleMatch(client, {
+                firstName: "Ada",
+                lastName: "Lovelace",
+                reviews: {
+                    "not-a-course": [{ postDate: "2026-10-15T00:00:00.000Z" }],
+                },
+            }),
+        ).resolves.toEqual(notApplicableMatch("not-a-course"));
+        expect(listTerms).not.toHaveBeenCalled();
+    });
+
+    it("returns undefined when there is no review to check", async () => {
+        const client: ScheduleMatchClient = {
+            isConfigured: true,
+            listTerms: vi.fn<ScheduleMatchClient["listTerms"]>(),
+            matchProfessorInTerm: vi.fn<ScheduleMatchClient["matchProfessorInTerm"]>(),
+        };
+
+        await expect(
+            analyzePendingProfessorScheduleMatch(client, {
+                firstName: "Ada",
+                lastName: "Lovelace",
+                reviews: {},
+            }),
+        ).resolves.toBeUndefined();
     });
 });

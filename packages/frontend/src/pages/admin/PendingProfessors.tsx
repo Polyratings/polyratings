@@ -1,5 +1,5 @@
 import { Fragment, useId, useMemo, useState } from "react";
-import { Professor, TruncatedProfessor } from "@backend/types/schema";
+import { PendingProfessor, TruncatedProfessor } from "@backend/types/schema";
 import { Department, DEPARTMENT_LIST } from "@backend/utils/const";
 import { useQueryClient } from "@tanstack/react-query";
 import { Check, ChevronRight, X } from "lucide-react";
@@ -16,6 +16,8 @@ import {
 } from "@/components/ui/table";
 import { bulkInvalidationKey, useDbValues } from "@/hooks/useDbValues";
 import { RatingTextCell } from "@/pages/admin/RatingTextCell";
+import { ScheduleMatchBadge } from "@/pages/admin/ScheduleMatchBadge";
+import { ScheduleMatchDetail } from "@/pages/admin/ScheduleMatchDetail";
 import {
     AdminSearchInput,
     AdminSection,
@@ -147,6 +149,7 @@ export function PendingProfessors() {
                             </TableHead>
                             <TableHead>Professor</TableHead>
                             <TableHead>Course</TableHead>
+                            <TableHead>Schedule</TableHead>
                             <TableHead>Rating</TableHead>
                             <TableHead className="text-right">Actions</TableHead>
                         </TableRow>
@@ -154,7 +157,7 @@ export function PendingProfessors() {
                     <TableBody>
                         {pageRows.length === 0 ? (
                             <AdminTableEmptyRow
-                                colSpan={5}
+                                colSpan={6}
                                 message={emptyStateMessage({
                                     hasSourceData: sourceTotal > 0,
                                     hasFilters,
@@ -163,7 +166,7 @@ export function PendingProfessors() {
                                 })}
                             />
                         ) : (
-                            pageRows.map((row: Professor) => {
+                            pageRows.map((row: PendingProfessor) => {
                                 const isExpanded = expandedIds.has(row.id);
                                 const actionsId = `pending-professor-actions-${row.id}`;
                                 const displayName = formatProfessorName(
@@ -230,6 +233,11 @@ export function PendingProfessors() {
                                             <TableCell className="text-sm text-muted-foreground">
                                                 {course ?? "—"}
                                             </TableCell>
+                                            <TableCell className="align-top whitespace-normal">
+                                                <ScheduleMatchBadge
+                                                    scheduleMatch={row.scheduleMatch}
+                                                />
+                                            </TableCell>
                                             <TableCell>
                                                 <RatingTextCell text={ratingText} />
                                             </TableCell>
@@ -265,10 +273,16 @@ export function PendingProfessors() {
                                         {isExpanded && (
                                             <TableRow className="hover:bg-transparent has-aria-expanded:bg-transparent">
                                                 <TableCell
-                                                    colSpan={5}
+                                                    colSpan={6}
                                                     className="bg-muted/30 whitespace-normal"
                                                 >
-                                                    <div id={actionsId} className="p-3 sm:p-4">
+                                                    <div
+                                                        id={actionsId}
+                                                        className="space-y-4 p-3 sm:p-4"
+                                                    >
+                                                        <ScheduleMatchDetail
+                                                            scheduleMatch={row.scheduleMatch}
+                                                        />
                                                         <PendingProfessorActions professor={row} />
                                                     </div>
                                                 </TableCell>
@@ -294,7 +308,7 @@ export function PendingProfessors() {
 
 const fieldRowClassName = "flex min-w-0 flex-col gap-2 sm:flex-row sm:items-end sm:gap-2";
 
-function PendingProfessorActions({ professor }: { professor: Professor }) {
+function PendingProfessorActions({ professor }: { professor: PendingProfessor }) {
     return (
         <div className="grid gap-4 lg:grid-cols-[minmax(0,1.35fr)_minmax(0,0.85fr)_minmax(0,1.15fr)] lg:items-end lg:gap-5">
             <ChangeNameAction professor={professor} />
@@ -305,7 +319,7 @@ function PendingProfessorActions({ professor }: { professor: Professor }) {
 }
 
 type PendingProfessorAction = {
-    professor: Professor;
+    professor: PendingProfessor;
 };
 
 function MergeIntoExistingAction({ professor }: PendingProfessorAction) {

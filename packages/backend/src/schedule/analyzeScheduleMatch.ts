@@ -171,6 +171,36 @@ export function verdictFromTermMatches(input: {
     return { ...base, status: "course_not_taught" };
 }
 
+/** Schedule check for the first review on a pending professor. Undefined when there is no review. */
+export async function analyzePendingProfessorScheduleMatch(
+    client: ScheduleMatchClient,
+    professor: {
+        firstName: string;
+        lastName: string;
+        reviews: Record<string, readonly { postDate: string }[]>;
+    },
+): Promise<ScheduleMatch | undefined> {
+    const [courseKey, reviews] = Object.entries(professor.reviews)[0] ?? [];
+    const postDate = reviews?.[0]?.postDate;
+    if (!courseKey || !postDate) {
+        return undefined;
+    }
+
+    const parsed = parseSubmittedCourseKey(courseKey);
+    if (!parsed) {
+        return notApplicableMatch(courseKey);
+    }
+
+    return analyzeScheduleMatch({
+        client,
+        firstName: professor.firstName,
+        lastName: professor.lastName,
+        department: parsed.department,
+        courseNum: parsed.courseNum,
+        postDate,
+    });
+}
+
 export async function analyzeScheduleMatch(input: {
     client: ScheduleMatchClient;
     firstName: string;
