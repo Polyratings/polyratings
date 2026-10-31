@@ -1,9 +1,9 @@
-import { type ChangeEvent, type FormEvent, useState } from "react";
+import { type ChangeEvent, type FormEvent, useEffect, useState } from "react";
 import {
-    IndexRouteObject,
     Link,
     Navigate,
     useLoaderData,
+    useLocation,
     useParams,
     useSearchParams,
 } from "react-router";
@@ -16,7 +16,6 @@ import {
 import { z } from "zod";
 import { SubmitHandler, useForm } from "react-hook-form";
 import { toast } from "sonner";
-import { TRPCClientError } from "@trpc/client";
 import { inferProcedureOutput } from "@trpc/server";
 import { AppRouter } from "@backend/index";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -48,14 +47,9 @@ import {
     withClearErrorOnChange,
 } from "@/utils";
 import { NotFound } from "./NotFound";
+import type { ProfessorPageLoaderData } from "./professorPageLoader";
 
 type ValueOf<T> = T[keyof T];
-
-type ProfessorPageLoaderData = { notFound: true } | { notFound: false };
-
-function isProfessorNotFoundError(error: unknown): boolean {
-    return error instanceof TRPCClientError && error.data?.code === "NOT_FOUND";
-}
 
 export function ProfessorPageRoute() {
     const loaderData = useLoaderData() as ProfessorPageLoaderData;
@@ -65,32 +59,6 @@ export function ProfessorPageRoute() {
     }
 
     return <ProfessorPage />;
-}
-
-export function professorPageLoaderFactory(trpcContext: ReturnType<(typeof trpc)["useUtils"]>) {
-    const professorPageLoader: IndexRouteObject["loader"] = async ({ params }) => {
-        const id = params.id ?? "";
-
-        if (!z.uuid().safeParse(id).success) {
-            return { notFound: true } satisfies ProfessorPageLoaderData;
-        }
-
-        try {
-            await (trpcContext.professors.get.getData({ id }) ??
-                trpcContext.professors.get.fetch(
-                    { id },
-                    { meta: { suppressGlobalErrorToast: true } },
-                ));
-            return { notFound: false } satisfies ProfessorPageLoaderData;
-        } catch (error) {
-            if (isProfessorNotFoundError(error)) {
-                return { notFound: true } satisfies ProfessorPageLoaderData;
-            }
-            throw error;
-        }
-    };
-
-    return professorPageLoader;
 }
 
 interface LockProfessorModalProps {
@@ -166,6 +134,7 @@ function LockProfessorModal({
 
 export function ProfessorPage() {
     const { id } = useParams<{ id: string }>();
+    const { hash } = useLocation();
     const [searchParams] = useSearchParams();
 
     const [selectedRatingIds, setSelectedRatingIds] = useState<Set<string>>(new Set());
@@ -227,11 +196,42 @@ export function ProfessorPage() {
         .slice(0, 4);
 
     const sortedCourses = useSortedCourses(id);
+    const highlightedRatingId = hash.startsWith("#rating-") ? hash.slice("#rating-".length) : null;
     const visibleCourses = coursesVisibleForFilter(
         sortedCourses,
         searchParams.get("course"),
         searchParams.get("prefix"),
     );
+
+    useEffect(() => {
+        if (!highlightedRatingId || !professorData) {
+            return undefined;
+        }
+        const elementId = `rating-${highlightedRatingId}`;
+        let cancelled = false;
+        const scrollToRating = () => {
+            if (cancelled) {
+                return;
+            }
+            const target = document.getElementById(elementId);
+            const scroller = document.getElementById("app-scroll");
+            if (!target || !scroller) {
+                return;
+            }
+            const nextTop =
+                scroller.scrollTop +
+                (target.getBoundingClientRect().top - scroller.getBoundingClientRect().top) -
+                24;
+            scroller.scrollTo({ top: Math.max(0, nextTop), behavior: "smooth" });
+        };
+        const frame = requestAnimationFrame(() => {
+            requestAnimationFrame(scrollToRating);
+        });
+        return () => {
+            cancelled = true;
+            cancelAnimationFrame(frame);
+        };
+    }, [highlightedRatingId, professorData, visibleCourses]);
 
     if (fetchError && !professorData) {
         return <Navigate to="/" replace />;
@@ -540,6 +540,7 @@ export function ProfessorPage() {
                                     showBulkDeleteCheckbox={isAuthenticated}
                                     isSelected={selectedRatingIds.has(rating.id)}
                                     onToggleSelect={() => toggleRatingSelection(rating.id)}
+                                    highlighted={rating.id === highlightedRatingId}
                                 />
                             ))}
                         </div>
@@ -654,6 +655,7 @@ interface ProfessorRatingCardProps {
     showBulkDeleteCheckbox?: boolean;
     isSelected?: boolean;
     onToggleSelect?: () => void;
+    highlighted?: boolean;
 }
 function ProfessorRatingCard({
     rating,
@@ -661,10 +663,13 @@ function ProfessorRatingCard({
     showBulkDeleteCheckbox = false,
     isSelected = false,
     onToggleSelect,
+    highlighted = false,
 }: ProfessorRatingCardProps) {
     return (
         <RatingCard
+            id={`rating-${rating.id}`}
             rating={rating}
+            className={highlighted ? "ring-2 ring-brand" : undefined}
             actions={
                 <>
                     {showBulkDeleteCheckbox && (

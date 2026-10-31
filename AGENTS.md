@@ -13,6 +13,8 @@ If this file is wrong, update it.
 | `@polyratings/cron` | `packages/cron/` | Nightly sync / backup |
 | `@polyratings/e2e` | `packages/e2e/` | Playwright |
 
+Schedule scraping lives in sibling repo **[cal-poly-schedule-scraper](../cal-poly-schedule-scraper/)** (Worker + scraper + Docker). Polyratings does not publish a class schedule. The backend may call the Schedule read API to attach non-blocking `scheduleMatch` metadata on rating logs and reports: whether the submitted course appears among that professor’s sections in any covered term that has already started, not only the term the review was posted in. Quarter terms count. Reviews outside every term window are `not_applicable`. Admins see that status on processed ratings and reported ratings. The signal never blocks or deletes a rating.
+
 Frontend and cron depend on backend. Lint/format: root `.oxlintrc.json` + `.oxfmtrc.json` (Oxlint / Oxfmt).
 
 ## Commands (repo root)
@@ -27,7 +29,7 @@ Frontend and cron depend on backend. Lint/format: root `.oxlintrc.json` + `.oxfm
 | `npm run e2e` | Playwright (local Vite) |
 | `npm run e2e:prod` | Production host, skip `@write` |
 
-Per-package: `start:local` (frontend/backend), `npm t` (frontend Vitest), `run:local` (cron). Rebuild backend after router/type changes (generates types for frontend).
+Per-package: `start:local` (frontend/backend), `npm t` (frontend Vitest), `run:local` (cron). Schedule service plan: [cal-poly-schedule-scraper/docs/plan.md](../cal-poly-schedule-scraper/docs/plan.md). Rebuild backend after router/type changes (generates types for frontend).
 
 ## Stack and conventions
 
@@ -42,8 +44,9 @@ Requirement **specs** in `packages/e2e/docs/*.md` define the tests. Playwright i
 
 Keep **1:1 parity**: each spec file ↔ one suite; each acceptance ID ↔ a `test` or `test.step`; scenario titles match test names. Change the spec first, then the `.spec.ts`.
 
-- Local: `npm run e2e` (`http://localhost:5173`). Beta/prod: `e2e:beta` / `e2e:prod`. `@write` skipped in production.
+- Local: `npm run e2e` (`http://localhost:5173`). Beta/prod: `e2e:beta` / `e2e:prod`. `@write` skipped in production. `@visual` is skipped here too.
 - A11y: WCAG 2.1 AA; `npm run e2e:a11y` (`@a11y`, axe in `src/support/axe-test.ts`). Frontend also uses Oxlint `jsx-a11y` and jest-axe on new UI primitives.
+- Visual: `npm run e2e:visual` compares `@visual` screenshots of pages end users cannot change. The post-deploy Playwright run sets `PLAYWRIGHT_VISUAL=compare` and checks the committed `*-chromium-linux.png` baselines.
 
 ## Deploy (GitHub Actions)
 

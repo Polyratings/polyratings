@@ -1,6 +1,7 @@
 {
-    "extends": "@tsconfig/node-lts/tsconfig.json",
+    "extends": "@tsconfig/node26/tsconfig.json",
     "compilerOptions": {
+        "strict": true,
         "module": "esnext",
         "moduleResolution": "bundler",
         "types": ["@cloudflare/workers-types"],

@@ -23,3 +23,27 @@ test("HOME: home page renders hero and primary nav links", async ({ page }) => {
         await expect(page.getByRole("heading", { name: "Best of the Best" })).toBeVisible();
     });
 });
+
+test("HOME: hero search opens full-screen autocomplete on mobile", async ({ page }) => {
+    await test.step("HOME-6: phone hero search opens full-screen suggestions", async () => {
+        await page.setViewportSize({ width: 390, height: 844 });
+        await page.goto("/");
+
+        await page.getByRole("button", { name: "Search professors" }).click();
+        await expect(page.getByRole("button", { name: "Close search" })).toBeVisible();
+        const sheetCombobox = page
+            .locator('[data-slot="mobile-search"]')
+            .getByRole("combobox", { name: "Professor Auto-complete" });
+        await expect(sheetCombobox).toBeVisible();
+        await expect(sheetCombobox).toBeFocused();
+        await sheetCombobox.fill("smith");
+        const firstOption = page.getByRole("option").first();
+        await expect(firstOption).toBeVisible();
+        const optionBox = await firstOption.boundingBox();
+        const viewport = page.viewportSize();
+        expect(optionBox).toBeTruthy();
+        expect(viewport).toBeTruthy();
+        expect(optionBox!.y).toBeGreaterThanOrEqual(0);
+        expect(optionBox!.y + optionBox!.height).toBeLessThanOrEqual(viewport!.height);
+    });
+});

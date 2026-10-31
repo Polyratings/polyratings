@@ -27,6 +27,21 @@ export function initSentry(): void {
     Sentry.init({
         dsn: SENTRY_DSN,
         tracesSampleRate: 0.2,
+        // v11 collects user info, cookies, and bodies unless this is set.
+        // These values match the v10 default, when sendDefaultPii was unset.
+        dataCollection: {
+            userInfo: false,
+            cookies: false,
+            httpHeaders: {
+                request: { deny: ["forwarded", "-ip", "remote-", "via", "-user"] },
+                response: { deny: ["forwarded", "-ip", "remote-", "via", "-user"] },
+            },
+            httpBodies: [],
+            urlQueryParams: { deny: ["forwarded", "-ip", "remote-", "via", "-user"] },
+            genAI: { inputs: false, outputs: false },
+            databaseQueryData: false,
+            graphQL: { document: false, variables: false },
+        },
         beforeSend(event, hint) {
             if (isSpuriousUnhandledRejectionNoise(hint.originalException)) {
                 return null;

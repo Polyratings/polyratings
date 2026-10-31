@@ -28,15 +28,29 @@ export async function main(env: Record<string, string | undefined>, sentry?: Tou
         // We purposely ignore the `all` professor key to avoid issues around eventual consistency
         {
             name: "sync all professors key",
-            task: syncKvStore("professors", "POLYRATINGS_TEACHERS", new Set(["all"])),
+            task: syncKvStore("professors", "POLYRATINGS_TEACHERS", {
+                excludeKeys: new Set(["all"]),
+            }),
         },
+        // Dev previews bind these namespaces. Keep admin data on beta and clear it from dev.
         {
             name: "sync professors",
-            task: syncKvStore("professor-queue", "POLYRATINGS_TEACHER_APPROVAL_QUEUE"),
+            task: syncKvStore("professor-queue", "POLYRATINGS_TEACHER_APPROVAL_QUEUE", {
+                copyToDev: false,
+            }),
         },
-        { name: "sync users", task: syncKvStore("users", "POLYRATINGS_USERS") },
-        { name: "sync reports", task: syncKvStore("reports", "POLYRATINGS_REPORTS") },
-        { name: "sync rating log", task: syncKvStore("rating-log", "PROCESSING_QUEUE") },
+        {
+            name: "sync users",
+            task: syncKvStore("users", "POLYRATINGS_USERS", { copyToDev: false }),
+        },
+        {
+            name: "sync reports",
+            task: syncKvStore("reports", "POLYRATINGS_REPORTS", { copyToDev: false }),
+        },
+        {
+            name: "sync rating log",
+            task: syncKvStore("rating-log", "PROCESSING_QUEUE", { copyToDev: false }),
+        },
     ];
 
     for (const { task, name } of tasks) {

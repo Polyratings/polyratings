@@ -18,9 +18,10 @@ export type RatingCardProps = {
     rating: RatingCardData;
     actions?: ReactNode;
     className?: string;
+    id?: string;
 };
 
-export function RatingCard({ rating, actions, className }: RatingCardProps) {
+export function RatingCard({ rating, actions, className, id }: RatingCardProps) {
     const posted = rating.postDate ? new Date(rating.postDate) : null;
     const showStars = !posted || posted.getFullYear() >= 2022;
     const postedLabel = posted
@@ -37,6 +38,7 @@ export function RatingCard({ rating, actions, className }: RatingCardProps) {
 
     return (
         <article
+            id={id}
             className={cn(
                 "relative my-3 flex w-full flex-col rounded-lg border border-input bg-card px-4 py-4 sm:px-6 sm:py-5",
                 className,

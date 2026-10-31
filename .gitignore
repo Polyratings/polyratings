@@ -6,5 +6,8 @@ playwright-report/
 test-results/
 blob-report/
 packages/e2e/playwright/.cache/
+# Laptop screenshot runs. The compared baselines are the committed linux pngs.
+packages/e2e/**/*-snapshots/*-darwin.png
+packages/e2e/**/*-snapshots/*-win32.png
 
 .claude/worktrees

@@ -2,7 +2,8 @@ import { ChevronDown } from "lucide-react";
 import { useEffect, useId, useState, type ReactNode } from "react";
 import { useLocation } from "react-router";
 
-import { PageMeta, StaticPageHeader } from "@/components";
+import { PageMeta } from "@/components/PageMeta";
+import { StaticPageHeader } from "@/components/StaticPageHeader";
 import { cn } from "@/utils";
 
 interface FAQItemProps {

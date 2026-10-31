@@ -3,6 +3,7 @@ export * from "./Navbar";
 export * from "./PageMeta";
 export * from "./ReviewForm";
 export * from "./SearchBar";
+export * from "./MobileSearchSheet";
 export * from "./StaticPageHeader";
 export * from "./ThemeToggle";
 export * from "./BestOfTheBestCarousel";

@@ -18,6 +18,8 @@
         "e2e:ui": "lerna run e2e:ui --stream --",
         "e2e:headed": "lerna run e2e:headed --stream --",
         "e2e:install": "lerna run e2e:install --stream --",
+        "e2e:visual": "lerna run e2e:visual --scope @polyratings/e2e --stream --",
+        "e2e:visual:update": "lerna run e2e:visual:update --scope @polyratings/e2e --stream --",
         "lint": "oxlint --deny-warnings",
         "lint:fix": "oxlint --fix --deny-warnings",
         "fmt": "oxfmt",
@@ -28,9 +30,13 @@
         "deploy:dev": "lerna run deploy:dev --stream"
     },
     "devDependencies": {
-        "lerna": "^10.1.0",
-        "oxfmt": "^0.73.0",
-        "oxlint": "^1.88.0",
-        "oxlint-tsgolint": "^7.0.2004"
+        "lerna": "^10.1.1",
+        "oxfmt": "^0.75.0",
+        "oxlint": "^1.90.0",
+        "oxlint-tsgolint": "^7.0.2005"
+    },
+    "overrides": {
+        "react": "^19.3.1",
+        "react-dom": "^19.3.1"
     }
 }

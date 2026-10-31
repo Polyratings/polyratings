@@ -1,6 +1,7 @@
 {
-    "extends": "@tsconfig/node-lts/tsconfig.json",
+    "extends": "@tsconfig/node26/tsconfig.json",
     "compilerOptions": {
+        "strict": true,
         "lib": ["es2024", "DOM", "DOM.Iterable"],
         "module": "esnext",
         "moduleResolution": "bundler",
