@@ -59,6 +59,14 @@ const staleHighRated = makeProfessor({
     overallRating: 4,
     lastRatingDate: "2016-01-01T00:00:00.000Z",
 });
+const staleJohnLawson = makeProfessor({
+    id: "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
+    firstName: "John",
+    lastName: "Lawson",
+    numEvals: 3,
+    overallRating: 3.6,
+    lastRatingDate: "2020-02-01T00:00:00.000Z",
+});
 const noEvals = makeProfessor({
     id: "66666666-6666-4666-8666-666666666666",
     firstName: "Grace",
@@ -95,6 +103,7 @@ const williamJones = makeProfessor({
 const professors = [
     noEvals,
     staleHighRated,
+    staleJohnLawson,
     christopherLane,
     chrisLawson,
     michaelChristensen,
@@ -163,8 +172,18 @@ describe("professorSearch quality ranking", () => {
         expect(search("lovelace")).toContain("Lovelace, Ada");
         expect(search("ada lovelace")[0]).toBe("Lovelace, Ada");
         expect(search("ada")).not.toContain("Lovelace, Ada");
-        // Partial multi-token matches must not bypass the staleness filter while typing.
+        // Tiny last-name prefixes must not bypass the staleness filter while typing.
         expect(search("ada l")).not.toContain("Lovelace, Ada");
+    });
+
+    test("first+last prefixes can still find a stale professor while typing", () => {
+        expect(search("john la")[0]).toBe("Lawson, John");
+        expect(search("john law")[0]).toBe("Lawson, John");
+        expect(search("john lawso")[0]).toBe("Lawson, John");
+        expect(search("john lawson")[0]).toBe("Lawson, John");
+        expect(search("lawson john")[0]).toBe("Lawson, John");
+        // Nickname + last-name prefix should also surface a stale professor.
+        expect(search("jack law")[0]).toBe("Lawson, John");
     });
 
     test("includeStale keeps inactive professors in admin-style search", () => {

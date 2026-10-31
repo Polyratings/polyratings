@@ -167,8 +167,8 @@ function indexName(professor: TruncatedProfessor): NameIndex {
 }
 
 /**
- * Exact last name alone, or exact first+last (either order), can still surface a
- * stale professor. Prefix/partial scores must not bypass the staleness filter.
+ * Exact last name alone, or a confident first+last pair (either order), can still
+ * surface a stale professor while typing. Tiny prefixes like "ada l" must not.
  */
 function isStrongNameMatch(tokens: string[], name: NameIndex): boolean {
     if (tokens.length === 1) {
@@ -179,10 +179,10 @@ function isStrongNameMatch(tokens: string[], name: NameIndex): boolean {
         const left = tokens.slice(0, i);
         const right = tokens.slice(i);
         if (
-            (isExactPhrase(left, name.firstParts, name.firstCollapsed) &&
-                isExactPhrase(right, name.lastParts, name.lastCollapsed)) ||
-            (isExactPhrase(left, name.lastParts, name.lastCollapsed) &&
-                isExactPhrase(right, name.firstParts, name.firstCollapsed))
+            (isSolidPhrase(left, name.firstParts, name.firstCollapsed) &&
+                isSolidPhrase(right, name.lastParts, name.lastCollapsed)) ||
+            (isSolidPhrase(left, name.lastParts, name.lastCollapsed) &&
+                isSolidPhrase(right, name.firstParts, name.firstCollapsed))
         ) {
             return true;
         }
@@ -205,6 +205,36 @@ function isExactPhrase(tokens: string[], parts: string[], collapsed: string): bo
         return false;
     }
     return tokens.every((token, i) => token === parts[i]);
+}
+
+/** Min typed length before a prefix counts as intentional for stale bypass. */
+const STRONG_PREFIX_MIN_LENGTH = 2;
+
+function isSolidToken(token: string, parts: string[], collapsed: string): boolean {
+    if (isExactName(token, parts, collapsed)) {
+        return true;
+    }
+    if (parts.some((part) => namesAreNicknames(token, part))) {
+        return true;
+    }
+    if (token.length < STRONG_PREFIX_MIN_LENGTH) {
+        return false;
+    }
+    return parts.some((part) => part.startsWith(token)) || collapsed.startsWith(token);
+}
+
+function isSolidPhrase(tokens: string[], parts: string[], collapsed: string): boolean {
+    if (isExactPhrase(tokens, parts, collapsed)) {
+        return true;
+    }
+    if (tokens.length === 1) {
+        return isSolidToken(tokens[0], parts, collapsed);
+    }
+    const joined = tokens.join("");
+    if (joined.length >= STRONG_PREFIX_MIN_LENGTH && collapsed.startsWith(joined)) {
+        return true;
+    }
+    return false;
 }
 
 function nameMatchScore(tokens: string[], name: NameIndex): number {
