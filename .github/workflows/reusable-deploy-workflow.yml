@@ -108,7 +108,7 @@ jobs:
       - uses: actions/setup-node@v7
         if: steps.cf.outputs.has_token == 'true'
         with:
-          node-version: 24
+          node-version: 26
           cache: "npm"
 
       - name: Install dependencies
@@ -170,7 +170,7 @@ jobs:
 
       - name: Comment preview URL on PR
         if: steps.cf.outputs.has_token == 'true' && inputs.COMMENT_ON_PR
-        uses: actions/github-script@v8
+        uses: actions/github-script@v9
         env:
           PAGES_URL: ${{ steps.publish-pages.outputs.pages-deployment-alias-url || steps.publish-pages.outputs.deployment-url }}
           API_URL: ${{ steps.upload-worker.outputs.preview_url }}
