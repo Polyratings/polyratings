@@ -2,6 +2,9 @@ node_modules/
 **/.wrangler
 nx-cloud.env
 .nx
+# Agent skills and subagents stay local (moderation playbooks are internal)
+.agents/
+.cursor/agents/
 playwright-report/
 test-results/
 blob-report/
