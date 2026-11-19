@@ -236,6 +236,43 @@ export function adminRatingDeletionNotification(
     };
 }
 
+type RatingSnapshot = {
+    course: string;
+    rating: Pick<Rating, "id" | "grade" | "gradeLevel" | "courseType">;
+};
+
+function snapshotSummary({ course, rating }: RatingSnapshot): string {
+    return `${course} · grade ${rating.grade} · ${rating.gradeLevel} · ${rating.courseType}`;
+}
+
+export function adminRatingPatchNotification(
+    adminUsername: string,
+    professor: { id: string; firstName: string; lastName: string; department: string },
+    before: RatingSnapshot,
+    after: RatingSnapshot,
+    reason: string,
+): DiscordNotification {
+    const label = professorLabel(professor.lastName, professor.firstName, professor.department);
+    return {
+        content: contentLine(
+            `✏️ Rating metadata edited · ${shortProfessorLabel(professor.lastName, professor.firstName)} · ${after.course}`,
+        ),
+        professorId: professor.id,
+        embed: buildEmbed({
+            title: "Rating Metadata Edited",
+            description: `${adminUsername} edited a rating's metadata on ${label}.`,
+            color: COLORS.ADMIN,
+            url: professorPageUrl(professor.id),
+            fields: [
+                { name: "Reason", value: field(reason), inline: false },
+                { name: "Before", value: field(snapshotSummary(before)), inline: false },
+                { name: "After", value: field(snapshotSummary(after)), inline: false },
+                { name: "Rating ID", value: after.rating.id, inline: false },
+            ],
+        }),
+    };
+}
+
 export function findRatingCourse(
     reviews: Record<string, Rating[]>,
     ratingId: string,
