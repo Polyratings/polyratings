@@ -179,6 +179,48 @@ export function professorToTruncatedProfessor(professor: Professor): TruncatedPr
     };
 }
 
+/** Metadata an admin may correct for the author. Never text, stars or tags. */
+export type RatingPatch = Partial<Pick<Rating, "grade" | "gradeLevel" | "courseType">> & {
+    course?: string;
+};
+
+/** Update a rating's metadata and/or move it to another course bucket (same rating id). */
+export function patchRating(professor: Professor, ratingId: string, patch: RatingPatch): Rating {
+    const located = Object.entries(professor.reviews)
+        .map(([course, reviews]) => [course, reviews.findIndex((r) => r.id === ratingId)] as const)
+        .find(([, index]) => index !== -1);
+
+    if (!located) {
+        throw new Error("Review Does not exist");
+    }
+
+    const [oldCourse, reviewIndex] = located;
+    const rating = professor.reviews[oldCourse][reviewIndex];
+
+    if (patch.grade !== undefined) {
+        rating.grade = patch.grade;
+    }
+    if (patch.gradeLevel !== undefined) {
+        rating.gradeLevel = patch.gradeLevel;
+    }
+    if (patch.courseType !== undefined) {
+        rating.courseType = patch.courseType;
+    }
+
+    if (patch.course && patch.course !== oldCourse) {
+        professor.reviews[oldCourse].splice(reviewIndex, 1);
+        if (professor.reviews[oldCourse].length === 0) {
+            delete professor.reviews[oldCourse];
+        }
+        const nextCourse = patch.course;
+        professor.reviews[nextCourse] ??= [];
+        professor.reviews[nextCourse].push(rating);
+    }
+
+    recomputeProfessorAggregates(professor);
+    return rating;
+}
+
 /** Recompute aggregate stats and tag counts from remaining reviews (fixes drift after bulk deletes). */
 export function recomputeProfessorAggregates(professor: Professor): void {
     const all: Rating[] = [];

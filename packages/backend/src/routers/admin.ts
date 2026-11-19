@@ -1,13 +1,21 @@
 import { t, protectedProcedure, type Context } from "@backend/trpc";
 import { z } from "zod";
-import { addRating } from "@backend/types/schemaHelpers";
-import { bulkKeys, DEPARTMENT_LIST } from "@backend/utils/const";
+import { addRating, patchRating } from "@backend/types/schemaHelpers";
+import {
+    bulkKeys,
+    COURSE_TYPES,
+    DEPARTMENT_LIST,
+    GRADES,
+    GRADE_LEVELS,
+} from "@backend/utils/const";
 import { TRPCError } from "@trpc/server";
 import { analyzePendingProfessorScheduleMatch } from "@backend/schedule/analyzeScheduleMatch";
 import { PendingProfessor, Professor, professorParser, RatingReport } from "@backend/types/schema";
+import { courseReviewsKey, historicalCourseNumParser } from "@backend/utils/courseNum";
 import {
     bulkRatingDeletionNotification,
     adminRatingDeletionNotification,
+    adminRatingPatchNotification,
     findRating,
     findRatingCourse,
 } from "@backend/utils/discordNotifications";
@@ -30,6 +38,25 @@ const lockProfessorParser = z.object({
 });
 
 const MAX_REASON_LENGTH = 600;
+
+/** Admin course moves take a review-bucket key like `CSC 1001` and normalize it. */
+const courseKeyParser = z
+    .string()
+    .trim()
+    .transform((value, ctx) => {
+        const [department, courseNum, ...rest] = value.toUpperCase().split(/\s+/);
+        const departmentResult = z.enum(DEPARTMENT_LIST).safeParse(department);
+        const courseNumResult = historicalCourseNumParser.safeParse(Number(courseNum));
+        if (rest.length > 0 || !departmentResult.success || !courseNumResult.success) {
+            ctx.addIssue({
+                code: "custom",
+                message:
+                    'Course must look like "DEPT NUM" with a known department (e.g. "CSC 1001").',
+            });
+            return z.NEVER;
+        }
+        return courseReviewsKey(departmentResult.data, courseNumResult.data);
+    });
 
 function getProfessorRatingIds(professor: Professor): Set<string> {
     return new Set(
@@ -89,6 +116,17 @@ async function removeReportBestEffort(
             error instanceof Error ? (error.stack ?? error.message) : error,
         );
     }
+}
+
+function getRatingsByAnonymousIdentifier(
+    professor: { reviews: Record<string, { anonymousIdentifier?: string }[]> },
+    anonymousIdentifier: string,
+) {
+    return Object.entries(professor.reviews).flatMap(([course, ratings]) =>
+        ratings
+            .filter((rating) => rating.anonymousIdentifier === anonymousIdentifier)
+            .map((rating) => ({ course, ...rating })),
+    );
 }
 
 export const adminRouter = t.router({
@@ -153,6 +191,7 @@ export const adminRouter = t.router({
                     reason,
                 ),
             );
+            return { removed };
         }),
     getPendingProfessors: protectedProcedure.query(({ ctx }) =>
         ctx.env.kvDao.getAllPendingProfessors(),
@@ -297,6 +336,93 @@ export const adminRouter = t.router({
             return {
                 professors: results.filter((p): p is Professor => p !== undefined),
                 missingIds: input.ids.filter((_, index) => !results[index]),
+            };
+        }),
+    getRatingsByAnonymousIdentifier: protectedProcedure
+        .input(
+            z.object({
+                professorId: z.uuid(),
+                anonymousIdentifier: z.string().trim().min(1).max(256),
+            }),
+        )
+        .query(async ({ ctx, input: { professorId, anonymousIdentifier } }) => {
+            const professor = await requireProfessor(ctx, professorId);
+            return getRatingsByAnonymousIdentifier(professor, anonymousIdentifier);
+        }),
+    /**
+     * Correct a rating's metadata (course, grade, grade level, course type) at the
+     * author's request. Text, stars and tags are the author's opinion and cannot be
+     * edited here. `reason` records how the author asked for the change.
+     */
+    patchRating: protectedProcedure
+        .input(
+            z
+                .object({
+                    professorId: z.uuid(),
+                    ratingId: z.uuid(),
+                    course: courseKeyParser.optional(),
+                    grade: z.enum(GRADES).optional(),
+                    gradeLevel: z.enum(GRADE_LEVELS).optional(),
+                    courseType: z.enum(COURSE_TYPES).optional(),
+                    reason: z
+                        .string()
+                        .trim()
+                        .min(1, "Reason is required")
+                        .max(
+                            MAX_REASON_LENGTH,
+                            `Reason must be at most ${MAX_REASON_LENGTH} characters`,
+                        ),
+                })
+                .strict()
+                .refine(
+                    (input) =>
+                        input.course !== undefined ||
+                        input.grade !== undefined ||
+                        input.gradeLevel !== undefined ||
+                        input.courseType !== undefined,
+                    { message: "At least one field to patch must be provided." },
+                ),
+        )
+        .mutation(async ({ ctx, input: { professorId, ratingId, reason, ...patch } }) => {
+            const professor = await requireProfessor(ctx, professorId);
+            if (!getProfessorRatingIds(professor).has(ratingId)) {
+                throw new TRPCError({
+                    code: "NOT_FOUND",
+                    message: `Rating with id ${ratingId} does not exist on professor ${professorId}.`,
+                });
+            }
+            const oldCourse = findRatingCourse(professor.reviews, ratingId) ?? "Unknown course";
+            const before = { ...findRating(professor.reviews, ratingId)! };
+            const unchanged =
+                (patch.course === undefined || patch.course === oldCourse) &&
+                (patch.grade === undefined || patch.grade === before.grade) &&
+                (patch.gradeLevel === undefined || patch.gradeLevel === before.gradeLevel) &&
+                (patch.courseType === undefined || patch.courseType === before.courseType);
+            if (unchanged) {
+                throw new TRPCError({
+                    code: "PRECONDITION_FAILED",
+                    message: `Rating ${ratingId} already has these values.`,
+                });
+            }
+            const updated = patchRating(professor, ratingId, patch);
+            await ctx.env.kvDao.putProfessor(professor);
+            const newCourse = findRatingCourse(professor.reviews, ratingId) ?? oldCourse;
+            await ctx.env.notificationDAO.notify(
+                adminRatingPatchNotification(
+                    ctx.user!.username,
+                    professor,
+                    { course: oldCourse, rating: before },
+                    { course: newCourse, rating: updated },
+                    reason,
+                ),
+            );
+            return {
+                success: true,
+                ratingId,
+                course: newCourse,
+                grade: updated.grade,
+                gradeLevel: updated.gradeLevel,
+                courseType: updated.courseType,
             };
         }),
     removeReport: protectedProcedure.input(z.uuid()).mutation(async ({ ctx, input }) => {
