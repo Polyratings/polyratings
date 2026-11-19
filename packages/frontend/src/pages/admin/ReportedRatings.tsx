@@ -1,13 +1,15 @@
-import { useMemo, useState, type ReactNode } from "react";
+import { useId, useMemo, useRef, useState, type ReactNode } from "react";
 import { Professor, Rating, RatingReport } from "@backend/types/schema";
 import { DEPARTMENT_LIST } from "@backend/utils/const";
 import { useQueryClient } from "@tanstack/react-query";
-import { ShieldCheck, Trash2 } from "lucide-react";
+import { Loader2, Pause, Play, ShieldCheck, Trash2 } from "lucide-react";
 import { Popover } from "radix-ui";
 import { InlineQueryState, ProfessorTag, Select } from "@/components";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Progress } from "@/components/ui/progress";
 import { Separator } from "@/components/ui/separator";
+import { useAuditRunner } from "@/hooks";
 import { bulkInvalidationKey, useDbValues } from "@/hooks/useDbValues";
 import { trpc } from "@/trpc";
 import { cn, toSelectOptions } from "@/utils";
@@ -27,6 +29,18 @@ import {
     getAdminTablePage,
     tableSurfaceClassName,
 } from "@/pages/admin/shared";
+
+const DUPLICATE_RANGE_OPTIONS = [
+    { value: "60", label: "1 minute" },
+    { value: "300", label: "5 minutes" },
+    { value: "600", label: "10 minutes" },
+    { value: "1800", label: "30 minutes" },
+    { value: "3600", label: "1 hour" },
+    { value: "21600", label: "6 hours" },
+    { value: "86400", label: "1 day" },
+] as const;
+
+const DEFAULT_DUPLICATE_RANGE_SECONDS = 600;
 
 function findProfessor(professors: Professor[] | undefined, professorId: string) {
     return professors?.find((professor) => professor.id === professorId);
@@ -179,6 +193,39 @@ export function ReportedRatings() {
     const [page, setPage] = useState(0);
     const [search, setSearch] = useState("");
     const [department, setDepartment] = useState("");
+    const [rangeSeconds, setRangeSeconds] = useState(DEFAULT_DUPLICATE_RANGE_SECONDS);
+    // Freeze the selected range for the duration of a run/resume so pause cycles stay consistent.
+    const activeDuplicateRangeRef = useRef({
+        seconds: DEFAULT_DUPLICATE_RANGE_SECONDS,
+        label: "10 minutes",
+    });
+    const invalidateReports = () => {
+        void queryClient.invalidateQueries({ queryKey: bulkInvalidationKey("reports") });
+    };
+    // No per-batch invalidation — reloading the full reports list every batch is very expensive.
+    const duplicateMutation = trpc.admin.autoReportDuplicateUsers.useMutation();
+    const moderationMutation = trpc.admin.autoReportContentModeration.useMutation();
+    const duplicateAudit = useAuditRunner({
+        mutate: (input) =>
+            duplicateMutation.mutateAsync({
+                ...input,
+                withinSeconds: activeDuplicateRangeRef.current.seconds,
+                rangeLabel: activeDuplicateRangeRef.current.label,
+            }),
+        isPending: duplicateMutation.isPending,
+        getMetricCount: (result) => result.duplicatesFound,
+        completeMessage: (processed, count) =>
+            `Processed ${processed} professors, found ${count} duplicate ratings.`,
+        onSettled: invalidateReports,
+    });
+    const moderationAudit = useAuditRunner({
+        mutate: moderationMutation.mutateAsync,
+        isPending: moderationMutation.isPending,
+        getMetricCount: (result) => result.moderationFlagged,
+        completeMessage: (processed, count) =>
+            `Processed ${processed} professors, found ${count} ratings to flag.`,
+        onSettled: invalidateReports,
+    });
 
     const reportsBlocked = !ratingReports && (reportsPending || Boolean(reportsError));
     const professorsBlocked = !professorsResult && (professorsPending || Boolean(professorsError));
@@ -277,6 +324,56 @@ export function ReportedRatings() {
                         wrapperClassName="w-full"
                     />
                 </div>
+            </div>
+            <div className="mb-6 grid gap-4 md:grid-cols-2">
+                <AuditCard
+                    title="Duplicate audit"
+                    description="Flags ratings one submitter posted on the same professor within the time range."
+                    progress={duplicateAudit.progress}
+                    isPending={duplicateAudit.isPending}
+                    metricLabel="Duplicates found"
+                    onRun={() => {
+                        activeDuplicateRangeRef.current = {
+                            seconds: rangeSeconds,
+                            label:
+                                DUPLICATE_RANGE_OPTIONS.find(
+                                    (o) => o.value === String(rangeSeconds),
+                                )?.label ?? "10 minutes",
+                        };
+                        void duplicateAudit.runAudit();
+                    }}
+                    onPause={duplicateAudit.pauseAudit}
+                    onResume={() =>
+                        void duplicateAudit.runAudit(
+                            duplicateAudit.progress.nextCursor ?? undefined,
+                        )
+                    }
+                >
+                    <Select
+                        label="Time range"
+                        value={String(rangeSeconds)}
+                        onChange={(e) => setRangeSeconds(Number(e.target.value))}
+                        options={[...DUPLICATE_RANGE_OPTIONS]}
+                        disabled={
+                            duplicateAudit.progress.isRunning || duplicateAudit.progress.isPaused
+                        }
+                        wrapperClassName="w-full sm:w-48"
+                    />
+                </AuditCard>
+                <AuditCard
+                    title="Content moderation audit"
+                    description="Re-checks live ratings against the moderation thresholds and reports the ones that fail."
+                    progress={moderationAudit.progress}
+                    isPending={moderationAudit.isPending}
+                    metricLabel="Ratings flagged"
+                    onRun={() => void moderationAudit.runAudit()}
+                    onPause={moderationAudit.pauseAudit}
+                    onResume={() =>
+                        void moderationAudit.runAudit(
+                            moderationAudit.progress.nextCursor ?? undefined,
+                        )
+                    }
+                />
             </div>
             {pageRows.length === 0 ? (
                 <p className="rounded-lg border border-border bg-card px-4 py-8 text-center text-sm text-muted-foreground">
@@ -449,6 +546,93 @@ function ReportReviewCard({
                     />
                 </section>
             </div>
+        </article>
+    );
+}
+
+type AuditProgress = {
+    isRunning: boolean;
+    isPaused: boolean;
+    processedCount: number;
+    totalProfessors: number;
+    metricCount: number;
+    nextCursor: string | null;
+    message: string;
+};
+
+function AuditCard({
+    title,
+    description,
+    progress,
+    isPending,
+    metricLabel,
+    onRun,
+    onPause,
+    onResume,
+    children,
+}: {
+    title: string;
+    description: string;
+    progress: AuditProgress;
+    isPending: boolean;
+    metricLabel: string;
+    onRun: () => void;
+    onPause: () => void;
+    onResume: () => void;
+    children?: ReactNode;
+}) {
+    const headingId = useId();
+    const { isRunning, isPaused, processedCount, totalProfessors, metricCount, message } = progress;
+    const percent = totalProfessors > 0 ? Math.round((processedCount / totalProfessors) * 100) : 0;
+    const hasProgress = processedCount > 0 || isRunning;
+
+    return (
+        <article
+            aria-labelledby={headingId}
+            className="flex flex-col gap-4 rounded-lg border border-border bg-card p-4 shadow-sm sm:p-5"
+        >
+            <header className="space-y-1">
+                <h3 id={headingId} className="font-semibold text-foreground">
+                    {title}
+                </h3>
+                <p className="text-sm text-muted-foreground">{description}</p>
+            </header>
+            {children}
+            <div className="flex flex-wrap items-center gap-2">
+                <Button type="button" onClick={onRun} disabled={isRunning || isPaused || isPending}>
+                    {isRunning ? (
+                        <Loader2 className="animate-spin" data-icon="inline-start" />
+                    ) : (
+                        <Play data-icon="inline-start" />
+                    )}
+                    {isRunning ? "Running…" : "Run audit"}
+                </Button>
+                {isRunning ? (
+                    <Button type="button" variant="outline" onClick={onPause}>
+                        <Pause data-icon="inline-start" />
+                        Pause
+                    </Button>
+                ) : null}
+                {isPaused ? (
+                    <Button type="button" variant="outline" onClick={onResume}>
+                        <Play data-icon="inline-start" />
+                        Resume
+                    </Button>
+                ) : null}
+            </div>
+            {hasProgress ? (
+                <div className="space-y-3">
+                    <div className="grid grid-cols-2 gap-3">
+                        <Fact
+                            label="Professors checked"
+                            value={`${processedCount} / ${totalProfessors} (${percent}%)`}
+                        />
+                        <Fact label={metricLabel} value={metricCount} />
+                    </div>
+                    <Progress value={percent} aria-label={`${title} progress`} />
+                </div>
+            ) : null}
+            <output className="block text-sm text-muted-foreground empty:hidden">{message}</output>
         </article>
     );
 }
