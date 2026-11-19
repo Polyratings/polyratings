@@ -25,6 +25,10 @@ export const appRouter = t.router({
 });
 export type AppRouter = typeof appRouter;
 
+// The site calls `/api/*` on its own origin. The api-* hosts keep serving the
+// same procedures at the root for the MCP server and older frontend bundles.
+const API_PREFIX = "/api";
+
 const CORS_HEADERS = {
     "Access-Control-Allow-Origin": "*",
     "Access-Control-Allow-Methods": "*",
@@ -88,8 +92,9 @@ export default {
             }
         }
 
+        const isPrefixed = requestPath === API_PREFIX || requestPath.startsWith(`${API_PREFIX}/`);
         return fetchRequestHandler({
-            endpoint: "",
+            endpoint: isPrefixed ? API_PREFIX : "",
             req: request,
             router: appRouter,
             batching: {

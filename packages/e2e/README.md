@@ -2,7 +2,7 @@
 
 **Local (default):** From the repo root, `npm run e2e` runs Playwright with `webServer` enabled: it starts the frontend in `packages/frontend` via `npm run start:local` and uses `http://localhost:5173`.
 
-**Beta:** From the repo root, `npm run e2e:beta` runs the same specs against [https://beta.polyratings.pages.dev/](https://beta.polyratings.pages.dev/) without starting a local server.
+**Beta:** From the repo root, `npm run e2e:beta` runs the same specs against [https://api-beta.polyratings.org/](https://api-beta.polyratings.org/) without starting a local server.
 
 **Production:** `npm run e2e:prod` runs against [https://polyratings.dev](https://polyratings.dev) and skips tests tagged `@write` (mutating submissions).
 

@@ -4,7 +4,7 @@
     "private": true,
     "scripts": {
         "e2e": "playwright test",
-        "e2e:beta": "PLAYWRIGHT_BASE_URL=https://beta.polyratings.pages.dev playwright test",
+        "e2e:beta": "PLAYWRIGHT_BASE_URL=https://api-beta.polyratings.org playwright test",
         "e2e:prod": "PLAYWRIGHT_BASE_URL=https://polyratings.dev PLAYWRIGHT_EXCLUDE_WRITE=true playwright test",
         "e2e:dev": "playwright test",
         "e2e:ui": "playwright test --ui",

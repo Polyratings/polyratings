@@ -8,8 +8,8 @@ If this file is wrong, update it.
 
 | Package | Path | Role |
 | --- | --- | --- |
-| `@polyratings/frontend` | `packages/frontend/` | Vite React app (polyratings.dev) |
-| `@polyratings/backend` | `packages/backend/` | Workers tRPC API |
+| `@polyratings/frontend` | `packages/frontend/` | Vite React app, served by the backend Worker |
+| `@polyratings/backend` | `packages/backend/` | Workers tRPC API + static frontend |
 | `@polyratings/cron` | `packages/cron/` | Nightly sync / backup |
 | `@polyratings/e2e` | `packages/e2e/` | Playwright |
 
@@ -33,7 +33,7 @@ Per-package: `start:local` (frontend/backend), `npm t` (frontend Vitest), `run:l
 
 ## Stack and conventions
 
-- **Frontend:** React 18, Vite, Tailwind (inline classes), tRPC, TanStack Query, React Router. `index.ts` re-exports; no `../` imports. One public component per file. Local error UX at the query/mutation; `meta.suppressGlobalErrorToast` when handled locally. Public routes set unique titles/canonicals with `PageMeta`; keep `packages/frontend/public/robots.txt` and `SITEMAP_STATIC_PATHS` in sync when adding indexable pages. `robots.txt` points `Sitemap:` at the API worker sitemap (cross-host is supported).
+- **Frontend:** React 18, Vite, Tailwind (inline classes), tRPC, TanStack Query, React Router. `index.ts` re-exports; no `../` imports. One public component per file. Local error UX at the query/mutation; `meta.suppressGlobalErrorToast` when handled locally. Public routes set unique titles/canonicals with `PageMeta`; keep `packages/frontend/public/robots.txt` and `SITEMAP_STATIC_PATHS` in sync when adding indexable pages. `robots.txt` points `Sitemap:` at `/sitemap.xml` on the same Worker.
 - **Theming:** Tailwind v4 CSS-first; all tokens live in `packages/frontend/src/index.css`. Colors come from the [Cal Poly brand palette](https://ucm.calpoly.edu/color-guidelines). Dark mode is class-based (`:root.dark`): the inline script in `index.html` applies the stored theme — or the OS setting on a first visit — before first paint, and `useTheme` keeps it in sync; `ThemeToggle` in the navbar flips light/dark. There is no separate "system" mode, and CSS never reads `prefers-color-scheme`, so the storage key must stay in sync between that script and `useTheme`. Two brand tokens: `bg-primary` for filled brand surfaces (Poly Green + white in both schemes), `text-brand`/`border-brand` for brand color drawn on a surface (lightens to Dexter Green in dark). Prefer semantic tokens over raw palette classes so both schemes follow.
 - **Backend:** Workers, tRPC (`src/index.ts`), KV DAOs, Zod in `src/types/schema.ts` (public vs internal parsers). Public routes: `publicProcedure` and omit `anonymousIdentifier`. Discord notifications production-only; e2e sends `x-polyratings-skip-notifications: 1`.
 - **General:** TypeScript; root Oxlint (`oxlint-tsgolint` type-aware) + Oxfmt; `npm run fix` before commit.
@@ -50,6 +50,7 @@ Keep **1:1 parity**: each spec file ↔ one suite; each acceptance ID ↔ a `tes
 
 ## Deploy (GitHub Actions)
 
-- Workers: `deploy:prod` / `deploy:beta`; PRs use `wrangler versions upload --env dev --preview-alias pr-<number>`.
-- Pages: workflow-only `wrangler pages deploy` (`NX_NO_CLOUD=true`, Vite `--mode` per env). Disable Pages Git auto-deploy. Closed same-repo PRs drop Pages + Worker preview alias.
+- One Worker per env serves the site and the API. `packages/backend/wrangler.toml` `[assets]` serves `packages/frontend/dist`; only `run_worker_first` paths run the Worker. The frontend calls `/api` on its own origin; the `api-*.polyratings.org` hosts also keep the root tRPC paths for the MCP server and older clients.
+- The workflow builds the frontend first (`NX_NO_CLOUD=true`), then `deploy:prod` / `deploy:beta`; PRs use `wrangler versions upload --env dev --preview-alias pr-<number>`, one URL for site + API. Closed same-repo PRs point the preview alias at a 410 stub.
+- Beta is served at `api-beta.polyratings.org`. `polyratings.dev` is still on Pages until a Worker route cuts it over. Local `start:local` uses Vite for the frontend; the backend scripts create an empty `frontend/dist` so `wrangler dev` starts.
 - Cron ships with production worker deploys.

@@ -6,8 +6,8 @@
     "license": "GPL-3.0",
     "author": "Addison Tustin <addison@atustin.dev>",
     "scripts": {
-        "start:dev": "wrangler dev --env dev --remote",
-        "start:local": "wrangler dev",
+        "start:dev": "mkdir -p ../frontend/dist && wrangler dev --env dev --remote",
+        "start:local": "mkdir -p ../frontend/dist && wrangler dev",
         "build:fast": "esbuild --format=esm --define:this=self --bundle src/index.ts --outdir=dist --metafile=stats/metadata.json",
         "build": "node generateBackendTypes.js && tsc && npm run build:fast",
         "stats": "esbuild-visualizer --metadata ./stats/metadata.json --filename ./stats/stats.html",

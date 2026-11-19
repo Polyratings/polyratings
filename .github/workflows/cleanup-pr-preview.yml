@@ -43,15 +43,6 @@ jobs:
         if: steps.cf.outputs.has_token == 'true'
         run: npm ci
 
-      - name: Delete Pages deployments for pr-${{ github.event.number }}
-        if: steps.cf.outputs.has_token == 'true'
-        env:
-          CLOUDFLARE_API_TOKEN: ${{ secrets.CF_API_TOKEN }}
-          CF_ACCOUNT_ID: "4b59b59a6058dce1832781075d4fde9d"
-          CF_PAGES_PROJECT_NAME: polyratings
-          PAGES_BRANCH: pr-${{ github.event.number }}
-        run: npx tsx packages/backend/scripts/delete-pr-pages-deployments.ts
-
       - name: Point Worker preview alias at a 410 stub
         if: steps.cf.outputs.has_token == 'true'
         # npx runs wrangler from the nearest package.json (packages/backend), so the
