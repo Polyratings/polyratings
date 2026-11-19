@@ -37,16 +37,12 @@ on:
         type: string
         default: ""
       COMMENT_ON_PR:
-        description: "Post/update a PR comment with the Pages preview URL"
+        description: "Post/update a PR comment with the preview URL"
         required: false
         type: boolean
         default: false
-      PAGES_BRANCH:
-        description: "Cloudflare Pages branch (master=production, beta=preview alias, pr-N=preview)"
-        required: true
-        type: string
       PLAYWRIGHT_BASE_URL:
-        description: "Stable frontend URL for e2e. Falls back to the Pages deployment URL when omitted."
+        description: "Stable site URL for e2e. Falls back to the Worker preview URL when omitted."
         required: false
         type: string
       EXCLUDE_WRITE_TESTS:
@@ -54,20 +50,9 @@ on:
         required: false
         type: boolean
         default: false
-      CF_ACCOUNT_ID:
-        description: "Cloudflare account that owns the Pages project"
-        required: false
-        type: string
-        default: "4b59b59a6058dce1832781075d4fde9d"
-      CF_PAGES_PROJECT_NAME:
-        description: "Cloudflare Pages project name"
-        required: false
-        type: string
-        default: "polyratings"
-
     secrets:
       CF_API_TOKEN:
-        description: "Cloudflare API token used to deploy workers and Pages"
+        description: "Cloudflare API token used to deploy workers"
         required: false
 
 jobs:
@@ -115,6 +100,12 @@ jobs:
         if: steps.cf.outputs.has_token == 'true'
         run: npm ci
 
+      - name: Build frontend
+        if: steps.cf.outputs.has_token == 'true'
+        # The backend Worker serves packages/frontend/dist, so build it before any upload.
+        # Do not reuse Nx Cloud cache from CI, which may hold a dist from another branch.
+        run: NX_NO_CLOUD=true NX_CLOUD_DISTRIBUTED_EXECUTION=false npx nx run @polyratings/frontend:build
+
       - name: Allowlist env.dev KV ids
         if: steps.cf.outputs.has_token == 'true' && inputs.WORKER_PUBLISH == 'versions-upload'
         run: |
@@ -149,41 +140,20 @@ jobs:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CF_API_TOKEN }}
         run: NX_CLOUD_DISTRIBUTED_EXECUTION=false npm run ${{ inputs.DEPLOY_SCRIPT }}
 
-      - name: Build frontend
-        if: steps.cf.outputs.has_token == 'true'
-        env:
-          # prod → Vite `production` (api-prod). beta/dev keep the same name.
-          VITE_MODE: ${{ inputs.ENVIRONMENT_NAME == 'prod' && 'production' || inputs.ENVIRONMENT_NAME }}
-          VITE_API_URL: ${{ steps.upload-worker.outputs.preview_url }}
-        # Do not reuse Nx Cloud cache from CI (`nx affected --target=build` uses default
-        # Vite production mode and would otherwise publish that dist to every environment).
-        run: NX_NO_CLOUD=true NX_CLOUD_DISTRIBUTED_EXECUTION=false npx nx run @polyratings/frontend:build
-
-      - name: Deploy frontend to Cloudflare Pages
-        if: steps.cf.outputs.has_token == 'true'
-        id: publish-pages
-        uses: cloudflare/wrangler-action@v4
-        with:
-          apiToken: ${{ secrets.CF_API_TOKEN }}
-          accountId: ${{ inputs.CF_ACCOUNT_ID }}
-          command: pages deploy packages/frontend/dist --project-name=${{ inputs.CF_PAGES_PROJECT_NAME }} --branch=${{ inputs.PAGES_BRANCH }} --commit-dirty=true
-
       - name: Comment preview URL on PR
         if: steps.cf.outputs.has_token == 'true' && inputs.COMMENT_ON_PR
         uses: actions/github-script@v9
         env:
-          PAGES_URL: ${{ steps.publish-pages.outputs.pages-deployment-alias-url || steps.publish-pages.outputs.deployment-url }}
-          API_URL: ${{ steps.upload-worker.outputs.preview_url }}
+          PREVIEW_URL: ${{ steps.upload-worker.outputs.preview_url }}
         with:
           script: |
             const marker = "<!-- polyratings-dev-preview -->";
-            const pagesUrl = process.env.PAGES_URL;
-            const apiUrl = process.env.API_URL;
+            const previewUrl = process.env.PREVIEW_URL;
             const body = [
               marker,
               "## Dev preview",
-              `- Frontend: ${pagesUrl}`,
-              `- API: ${apiUrl}`,
+              `- Site: ${previewUrl}`,
+              `- API: ${previewUrl}/api`,
             ].join("\n");
             const { data: comments } = await github.rest.issues.listComments({
               owner: context.repo.owner,
@@ -216,7 +186,7 @@ jobs:
         if: steps.cf.outputs.has_token == 'true'
         working-directory: packages/e2e
         env:
-          PLAYWRIGHT_BASE_URL: ${{ inputs.PLAYWRIGHT_BASE_URL || steps.publish-pages.outputs.pages-deployment-alias-url || steps.publish-pages.outputs.deployment-url }}
+          PLAYWRIGHT_BASE_URL: ${{ inputs.PLAYWRIGHT_BASE_URL || steps.upload-worker.outputs.preview_url }}
           PLAYWRIGHT_EXCLUDE_WRITE: ${{ inputs.EXCLUDE_WRITE_TESTS }}
           # Same run as the functional suite. Baselines are the committed linux pngs.
           PLAYWRIGHT_VISUAL: compare

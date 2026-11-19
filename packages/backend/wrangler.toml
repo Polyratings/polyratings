@@ -15,6 +15,21 @@ kv_namespaces = [
     { binding = "POLYRATINGS_SESSIONS", id = "62feb12023254effb0d2b7842e74589f", preview_id = "62feb12023254effb0d2b7842e74589f" },
 ]
 
+# The frontend build is served from this Worker. Only API paths run the Worker;
+# everything else is a static asset, with the SPA shell for unknown paths.
+# Root tRPC paths (`/professors.*` etc.) stay for clients of the api-* hosts.
+[assets]
+directory = "../frontend/dist"
+not_found_handling = "single-page-application"
+run_worker_first = [
+    "/api/*",
+    "/sitemap.xml",
+    "/professors.*",
+    "/ratings.*",
+    "/admin.*",
+    "/auth.*",
+]
+
 [build]
 command = "npm run build"
 

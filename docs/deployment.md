@@ -78,8 +78,12 @@ Additionally, you're going to need to configure some [Secrets using Wrangler.](h
 
 #### Deploying/Publishing
 
-After performing the above steps, you should be able to deploy the worker using wrangler:
-`wrangler deploy --env ENVIRONMENT_TO_DEPLOY`
+The backend Worker also serves the built frontend from `packages/frontend/dist` (`[assets]` in `wrangler.toml`), so build the frontend first:
+
+```bash
+npx nx run @polyratings/frontend:build
+cd packages/backend && wrangler deploy --env ENVIRONMENT_TO_DEPLOY
+```
 
 ### Cron Worker
 
@@ -100,38 +104,20 @@ After performing the above steps, you should be able to deploy the worker using 
 
 We currently provide a [daily dump](https://github.com/Polyratings/polyratings-data) of the entire Polyratings professor dataset. While we don't currently have a utility that can automatically populate an arbitrary KV with that dataset, you can use Wrangler [bulk put](https://developers.cloudflare.com/workers/cli-wrangler/commands/#put-2) functionality and upload a JSON file containing a slightly modified version of those dumps to populate your KV.
 
-# Cloudflare Pages
+# Site and API
 
-The official Polyratings GitHub Actions workflow builds the frontend and publishes it with `wrangler pages deploy`:
+One backend Worker per environment serves both the site and the API. Static files come from `packages/frontend/dist`; only the paths in `run_worker_first` (`/api/*`, `/sitemap.xml`, and the root tRPC paths such as `/professors.*`) run the Worker. Unknown paths get the SPA shell.
 
-- `master` → production (`polyratings.dev`) and `wrangler deploy --env prod`
-- `beta` → `beta.polyratings.pages.dev` and `wrangler deploy --env beta`
-- pull requests → Pages branch `pr-<number>` and `wrangler versions upload --env dev --preview-alias pr-<number>` (does **not** change the live `api-dev.polyratings.org` Worker). The frontend is built with `VITE_API_URL` set to the Worker preview URL (`pr-<n>-polyratings-dev-backend.<subdomain>.workers.dev`). Promotion PRs from `beta` into `master` skip both the beta republish and the per-PR preview; production still deploys when the merge lands on `master`.
+The site calls the API at `/api` on its own origin. The `api-ENV.DOMAIN.COM` hosts also answer the root tRPC paths, for the MCP server and older frontend bundles.
 
-**Disable automatic Git deployments** on the Pages project (Settings → Builds & deployments) so GitHub Actions is the only publisher. Leaving Git connected will double-deploy and race the workflow.
+The official GitHub Actions workflow builds the frontend, then deploys the Worker:
 
-If a PR Worker preview 404s, enable Preview URLs on `polyratings-dev-backend` in the dashboard (Settings → Domains & Routes). `preview_urls = true` is set on `[env.dev]` in `packages/backend/wrangler.toml`.
+- `master` → `wrangler deploy --env prod` (`api-prod.polyratings.org`)
+- `beta` → `wrangler deploy --env beta` (`api-beta.polyratings.org`, which is also the beta site)
+- pull requests → `wrangler versions upload --env dev --preview-alias pr-<number>`, one preview URL (`pr-<n>-polyratings-dev-backend.<subdomain>.workers.dev`) for site and API. This does **not** change the live `api-dev.polyratings.org` Worker. Promotion PRs from `beta` into `master` skip both the beta republish and the per-PR preview; production still deploys when the merge lands on `master`.
 
-When a same-repo pull request is closed, GitHub Actions deletes Pages deployments for branch `pr-<number>` and re-points the Worker preview alias `pr-<number>` at a 410 stub (aliases cannot be deleted). Versioned `*.workers.dev` URLs for old uploads are left in place. Optional Cloudflare Access on preview hostnames is dashboard-only.
+If a PR preview 404s, enable Preview URLs on `polyratings-dev-backend` in the dashboard (Settings → Domains & Routes). `preview_urls = true` is set on `[env.dev]` in `packages/backend/wrangler.toml`.
 
-Creating a Pages project still happens in the dashboard:
+When a same-repo pull request is closed, GitHub Actions re-points the preview alias `pr-<number>` at a 410 stub (aliases cannot be deleted). Versioned `*.workers.dev` URLs for old uploads are left in place. Optional Cloudflare Access on preview hostnames is dashboard-only.
 
-## Configuration (When Modifying the Backend Package)
-
-Before we can begin deploying the frontend, we'll need to modify the URLs that it points to. From the root of the Frontend package in `src/App.config.ts`, you'll need to modify the `remoteUrl` of the various `AppConfigurations` to match the base routes you created in [URLS and Endpoints](#urls-and-endpoints): `https://api-ENV.DOMAIN.COM`
-
-## Deploying
-
-Navigate to the "Pages" tab from the dashboard to begin and select "Create a Project." You can select "Connect GitHub" and follow the setup process to link your new repository with Cloudflare. You'll be redirected back to Cloudflare and confirm the repository you'll be using for Cloudflare Pages by selecting "Begin setup".
-
-### Builds and Deployments Page
-
-You'll need to fill out the page using the following settings:
-
-- **Project name:** The name you want associated with this Pages project. Note: it **is not** the final URL that will point to your homepage.
-- **Production branch**: This should usually be `master` unless you've changed the default branch of your repository.
-- **Framework preset**: None
-- **Build command**: unused when publishing via Direct Upload / `wrangler pages deploy` from GitHub Actions. If you keep Git integration for a fork, `npm install && npm run build` still works because Lerna handles the monorepo.
-- **Build output directory**: `/packages/frontend/dist`
-
-Then select "Save and Deploy." Your site should automatically deploy to `project-name.pages.dev` though if your project name is identical to another, there will be a unique identifier appended to the end of `project-name`.
+`polyratings.dev` is still served by the legacy Cloudflare Pages project until a Worker route for it is added to `env.prod`. That Pages project is no longer deployed by the workflow.
