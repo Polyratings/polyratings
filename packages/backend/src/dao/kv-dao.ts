@@ -295,11 +295,19 @@ export class KVDAO {
         return this.reportsNamespace.getOptional(ratingReportParser, ratingId);
     }
 
-    async putReport(report: RatingReport): Promise<void> {
-        const existingReport = await this.reportsNamespace.getOptional(
-            ratingReportParser,
-            report.ratingId,
-        );
+    /**
+     * Persist a report, merging into an existing document when present.
+     * Pass `existing` when the caller already looked the report up to avoid a redundant KV get.
+     * `existing: undefined` / omitted value with `options` set means "known missing".
+     */
+    async putReport(
+        report: RatingReport,
+        options?: { existing?: RatingReport | null },
+    ): Promise<void> {
+        const existingReport =
+            options !== undefined
+                ? (options.existing ?? undefined)
+                : await this.reportsNamespace.getOptional(ratingReportParser, report.ratingId);
 
         if (existingReport) {
             existingReport.reports = existingReport.reports.concat(report.reports);
