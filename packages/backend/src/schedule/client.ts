@@ -1,16 +1,15 @@
-import {
-    instructorMatchResponseParser,
-    type SectionOffering,
-    termsListResponseParser,
-    type TermSummary,
-} from "@backend/schedule/schema";
+import { type CourseMatchResponse, courseMatchResponseParser } from "@backend/schedule/schema";
 
-export type ScheduleFetchResult<T> =
-    | { status: "ok"; data: T }
-    | { status: "not_found" }
-    | { status: "error" };
+export type ScheduleFetchResult<T> = { status: "ok"; data: T } | { status: "error" };
 
-type FetchResult<T> = ScheduleFetchResult<T>;
+export type CourseMatchQuery = {
+    firstName: string;
+    lastName: string;
+    subject: string;
+    catalogNumber: number;
+    /** ISO timestamp of the rating. */
+    postedAt: string;
+};
 
 export class ScheduleApiClient {
     constructor(
@@ -26,7 +25,11 @@ export class ScheduleApiClient {
         return this.baseUrl!.replace(/\/$/, "");
     }
 
-    private async fetchJson<T>(path: string, parse: (json: unknown) => T): Promise<FetchResult<T>> {
+    /** Any non-200 response, network error, or unexpected body is an error. */
+    private async fetchJson<T>(
+        path: string,
+        parse: (json: unknown) => T,
+    ): Promise<ScheduleFetchResult<T>> {
         if (!this.isConfigured) {
             return { status: "error" };
         }
@@ -38,11 +41,7 @@ export class ScheduleApiClient {
                 },
             });
 
-            if (response.status === 404) {
-                return { status: "not_found" };
-            }
-
-            if (!response.ok) {
+            if (response.status !== 200) {
                 return { status: "error" };
             }
 
@@ -53,39 +52,20 @@ export class ScheduleApiClient {
         }
     }
 
-    async listTerms(): Promise<TermSummary[] | null> {
-        const result = await this.fetchJson("/v1/terms", (json) =>
-            termsListResponseParser.parse(json),
-        );
-        if (result.status !== "ok") {
-            return null;
-        }
-        return result.data.terms;
-    }
-
-    /** Instructor sections for one term. Does not pick a default term. */
-    async matchProfessorInTerm(
-        termCode: string,
-        firstName: string,
-        lastName: string,
-        course: { subject: string; catalogNumber: number },
-    ): Promise<ScheduleFetchResult<SectionOffering[]>> {
-        // The match route requires the reviewed course since the API's Oct 2026 change.
+    /**
+     * Whether the instructor taught the course in any covered term that started
+     * by `postedAt`. One request; the Schedule API owns term windows and course-key aliases.
+     */
+    async matchCourse(query: CourseMatchQuery): Promise<ScheduleFetchResult<CourseMatchResponse>> {
         const params = new URLSearchParams({
-            firstName,
-            lastName,
-            subject: course.subject,
-            catalogNumber: String(course.catalogNumber),
+            firstName: query.firstName,
+            lastName: query.lastName,
+            subject: query.subject,
+            catalogNumber: String(query.catalogNumber),
+            postedAt: query.postedAt,
         });
-        const result = await this.fetchJson(
-            `/v1/terms/${encodeURIComponent(termCode)}/instructors/match?${params.toString()}`,
-            (json) => instructorMatchResponseParser.parse(json),
+        return this.fetchJson(`/v1/instructors/course-match?${params.toString()}`, (json) =>
+            courseMatchResponseParser.parse(json),
         );
-
-        if (result.status !== "ok") {
-            return result;
-        }
-
-        return { status: "ok", data: result.data.sections };
     }
 }
