@@ -2,7 +2,6 @@ import { courseReviewsKey } from "@backend/utils/courseNum";
 import { scheduleCourseKeyCandidates } from "@backend/schedule/courseKeys";
 import type { ScheduleFetchResult } from "@backend/schedule/client";
 import type { ScheduleMatch, SectionOffering, TermSummary } from "@backend/schedule/schema";
-import { approximateTermWindow, isInstantInTermWindow } from "@backend/schedule/termCalendar";
 
 const COURSE_KEY = /^([A-Za-z]+)\s+(\d+)$/;
 
@@ -13,6 +12,7 @@ export type ScheduleMatchClient = {
         termCode: string,
         firstName: string,
         lastName: string,
+        course: { subject: string; catalogNumber: number },
     ): Promise<ScheduleFetchResult<SectionOffering[]>>;
 };
 
@@ -80,10 +80,37 @@ export function unavailableMatch(submittedCourseKey: string): ScheduleMatch {
     };
 }
 
+type TermWindow = {
+    /** UTC midnight of the first day, in ms. */
+    start: number;
+    /** UTC midnight of the last day, in ms. */
+    end: number;
+};
+
+function utcDayFromIsoDate(isoDate: string | null | undefined): number | null {
+    if (!isoDate || !/^\d{4}-\d{2}-\d{2}$/.test(isoDate)) {
+        return null;
+    }
+    const day = Date.parse(`${isoDate}T00:00:00.000Z`);
+    return Number.isNaN(day) ? null : day;
+}
+
+function utcDay(instant: Date): number {
+    return Date.UTC(instant.getUTCFullYear(), instant.getUTCMonth(), instant.getUTCDate());
+}
+
+/** Window published by the Schedule API, or null when it sent none. */
+export function termWindow(term: TermSummary): TermWindow | null {
+    const start = utcDayFromIsoDate(term.approximateStart);
+    const end = utcDayFromIsoDate(term.approximateEnd);
+    if (start == null || end == null || start > end) {
+        return null;
+    }
+    return { start, end };
+}
+
 function coveredTerms(terms: TermSummary[]): TermSummary[] {
-    return terms.filter(
-        (term) => term.sectionCount > 0 && approximateTermWindow(term.termCode) != null,
-    );
+    return terms.filter((term) => term.sectionCount > 0 && termWindow(term) != null);
 }
 
 /** Covered terms whose window contains postDate. Empty when the review is outside our data. */
@@ -93,9 +120,10 @@ export function termsOverlappingPostDate(postDate: string, terms: TermSummary[])
         return [];
     }
 
+    const day = utcDay(post);
     return coveredTerms(terms).filter((term) => {
-        const window = approximateTermWindow(term.termCode);
-        return window != null && isInstantInTermWindow(post, window);
+        const window = termWindow(term);
+        return window != null && window.start <= day && day <= window.end;
     });
 }
 
@@ -111,10 +139,11 @@ export function termsRelevantToPostDate(postDate: string, terms: TermSummary[]):
         return [];
     }
 
+    const day = utcDay(post);
     return coveredTerms(terms)
         .filter((term) => {
-            const window = approximateTermWindow(term.termCode);
-            return window != null && window.start.getTime() <= post.getTime();
+            const window = termWindow(term);
+            return window != null && window.start <= day;
         })
         .sort((a, b) => a.termCode.localeCompare(b.termCode));
 }
@@ -203,6 +232,7 @@ export async function analyzeScheduleMatch(input: {
                     term.termCode,
                     input.firstName,
                     input.lastName,
+                    { subject: department, catalogNumber: input.courseNum },
                 );
                 if (match.status === "error") {
                     return {

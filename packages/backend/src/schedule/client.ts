@@ -68,10 +68,14 @@ export class ScheduleApiClient {
         termCode: string,
         firstName: string,
         lastName: string,
+        course: { subject: string; catalogNumber: number },
     ): Promise<ScheduleFetchResult<SectionOffering[]>> {
+        // The match route requires the reviewed course since the API's Oct 2026 change.
         const params = new URLSearchParams({
             firstName,
             lastName,
+            subject: course.subject,
+            catalogNumber: String(course.catalogNumber),
         });
         const result = await this.fetchJson(
             `/v1/terms/${encodeURIComponent(termCode)}/instructors/match?${params.toString()}`,

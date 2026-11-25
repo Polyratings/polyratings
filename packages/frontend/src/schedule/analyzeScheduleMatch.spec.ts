@@ -2,6 +2,7 @@ import { describe, expect, it, vi } from "vitest";
 import {
     analyzeScheduleMatch,
     notApplicableMatch,
+    termWindow,
     submissionMatchesCourseKey,
     termsOverlappingPostDate,
     termsRelevantToPostDate,
@@ -9,16 +10,27 @@ import {
     verdictFromTermMatches,
     type ScheduleMatchClient,
 } from "@backend/schedule/analyzeScheduleMatch";
-import { approximateTermWindow } from "@backend/schedule/termCalendar";
 import type { SectionOffering, TermSummary } from "@backend/schedule/schema";
 
 const FALL_2026 = "2268";
 const WINTER_2026 = "2262";
 
+// Windows as the Schedule API publishes them (GET /v1/terms).
+const API_WINDOWS: Record<string, [string, string]> = {
+    "2262": ["2026-01-01", "2026-03-25"],
+    "2264": ["2026-03-26", "2026-06-15"],
+    "2266": ["2026-06-16", "2026-08-10"],
+    "2268": ["2026-08-11", "2026-12-31"],
+    "2274": ["2027-03-26", "2027-06-15"],
+};
+
 function term(termCode: string, sectionCount = 10): TermSummary {
+    const [approximateStart, approximateEnd] = API_WINDOWS[termCode] ?? [null, null];
     return {
         termCode,
         sectionCount,
+        approximateStart,
+        approximateEnd,
     };
 }
 
@@ -26,11 +38,23 @@ function section(courseKey: string): SectionOffering {
     return { courseKey };
 }
 
-describe("approximateTermWindow", () => {
-    it("places Fall 2026 from Aug 11 through Dec 31", () => {
-        const window = approximateTermWindow(FALL_2026);
-        expect(window?.start.toISOString()).toBe("2026-08-11T00:00:00.000Z");
-        expect(window?.end.toISOString()).toBe("2026-12-31T00:00:00.000Z");
+describe("termWindow", () => {
+    it("reads the window the Schedule API sent", () => {
+        const window = termWindow(term(FALL_2026));
+        expect(window && new Date(window.start).toISOString()).toBe("2026-08-11T00:00:00.000Z");
+        expect(window && new Date(window.end).toISOString()).toBe("2026-12-31T00:00:00.000Z");
+    });
+
+    it("has no window when the API omits or garbles the dates", () => {
+        expect(termWindow({ termCode: FALL_2026, sectionCount: 10 })).toBeNull();
+        expect(
+            termWindow({
+                termCode: FALL_2026,
+                sectionCount: 10,
+                approximateStart: "Aug 11",
+                approximateEnd: "2026-12-31",
+            }),
+        ).toBeNull();
     });
 });
 
@@ -51,6 +75,14 @@ describe("termsOverlappingPostDate", () => {
 
     it("returns nothing for an unparseable post date", () => {
         expect(termsOverlappingPostDate("not-a-date", terms)).toEqual([]);
+    });
+
+    it("ignores terms the API sent without a window", () => {
+        expect(
+            termsOverlappingPostDate("2026-10-15T18:00:00.000Z", [
+                { termCode: FALL_2026, sectionCount: 10 },
+            ]),
+        ).toEqual([]);
     });
 });
 
@@ -279,6 +311,13 @@ describe("analyzeScheduleMatch", () => {
             FALL_2026,
             spring2027,
         ]);
+        // The match route requires the reviewed course.
+        expect(matchProfessorInTerm.mock.calls.every((call) => call[3]?.subject === "CSC")).toBe(
+            true,
+        );
+        expect(
+            matchProfessorInTerm.mock.calls.every((call) => call[3]?.catalogNumber === 1101),
+        ).toBe(true);
     });
 
     it("confirms a quarter course from a 3-digit section", async () => {

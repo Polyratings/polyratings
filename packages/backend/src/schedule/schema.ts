@@ -6,10 +6,15 @@ export const sectionOfferingParser = z.object({
 });
 export type SectionOffering = z.infer<typeof sectionOfferingParser>;
 
-/** Covered term. Empty terms (`sectionCount` 0) are ignored. */
+/**
+ * Covered term. Empty terms (`sectionCount` 0) are ignored, and so are terms
+ * without a window. The Schedule API owns the window dates (`YYYY-MM-DD`).
+ */
 export const termSummaryParser = z.object({
     termCode: z.string(),
     sectionCount: z.number(),
+    approximateStart: z.string().nullish(),
+    approximateEnd: z.string().nullish(),
 });
 export type TermSummary = z.infer<typeof termSummaryParser>;
 
