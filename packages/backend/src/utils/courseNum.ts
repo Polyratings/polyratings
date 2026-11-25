@@ -36,3 +36,15 @@ export const historicalCourseNumParser = z.number().int().refine(isHistoricalCou
 export function courseReviewsKey(department: string, courseNum: number): string {
     return `${department} ${courseNum}`;
 }
+
+/**
+ * Shape of a review bucket key: `DEPT NUM`, e.g. `BUS 3310` or `CSC 357`.
+ * Deliberately not tied to DEPARTMENT_LIST: stored reviews still use retired
+ * prefixes (SPC, CRSC, FNR, IT, ...) that are no longer valid for new ratings.
+ */
+const COURSE_KEY_PATTERN = /^[A-Z]+ \d+$/;
+
+/** True for review bucket keys like `BUS 3310`; false for a bare department like `BUS`. */
+export function isCourseKey(value: string): boolean {
+    return COURSE_KEY_PATTERN.test(value);
+}

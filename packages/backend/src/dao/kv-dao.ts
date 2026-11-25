@@ -1,22 +1,27 @@
 import { ALL_PROFESSOR_KEY, BulkKey, BulkKeyMap } from "@backend/utils/const";
-import { courseReviewsKey } from "@backend/utils/courseNum";
+import { courseReviewsKey, isCourseKey } from "@backend/utils/courseNum";
 import { mapInBatches } from "@backend/utils/chunkArray";
 import { z } from "zod";
 import { TRPCError } from "@trpc/server";
 import {
+    coursesFromReviews,
     PendingRating,
     pendingRatingParser,
     Professor,
     professorParser,
+    professorWriteParser,
     RatingReport,
     ratingReportParser,
     TruncatedProfessor,
     truncatedProfessorParser,
+    truncatedProfessorWriteParser,
     User,
     userParser,
 } from "@backend/types/schema";
 import {
     addRating as addRatingToProfessor,
+    coursesNeedSync,
+    patchProfessorListCourses,
     professorToTruncatedProfessor,
     removeRating,
     removeRatingsBulk as removeRatingsBulkFromProfessor,
@@ -28,6 +33,29 @@ const THREE_WEEKS_SECONDS = 60 * 60 * 24 * 7 * 3;
 
 // Window size for bulk KV reads. Awaited before the next window starts.
 const BULK_FETCH_CONCURRENCY = 50;
+
+// Per-professor get→put pairs in flight during the courses backfill.
+const COURSES_BACKFILL_CONCURRENCY = 10;
+/** Most professors one list repair call fetches. Rerun to pick up the rest. */
+export const LIST_REPAIR_MAX_PROFESSORS = 200;
+
+/** Just enough of a stored professor to compare `courses` with its review keys. */
+const storedCoursesParser = z.object({
+    firstName: z.string().optional(),
+    lastName: z.string().optional(),
+    courses: z.string().array(),
+    reviews: z.record(z.string(), z.unknown()),
+});
+
+export type CoursesChange = { id: string; name: string; before: string[]; after: string[] };
+
+function displayName(professor: { firstName?: string; lastName?: string }) {
+    return `${professor.lastName ?? "?"}, ${professor.firstName ?? "?"}`;
+}
+
+function errorSummary(error: unknown) {
+    return error instanceof Error ? error.message.slice(0, 300) : String(error);
+}
 
 export class KVDAO {
     constructor(
@@ -179,13 +207,16 @@ export class KVDAO {
             }
         }
 
-        await this.polyratingsNamespace.put(professorParser, professor.id, professor);
+        // Validate the list entry before either write, so a bad record never lands half-written.
+        const truncatedProf = truncatedProfessorWriteParser.parse(
+            professorToTruncatedProfessor(professor),
+        );
+        await this.polyratingsNamespace.put(professorWriteParser, professor.id, professor);
 
         const profList = await this.getAllProfessors();
         // Right now we have these because of the unfortunate shape of our professor list structure.
         // TODO: Investigate better structure for the professor list
         const professorIndex = profList.findIndex((t) => t.id === professor.id);
-        const truncatedProf = professorToTruncatedProfessor(professor);
 
         if (professorIndex === -1) {
             profList.push(truncatedProf);
@@ -196,6 +227,130 @@ export class KVDAO {
         await this.putAllProfessors(profList);
 
         return professor;
+    }
+
+    /**
+     * Rewrite stored professor records whose `courses` differs from their review keys, one KV
+     * list page at a time. Reads already derive `courses`, so this only cleans stored data; it
+     * never touches the all-professors list (see `repairProfessorListCourses`).
+     *
+     * Each professor is read and written back immediately (no batching of reads ahead of writes)
+     * to keep the window in which a concurrent rating could be overwritten as short as possible.
+     */
+    async backfillProfessorCourses({
+        cursor,
+        limit,
+        dryRun,
+    }: {
+        cursor?: string;
+        limit: number;
+        dryRun: boolean;
+    }) {
+        const page = await this.polyratingsNamespace.list(cursor ? { cursor, limit } : { limit });
+        const keys = page.keys.map((key) => key.name).filter((key) => key !== ALL_PROFESSOR_KEY);
+
+        const outcomes = await mapInBatches(keys, COURSES_BACKFILL_CONCURRENCY, async (key) => {
+            const raw = await this.polyratingsNamespace.getUnsafe(key);
+            const stored = storedCoursesParser.safeParse(raw);
+            if (!stored.success) {
+                return { problem: { id: key, error: "Stored value is not a professor" } };
+            }
+            if (!coursesNeedSync(stored.data)) {
+                return {};
+            }
+            const change: CoursesChange = {
+                id: key,
+                name: displayName(stored.data),
+                before: stored.data.courses,
+                after: coursesFromReviews(stored.data),
+            };
+            if (dryRun) {
+                return { change };
+            }
+            try {
+                // The read parser derives `courses`; the write parser re-checks it.
+                const professor = professorParser.parse(raw);
+                await this.polyratingsNamespace.put(professorWriteParser, key, professor);
+                return { change };
+            } catch (error) {
+                return { problem: { id: key, error: errorSummary(error) } };
+            }
+        });
+
+        const changes = outcomes.flatMap((outcome) => (outcome.change ? [outcome.change] : []));
+        const problems = outcomes.flatMap((outcome) => (outcome.problem ? [outcome.problem] : []));
+        return {
+            dryRun,
+            scanned: keys.length,
+            changes,
+            problems,
+            nextCursor: page.list_complete ? null : page.cursor,
+        };
+    }
+
+    /**
+     * Fix `courses` on all-professors list entries in one read-modify-write of the list.
+     *
+     * Candidates are entries holding something that is not a course key (the legacy `["BUS"]`
+     * shape) plus any `ids` the caller passes. Their professors are fetched first; the list is
+     * then re-read immediately before the single write and only `courses` is patched, so the
+     * window for losing a concurrent list update is one get+put, as with `putProfessor`.
+     */
+    async repairProfessorListCourses({ dryRun, ids }: { dryRun: boolean; ids?: string[] }) {
+        const list = await this.getAllProfessors();
+        const candidateIds = new Set(ids ?? []);
+        for (const entry of list) {
+            if (entry.courses.some((course) => !isCourseKey(course))) {
+                candidateIds.add(entry.id);
+            }
+        }
+        const allCandidates = [...candidateIds];
+        const batch = allCandidates.slice(0, LIST_REPAIR_MAX_PROFESSORS);
+
+        const fetched = await mapInBatches(batch, BULK_FETCH_CONCURRENCY, async (id) => {
+            const raw = await this.polyratingsNamespace.getUnsafe(id);
+            if (raw === null || raw === undefined) {
+                return { id, professorNotFound: true as const };
+            }
+            const parsed = professorParser.safeParse(raw);
+            return parsed.success
+                ? { id, courses: parsed.data.courses }
+                : { id, problem: { id, error: "Stored professor failed to parse" } };
+        });
+
+        const coursesById = new Map(
+            fetched.flatMap((result) => (result.courses ? [[result.id, result.courses]] : [])),
+        );
+        const professorNotFound = fetched.flatMap((r) => (r.professorNotFound ? [r.id] : []));
+        const problems = fetched.flatMap((r) => (r.problem ? [r.problem] : []));
+
+        // Dry run patches the list we already hold; a real run patches a fresh read.
+        const target = dryRun ? list : await this.getAllProfessors();
+        const beforeById = new Map(target.map((entry) => [entry.id, [...entry.courses]]));
+        const { updatedIds, missingIds } = patchProfessorListCourses(target, coursesById);
+        if (!dryRun && updatedIds.length > 0) {
+            await this.putAllProfessors(target);
+        }
+
+        const entriesById = new Map(target.map((entry) => [entry.id, entry]));
+        const changes: CoursesChange[] = updatedIds.map((id) => ({
+            id,
+            name: displayName(entriesById.get(id)!),
+            before: beforeById.get(id) ?? [],
+            after: entriesById.get(id)!.courses,
+        }));
+
+        return {
+            dryRun,
+            listSize: target.length,
+            candidates: allCandidates.length,
+            processed: batch.length,
+            remaining: allCandidates.length - batch.length,
+            changes,
+            professorNotFound,
+            listEntryMissing: missingIds,
+            problems,
+        };
     }
 
     async removeProfessor(id: string) {
@@ -267,8 +422,12 @@ export class KVDAO {
         return this.usersNamespace.put(userParser, user.username, user);
     }
 
-    putPendingProfessor(professor: Professor) {
-        return this.professorApprovalQueueNamespace.put(professorParser, professor.id, professor);
+    async putPendingProfessor(professor: Professor) {
+        return this.professorApprovalQueueNamespace.put(
+            professorWriteParser,
+            professor.id,
+            professor,
+        );
     }
 
     async getPendingProfessor(id: string) {

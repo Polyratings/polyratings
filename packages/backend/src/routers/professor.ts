@@ -9,7 +9,7 @@ import {
 } from "@backend/types/schema";
 import { DEPARTMENT_LIST } from "@backend/utils/const";
 import { courseNumParser, courseReviewsKey } from "@backend/utils/courseNum";
-import { addRating as addRatingToProfessor } from "@backend/types/schemaHelpers";
+import { addRating as addRatingToProfessor, emptyProfessor } from "@backend/types/schemaHelpers";
 import { pendingProfessorNotification } from "@backend/utils/discordNotifications";
 import { addRating } from "./rating";
 
@@ -71,30 +71,24 @@ export const professorRouter = t.router({
             }
 
             const professorId = crypto.randomUUID();
-            const tags = Object.fromEntries((input.rating.tags ?? []).map((tag) => [tag, 1]));
-            const professor: Professor = {
+            // Start empty and add the rating through the shared helper, so `courses`, stats and
+            // tags all come from `reviews` (a hand-built record once stored `courses: ["BUS"]`).
+            const professor = emptyProfessor({
                 id: professorId,
                 firstName: input.firstName,
                 lastName: input.lastName,
                 department: input.department,
-                courses: [input.rating.department],
-                numEvals: 1,
-                overallRating: input.rating.overallRating,
-                materialClear: input.rating.presentsMaterialClearly,
-                studentDifficulties: input.rating.recognizesStudentDifficulties,
-                // oxlint-disable-next-line @typescript-eslint/no-explicit-any
-                tags: tags as any,
-                reviews: {
-                    [courseReviewsKey(input.rating.department, input.rating.courseNum)]: [
-                        {
-                            professor: professorId,
-                            id: crypto.randomUUID(),
-                            postDate: new Date().toISOString(),
-                            ...input.rating,
-                        },
-                    ],
+            });
+            addRatingToProfessor(
+                professor,
+                {
+                    professor: professorId,
+                    id: crypto.randomUUID(),
+                    postDate: new Date().toISOString(),
+                    ...input.rating,
                 },
-            };
+                courseReviewsKey(input.rating.department, input.rating.courseNum),
+            );
 
             const existingPendingProfessors = await ctx.env.kvDao.getAllPendingProfessors();
             const duplicatePendingProfessor = existingPendingProfessors.find(
