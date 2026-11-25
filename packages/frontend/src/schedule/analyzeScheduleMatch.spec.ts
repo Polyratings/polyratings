@@ -1,6 +1,7 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import {
     analyzeScheduleMatch,
+    notApplicableMatch,
     parseSubmittedCourseKey,
     unavailableMatch,
 } from "@backend/schedule/analyzeScheduleMatch";
@@ -24,14 +25,14 @@ function stubFetch(response: () => Response | Promise<Response>) {
     vi.stubGlobal("fetch", fetchMock);
 }
 
-function analyze(client = new ScheduleApiClient(BASE_URL, API_KEY)) {
+function analyze(client = new ScheduleApiClient(BASE_URL, API_KEY), postDate = POST_DATE) {
     return analyzeScheduleMatch({
         client,
         firstName: "Ada",
         lastName: "Lovelace",
         department: "csc",
         courseNum: 1101,
-        postDate: POST_DATE,
+        postDate,
     });
 }
 
@@ -66,6 +67,27 @@ describe("analyzeScheduleMatch", () => {
             postedAt: POST_DATE,
         });
         expect(new Headers(init?.headers).get("Authorization")).toBe(`Bearer ${API_KEY}`);
+    });
+
+    it("sends legacy Date#toString() post dates as ISO 8601", async () => {
+        stubFetch(() =>
+            jsonResponse({ status: "not_applicable", termCodesChecked: [], matchedCourseKeys: [] }),
+        );
+
+        await analyze(undefined, "Thu Mar 20 2025 20:01:32 GMT+0000 (Coordinated Universal Time)");
+
+        const [requestUrl] = fetchMock.mock.calls[0];
+        const url = new URL(requestUrl instanceof Request ? requestUrl.url : requestUrl);
+        expect(url.searchParams.get("postedAt")).toBe("2025-03-20T20:01:32.000Z");
+    });
+
+    it("treats an unparseable post date as outside schedule data without a request", async () => {
+        stubFetch(() => jsonResponse({}));
+
+        await expect(analyze(undefined, "not-a-date")).resolves.toEqual(
+            notApplicableMatch("CSC 1101"),
+        );
+        expect(fetchMock).not.toHaveBeenCalled();
     });
 
     it.each(["confirmed", "course_not_taught", "not_applicable"] as const)(

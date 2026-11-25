@@ -64,12 +64,18 @@ export async function analyzeScheduleMatch(input: {
             return unavailableMatch(submittedCourseKey);
         }
 
+        // Older ratings store Date#toString() output; the API only accepts ISO 8601.
+        const postedAt = new Date(input.postDate);
+        if (Number.isNaN(postedAt.getTime())) {
+            return notApplicableMatch(submittedCourseKey);
+        }
+
         const result = await input.client.matchCourse({
             firstName: input.firstName,
             lastName: input.lastName,
             subject: department,
             catalogNumber: input.courseNum,
-            postedAt: input.postDate,
+            postedAt: postedAt.toISOString(),
         });
         if (result.status !== "ok") {
             return unavailableMatch(submittedCourseKey);
