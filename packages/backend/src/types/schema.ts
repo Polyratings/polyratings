@@ -8,7 +8,7 @@ import {
     PENDING_RATING_STATUSES,
     PROFESSOR_TAGS,
 } from "@backend/utils/const";
-import { historicalCourseNumParser, isCourseKey } from "@backend/utils/courseNum";
+import { historicalCourseNumParser } from "@backend/utils/courseNum";
 import { scheduleMatchParser } from "@backend/schedule/schema";
 import type { Moderation } from "openai/resources/moderations";
 
@@ -54,28 +54,20 @@ export type PendingRating = z.infer<typeof pendingRatingParser>;
  * `courses` on a professor is a denormalized copy of `Object.keys(reviews)`. It feeds the
  * truncated all-professors list that class search reads, so it must never drift.
  *
- * Read vs write:
- * - Read parsers (`professorParser`, `publicProfessorParser`, `truncatedProfessorParser`) stay
- *   lenient. Records written before the fix may store a bare department (`["BUS"]`), and a
- *   strict read would 500 those professor pages and the all-professors list. Full professor
- *   reads instead re-derive `courses` from `reviews`, so a stale stored value never escapes.
- * - Write parsers (`professorWriteParser`, `truncatedProfessorWriteParser`) are strict. KV
- *   writes go through them, so a record whose `courses` disagrees with its review keys, or
- *   holds something that is not a course key, throws instead of being stored.
+ * The professor parsers derive it on every parse, read or write, instead of trusting the stored
+ * or in-memory value. Records written before the fix may store a bare department (`["BUS"]`);
+ * they read with the review keys, and any write stores the review keys. A mismatch is never an
+ * error.
  */
 export function coursesFromReviews(professor: { reviews: Record<string, unknown> }): string[] {
     return Object.keys(professor.reviews);
 }
 
-/** Same set of courses, ignoring order. Duplicates count as a difference. */
-export function sameCourses(a: string[], b: string[]): boolean {
-    const setA = new Set(a);
-    return a.length === b.length && setA.size === new Set(b).size && b.every((c) => setA.has(c));
+function withDerivedCourses<T extends { courses: string[]; reviews: Record<string, unknown> }>(
+    professor: T,
+): T {
+    return { ...professor, courses: coursesFromReviews(professor) };
 }
-
-const courseKeyParser = z.string().refine(isCourseKey, {
-    error: (issue) => `Expected a course key like "CSC 1001", got ${JSON.stringify(issue.input)}`,
-});
 
 export const truncatedProfessorParser = z.object({
     id: z.uuid(),
@@ -86,7 +78,8 @@ export const truncatedProfessorParser = z.object({
     overallRating: z.number().min(0).max(4),
     materialClear: z.number().min(0).max(4),
     studentDifficulties: z.number().min(0).max(4),
-    // Lenient on read: the stored list can still hold legacy bare-department entries.
+    // The list has no `reviews` to derive from. Legacy entries may hold a bare department until
+    // the nightly cron rebuilds the list from professors, which derives `courses`.
     courses: z.string().array(),
     tags: z.partialRecord(z.enum(PROFESSOR_TAGS), z.number()).optional(),
     // ISO timestamp of the most recent review; omitted on older index blobs.
@@ -94,51 +87,26 @@ export const truncatedProfessorParser = z.object({
 });
 export type TruncatedProfessor = z.infer<typeof truncatedProfessorParser>;
 
-/** A single list entry about to be written. Every course must be a course key. */
-export const truncatedProfessorWriteParser = truncatedProfessorParser.extend({
-    courses: courseKeyParser.array(),
-});
-
-const professorShapeParser = truncatedProfessorParser.extend({
+/**
+ * Professor fields without the `courses` derivation. Extend this one when you need to replace a
+ * field: Zod refuses to override keys on a schema with a refinement, which `professorParser` has.
+ */
+export const professorObjectParser = truncatedProfessorParser.extend({
     reviews: z.record(z.string(), ratingParser.array()),
     locked: z.boolean().optional(),
     lockedMessage: z.string().optional(),
 });
 
-/** Read parser. Always replaces stored `courses` with the review keys. */
-export const professorParser = professorShapeParser.transform((professor) => ({
-    ...professor,
-    courses: coursesFromReviews(professor),
-}));
+/** KV read and write parser. Always replaces `courses` with the review keys. */
+export const professorParser = professorObjectParser.overwrite(withDerivedCourses);
 export type Professor = z.infer<typeof professorParser>;
 
-/** Write parser. Rejects a professor whose `courses` is not exactly its review keys. */
-export const professorWriteParser = professorShapeParser.superRefine((professor, ctx) => {
-    const reviewKeys = coursesFromReviews(professor);
-    for (const key of reviewKeys) {
-        if (!isCourseKey(key)) {
-            ctx.addIssue({
-                code: "custom",
-                path: ["reviews", key],
-                message: `Review bucket ${JSON.stringify(key)} is not a course key like "CSC 1001".`,
-            });
-        }
-    }
-    if (!sameCourses(professor.courses, reviewKeys)) {
-        ctx.addIssue({
-            code: "custom",
-            path: ["courses"],
-            message: `courses ${JSON.stringify(professor.courses)} must equal the review keys ${JSON.stringify(reviewKeys)}.`,
-        });
-    }
-});
-
-export const publicProfessorParser = professorShapeParser
+export const publicProfessorParser = professorObjectParser
     .extend({
         // Intentionally omit sensitive per-rating metadata (e.g. anonymousIdentifier).
         reviews: z.record(z.string(), publicRatingParser.array()),
     })
-    .transform((professor) => ({ ...professor, courses: coursesFromReviews(professor) }));
+    .overwrite(withDerivedCourses);
 export type PublicProfessor = z.infer<typeof publicProfessorParser>;
 
 export const userParser = z.object({

@@ -1,6 +1,6 @@
 import { t, protectedProcedure, type Context } from "@backend/trpc";
 import { z } from "zod";
-import { addRating, patchRating, syncProfessorCourses } from "@backend/types/schemaHelpers";
+import { addRating, patchRating } from "@backend/types/schemaHelpers";
 import {
     bulkKeys,
     COURSE_TYPES,
@@ -9,9 +9,8 @@ import {
     GRADE_LEVELS,
 } from "@backend/utils/const";
 import { TRPCError } from "@trpc/server";
-import { LIST_REPAIR_MAX_PROFESSORS } from "@backend/dao/kv-dao";
 import { Professor, professorParser, RatingReport } from "@backend/types/schema";
-import { courseReviewsKey, historicalCourseNumParser } from "@backend/utils/courseNum";
+import { courseKeyParser } from "@backend/utils/courseNum";
 import {
     bulkRatingDeletionNotification,
     adminRatingDeletionNotification,
@@ -38,25 +37,6 @@ const lockProfessorParser = z.object({
 });
 
 const MAX_REASON_LENGTH = 600;
-
-/** Admin course moves take a review-bucket key like `CSC 1001` and normalize it. */
-const courseKeyParser = z
-    .string()
-    .trim()
-    .transform((value, ctx) => {
-        const [department, courseNum, ...rest] = value.toUpperCase().split(/\s+/);
-        const departmentResult = z.enum(DEPARTMENT_LIST).safeParse(department);
-        const courseNumResult = historicalCourseNumParser.safeParse(Number(courseNum));
-        if (rest.length > 0 || !departmentResult.success || !courseNumResult.success) {
-            ctx.addIssue({
-                code: "custom",
-                message:
-                    'Course must look like "DEPT NUM" with a known department (e.g. "CSC 1001").',
-            });
-            return z.NEVER;
-        }
-        return courseReviewsKey(departmentResult.data, courseNumResult.data);
-    });
 
 function getProfessorRatingIds(professor: Professor): Set<string> {
     return new Set(
@@ -195,9 +175,6 @@ export const adminRouter = t.router({
     ),
     approvePendingProfessor: protectedProcedure.input(z.uuid()).mutation(async ({ ctx, input }) => {
         const pendingProfessor = await requirePendingProfessor(ctx, input);
-        // Pending records created before the fix stored `courses: [department]`. The read
-        // parser already re-derives it; recompute here too so approval never depends on that.
-        syncProfessorCourses(pendingProfessor);
 
         await ctx.env.kvDao.putProfessor(pendingProfessor);
         await ctx.env.kvDao.removePendingProfessor(input);
@@ -420,32 +397,6 @@ export const adminRouter = t.router({
                 courseType: updated.courseType,
             };
         }),
-    /**
-     * One-off backfill: rewrite stored professors whose `courses` differs from their review
-     * keys. Paged over the KV key list; pass back `nextCursor` until it is null. Dry run by
-     * default. Does not touch the all-professors list; run `repairProfessorListCourses` for that.
-     */
-    backfillProfessorCourses: protectedProcedure
-        .input(
-            z.object({
-                cursor: z.string().min(1).optional(),
-                limit: z.number().int().min(1).max(100).default(25),
-                dryRun: z.boolean().default(true),
-            }),
-        )
-        .mutation(({ ctx, input }) => ctx.env.kvDao.backfillProfessorCourses(input)),
-    /**
-     * One-off repair: fix `courses` on all-professors list entries with one list write.
-     * Dry run by default. Rerun while `remaining` is above zero.
-     */
-    repairProfessorListCourses: protectedProcedure
-        .input(
-            z.object({
-                dryRun: z.boolean().default(true),
-                ids: z.uuid().array().max(LIST_REPAIR_MAX_PROFESSORS).optional(),
-            }),
-        )
-        .mutation(({ ctx, input }) => ctx.env.kvDao.repairProfessorListCourses(input)),
     removeReport: protectedProcedure.input(z.uuid()).mutation(async ({ ctx, input }) => {
         await ctx.env.kvDao.removeReport(input);
     }),

@@ -1,15 +1,8 @@
-import {
-    coursesFromReviews,
-    Professor,
-    sameCourses,
-    Rating,
-    ratingParser,
-    TruncatedProfessor,
-} from "./schema";
+import { coursesFromReviews, Professor, Rating, ratingParser, TruncatedProfessor } from "./schema";
 
 /**
- * The one place `courses` is set. Every helper that changes `reviews` calls this, and
- * `professorWriteParser` rejects a write that skipped it.
+ * Keep in-memory `courses` in step with `reviews`. Every helper that changes `reviews` calls this;
+ * KV writes derive `courses` again through `professorParser`, so a missed call cannot be stored.
  */
 export function syncProfessorCourses(professor: Pick<Professor, "courses" | "reviews">): void {
     professor.courses = coursesFromReviews(professor);
@@ -292,37 +285,4 @@ export function recomputeProfessorAggregates(professor: Professor): void {
 
 function roundToPrecision(roundingTarget: number, precision: number) {
     return Math.round((roundingTarget + Number.EPSILON) * 10 ** precision) / 10 ** precision;
-}
-
-/** True when stored `courses` is not exactly the review keys (order ignored). */
-export function coursesNeedSync(professor: {
-    courses: string[];
-    reviews: Record<string, unknown>;
-}) {
-    return !sameCourses(professor.courses, coursesFromReviews(professor));
-}
-
-/**
- * Replace `courses` on matching all-professors list entries. Only `courses` changes, so every
- * other field stays exactly as the list had it. Mutates `list`.
- */
-export function patchProfessorListCourses(
-    list: TruncatedProfessor[],
-    coursesById: Map<string, string[]>,
-): { updatedIds: string[]; missingIds: string[] } {
-    const updatedIds: string[] = [];
-    const seen = new Set<string>();
-    for (const entry of list) {
-        const courses = coursesById.get(entry.id);
-        if (!courses) {
-            continue;
-        }
-        seen.add(entry.id);
-        if (!sameCourses(entry.courses, courses)) {
-            entry.courses = [...courses];
-            updatedIds.push(entry.id);
-        }
-    }
-    const missingIds = [...coursesById.keys()].filter((id) => !seen.has(id));
-    return { updatedIds, missingIds };
 }
