@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { DEPARTMENT_LIST } from "@backend/utils/const";
 
 export const COURSE_NUM_ERROR = "Use a 4-digit course number (1000–5999)";
 
@@ -36,3 +37,26 @@ export const historicalCourseNumParser = z.number().int().refine(isHistoricalCou
 export function courseReviewsKey(department: string, courseNum: number): string {
     return `${department} ${courseNum}`;
 }
+
+/**
+ * Admin input naming a review bucket, e.g. `csc 1001` -> `CSC 1001`. Accepts a current
+ * department and a quarter or semester number. Only for new keys: stored reviews still use
+ * retired prefixes (SPC, CRSC, FNR, IT, ...), so never validate existing review keys with this.
+ */
+export const courseKeyParser = z
+    .string()
+    .trim()
+    .transform((value, ctx) => {
+        const [department, courseNum, ...rest] = value.toUpperCase().split(/\s+/);
+        const departmentResult = z.enum(DEPARTMENT_LIST).safeParse(department);
+        const courseNumResult = historicalCourseNumParser.safeParse(Number(courseNum));
+        if (rest.length > 0 || !departmentResult.success || !courseNumResult.success) {
+            ctx.addIssue({
+                code: "custom",
+                message:
+                    'Course must look like "DEPT NUM" with a known department (e.g. "CSC 1001").',
+            });
+            return z.NEVER;
+        }
+        return courseReviewsKey(departmentResult.data, courseNumResult.data);
+    });

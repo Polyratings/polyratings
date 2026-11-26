@@ -181,6 +181,8 @@ export class KVDAO {
             }
         }
 
+        // `professorParser` and `professorToTruncatedProfessor` both derive `courses` from
+        // `reviews`, so the record and its list entry never store a stale value.
         await this.polyratingsNamespace.put(professorParser, professor.id, professor);
 
         const profList = await this.getAllProfessors();

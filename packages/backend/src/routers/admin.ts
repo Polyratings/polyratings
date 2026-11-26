@@ -11,7 +11,7 @@ import {
 import { TRPCError } from "@trpc/server";
 import { analyzePendingProfessorScheduleMatch } from "@backend/schedule/analyzeScheduleMatch";
 import { PendingProfessor, Professor, professorParser, RatingReport } from "@backend/types/schema";
-import { courseReviewsKey, historicalCourseNumParser } from "@backend/utils/courseNum";
+import { courseKeyParser } from "@backend/utils/courseNum";
 import {
     bulkRatingDeletionNotification,
     adminRatingDeletionNotification,
@@ -38,25 +38,6 @@ const lockProfessorParser = z.object({
 });
 
 const MAX_REASON_LENGTH = 600;
-
-/** Admin course moves take a review-bucket key like `CSC 1001` and normalize it. */
-const courseKeyParser = z
-    .string()
-    .trim()
-    .transform((value, ctx) => {
-        const [department, courseNum, ...rest] = value.toUpperCase().split(/\s+/);
-        const departmentResult = z.enum(DEPARTMENT_LIST).safeParse(department);
-        const courseNumResult = historicalCourseNumParser.safeParse(Number(courseNum));
-        if (rest.length > 0 || !departmentResult.success || !courseNumResult.success) {
-            ctx.addIssue({
-                code: "custom",
-                message:
-                    'Course must look like "DEPT NUM" with a known department (e.g. "CSC 1001").',
-            });
-            return z.NEVER;
-        }
-        return courseReviewsKey(departmentResult.data, courseNumResult.data);
-    });
 
 function getProfessorRatingIds(professor: Professor): Set<string> {
     return new Set(
