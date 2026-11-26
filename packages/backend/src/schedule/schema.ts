@@ -1,25 +1,19 @@
 import { z } from "zod";
 
-/** Instructor section reduced to the course key Polyratings matches against. */
-export const sectionOfferingParser = z.object({
-    courseKey: z.string(),
+/**
+ * Body of `GET /v1/instructors/course-match`. The Schedule API decides coverage and matching.
+ *
+ * Strict on `status`, lenient on shape: unknown extra fields (e.g. a future
+ * `matchedInstructors`) are stripped, but an unknown status fails the parse and the
+ * rating is stored as `unavailable`. Policy: Polyratings must accept a new status
+ * here, and deploy, before the Schedule API starts emitting it.
+ */
+export const courseMatchResponseParser = z.object({
+    status: z.enum(["confirmed", "course_not_taught", "not_applicable"]),
+    termCodesChecked: z.string().array(),
+    matchedCourseKeys: z.string().array(),
 });
-export type SectionOffering = z.infer<typeof sectionOfferingParser>;
-
-/** Covered term. Empty terms (`sectionCount` 0) are ignored. */
-export const termSummaryParser = z.object({
-    termCode: z.string(),
-    sectionCount: z.number(),
-});
-export type TermSummary = z.infer<typeof termSummaryParser>;
-
-export const termsListResponseParser = z.object({
-    terms: termSummaryParser.array(),
-});
-
-export const instructorMatchResponseParser = z.object({
-    sections: sectionOfferingParser.array(),
-});
+export type CourseMatchResponse = z.infer<typeof courseMatchResponseParser>;
 
 export const scheduleMatchStatusParser = z.enum([
     "confirmed",

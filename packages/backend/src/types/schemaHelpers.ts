@@ -1,4 +1,28 @@
-import { Professor, Rating, ratingParser, TruncatedProfessor } from "./schema";
+import { coursesFromReviews, Professor, Rating, ratingParser, TruncatedProfessor } from "./schema";
+
+/**
+ * Keep in-memory `courses` in step with `reviews`. Every helper that changes `reviews` calls this;
+ * KV writes derive `courses` again through `professorParser`, so a missed call cannot be stored.
+ */
+export function syncProfessorCourses(professor: Pick<Professor, "courses" | "reviews">): void {
+    professor.courses = coursesFromReviews(professor);
+}
+
+/** A professor with no ratings yet. Add the first one with `addRating` so stats and courses follow. */
+export function emptyProfessor(
+    fields: Pick<Professor, "id" | "firstName" | "lastName" | "department">,
+): Professor {
+    return {
+        ...fields,
+        courses: [],
+        numEvals: 0,
+        overallRating: 0,
+        materialClear: 0,
+        studentDifficulties: 0,
+        tags: {},
+        reviews: {},
+    };
+}
 
 export function addRating(professor: Professor, reviewUnparsed: Rating, courseName: string) {
     // Ensure that no extraneous keys are present
@@ -25,8 +49,7 @@ export function addRating(professor: Professor, reviewUnparsed: Rating, courseNa
         ratings.push(review);
     }
 
-    // Ensure that courses value is up to date
-    professor.courses = Object.keys(professor.reviews);
+    syncProfessorCourses(professor);
 
     const newMaterial =
         (professor.materialClear * professor.numEvals + review.presentsMaterialClearly) /
@@ -62,8 +85,6 @@ export function removeRating(professor: Professor, reviewId: string) {
     if (reviews.length === 1) {
         [removedRating] = professor.reviews[courseName];
         delete professor.reviews[courseName];
-        // Make sure the courses property is up to date
-        professor.courses = Object.keys(professor.reviews);
     } else {
         // We know professor index is good since we found it previously
         const reviewIndex = reviews.findIndex((review) => review.id === reviewId);
@@ -71,6 +92,7 @@ export function removeRating(professor: Professor, reviewId: string) {
         // Modifies in place
         professor.reviews[courseName].splice(reviewIndex, 1);
     }
+    syncProfessorCourses(professor);
 
     // Decrement tag counts to match addRating (single and bulk delete must stay consistent)
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -138,7 +160,7 @@ export function removeRatingsBulk(professor: Professor, ratingIds: string[]): nu
         }
     }
 
-    professor.courses = Object.keys(professor.reviews);
+    syncProfessorCourses(professor);
 
     if (removedRatings.length === 0) {
         throw new Error(
@@ -169,7 +191,8 @@ export function professorToTruncatedProfessor(professor: Professor): TruncatedPr
         firstName: professor.firstName,
         lastName: professor.lastName,
         department: professor.department,
-        courses: professor.courses,
+        // Derived, not copied, so the search index can never inherit a stale `courses`.
+        courses: coursesFromReviews(professor),
         numEvals: professor.numEvals,
         overallRating: professor.overallRating,
         materialClear: professor.materialClear,
@@ -179,13 +202,55 @@ export function professorToTruncatedProfessor(professor: Professor): TruncatedPr
     };
 }
 
+/** Metadata an admin may correct for the author. Never text, stars or tags. */
+export type RatingPatch = Partial<Pick<Rating, "grade" | "gradeLevel" | "courseType">> & {
+    course?: string;
+};
+
+/** Update a rating's metadata and/or move it to another course bucket (same rating id). */
+export function patchRating(professor: Professor, ratingId: string, patch: RatingPatch): Rating {
+    const located = Object.entries(professor.reviews)
+        .map(([course, reviews]) => [course, reviews.findIndex((r) => r.id === ratingId)] as const)
+        .find(([, index]) => index !== -1);
+
+    if (!located) {
+        throw new Error("Review Does not exist");
+    }
+
+    const [oldCourse, reviewIndex] = located;
+    const rating = professor.reviews[oldCourse][reviewIndex];
+
+    if (patch.grade !== undefined) {
+        rating.grade = patch.grade;
+    }
+    if (patch.gradeLevel !== undefined) {
+        rating.gradeLevel = patch.gradeLevel;
+    }
+    if (patch.courseType !== undefined) {
+        rating.courseType = patch.courseType;
+    }
+
+    if (patch.course && patch.course !== oldCourse) {
+        professor.reviews[oldCourse].splice(reviewIndex, 1);
+        if (professor.reviews[oldCourse].length === 0) {
+            delete professor.reviews[oldCourse];
+        }
+        const nextCourse = patch.course;
+        professor.reviews[nextCourse] ??= [];
+        professor.reviews[nextCourse].push(rating);
+    }
+
+    recomputeProfessorAggregates(professor);
+    return rating;
+}
+
 /** Recompute aggregate stats and tag counts from remaining reviews (fixes drift after bulk deletes). */
 export function recomputeProfessorAggregates(professor: Professor): void {
     const all: Rating[] = [];
     for (const courseName of Object.keys(professor.reviews)) {
         all.push(...professor.reviews[courseName]);
     }
-    professor.courses = Object.keys(professor.reviews);
+    syncProfessorCourses(professor);
 
     professor.tags = {};
     for (const rating of all) {

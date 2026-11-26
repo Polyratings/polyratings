@@ -1,4 +1,3 @@
-import { approximateTermWindow } from "@backend/schedule/termCalendar";
 import type { ScheduleMatch } from "@backend/schedule/schema";
 import { ScheduleMatchBadge } from "@/pages/admin/ScheduleMatchBadge";
 
@@ -9,13 +8,13 @@ const SEASON_LABEL: Record<string, string> = {
     "8": "fall",
 };
 
+/** Cal Poly term codes are `CYYT`: century (2 → 2000s), year in century, season digit. */
 function termSeasonYear(termCode: string) {
     const season = SEASON_LABEL[termCode[3] ?? ""];
-    const window = approximateTermWindow(termCode);
-    if (!season || !window) {
+    if (!/^\d{4}$/.test(termCode) || !season) {
         return null;
     }
-    return { season, year: window.start.getUTCFullYear() };
+    return { season, year: 1800 + Number(termCode[0]) * 100 + Number(termCode.slice(1, 3)) };
 }
 
 /** "winter, spring 2026" or "fall 2026, winter 2027". Unknown codes stay as-is. */
