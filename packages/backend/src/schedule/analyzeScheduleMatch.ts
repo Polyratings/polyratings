@@ -44,6 +44,17 @@ export function unavailableMatch(submittedCourseKey: string): ScheduleMatch {
 }
 
 /**
+ * A stored result worth reusing instead of asking the Schedule API again.
+ * `unavailable` means the check never ran (outage, timeout, misconfig), so it is
+ * treated as missing and re-checked.
+ */
+export function reusableScheduleMatch(
+    stored: ScheduleMatch | undefined,
+): ScheduleMatch | undefined {
+    return stored?.status === "unavailable" ? undefined : stored;
+}
+
+/**
  * Ask the Schedule API whether the professor taught the submitted course in any
  * covered term that had started by the post date. The API decides coverage and
  * matching; failures are `unavailable` and never block the rating.

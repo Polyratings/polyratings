@@ -1,6 +1,13 @@
 import { z } from "zod";
 
-/** Body of `GET /v1/instructors/course-match`. The Schedule API decides coverage and matching. */
+/**
+ * Body of `GET /v1/instructors/course-match`. The Schedule API decides coverage and matching.
+ *
+ * Strict on `status`, lenient on shape: unknown extra fields (e.g. a future
+ * `matchedInstructors`) are stripped, but an unknown status fails the parse and the
+ * rating is stored as `unavailable`. Policy: Polyratings must accept a new status
+ * here, and deploy, before the Schedule API starts emitting it.
+ */
 export const courseMatchResponseParser = z.object({
     status: z.enum(["confirmed", "course_not_taught", "not_applicable"]),
     termCodesChecked: z.string().array(),

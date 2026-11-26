@@ -18,6 +18,7 @@ import {
     analyzeScheduleMatch,
     notApplicableMatch,
     parseSubmittedCourseKey,
+    reusableScheduleMatch,
 } from "@backend/schedule/analyzeScheduleMatch";
 import {
     autoDeletedRatingNotification,
@@ -140,7 +141,7 @@ export const ratingsRouter = t.router({
             const existingLog = await ctx.env.kvDao.getRatingLog(input.ratingId);
             const parsedCourse = parseSubmittedCourseKey(course);
             const scheduleMatch =
-                existingLog?.scheduleMatch ??
+                reusableScheduleMatch(existingLog?.scheduleMatch) ??
                 (parsedCourse
                     ? await analyzeScheduleMatch({
                           client: ctx.env.scheduleClient,
