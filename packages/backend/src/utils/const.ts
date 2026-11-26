@@ -42,8 +42,6 @@ export const DEPARTMENT_LIST = [
     "DANC",
     "DATA",
     "DE",
-    "DEV10",
-    "DEV11",
     "DSCI",
     "ECON",
     "EDES",
