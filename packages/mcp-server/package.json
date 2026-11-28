@@ -6,7 +6,7 @@
     "scripts": {
         "dev": "tsx src/index.ts",
         "start": "node dist/index.js",
-        "build": "tsc --noEmit && esbuild src/index.ts --bundle --platform=node --outdir=dist --packages=external --format=cjs",
+        "build": "tsc --noEmit && esbuild src/index.ts --bundle --platform=node --outdir=dist --format=cjs",
         "test": "echo \"No tests yet\""
     },
     "dependencies": {
